@@ -16,22 +16,42 @@ def _print_elapsed(prefix: str, start: float, stop: float) -> None:
     print(f"{prefix} Elapsed time: {stop-start:0.5f} seconds")
 
 
-def _primeagen(inputs: tuple) -> int:
+def _part_1_primeagen(inputs: tuple) -> int:
     others = set()
     start = time.perf_counter()
-    for _input in inputs:
-        i = int(_input)
-        others.add(i)
-        check = 2020 - i
+    end = len(inputs) - 1
+    for i in range(0, end):
+        i1 = int(inputs[i])
+        others.add(i1)
+        check = 2020 - i1
         if check in others:
-            result = i*check
-            print(f"[primeagen] Twosome: {i} * {check} = {result}")
+            result = i1*check
+            print(f"[part_1_primeagen] Twosome: {i1} * {check} = {result}")
             stop = time.perf_counter()
-            _print_elapsed("[primeagen]", start, stop)
+            _print_elapsed("[part_1_primeagen]", start, stop)
             return result
 
 
-def _squared(inputs: tuple) -> int:
+def _part_2_primeagen(inputs: tuple) -> int:
+    others = set()
+    start = time.perf_counter()
+    end = len(inputs) - 1
+    for i in range(0, end):
+        i1 = int(inputs[i])
+        others.add(i1)
+        for j in range(i + 1, end):
+            i2 = int(inputs[j])
+            check = 2020 - i1 - i2
+            if check in others:
+                result = i1*i2*check
+                print(f"[part_2_primeagen] Threesome: {i1} * {i2} * {check}"
+                      f" = {result}")
+                stop = time.perf_counter()
+                _print_elapsed("[part_2_primeagen]", start, stop)
+                return result
+
+
+def _part_1_squared(inputs: tuple) -> int:
     start = time.perf_counter()
     twosome = None
     end = len(inputs) - 1
@@ -44,13 +64,13 @@ def _squared(inputs: tuple) -> int:
                 break
     result = twosome[0]*twosome[1]
     stop = time.perf_counter()
-    print(f"[squared] Twosome: {twosome[0]} * {twosome[1]}"
+    print(f"[part_1_squared] Twosome: {twosome[0]} * {twosome[1]}"
           f" = {result}")
-    _print_elapsed("[squared]", start, stop)
+    _print_elapsed("[part_1_squared]", start, stop)
     return result
 
 
-def _cubed(inputs: tuple) -> int:
+def _part_2_cubed(inputs: tuple) -> int:
     start = time.perf_counter()
     end = len(inputs) - 1
     for i in range(0, end):
@@ -64,10 +84,10 @@ def _cubed(inputs: tuple) -> int:
                     break
     result = threesome[0]*threesome[1]*threesome[2]
     stop = time.perf_counter()
-    print(f"[cubed] Threesome: {threesome[0]} * {threesome[1]}"
+    print(f"[part_2_cubed] Threesome: {threesome[0]} * {threesome[1]}"
           f" * {threesome[2]}"
           f" = {result}")
-    _print_elapsed("[cubed]", start, stop)
+    _print_elapsed("[part_2_cubed]", start, stop)
     return result
 
 
@@ -86,15 +106,17 @@ def main() -> None:
     print("====================================================")
     print("")
 
-    assert _squared(test) == 514579
-    assert _cubed(test) == 241861950
-    assert _primeagen(test) == 514579
+    assert _part_1_squared(test) == 514579
+    assert _part_2_cubed(test) == 241861950
+    assert _part_1_primeagen(test) == 514579
+    assert _part_2_primeagen(test) == 241861950
 
     inputs = _get_input()
     print(inputs)
-    _squared(inputs)
-    _primeagen(inputs)
-    _cubed(inputs)
+    _part_1_squared(inputs)
+    _part_1_primeagen(inputs)
+    _part_2_cubed(inputs)
+    _part_2_primeagen(inputs)
 
 
 if __name__ == '__main__':
