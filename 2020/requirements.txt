@@ -2,8 +2,12 @@ advent-of-code-data==0.8.5
 beautifulsoup4==4.9.3
 certifi==2020.11.8
 chardet==3.0.4
+flake8==3.8.4
 idna==2.10
+mccabe==0.6.1
 Pebble==4.5.3
+pycodestyle==2.6.0
+pyflakes==2.2.0
 python-dateutil==2.8.1
 requests==2.25.0
 six==1.15.0
