@@ -4,6 +4,7 @@
 #
 import aocd
 import re
+from operator import xor
 
 
 def _get_input() -> set:
@@ -14,12 +15,12 @@ def _get_input() -> set:
 
 def _parse(input_: str) -> (int, int, str, str, int):
     m = re.search(r'^(\d{1,2})-(\d{1,2}) ([a-z]{1}): ([a-z]+)$', input_)
-    min_ = int(m.group(1))
-    max_ = int(m.group(2))
+    first = int(m.group(1))
+    second = int(m.group(2))
     wanted = m.group(3)
     passw = m.group(4)
     m1 = re.findall(r'(' + wanted + '{1})', passw)
-    return (min_, max_, wanted, passw, len(m1))
+    return (first, second, wanted, passw, len(m1))
 
 
 def _part_1(inputs: set) -> int:
@@ -27,6 +28,23 @@ def _part_1(inputs: set) -> int:
     for input_ in inputs:
         parsed = _parse(input_)
         check = parsed[4] in range(parsed[0], parsed[1] + 1)
+        print(f"{input_} -> {parsed} : {check}")
+        if check:
+            valid += 1
+    return valid
+
+
+def _part_2(inputs: set) -> int:
+    valid = 0
+    for input_ in inputs:
+        parsed = _parse(input_)
+        first = parsed[0]
+        second = parsed[1]
+        wanted = parsed[2]
+        passw = parsed[3]
+        first_matched = passw[first - 1] == wanted
+        second_matched = passw[second - 1] == wanted
+        check = xor(first_matched, second_matched)
         print(f"{input_} -> {parsed} : {check}")
         if check:
             valid += 1
@@ -46,9 +64,13 @@ def main() -> None:
     print("")
 
     assert _part_1(test) == 2
+    assert _part_2(test) == 1
 
     inputs = _get_input()
-    print("Part 1: " + str(_part_1(inputs)))
+    result1 = _part_1(inputs)
+    result2 = _part_2(inputs)
+    print("Part 1: " + str(result1))
+    print("Part 2: " + str(result2))
 
 
 if __name__ == '__main__':
