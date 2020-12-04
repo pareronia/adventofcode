@@ -7,7 +7,9 @@ import time
 
 
 def _get_input() -> tuple:
-    return tuple(aocd.get_data(year=2020, day=1).splitlines())
+    inputs = tuple(aocd.get_data(year=2020, day=1).splitlines())
+    assert len(inputs) == 200
+    return inputs
 
 
 def _print_elapsed(prefix: str, start: float, stop: float) -> None:
