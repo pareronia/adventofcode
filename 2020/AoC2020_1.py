@@ -16,6 +16,15 @@ def _print_elapsed(prefix: str, start: float, stop: float) -> None:
     print(f"{prefix} Elapsed time: {stop-start:0.5f} seconds")
 
 
+def _print_part_1(prefix: str, first: int, second: int, result: int) -> None:
+    print(f"{prefix} Twosome: {first} * {second} = {result}")
+
+
+def _print_part_2(prefix: str, first: int, second: int, third: int,
+                  result: int) -> None:
+    print(f"{prefix} Threesome: {first} * {second} * {third} = {result}")
+
+
 def _part_1_primeagen(inputs: tuple) -> int:
     others = set()
     start = time.perf_counter()
@@ -26,8 +35,8 @@ def _part_1_primeagen(inputs: tuple) -> int:
         check = 2020 - i1
         if check in others:
             result = i1*check
-            print(f"[part_1_primeagen] Twosome: {i1} * {check} = {result}")
             stop = time.perf_counter()
+            _print_part_1("[part_1_primeagen]", i1, check, result)
             _print_elapsed("[part_1_primeagen]", start, stop)
             return result
 
@@ -44,49 +53,43 @@ def _part_2_primeagen(inputs: tuple) -> int:
             check = 2020 - i1 - i2
             if check in others:
                 result = i1*i2*check
-                print(f"[part_2_primeagen] Threesome: {i1} * {i2} * {check}"
-                      f" = {result}")
                 stop = time.perf_counter()
+                _print_part_2("[part_2_primeagen]", i1, i2, check, result)
                 _print_elapsed("[part_2_primeagen]", start, stop)
                 return result
 
 
+def _squared(inputs: tuple, target: int) -> tuple:
+    for i in range(0, len(inputs) - 1):
+        i1 = int(inputs[i])
+        for j in inputs[i:]:
+            i2 = int(j)
+            if i1 + i2 == target:
+                return (i1, i2)
+
+
 def _part_1_squared(inputs: tuple) -> int:
     start = time.perf_counter()
-    twosome = None
-    end = len(inputs) - 1
-    for i in range(0, end):
-        i1 = int(inputs[i])
-        for j in range(i + 1, end):
-            i2 = int(inputs[j])
-            if i1 + i2 == 2020:
-                twosome = (i1, i2)
-                break
+    twosome = _squared(inputs, 2020)
     result = twosome[0]*twosome[1]
     stop = time.perf_counter()
-    print(f"[part_1_squared] Twosome: {twosome[0]} * {twosome[1]}"
-          f" = {result}")
+    _print_part_1("[part_1_squared]", twosome[0], twosome[1], result)
     _print_elapsed("[part_1_squared]", start, stop)
     return result
 
 
 def _part_2_cubed(inputs: tuple) -> int:
     start = time.perf_counter()
-    end = len(inputs) - 1
-    for i in range(0, end):
+    for i in range(0, len(inputs) - 1):
         i1 = int(inputs[i])
-        for j in range(i + 1, end):
-            i2 = int(inputs[j])
-            for k in range(j + 1, end):
-                i3 = int(inputs[k])
-                if i1 + i2 + i3 == 2020:
-                    threesome = (i1, i2, i3)
-                    break
+        twosome = _squared(inputs[i:], 2020-i1)
+        if twosome is not None:
+            threesome = (twosome[0], twosome[1], i1)
+            break
     result = threesome[0]*threesome[1]*threesome[2]
     stop = time.perf_counter()
-    print(f"[part_2_cubed] Threesome: {threesome[0]} * {threesome[1]}"
-          f" * {threesome[2]}"
-          f" = {result}")
+    _print_part_2("[part_2_cubed]", threesome[0], threesome[1], threesome[2],
+                  result)
     _print_elapsed("[part_2_cubed]", start, stop)
     return result
 
