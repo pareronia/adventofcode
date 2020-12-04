@@ -2,13 +2,12 @@
 #
 # Advent of Code 2020 Day 1
 #
+import aocd
 import time
 
 
 def _get_input() -> tuple:
-    with open("AoC2020_1.input.txt") as f:
-        inputs = f.readlines()
-    return tuple([input.strip() for input in inputs])
+    return tuple(aocd.get_data(year=2020, day=1).splitlines())
 
 
 def _print_elapsed(prefix: str, start: float, stop: float) -> None:
