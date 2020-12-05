@@ -2,6 +2,7 @@
 #
 # Advent of Code 2020 Day 3
 #
+import math
 import aocd
 
 
@@ -74,8 +75,25 @@ def _unflatten(flat: str, width: int) -> list[str]:
     return grid
 
 
-def _count_hits(run: str) -> int:
-    return run.count(hit)
+def _part_1(inputs: list[str],
+            step_x: int,
+            step_y: int
+            ) -> tuple[list[str], int]:
+    grid = _create_grid(inputs, step_x)
+    width = len(grid[0])
+    flat = _flatten_grid(grid)
+    indices = _find_indices(len(flat)-1, step_y*width, step_x)
+    run = _do_run(flat, indices)
+    result = _unflatten(run, width)
+    hits = run.count(hit)
+    return result, hits
+
+
+def _part_2(inputs: list[str],
+            steps_list: list[tuple[int, int]]
+            ) -> None:
+    results = [_part_1(inputs, steps[0], steps[1])[1] for steps in steps_list]
+    return math.prod(results)
 
 
 test = ["..##.......",
@@ -92,19 +110,6 @@ test = ["..##.......",
         ]
 
 
-def _part_1(inputs: list[str],
-            step_x: int,
-            step_y: int
-            ) -> tuple[list[str], int]:
-    grid = _create_grid(inputs, step_x)
-    width = len(grid[0])
-    flat = _flatten_grid(grid)
-    indices = _find_indices(len(flat)-1, step_y*width, step_x)
-    run = _do_run(flat, indices)
-    result = _unflatten(run, width)
-    return result, _count_hits(run)
-
-
 def main() -> None:
     print("====================================================")
     print("AoC 2020 Day 3 - https://adventofcode.com/2020/day/3")
@@ -116,10 +121,23 @@ def main() -> None:
     assert _part_1(test, 5, 1)[1] == 3
     assert _part_1(test, 7, 1)[1] == 4
     assert _part_1(test, 1, 2)[1] == 2
+    assert _part_2(test, [(1, 1),
+                          (3, 1),
+                          (5, 1),
+                          (7, 1),
+                          (1, 2),
+                          ]) == 336
 
     inputs = _get_input()
     result1 = _part_1(inputs, 3, 1)
-    print("Part 1: " + str(result1[1]))
+    print(f"Part 1: {result1[1]}")
+    result2 = _part_2(inputs, [(1, 1),
+                               (3, 1),
+                               (5, 1),
+                               (7, 1),
+                               (1, 2),
+                               ])
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
