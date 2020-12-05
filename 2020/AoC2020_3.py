@@ -52,7 +52,7 @@ def _find_indices(max_: int, step_x: int, step_y: int) -> list[int]:
 
 def _do_run(flat: str, indices: list[int]) -> str:
     run = ""
-    for i in range(0, len(flat)-1):
+    for i in range(0, len(flat)):
         if i in indices:
             if flat[i] == open_square:
                 run += miss
@@ -92,9 +92,10 @@ test = ["..##.......",
         ]
 
 
-def _part_1(inputs: list[str]) -> tuple[list[str], int]:
-    step_x = 3
-    step_y = 1
+def _part_1(inputs: list[str],
+            step_x: int,
+            step_y: int
+            ) -> tuple[list[str], int]:
     grid = _create_grid(inputs, step_x)
     width = len(grid[0])
     flat = _flatten_grid(grid)
@@ -110,13 +111,14 @@ def main() -> None:
     print("====================================================")
     print("")
 
-    test_result = _part_1(test)
-    [print(x) for x in test_result[0]]
-    print("")
-    assert test_result[1] == 7
+    assert _part_1(test, 1, 1)[1] == 2
+    assert _part_1(test, 3, 1)[1] == 7
+    assert _part_1(test, 5, 1)[1] == 3
+    assert _part_1(test, 7, 1)[1] == 4
+    assert _part_1(test, 1, 2)[1] == 2
 
     inputs = _get_input()
-    result1 = _part_1(inputs)
+    result1 = _part_1(inputs, 3, 1)
     print("Part 1: " + str(result1[1]))
 
 
