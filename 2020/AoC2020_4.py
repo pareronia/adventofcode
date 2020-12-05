@@ -2,24 +2,43 @@
 #
 # Advent of Code 2020 Day 4
 #
+import aocd
 
 
-def part_1(inputs: list[str]) -> int:
-    invalid = 0
-    colons = 0
-    has_cid = False
+def _get_input() -> list[str]:
+    inputs = aocd.get_data(year=2020, day=4).splitlines()
+    assert len(inputs) == 1009
+    return inputs
+
+
+def _normalize(inputs: list[str]) -> list[str]:
+    lines = []
+    line = ""
     for input_ in inputs:
-        if len(input_) == 0:
-            if colons <= 6:
-                invalid += 1
-            if colons == 7 and not has_cid:
-                invalid += 1
-            colons = 0
-            has_cid = False
+        if len(input_) > 0:
+            line += input_
             continue
-        colons += input_.count(":")
-        has_cid = "cid:" in input_
-    return invalid
+        lines.append(line)
+        line = ""
+    lines.append(line)
+    return lines
+
+
+def _check_valid_1(line: str, verbose: bool) -> bool:
+    colons = line.count(":")
+    has_cid = "cid:" in line
+    valid = colons == 8 or (colons == 7 and not has_cid)
+    if verbose:
+        if valid:
+            print(f"colons: {colons}, has_cid: {has_cid} -> valid ({line})")
+        else:
+            print(f"colons: {colons}, has_cid: {has_cid} -> INVALID ({line})")
+    return valid
+
+
+def part_1(inputs: list[str], verbose: bool = False) -> int:
+    return len([input_ for input_ in _normalize(inputs)
+                if _check_valid_1(input_, verbose)])
 
 
 test = ["ecl:gry pid:860033327 eyr:2020 hcl:#fffffd",
@@ -45,6 +64,10 @@ def main() -> None:
     print("")
 
     assert part_1(test) == 2
+
+    inputs = _get_input()
+    result1 = part_1(inputs)
+    print(f"Part 1: {result1}")
 
 
 if __name__ == '__main__':
