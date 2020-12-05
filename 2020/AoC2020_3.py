@@ -2,20 +2,33 @@
 #
 # Advent of Code 2020 Day 3
 #
-# import aocd
+import aocd
 
 
-# def _get_input() -> list[str]:
-#     inputs = aocd.get_data(year=2020, day=3).splitlines()
-#     assert len(inputs) == 323
-#     return inputs
+open_square = "."
+tree = "#"
+hit = "X"
+miss = "O"
+
+
+def _get_input() -> list[str]:
+    inputs = aocd.get_data(year=2020, day=3).splitlines()
+    assert len(inputs) == 323
+    return inputs
 
 
 def _create_grid(inputs: list[str], step_x: int) -> list[str]:
+    length = len(inputs)
+    width = len(inputs[0])
+    width_required = length*step_x
+    width_divmod = divmod(width_required, width)
+    times_x = width_divmod[0] \
+        if width_divmod[1] == 0 \
+        else width_divmod[0]+1
     grid = list()
     for input_ in inputs:
         line = ""
-        for i in range(0, step_x):
+        for i in range(0, times_x):
             line += input_
         grid.append(line)
     return grid
@@ -41,10 +54,12 @@ def _do_run(flat: str, indices: list[int]) -> str:
     run = ""
     for i in range(0, len(flat)-1):
         if i in indices:
-            if flat[i] == ".":
-                run += "O"
+            if flat[i] == open_square:
+                run += miss
+            elif flat[i] == tree:
+                run += hit
             else:
-                run += "X"
+                raise ValueError("Invalid input")
         else:
             run += flat[i]
     return run
@@ -60,7 +75,7 @@ def _unflatten(flat: str, width: int) -> list[str]:
 
 
 def _count_hits(run: str) -> int:
-    return run.count("X")
+    return run.count(hit)
 
 
 test = ["..##.......",
@@ -77,25 +92,32 @@ test = ["..##.......",
         ]
 
 
+def _part_1(inputs: list[str]) -> tuple[list[str], int]:
+    step_x = 3
+    step_y = 1
+    grid = _create_grid(inputs, step_x)
+    width = len(grid[0])
+    flat = _flatten_grid(grid)
+    indices = _find_indices(len(flat)-1, step_y*width, step_x)
+    run = _do_run(flat, indices)
+    result = _unflatten(run, width)
+    return result, _count_hits(run)
+
+
 def main() -> None:
     print("====================================================")
     print("AoC 2020 Day 3 - https://adventofcode.com/2020/day/3")
     print("====================================================")
     print("")
 
-    # inputs = _get_input()
-    # [print(input_) for input_ in inputs]
-    grid = _create_grid(test, 3)
-    [print(input_) for input_ in grid]
-    flat = _flatten_grid(grid)
-    print(flat)
-    indices = _find_indices(len(flat)-1, len(grid[0]), 3)
-    print(indices)
-    run = _do_run(flat, indices)
-    result = _unflatten(run, len(grid[0]))
-    [print(x) for x in result]
-    assert _count_hits(run) == 7
-    # [print(x) for x in _unflatten("abcdefghijkabcdefghijk", 11)]
+    test_result = _part_1(test)
+    [print(x) for x in test_result[0]]
+    print("")
+    assert test_result[1] == 7
+
+    inputs = _get_input()
+    result1 = _part_1(inputs)
+    print("Part 1: " + str(result1[1]))
 
 
 if __name__ == '__main__':
