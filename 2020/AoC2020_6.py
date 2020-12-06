@@ -11,18 +11,44 @@ def _get_input() -> list[str]:
     return inputs
 
 
+def _append_empty_line(lst: list[str]) -> list[str]:
+    new_lst = list(lst)
+    new_lst.append("")
+    return new_lst
+
+
+def _sum_of_counts(lists: list[list]) -> int:
+    return sum([len(lst) for lst in lists])
+
+
 def part_1(inputs: list[str]) -> int:
-    inputs.append("")
-    all_answers = []
-    answers = set()
+    inputs = _append_empty_line(inputs)
+    unique_anwers_per_group = []
+    unique_answers_for_group = set()
     for input_ in inputs:
         if len(input_) > 0:
-            answers.update(input_)
+            unique_answers_for_group.update(input_)
             continue
-        all_answers.append(answers)
-        answers = set()
-    all_answers.append(answers)
-    return sum([len(answers) for answers in all_answers])
+        unique_anwers_per_group.append(unique_answers_for_group)
+        unique_answers_for_group = set()
+    return _sum_of_counts(unique_anwers_per_group)
+
+
+alfabet = "abcdefghijklmnopqrstuvwxyz"
+
+
+def part_2(inputs: list[str]) -> int:
+    inputs = _append_empty_line(inputs)
+    common_answers_per_group = []
+    common_answers_for_group = set(alfabet)
+    for input_ in inputs:
+        if len(input_) > 0:
+            common_answers_for_group = common_answers_for_group\
+                    .intersection(set(input_))
+            continue
+        common_answers_per_group.append(common_answers_for_group)
+        common_answers_for_group = set(alfabet)
+    return _sum_of_counts(common_answers_per_group)
 
 
 test = ["abc",
@@ -50,10 +76,13 @@ def main() -> None:
     print("")
 
     assert part_1(test) == 11
+    assert part_2(test) == 6
 
     inputs = _get_input()
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
