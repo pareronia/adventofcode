@@ -11,16 +11,43 @@ def _get_input() -> list[str]:
     return inputs
 
 
-def part_1(inputs: list[str]) -> int:
+def _translate(input_: str) -> str:
     table = str.maketrans("FBLR", "0101")
-    return max([int(input_.translate(table), 2) for input_ in inputs])
+    return input_.translate(table)
 
 
-test = ["FBFBBFFRLR",
-        "BFFFBBFRRR",
-        "FFFBBBFRRR",
-        "BBFFBBFRLL"
-        ]
+def _as_int(binary: str) -> int:
+    return int(binary, 2)
+
+
+def part_1(inputs: list[str]) -> int:
+    translated = [_translate(input_) for input_ in inputs]
+    return max([_as_int(translated) for translated in translated])
+
+
+def part_2(inputs: list[str]) -> int:
+    sorted_inputs = list(inputs)
+    sorted_inputs.sort()
+    for i in range(0, len(sorted_inputs)):
+        if i+1 == len(sorted_inputs):
+            raise ValueError("Unsolvable")
+        if sorted_inputs[i][-1] == sorted_inputs[i+1][-1]:
+            return _as_int(_translate(sorted_inputs[i])) + 1
+
+
+test_1 = ["FBFBBFFRLR",
+          "BFFFBBFRRR",
+          "FFFBBBFRRR",
+          "BBFFBBFRLL"
+          ]
+
+
+test_2 = ["FFFFFFFFFF",
+          "FFFFFFFFFR",
+          "FFFFFFFFRF",
+          # "FFFFFFFFRR",
+          "FFFFFFFRFF"
+          ]
 
 
 def main() -> None:
@@ -29,11 +56,14 @@ def main() -> None:
     print("====================================================")
     print("")
 
-    assert part_1(test) == 820
+    assert part_1(test_1) == 820
+    assert part_2(test_2) == 3
 
     inputs = _get_input()
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
