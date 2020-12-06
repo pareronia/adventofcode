@@ -98,10 +98,7 @@ test = ("1721",
 
 
 def main() -> None:
-    print("====================================================")
-    print("AoC 2020 Day 1 - https://adventofcode.com/2020/day/1")
-    print("====================================================")
-    print("")
+    my_aocd.print_header(2020, 1)
 
     assert _part_1_squared(test) == 514579
     assert _part_2_cubed(test) == 241861950

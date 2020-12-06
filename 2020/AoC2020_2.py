@@ -52,10 +52,7 @@ test = {"1-3 a: abcde",
 
 
 def main() -> None:
-    print("====================================================")
-    print("AoC 2020 Day 2 - https://adventofcode.com/2020/day/2")
-    print("====================================================")
-    print("")
+    my_aocd.print_header(2020, 2)
 
     assert _part_1(test) == 2
     assert _part_2(test) == 1

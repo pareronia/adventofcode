@@ -105,10 +105,7 @@ test = ["..##.......",
 
 
 def main() -> None:
-    print("====================================================")
-    print("AoC 2020 Day 3 - https://adventofcode.com/2020/day/3")
-    print("====================================================")
-    print("")
+    my_aocd.print_header(2020, 3)
 
     assert _part_1(test, 1, 1)[1] == 2
     assert _part_1(test, 3, 1)[1] == 7

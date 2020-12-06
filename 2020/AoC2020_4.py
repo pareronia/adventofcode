@@ -156,10 +156,7 @@ test = ["ecl:gry pid:860033327 eyr:2020 hcl:#fffffd",
 
 
 def main() -> None:
-    print("====================================================")
-    print("AoC 2020 Day 4 - https://adventofcode.com/2020/day/4")
-    print("====================================================")
-    print("")
+    my_aocd.print_header(2020, 4)
 
     assert part_1(test) == 10
     assert part_2(test) == 6

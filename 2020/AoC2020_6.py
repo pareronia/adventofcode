@@ -64,10 +64,7 @@ test = ["abc",
 
 
 def main() -> None:
-    print("====================================================")
-    print("AoC 2020 Day 6 - https://adventofcode.com/2020/day/6")
-    print("====================================================")
-    print("")
+    my_aocd.print_header(2020, 6)
 
     assert part_1(test) == 11
     assert part_2(test) == 6
