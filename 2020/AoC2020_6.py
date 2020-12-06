@@ -5,7 +5,7 @@
 import my_aocd
 
 
-def _append_empty_line(lst: list[str]) -> list[str]:
+def _append_empty_line(lst: tuple[str]) -> list[str]:
     new_lst = list(lst)
     new_lst.append("")
     return new_lst
@@ -15,7 +15,7 @@ def _sum_of_counts(lists: list[list]) -> int:
     return sum([len(lst) for lst in lists])
 
 
-def part_1(inputs: list[str]) -> int:
+def part_1(inputs: tuple[str]) -> int:
     inputs = _append_empty_line(inputs)
     unique_anwers_per_group = []
     unique_answers_for_group = set()
@@ -31,7 +31,7 @@ def part_1(inputs: list[str]) -> int:
 alfabet = "abcdefghijklmnopqrstuvwxyz"
 
 
-def part_2(inputs: list[str]) -> int:
+def part_2(inputs: tuple[str]) -> int:
     inputs = _append_empty_line(inputs)
     common_answers_per_group = []
     common_answers_for_group = set(alfabet)
@@ -69,7 +69,7 @@ def main() -> None:
     assert part_1(test) == 11
     assert part_2(test) == 6
 
-    inputs = my_aocd.get_input_as_list(2020, 6, 2042)
+    inputs = my_aocd.get_input_as_tuple(2020, 6, 2042)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

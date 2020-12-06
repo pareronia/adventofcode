@@ -14,12 +14,12 @@ def _as_int(binary: str) -> int:
     return int(binary, 2)
 
 
-def part_1(inputs: list[str]) -> int:
+def part_1(inputs: tuple[str]) -> int:
     translated = [_translate(input_) for input_ in inputs]
     return max([_as_int(translated) for translated in translated])
 
 
-def part_2(inputs: list[str]) -> int:
+def part_2(inputs: tuple[str]) -> int:
     sorted_inputs = list(inputs)
     sorted_inputs.sort()
     for i in range(0, len(sorted_inputs)):
@@ -50,7 +50,7 @@ def main() -> None:
     assert part_1(test_1) == 820
     assert part_2(test_2) == 3
 
-    inputs = my_aocd.get_input_as_list(2020, 5, 839)
+    inputs = my_aocd.get_input_as_tuple(2020, 5, 839)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

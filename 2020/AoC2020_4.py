@@ -6,7 +6,7 @@ import re
 import my_aocd
 
 
-def _normalize(inputs: list[str]) -> list[str]:
+def _normalize(inputs: tuple[str]) -> list[str]:
     lines = []
     line = ""
     for input_ in inputs:
@@ -101,12 +101,12 @@ def _check_valid_2(line: str, verbose: bool) -> bool:
     return passport.valid()
 
 
-def part_1(inputs: list[str], verbose: bool = False) -> int:
+def part_1(inputs: tuple[str], verbose: bool = False) -> int:
     return len([input_ for input_ in _normalize(inputs)
                 if _check_valid_1(input_, verbose)])
 
 
-def part_2(inputs: list[str], verbose: bool = False) -> int:
+def part_2(inputs: tuple[str], verbose: bool = False) -> int:
     return len([input_ for input_ in _normalize(inputs)
                 if _check_valid_2(input_, verbose)])
 
@@ -161,7 +161,7 @@ def main() -> None:
     assert part_1(test) == 10
     assert part_2(test) == 6
 
-    inputs = my_aocd.get_input_as_list(2020, 4, 1009)
+    inputs = my_aocd.get_input_as_tuple(2020, 4, 1009)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

@@ -12,7 +12,7 @@ hit = "X"
 miss = "O"
 
 
-def _create_grid(inputs: list[str], step_x: int) -> list[str]:
+def _create_grid(inputs: tuple[str], step_x: int) -> list[str]:
     length = len(inputs)
     width = len(inputs[0])
     width_required = length*step_x
@@ -69,7 +69,7 @@ def _unflatten(flat: str, width: int) -> list[str]:
     return grid
 
 
-def _part_1(inputs: list[str],
+def _part_1(inputs: tuple[str],
             step_x: int,
             step_y: int
             ) -> tuple[list[str], int]:
@@ -83,8 +83,8 @@ def _part_1(inputs: list[str],
     return result, hits
 
 
-def _part_2(inputs: list[str],
-            steps_list: list[tuple[int, int]]
+def _part_2(inputs: tuple[str],
+            steps_list: tuple[tuple[int, int]]
             ) -> None:
     results = [_part_1(inputs, steps[0], steps[1])[1] for steps in steps_list]
     return math.prod(results)
@@ -112,22 +112,22 @@ def main() -> None:
     assert _part_1(test, 5, 1)[1] == 3
     assert _part_1(test, 7, 1)[1] == 4
     assert _part_1(test, 1, 2)[1] == 2
-    assert _part_2(test, [(1, 1),
+    assert _part_2(test, ((1, 1),
                           (3, 1),
                           (5, 1),
                           (7, 1),
                           (1, 2),
-                          ]) == 336
+                          )) == 336
 
-    inputs = my_aocd.get_input_as_list(2020, 3, 323)
+    inputs = my_aocd.get_input_as_tuple(2020, 3, 323)
     result1 = _part_1(inputs, 3, 1)
     print(f"Part 1: {result1[1]}")
-    result2 = _part_2(inputs, [(1, 1),
+    result2 = _part_2(inputs, ((1, 1),
                                (3, 1),
                                (5, 1),
                                (7, 1),
                                (1, 2),
-                               ])
+                               ))
     print(f"Part 2: {result2}")
 
 

@@ -17,7 +17,7 @@ def _parse(input_: str) -> (int, int, str, str, int):
     return (first, second, wanted, passw, len(m1))
 
 
-def _part_1(inputs: set) -> int:
+def _part_1(inputs: tuple[str]) -> int:
     valid = 0
     for input_ in inputs:
         parsed = _parse(input_)
@@ -28,7 +28,7 @@ def _part_1(inputs: set) -> int:
     return valid
 
 
-def _part_2(inputs: set) -> int:
+def _part_2(inputs: tuple[str]) -> int:
     valid = 0
     for input_ in inputs:
         parsed = _parse(input_)
@@ -57,7 +57,7 @@ def main() -> None:
     assert _part_1(test) == 2
     assert _part_2(test) == 1
 
-    inputs = my_aocd.get_input_as_set(2020, 2, 1000)
+    inputs = my_aocd.get_input_as_tuple(2020, 2, 1000)
     result1 = _part_1(inputs)
     result2 = _part_2(inputs)
     print("Part 1: " + str(result1))
