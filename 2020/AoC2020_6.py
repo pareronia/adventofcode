@@ -2,13 +2,7 @@
 #
 # Advent of Code 2020 Day 6
 #
-import aocd
-
-
-def _get_input() -> list[str]:
-    inputs = aocd.get_data(year=2020, day=6).splitlines()
-    assert len(inputs) == 2042
-    return inputs
+import my_aocd
 
 
 def _append_empty_line(lst: list[str]) -> list[str]:
@@ -78,7 +72,7 @@ def main() -> None:
     assert part_1(test) == 11
     assert part_2(test) == 6
 
-    inputs = _get_input()
+    inputs = my_aocd.get_input_as_list(2020, 6, 2042)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

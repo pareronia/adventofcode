@@ -3,19 +3,13 @@
 # Advent of Code 2020 Day 3
 #
 import math
-import aocd
+import my_aocd
 
 
 open_square = "."
 tree = "#"
 hit = "X"
 miss = "O"
-
-
-def _get_input() -> list[str]:
-    inputs = aocd.get_data(year=2020, day=3).splitlines()
-    assert len(inputs) == 323
-    return inputs
 
 
 def _create_grid(inputs: list[str], step_x: int) -> list[str]:
@@ -128,7 +122,7 @@ def main() -> None:
                           (1, 2),
                           ]) == 336
 
-    inputs = _get_input()
+    inputs = my_aocd.get_input_as_list(2020, 3, 323)
     result1 = _part_1(inputs, 3, 1)
     print(f"Part 1: {result1[1]}")
     result2 = _part_2(inputs, [(1, 1),

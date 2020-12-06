@@ -2,13 +2,7 @@
 #
 # Advent of Code 2020 Day 5
 #
-import aocd
-
-
-def _get_input() -> list[str]:
-    inputs = aocd.get_data(year=2020, day=5).splitlines()
-    assert len(inputs) == 839
-    return inputs
+import my_aocd
 
 
 def _translate(input_: str) -> str:
@@ -59,7 +53,7 @@ def main() -> None:
     assert part_1(test_1) == 820
     assert part_2(test_2) == 3
 
-    inputs = _get_input()
+    inputs = my_aocd.get_input_as_list(2020, 5, 839)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

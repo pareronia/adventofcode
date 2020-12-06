@@ -2,14 +2,8 @@
 #
 # Advent of Code 2020 Day 1
 #
-import aocd
 import time
-
-
-def _get_input() -> tuple:
-    inputs = tuple(aocd.get_data(year=2020, day=1).splitlines())
-    assert len(inputs) == 200
-    return inputs
+import my_aocd
 
 
 def _print_elapsed(prefix: str, start: float, stop: float) -> None:
@@ -114,7 +108,7 @@ def main() -> None:
     assert _part_1_primeagen(test) == 514579
     assert _part_2_primeagen(test) == 241861950
 
-    inputs = _get_input()
+    inputs = my_aocd.get_input_as_tuple(2020, 1, 200)
     print(inputs)
     _part_1_squared(inputs)
     _part_1_primeagen(inputs)

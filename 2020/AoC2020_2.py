@@ -2,15 +2,9 @@
 #
 # Advent of Code 2020 Day 2
 #
-import aocd
 import re
 from operator import xor
-
-
-def _get_input() -> set:
-    inputs = aocd.get_data(year=2020, day=2).splitlines()
-    assert len(inputs) == 1000
-    return inputs
+import my_aocd
 
 
 def _parse(input_: str) -> (int, int, str, str, int):
@@ -66,7 +60,7 @@ def main() -> None:
     assert _part_1(test) == 2
     assert _part_2(test) == 1
 
-    inputs = _get_input()
+    inputs = my_aocd.get_input_as_set(2020, 2, 1000)
     result1 = _part_1(inputs)
     result2 = _part_2(inputs)
     print("Part 1: " + str(result1))
