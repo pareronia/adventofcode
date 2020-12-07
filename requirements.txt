@@ -3,11 +3,13 @@ bandit==1.6.2
 beautifulsoup4==4.9.3
 certifi==2020.11.8
 chardet==3.0.4
+decorator==4.4.2
 flake8==3.8.4
 gitdb==4.0.5
 GitPython==3.1.11
 idna==2.10
 mccabe==0.6.1
+networkx==2.5
 pbr==5.5.1
 Pebble==4.5.3
 pycodestyle==2.6.0
