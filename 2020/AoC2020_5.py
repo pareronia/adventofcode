@@ -15,14 +15,13 @@ def _as_int(binary: str) -> int:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    translated = [_translate(input_) for input_ in inputs]
-    return max([_as_int(translated) for translated in translated])
+    return max([_as_int(_translate(input_)) for input_ in inputs])
 
 
 def part_2(inputs: tuple[str]) -> int:
     sorted_inputs = list(inputs)
     sorted_inputs.sort()
-    for i in range(0, len(sorted_inputs)):
+    for i in range(len(sorted_inputs)):
         if i+1 == len(sorted_inputs):
             raise ValueError("Unsolvable")
         if sorted_inputs[i][-1] == sorted_inputs[i+1][-1]:
