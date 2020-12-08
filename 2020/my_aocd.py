@@ -14,6 +14,11 @@ def get_input_as_tuple(year: int, day: int,
     return tuple(get_input_as_list(year, day, expected))
 
 
+def get_input_as_ints_tuple(year: int, day: int,
+                            expected: int) -> tuple[int]:
+    return tuple(int(s) for s in get_input_as_list(year, day, expected))
+
+
 def print_header(year: int, day: int) -> None:
     print("====================================================")
     print(f"AoC {year} Day {day} - https://adventofcode.com/{year}/day/{day}")

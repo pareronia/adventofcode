@@ -19,50 +19,45 @@ def _print_part_2(prefix: str, first: int, second: int, third: int,
     print(f"{prefix} Threesome: {first} * {second} * {third} = {result}")
 
 
-def _part_1_primeagen(inputs: tuple) -> int:
-    others = set()
+def part_1_primeagen(inputs: tuple[int]) -> int:
+    others = set[int]()
     start = time.perf_counter()
-    end = len(inputs) - 1
-    for i in range(0, end):
-        i1 = int(inputs[i])
-        others.add(i1)
-        check = 2020 - i1
+    for n1 in inputs:
+        others.add(n1)
+        check = 2020 - n1
         if check in others:
-            result = i1*check
+            result = n1*check
             stop = time.perf_counter()
-            _print_part_1("[part_1_primeagen]", i1, check, result)
+            _print_part_1("[part_1_primeagen]", n1, check, result)
             _print_elapsed("[part_1_primeagen]", start, stop)
             return result
 
 
-def _part_2_primeagen(inputs: tuple) -> int:
-    others = set()
+def part_2_primeagen(inputs: tuple[int]) -> int:
+    others = set[int]()
     start = time.perf_counter()
-    end = len(inputs) - 1
-    for i in range(0, end):
-        i1 = int(inputs[i])
-        others.add(i1)
-        for j in range(i + 1, end):
-            i2 = int(inputs[j])
-            check = 2020 - i1 - i2
+    for i in range(len(inputs)):
+        n1 = inputs[i]
+        others.add(n1)
+        for n2 in inputs[i:]:
+            check = 2020 - n1 - n2
             if check in others:
-                result = i1*i2*check
+                result = n1*n2*check
                 stop = time.perf_counter()
-                _print_part_2("[part_2_primeagen]", i1, i2, check, result)
+                _print_part_2("[part_2_primeagen]", n1, n2, check, result)
                 _print_elapsed("[part_2_primeagen]", start, stop)
                 return result
 
 
-def _squared(inputs: tuple, target: int) -> tuple:
-    for i in range(0, len(inputs) - 1):
-        i1 = int(inputs[i])
-        for j in inputs[i:]:
-            i2 = int(j)
-            if i1 + i2 == target:
-                return (i1, i2)
+def _squared(inputs: tuple[int], target: int) -> tuple[int]:
+    for i in range(len(inputs)):
+        n1 = inputs[i]
+        for n2 in inputs[i:]:
+            if n1 + n2 == target:
+                return (n1, n2)
 
 
-def _part_1_squared(inputs: tuple) -> int:
+def part_1_squared(inputs: tuple[int]) -> int:
     start = time.perf_counter()
     twosome = _squared(inputs, 2020)
     result = twosome[0]*twosome[1]
@@ -72,13 +67,13 @@ def _part_1_squared(inputs: tuple) -> int:
     return result
 
 
-def _part_2_cubed(inputs: tuple) -> int:
+def part_2_cubed(inputs: tuple[int]) -> int:
     start = time.perf_counter()
-    for i in range(0, len(inputs) - 1):
-        i1 = int(inputs[i])
-        twosome = _squared(inputs[i:], 2020-i1)
+    for i in range(len(inputs)):
+        n1 = inputs[i]
+        twosome = _squared(inputs[i:], 2020-n1)
         if twosome is not None:
-            threesome = (twosome[0], twosome[1], i1)
+            threesome = (twosome[0], twosome[1], n1)
             break
     result = threesome[0]*threesome[1]*threesome[2]
     stop = time.perf_counter()
@@ -88,29 +83,28 @@ def _part_2_cubed(inputs: tuple) -> int:
     return result
 
 
-test = ("1721",
-        "979",
-        "366",
-        "299",
-        "675",
-        "1456",
+test = (1721,
+        979,
+        366,
+        299,
+        675,
+        1456,
         )
 
 
 def main() -> None:
     my_aocd.print_header(2020, 1)
 
-    assert _part_1_squared(test) == 514579
-    assert _part_2_cubed(test) == 241861950
-    assert _part_1_primeagen(test) == 514579
-    assert _part_2_primeagen(test) == 241861950
+    assert part_1_squared(test) == 514579
+    assert part_2_cubed(test) == 241861950
+    assert part_1_primeagen(test) == 514579
+    assert part_2_primeagen(test) == 241861950
 
-    inputs = my_aocd.get_input_as_tuple(2020, 1, 200)
-    print(inputs)
-    _part_1_squared(inputs)
-    _part_1_primeagen(inputs)
-    _part_2_cubed(inputs)
-    _part_2_primeagen(inputs)
+    inputs = my_aocd.get_input_as_ints_tuple(2020, 1, 200)
+    part_1_squared(inputs)
+    part_1_primeagen(inputs)
+    part_2_cubed(inputs)
+    part_2_primeagen(inputs)
 
 
 if __name__ == '__main__':
