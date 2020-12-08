@@ -6,11 +6,11 @@ import my_aocd
 
 
 def _parse(inputs: tuple[str]) -> list[tuple[str, int]]:
-    inss = list[tuple[str, int]]()
+    instructions = list[tuple[str, int]]()
     for input_ in inputs:
         sp = input_.split()
-        inss.append((sp[0], int(sp[1])))
-    return inss
+        instructions.append((sp[0], int(sp[1])))
+    return instructions
 
 
 def _log(msg: str) -> None:
@@ -18,66 +18,67 @@ def _log(msg: str) -> None:
         print(msg)
 
 
-def _run_program(inss: list[tuple[str, int]], error_on_inf_loop: bool) -> int:
-    _log(inss)
-    acc = 0
+def _run_program(instructions: list[tuple[str, int]],
+                 error_on_inf_loop: bool) -> int:
+    _log(instructions)
+    accumulator = 0
     seen = set[int]()
-    i = 0
-    while i not in seen:
-        if i == len(inss):
+    ip = 0  # Instruction pointer
+    while ip not in seen:
+        if ip == len(instructions):
             _log("Normal exit")
-            return acc
-        seen.add(i)
-        ins = inss[i]
-        _log(f"{i}: {ins}")
+            return accumulator
+        seen.add(ip)
+        ins = instructions[ip]
+        _log(f"{ip}: {ins}")
         if ins[0] == "nop":
-            i += 1
+            ip += 1
         elif ins[0] == "acc":
-            acc += int(ins[1])
-            i += 1
+            accumulator += ins[1]
+            ip += 1
         elif ins[0] == "jmp":
-            i += int(ins[1])
-            if i < 0:
-                raise ValueError("Invalid input")
+            ip += ins[1]
+            if ip < 0:
+                raise ValueError("Invalid instruction")
         else:
-            raise ValueError("Invalid input")
-        _log(f" -> {i} - {acc}")
+            raise ValueError("Invalid instruction")
+        _log(f" -> {ip} - {accumulator}")
     if error_on_inf_loop:
         raise RuntimeError("Infinite loop!")
     else:
-        return acc
+        return accumulator
 
 
 def part_1(inputs: tuple[str]) -> int:
     _log(inputs)
-    inss = _parse(inputs)
-    return _run_program(inss, False)
+    instructions = _parse(inputs)
+    return _run_program(instructions, False)
 
 
 def part_2(inputs: tuple[str]) -> int:
     _log(inputs)
-    inss = _parse(inputs)
-    for i in range(len(inss)):
-        ins = inss[i]
-        _log(ins)
-        if ins[0] == "nop":
-            if ins[1] == 0:
+    instructions = _parse(inputs)
+    for i in range(len(instructions)):
+        instruction = instructions[i]
+        _log(instruction)
+        if instruction[0] == "nop":
+            if instruction[1] == 0:
                 _log("nop 0 : skip")
                 continue
-            inss[i] = ("jmp", ins[1])
+            instructions[i] = ("jmp", instruction[1])
             _log("nop -> jmp")
             try:
-                return _run_program(inss, True)
+                return _run_program(instructions, True)
             except RuntimeError:
-                inss[i] = ("nop", ins[1])
-        if ins[0] == "jmp":
-            inss[i] = ("nop", ins[1])
+                instructions[i] = ("nop", instruction[1])
+        if instruction[0] == "jmp":
+            instructions[i] = ("nop", instruction[1])
             _log("jmp -> nop")
             try:
-                return _run_program(inss, True)
+                return _run_program(instructions, True)
             except RuntimeError:
-                inss[i] = ("jmp", ins[1])
-        if ins[0] == "acc":
+                instructions[i] = ("jmp", instruction[1])
+        if instruction[0] == "acc":
             _log("acc: skip")
             continue
 
