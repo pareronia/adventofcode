@@ -3,47 +3,57 @@
 # Advent of Code 2020 Day 9
 #
 import my_aocd
+from common import log
 
 
-def has_sum(numbers: list[int], target: int) -> bool:
-    result = False
+def find_two_summands(numbers: list[int], sum_: int):
     for n1 in numbers:
-        n2 = target - n1
+        n2 = sum_ - n1
         if n2 in numbers:
-            result = True
-    return result
+            return (n1, n2)
+    return None
 
 
 def part_1(inputs: tuple[int], window_size: int = 25) -> int:
+    log(inputs)
     _range = range(window_size, len(inputs))
     for i in _range:
         n = inputs[i]
         search_window = inputs[i-window_size:i]
-        if not has_sum(search_window, n):
+        log(search_window)
+        if find_two_summands(search_window, sum_=n) is None:
             return n
     raise ValueError("Unsolvable")
 
 
-def _sublists(inputs: tuple[int]) -> [[]]:
-    sublist = [[]]
+def _sublists(inputs: tuple[int], min_size: int) -> [[int]]:
+    sublists = [[]]
     for i in range(len(inputs) + 1):
         for j in range(i + 1, len(inputs) + 1):
+            if j-i < min_size:
+                continue
             sli = inputs[i:j]
-            sublist.append(sli)
-    return sublist
+            sublists.append(sli)
+    return sublists
+
+
+def _collect_all_sublists_before_target_with_minimum_size_2(
+        inputs: tuple[int], target: int) -> [[]]:
+    return _sublists(inputs[:target], min_size=2)
 
 
 def part_2(inputs: tuple[int], target: int,
            window_size: int = 25) -> int:
-    print(inputs)
+    log(inputs)
     target_pos = inputs.index(target)
-    print(target_pos)
-    for s in _sublists(inputs[:target_pos]):
-        if len(s) >= 2:
-            # print(s)
-            if sum(s) == target:
-                print(f"Found: {s}")
-                return min(s)+max(s)
+    log(target_pos)
+    sublists = _collect_all_sublists_before_target_with_minimum_size_2(
+        inputs, target_pos)
+    ss = [s for s in sublists if sum(s) == target]
+    log(f"Found: {ss}")
+    if len(ss) == 1:
+        return min(ss[0])+max(ss[0])
+    raise ValueError("Unsolvable")
 
 
 test = (35,

@@ -4,6 +4,7 @@
 #
 from dataclasses import dataclass
 import my_aocd
+from common import log
 
 
 ERROR_ON_INFINITE_LOOP = True
@@ -31,24 +32,19 @@ def _parse(inputs: tuple[str]) -> list[Instruction]:
     return [Instruction.instruction(input_.split()) for input_ in inputs]
 
 
-def _log(msg: str) -> None:
-    if __debug__:
-        print(msg)
-
-
 def _run_program(instructions: list[Instruction],
                  error_on_inf_loop: bool = False) -> int:
-    _log(instructions)
+    log(instructions)
     accumulator = 0
     seen = set[int]()
     ip = 0  # Instruction pointer
     while ip not in seen:
         if ip == len(instructions):
-            _log("Normal exit")
+            log("Normal exit")
             return accumulator
         seen.add(ip)
         instruction = instructions[ip]
-        _log(f"{ip}: {instruction}")
+        log(f"{ip}: {instruction}")
         instruction.check_valid_operation()
         if instruction.operation == "nop":
             ip += 1
@@ -59,7 +55,7 @@ def _run_program(instructions: list[Instruction],
             ip += instruction.argument
             if ip < 0:
                 raise ValueError("Invalid instruction argument")
-        _log(f" -> {ip} - {accumulator}")
+        log(f" -> {ip} - {accumulator}")
     if error_on_inf_loop:
         raise RuntimeError("Infinite loop!")
     else:
@@ -71,7 +67,7 @@ def _try_program_run_with_replaced_operation(instructions: list[Instruction],
                                              new_operation: str) -> int:
     orig_instruction = instructions[index]
     instructions[index] = Instruction(new_operation, orig_instruction.argument)
-    _log("{original_instruction.operation} -> {new_operation}")
+    log("{original_instruction.operation} -> {new_operation}")
     try:
         return _run_program(instructions, ERROR_ON_INFINITE_LOOP)
     except RuntimeError:
@@ -80,22 +76,22 @@ def _try_program_run_with_replaced_operation(instructions: list[Instruction],
 
 
 def part_1(inputs: tuple[str]) -> int:
-    _log(inputs)
+    log(inputs)
     instructions = _parse(inputs)
     return _run_program(instructions)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    _log(inputs)
+    log(inputs)
     instructions = _parse(inputs)
     for i in range(len(instructions)):
         instruction = instructions[i]
-        _log(instruction)
+        log(instruction)
         instruction.check_valid_operation()
         if instruction.operation == "nop":
-            if instruction.argument == 0:
-                _log("nop 0 : skip")
-                continue
+            # if instruction.argument == 0:
+            #     log("nop 0 : skip")
+            #     continue
             result = _try_program_run_with_replaced_operation(
                           instructions, i, "jmp")
             if result is not None:
@@ -106,7 +102,7 @@ def part_2(inputs: tuple[str]) -> int:
             if result is not None:
                 return result
         elif instruction.operation == "acc":
-            _log("acc: skip")
+            log("acc: skip")
 
 
 test = ("nop +0",
