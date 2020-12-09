@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from collections import defaultdict
 from networkx import nx
 import my_aocd
+from common import log
 
 
 def _parse_line(line: str) -> tuple[str, set[tuple[int, str]]]:
@@ -14,14 +15,12 @@ def _parse_line(line: str) -> tuple[str, set[tuple[int, str]]]:
     right = sp[1].split(", ")
     destinations = set[tuple[int, str]]()
     for right_part in right:
-        if right_part == "no other bags.":
-            destinations.add((0, None))
-        else:
+        if right_part != "no other bags.":
             contained = right_part.split()
             destinations.add((int(contained[0]),
                               contained[1] + " " + contained[2]))
     result = (source, destinations)
-    # print(f"{source} -> {destinations}")
+    log(f"{source} -> {destinations}")
     return result
 
 
@@ -34,7 +33,7 @@ class Edge:
 
 def _build_edges(inputs: tuple[str]) -> list[Edge]:
     parsed_lines = [_parse_line(line) for line in inputs]
-    # print(parsed_lines)
+    log(parsed_lines)
     return [Edge(parsed_line[0], dst[1], dst[0])
             for parsed_line in parsed_lines
             for dst in parsed_line[1]]
@@ -48,38 +47,31 @@ def _build_digraph(edges: list[Edge]):
 
 
 def part_1(inputs: tuple[str]) -> int:
-    # print(inputs)
+    log(inputs)
     edges = _build_edges(inputs)
-    # print(edges)
+    log(edges)
     unique_sources = (edge.src for edge in edges)
     G = _build_digraph(edges)
     unique_containers = set[str]()
     for source in unique_sources:
         paths = nx.all_simple_paths(G, source=source, target=SHINY_GOLD)
         for path in paths:
-            # print(path)
+            log(path)
             unique_containers.add(path[0])
-    # print(unique_containers)
+    log(unique_containers)
     return len(unique_containers)
 
 
 def _count_contained(containers: dict, start: str) -> int:
-    contained = containers[start]
-    if contained is None:
-        return 1
-    else:
-        return sum([c[1] + c[1]*_count_contained(containers, c[0])
-                    for c in contained])
+    return sum([c[1] + c[1]*_count_contained(containers, c[0])
+                for c in containers[start]])
 
 
 def part_2(inputs: tuple[str]) -> int:
     edges = _build_edges(inputs)
     containers = defaultdict(list)
-    parents = defaultdict(list)
     for edge in edges:
-        if edge.dst is not None:
-            containers[edge.src].append((edge.dst, edge.cnt))
-        parents[edge.dst].append(edge.src)
+        containers[edge.src].append((edge.dst, edge.cnt))
     return _count_contained(containers, SHINY_GOLD)
 
 
