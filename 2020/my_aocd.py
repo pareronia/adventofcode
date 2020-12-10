@@ -20,7 +20,10 @@ def get_input_as_ints_tuple(year: int, day: int,
 
 
 def print_header(year: int, day: int) -> None:
-    print("====================================================")
-    print(f"AoC {year} Day {day} - https://adventofcode.com/{year}/day/{day}")
-    print("====================================================")
+    s = "AoC {year} Day {day}" \
+        " - https://adventofcode.com/{year}/day/{day}" \
+        .format(year=year, day=day)
+    print("=" * len(s))
+    print(s)
+    print("=" * len(s))
     print("")
