@@ -6,22 +6,20 @@ import my_aocd
 from common import log
 
 
-def _parse(inputs: tuple[str]) -> [str]:
-    return list(inputs)
+FLOOR = "."
+EMPTY = "L"
+OCCUPIED = "#"
 
 
-def _count_occupied_in_grid(grid: list[str]) -> int:
-    return sum([row.count("#") for row in grid])
-
-
-def _is_occupied(grid: list[str], seat: tuple[int, int]) -> bool:
+# TODO: check grid limits in _find_adjacent, so this check can be simpler
+def _check_value(grid: list[str], seat: tuple[int, int], value) -> bool:
     x = seat[0]
     y = seat[1]
     max_x = len(grid[0])-1
     max_y = len(grid)-1
     if x < 0 or x > max_x or y < 0 or y > max_y:
         return None
-    return grid[y][x] == "#"
+    return grid[y][x] == value
 
 
 def _find_adjacent(grid: list[str],
@@ -42,22 +40,22 @@ def _find_visible(grid: list[str],
     y = seat[1]
     len_x = len(grid[0])
     len_y = len(grid)
-    adj = []
+    vis = []
     for i in range(x-1, -1, -1):
-        if grid[y][i] != ".":
-            adj.append((i, y))
+        if grid[y][i] != FLOOR:
+            vis.append((i, y))
             break
     for i in range(x+1, len_x):
-        if grid[y][i] != ".":
-            adj.append((i, y))
+        if grid[y][i] != FLOOR:
+            vis.append((i, y))
             break
     for i in range(y-1, -1, -1):
-        if grid[i][x] != ".":
-            adj.append((x, i))
+        if grid[i][x] != FLOOR:
+            vis.append((x, i))
             break
     for i in range(y+1, len_y):
-        if grid[i][x] != ".":
-            adj.append((x, i))
+        if grid[i][x] != FLOOR:
+            vis.append((x, i))
             break
     cnt_right = len_x-1-x
     cnt_up = y
@@ -65,36 +63,39 @@ def _find_visible(grid: list[str],
     cnt_left = x
     i = 1
     while i <= min(cnt_right, cnt_down):
-        if grid[y+i][x+i] != ".":
-            adj.append((x+i, y+i))
+        if grid[y+i][x+i] != FLOOR:
+            vis.append((x+i, y+i))
             break
         i += 1
     i = 1
     while i <= min(cnt_left, cnt_down):
-        if grid[y+i][x-i] != ".":
-            adj.append((x-i, y+i))
+        if grid[y+i][x-i] != FLOOR:
+            vis.append((x-i, y+i))
             break
         i += 1
     i = 1
     while i <= min(cnt_left, cnt_up):
-        if grid[y-i][x-i] != ".":
-            adj.append((x-i, y-i))
+        if grid[y-i][x-i] != FLOOR:
+            vis.append((x-i, y-i))
             break
         i += 1
     i = 1
     while i <= min(cnt_right, cnt_up):
-        if grid[y-i][x+i] != ".":
-            adj.append((x+i, y-i))
+        if grid[y-i][x+i] != FLOOR:
+            vis.append((x+i, y-i))
             break
         i += 1
-    return adj
+    return vis
 
 
-def _count_occupied(strategy, *args) -> int:
-    grid = args[0]
-    seat = args[1]
-    to_check = strategy(grid, seat)
-    return sum([1 for s in to_check if _is_occupied(grid, s)])
+def _select_seats_to_check(strategy, grid: list[str],
+                           seat: tuple[int, int]) -> list[tuple[int, int]]:
+    return strategy(grid, seat)
+
+
+def _count_with_value(grid: list[str], seats: list[tuple[int, int]],
+                      value: str) -> int:
+    return sum([1 for s in seats if _check_value(grid, s, value)])
 
 
 def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
@@ -102,35 +103,32 @@ def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
     for y in range(len(grid)):
         new_row = ""
         for x in range(len(grid[y])):
-            if grid[y][x] == ".":
-                new_row += "."
-            elif grid[y][x] == "L":
-                if _count_occupied(strategy, grid, (x, y)) == 0:
-                    new_row += "#"
-                else:
-                    new_row += "L"
-            elif grid[y][x] == "#":
-                if _count_occupied(strategy, grid, (x, y)) >= tolerance:
-                    new_row += "L"
-                else:
-                    new_row += "#"
-            else:
+            if grid[y][x] == EMPTY:
+                to_check = _select_seats_to_check(strategy, grid, seat=(x, y))
+                if _count_with_value(grid, to_check, OCCUPIED) == 0:
+                    new_row += OCCUPIED
+                    continue
+            elif grid[y][x] == OCCUPIED:
+                to_check = _select_seats_to_check(strategy, grid, seat=(x, y))
+                if _count_with_value(grid, to_check, OCCUPIED) >= tolerance:
+                    new_row += EMPTY
+                    continue
+            elif grid[y][x] != FLOOR:
                 raise ValueError("invalid grid")
+            new_row += grid[y][x]
         new_grid.append(new_row)
     return new_grid
 
 
 def _find_count_of_equilibrium(inputs: tuple[str], strategy,
                                tolerance: int) -> int:
-    grid = _parse(inputs)
+    grid = list(inputs)
     log(grid)
-    cnt = _count_occupied_in_grid(grid)
-    log(cnt)
     while True:
         new_grid = _run_cycle(grid, strategy, tolerance)
         log(new_grid)
         if (new_grid == grid):
-            return _count_occupied_in_grid(new_grid)
+            return sum([row.count(OCCUPIED) for row in grid])
         grid = new_grid
 
 
@@ -142,24 +140,25 @@ def part_2(inputs: tuple[str]) -> int:
     return _find_count_of_equilibrium(inputs, _find_visible, tolerance=5)
 
 
-test = ("L.LL.LL.LL",
-        "LLLLLLL.LL",
-        "L.L.L..L..",
-        "LLLL.LL.LL",
-        "L.LL.LL.LL",
-        "L.LLLLL.LL",
-        "..L.L.....",
-        "LLLLLLLLLL",
-        "L.LLLLLL.L",
-        "L.LLLLL.LL"
-        )
+test = """
+L.LL.LL.LL
+LLLLLLL.LL
+L.L.L..L..
+LLLL.LL.LL
+L.LL.LL.LL
+L.LLLLL.LL
+..L.L.....
+LLLLLLLLLL
+L.LLLLLL.L
+L.LLLLL.LL
+"""
 
 
 def main() -> None:
     my_aocd.print_header(2020, 11)
 
-    assert part_1(test) == 37
-    assert part_2(test) == 26
+    assert part_1(test.split()) == 37
+    assert part_2(test.split()) == 26
 
     inputs = my_aocd.get_input_as_tuple(2020, 11, 94)
     result1 = part_1(inputs)
