@@ -100,6 +100,7 @@ def _count_with_value(grid: list[str], seats: list[tuple[int, int]],
 
 def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
     new_grid = list[str]()
+    changed = False
     for y in range(len(grid)):
         new_row = ""
         for x in range(len(grid[y])):
@@ -107,17 +108,19 @@ def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
                 to_check = _select_seats_to_check(strategy, grid, seat=(x, y))
                 if _count_with_value(grid, to_check, OCCUPIED) == 0:
                     new_row += OCCUPIED
+                    changed = True
                     continue
             elif grid[y][x] == OCCUPIED:
                 to_check = _select_seats_to_check(strategy, grid, seat=(x, y))
                 if _count_with_value(grid, to_check, OCCUPIED) >= tolerance:
                     new_row += EMPTY
+                    changed = True
                     continue
             elif grid[y][x] != FLOOR:
                 raise ValueError("invalid grid")
             new_row += grid[y][x]
         new_grid.append(new_row)
-    return new_grid
+    return new_grid, changed
 
 
 def _find_count_of_equilibrium(inputs: tuple[str], strategy,
@@ -125,9 +128,9 @@ def _find_count_of_equilibrium(inputs: tuple[str], strategy,
     grid = list(inputs)
     log(grid)
     while True:
-        new_grid = _run_cycle(grid, strategy, tolerance)
+        new_grid, changed = _run_cycle(grid, strategy, tolerance)
         log(new_grid)
-        if (new_grid == grid):
+        if not changed:
             return sum([row.count(OCCUPIED) for row in grid])
         grid = new_grid
 
