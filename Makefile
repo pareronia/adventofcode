@@ -18,6 +18,9 @@ SRCS = $(PY_SRCS)
 # functions
 msg = (if [ -t 1 ]; then echo ${BLUE}"\n$1\n"${NC}; else echo "$1"; fi)
 
+igrep = ($(GREP) --line-number --recursive --word-regexp --color=auto \
+		--ignore-case $1 $2)
+
 #: Default target - pre-push
 .DEFAULT_GOAL := pre-push
 
