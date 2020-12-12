@@ -90,16 +90,16 @@ def _translate(position: Position, vector: Vector) -> Position:
 
 
 def _rotate(position: Position, degrees: int) -> Position:
+    def _rotate_90(position: Position) -> Position:
+        return Position(position.y, -position.x)
+
     if degrees < 0:
         degrees = 360 + degrees
-    if degrees == 90:
-        return Position(position.y, -position.x)
-    elif degrees == 180:
-        return Position(-position.x, -position.y)
-    elif degrees == 270:
-        return Position(-position.y, position.x)
-    else:
+    if degrees % 90 != 0:
         raise ValueError("invalid input")
+    for _ in range(degrees//90):
+        position = _rotate_90(position)
+    return position
 
 
 def _navigate_1(position: Position, orientation: str,
