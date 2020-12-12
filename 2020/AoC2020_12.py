@@ -2,6 +2,7 @@
 #
 # Advent of Code 2020 Day 12
 #
+from __future__ import annotations
 from dataclasses import dataclass
 import my_aocd
 from common import log
@@ -23,128 +24,126 @@ class NavigationInstruction:
 
 
 @dataclass
-class Position:
+class Point:
     x: int
     y: int
 
 
 @dataclass
-class Vector:
-    x: int
-    y: int
+class Position(Point):
+    def translate(self, vector: Vector, amplitude: int = 1) -> None:
+        self.x = self.x + vector.x * amplitude
+        self.y = self.y + vector.y * amplitude
+
+
+@dataclass
+class Vector(Point):
+    def _rotate_90(self) -> None:
+        new_x = self.y
+        new_y = -self.x
+        self.x = new_x
+        self.y = new_y
+
+    def rotate(self, degrees: int) -> None:
+        if degrees < 0:
+            degrees = 360 + degrees
+        if degrees % 90 != 0:
+            raise ValueError("invalid input")
+        for _ in range(degrees//90):
+            self._rotate_90()
+
+    def add(self, vector: Vector, amplitude: int = 1) -> None:
+        self.x = self.x + vector.x * amplitude
+        self.y = self.y + vector.y * amplitude
+
+
+@dataclass
+class Waypoint(Vector):
+    pass
+
+
+@dataclass
+class Heading(Vector):
+    name: str
+
+    def __init__(self, x: int, y: int, name: str):
+        if x not in {-1, 0, 1} or y not in {-1, 0, 1}:
+            raise ValueError(f"Invalid Heading: {x}, {y}")
+        super().__init__(x, y)
+        self.name = name
+
+    @classmethod
+    def get(cls, x: int, y: int) -> Heading:
+        for h in HEADINGS.values():
+            if h.x == x and h.y == y:
+                return h
+        raise ValueError(f"Invalid Heading: {x}, {y}")
+
+    @classmethod
+    def rotate(cls, heading: Heading, degrees: int) -> Heading:
+        v = Vector(heading.x, heading.y)
+        v.rotate(degrees)
+        return Heading.get(v.x, v.y)
+
+
+HEADINGS = {NORTH: Heading(0, 1, NORTH),
+            EAST: Heading(1, 0, EAST),
+            SOUTH: Heading(0, -1, SOUTH),
+            WEST: Heading(-1, 0, WEST)}
 
 
 def _parse(inputs: tuple[str]) -> list[NavigationInstruction]:
     return [NavigationInstruction(i[0], int(i[1:])) for i in inputs]
 
 
-def _new_orientation(start: str, action: str, value: int) -> str:
-    if value == 180:
-        if start == NORTH:
-            return SOUTH
-        elif start == EAST:
-            return WEST
-        elif start == SOUTH:
-            return NORTH
-        elif start == WEST:
-            return EAST
-        else:
-            raise ValueError("invalid input")
-    if value == 270:
-        if action == LEFT:
-            action = RIGHT
-            value = 90
-        elif action == RIGHT:
-            action = LEFT
-            value = 90
-        else:
-            raise ValueError("invalid input")
-    results = dict()
-    results[NORTH + "/" + RIGHT] = EAST
-    results[NORTH + "/" + LEFT] = WEST
-    results[EAST + "/" + RIGHT] = SOUTH
-    results[EAST + "/" + LEFT] = NORTH
-    results[SOUTH + "/" + RIGHT] = WEST
-    results[SOUTH + "/" + LEFT] = EAST
-    results[WEST + "/" + RIGHT] = NORTH
-    results[WEST + "/" + LEFT] = SOUTH
-    return results[start + "/" + action]
-
-
-def _move(position: Position, direction: str, value: int) -> Position:
-    if direction == NORTH:
-        vector = Vector(0, value)
-    elif direction == EAST:
-        vector = Vector(value, 0)
-    elif direction == SOUTH:
-        vector = Vector(0, -value)
-    elif direction == WEST:
-        vector = Vector(-value, 0)
-    else:
-        raise ValueError("invalid input")
-    return _translate(position, vector)
-
-
-def _translate(position: Position, vector: Vector) -> Position:
-    return Position(position.x+vector.x, position.y+vector.y)
-
-
-def _rotate(position: Position, degrees: int) -> Position:
-    def _rotate_90(position: Position) -> Position:
-        return Position(position.y, -position.x)
-
-    if degrees < 0:
-        degrees = 360 + degrees
-    if degrees % 90 != 0:
-        raise ValueError("invalid input")
-    for _ in range(degrees//90):
-        position = _rotate_90(position)
-    return position
-
-
-def _navigate_1(position: Position, orientation: str,
-                nav: NavigationInstruction) -> (Position, str):
-    if nav.action in {RIGHT, LEFT}:
-        orientation = _new_orientation(orientation, nav.action, nav. value)
+def _navigate_1(position: Position, heading: Heading,
+                nav: NavigationInstruction) -> (Position, Heading):
+    if nav.action == RIGHT:
+        heading = Heading.rotate(heading, nav.value)
+    elif nav.action == LEFT:
+        heading = Heading.rotate(heading, -nav.value)
     elif nav.action == FORWARD:
-        position = _move(position, orientation, nav.value)
+        position.translate(vector=heading, amplitude=nav.value)
+    elif nav.action in {NORTH, EAST, SOUTH, WEST}:
+        position.translate(vector=HEADINGS[nav.action], amplitude=nav.value)
     else:
-        position = _move(position, nav.action, nav.value)
-    return position, orientation
+        raise ValueError("invalid input")
+    return position, heading
 
 
 def part_1(inputs: tuple[str], start: str) -> int:
     navs = _parse(inputs)
     position = Position(0, 0)
-    orientation = start
-    log({"position": position, "orientation": orientation})
+    heading = HEADINGS[start]
+    log({"position": position,
+         "heading": Heading.get(heading.x, heading.y).name})
     for nav in navs:
-        position, orientation = _navigate_1(position, orientation, nav)
+        position, heading = _navigate_1(position, heading, nav)
+        heading_s = Heading.get(heading.x, heading.y).name
         log(f"{nav} ->"
-            f"{{'position': {position}, 'orientation': {orientation}}}")
+            f"{{'position': {position}, 'heading': {heading_s}}}")
     return abs(position.x) + abs(position.y)
 
 
-def _navigate_2(position: Position, waypoint: Position,
-                nav: NavigationInstruction) -> (Position, Position):
-    if nav.action == FORWARD:
-        vector = Vector(waypoint.x*nav.value, waypoint.y*nav.value)
-        position = _translate(position, vector)
-    elif nav.action in {NORTH, EAST, SOUTH, WEST}:
-        waypoint = _move(waypoint, nav.action, nav.value)
-    elif nav.action == RIGHT:
-        waypoint = _rotate(waypoint, nav.value)
+def _navigate_2(position: Position, waypoint: Waypoint,
+                nav: NavigationInstruction) -> (Position, Waypoint):
+    if nav.action == RIGHT:
+        waypoint.rotate(nav.value)
     elif nav.action == LEFT:
-        waypoint = _rotate(waypoint, -nav.value)
+        waypoint.rotate(-nav.value)
+    elif nav.action == FORWARD:
+        position.translate(vector=waypoint, amplitude=nav.value)
+    elif nav.action in {NORTH, EAST, SOUTH, WEST}:
+        waypoint.add(vector=HEADINGS[nav.action], amplitude=nav.value)
     else:
         raise ValueError("invalid input")
     return position, waypoint
 
 
-def part_2(inputs: tuple[str], waypoint: Position) -> int:
+def part_2(inputs: tuple[str], start: Waypoint) -> int:
     navs = _parse(inputs)
     position = Position(0, 0)
-    waypoint = Position(waypoint.x, waypoint.y)
+    waypoint = start
     log({"position": position, "waypoint": waypoint})
     for nav in navs:
         position, waypoint = _navigate_2(position, waypoint, nav)
@@ -165,12 +164,12 @@ def main() -> None:
     my_aocd.print_header(2020, 12)
 
     assert part_1(test.split(), EAST) == 25
-    assert part_2(test.split(), Position(10, 1)) == 286
+    assert part_2(test.split(), Waypoint(10, 1)) == 286
 
     inputs = my_aocd.get_input_as_tuple(2020, 12, 785)
-    result1 = part_1(inputs, EAST)
+    result1 = part_1(inputs, start=EAST)
     print(f"Part 1: {result1}")
-    result2 = part_2(inputs, Position(10, 1))
+    result2 = part_2(inputs, start=Waypoint(10, 1))
     print(f"Part 2: {result2}")
 
 
