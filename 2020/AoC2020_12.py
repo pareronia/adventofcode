@@ -7,7 +7,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 import my_aocd
 from common import log
-from geometry import Position, Vector
+from geometry import Position
+from navigation import Headings, Waypoint,\
+        NavigationWithHeading, NavigationWithWaypoint
 
 
 NORTH = "N"
@@ -25,98 +27,59 @@ class NavigationInstruction:
     value: int
 
 
-@dataclass
-class Waypoint(Vector):
-    pass
-
-
-@dataclass
-class Heading(Vector):
-    name: str
-
-    def __init__(self, x: int, y: int, name: str):
-        if x not in {-1, 0, 1} or y not in {-1, 0, 1}:
-            raise ValueError(f"Invalid Heading: {x}, {y}")
-        super().__init__(x, y)
-        self.name = name
-
-    @classmethod
-    def get(cls, x: int, y: int) -> Heading:
-        for h in HEADINGS.values():
-            if h.x == x and h.y == y:
-                return h
-        raise ValueError(f"Invalid Heading: {x}, {y}")
-
-    @classmethod
-    def rotate(cls, heading: Heading, degrees: int) -> Heading:
-        v = Vector(heading.x, heading.y)
-        v.rotate(degrees)
-        return Heading.get(v.x, v.y)
-
-
-HEADINGS = {NORTH: Heading(0, 1, NORTH),
-            EAST: Heading(1, 0, EAST),
-            SOUTH: Heading(0, -1, SOUTH),
-            WEST: Heading(-1, 0, WEST)}
-
-
 def _parse(inputs: tuple[str]) -> list[NavigationInstruction]:
     return [NavigationInstruction(i[0], int(i[1:])) for i in inputs]
 
 
-def _navigate_1(position: Position, heading: Heading,
-                nav: NavigationInstruction) -> (Position, Heading):
+def _navigate_with_heading(navigation: NavigationWithHeading,
+                           nav: NavigationInstruction) -> None:
     if nav.action == RIGHT:
-        heading = Heading.rotate(heading, nav.value)
+        navigation.right(nav.value)
     elif nav.action == LEFT:
-        heading = Heading.rotate(heading, -nav.value)
+        navigation.left(nav.value)
     elif nav.action == FORWARD:
-        position.translate(vector=heading, amplitude=nav.value)
+        navigation.forward(nav.value)
     elif nav.action in {NORTH, EAST, SOUTH, WEST}:
-        position.translate(vector=HEADINGS[nav.action], amplitude=nav.value)
+        navigation.drift(heading=Headings[nav.action].value,
+                         amount=nav.value)
     else:
         raise ValueError("invalid input")
-    return position, heading
 
 
 def part_1(inputs: tuple[str], start: str) -> int:
     navs = _parse(inputs)
-    position = Position(0, 0)
-    heading = HEADINGS[start]
-    log({"position": position,
-         "heading": Heading.get(heading.x, heading.y).name})
+    navigation = NavigationWithHeading(
+        position=Position(0, 0),
+        heading=Headings[start].value)
+    log(navigation)
     for nav in navs:
-        position, heading = _navigate_1(position, heading, nav)
-        heading_s = Heading.get(heading.x, heading.y).name
-        log(f"{nav} ->"
-            f"{{'position': {position}, 'heading': {heading_s}}}")
-    return abs(position.x) + abs(position.y)
+        _navigate_with_heading(navigation, nav)
+        log(navigation)
+    return abs(navigation.position.x) + abs(navigation.position.y)
 
 
-def _navigate_2(position: Position, waypoint: Waypoint,
-                nav: NavigationInstruction) -> (Position, Waypoint):
+def _navigate_with_waypoint(navigation: NavigationWithWaypoint,
+                            nav: NavigationInstruction) -> None:
     if nav.action == RIGHT:
-        waypoint.rotate(nav.value)
+        navigation.right(nav.value)
     elif nav.action == LEFT:
-        waypoint.rotate(-nav.value)
+        navigation.left(nav.value)
     elif nav.action == FORWARD:
-        position.translate(vector=waypoint, amplitude=nav.value)
+        navigation.forward(nav.value)
     elif nav.action in {NORTH, EAST, SOUTH, WEST}:
-        waypoint.add(vector=HEADINGS[nav.action], amplitude=nav.value)
+        navigation.update_waypoint(heading=Headings[nav.action].value,
+                                   amount=nav.value)
     else:
         raise ValueError("invalid input")
-    return position, waypoint
 
 
 def part_2(inputs: tuple[str], start: Waypoint) -> int:
     navs = _parse(inputs)
-    position = Position(0, 0)
-    waypoint = start
-    log({"position": position, "waypoint": waypoint})
+    navigation = NavigationWithWaypoint(Position(0, 0), start)
     for nav in navs:
-        position, waypoint = _navigate_2(position, waypoint, nav)
-        log(f"{nav} -> {{'position': {position}, 'waypoint': {waypoint}}}")
-    return abs(position.x) + abs(position.y)
+        _navigate_with_waypoint(navigation, nav)
+        log(navigation)
+    return abs(navigation.position.x) + abs(navigation.position.y)
 
 
 test = """\

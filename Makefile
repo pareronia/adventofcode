@@ -2,7 +2,7 @@
 CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
-VULTURE := vulture
+VULTURE := vulture --min-confidence 80
 GREP := grep
 GAWK := awk
 SORT := sort
