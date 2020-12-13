@@ -30,36 +30,72 @@ def part_1(inputs: tuple[int]) -> int:
         cnt += 1
 
 
-def part_2(inputs: tuple[int], start: int) -> int:
-    target, buses = parse(inputs)
+def _find_offsets(buses: list[int]) -> list[tuple[int, int]]:
     i = []
     for j in range(len(buses)):
         b = buses[j]
         if b != -1:
             i.append((b, j))
-    log(i)
+    return i
+
+
+def _find_largest_and_recalc_offsets(i: list[tuple[int, int]]):
     m = (0, 0)
     for j in i:
         if j[0] > m[0]:
             m = j
-    log(m)
     new_i = []
     for j in i:
         if j != m:
             new_i.append((j[0], j[1]-m[1]))
-    i = new_i
+    return m, new_i
+
+
+def _init_multiples(buses: list[tuple[int, int]], start: int) -> dict:
+    multiples = {}
+    for b in buses:
+        multiples[b[0]] = start * b[0]
+    return multiples
+
+
+def _lookup_multiple(multiples: dict, bus: int, wanted: int):
+    # return wanted % bus == 0
+    last = multiples[bus]
+    while True:
+        next_ = last + bus
+        if next_ > wanted:
+            return False
+        else:
+            multiples[bus] = next_
+            last = next_
+            if next_ == wanted:
+                return True
+
+
+def part_2(inputs: tuple[int], start: int) -> int:
+    target, buses = parse(inputs)
+    i = _find_offsets(buses)
+    log(i)
+    m, i = _find_largest_and_recalc_offsets(i)
+    log(m)
     log(i)
     a = start // m[0]
+    multiples = _init_multiples(i, start=a)
+    a_m = a * m[0]
+    cnt = 0
     while True:
-        a_m = a * m[0]
+        cnt += 1
         ok = True
         for j in range(len(i)):
-            if (a_m + i[j][1]) % i[j][0] != 0:
+            found = _lookup_multiple(multiples, bus=i[j][0],
+                                     wanted=a_m + i[j][1])
+            if not found:
                 ok = False
                 break
         if ok:
+            log(cnt)
             return a_m if m[1] == 0 else a_m + i[0][1]
-        a += 1
+        a_m += m[0]
     return 0
 
 
