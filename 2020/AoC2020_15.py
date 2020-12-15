@@ -56,12 +56,31 @@ def _play(starting_numbers: list[int], number_of_turns: int) -> int:
     return last
 
 
+def _play_bis(starting_numbers: list[int], number_of_turns: int) -> int:
+    nums = [int(n) for n in starting_numbers]
+    log(f"{nums} ({number_of_turns} turns)")
+    turns = {}
+    for i, n in enumerate(nums):
+        turns[n] = i
+    prev = nums[-1]
+    turns[prev] = -1
+    for i in range(len(nums), number_of_turns):
+        prev_prev = turns.get(prev, -1)
+        if (prev_prev == -1):
+            next_ = 0
+        else:
+            next_ = i - 1 - prev_prev
+        turns[prev] = i - 1
+        prev = next_
+    return next_
+
+
 def part_1(inputs: list) -> int:
-    return _play(starting_numbers=inputs, number_of_turns=2020)
+    return _play_bis(starting_numbers=inputs, number_of_turns=2020)
 
 
 def part_2(inputs: list) -> int:
-    return _play(starting_numbers=inputs, number_of_turns=30000000)
+    return _play_bis(starting_numbers=inputs, number_of_turns=30000000)
 
 
 test_1 = "0,3,6"
