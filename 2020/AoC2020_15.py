@@ -8,24 +8,43 @@ import my_aocd
 from common import log
 
 
-def _play(starting_numbers: list[int], number_of_turns: int) -> int:
-    def new_deque() -> deque:
+class Turns:
+    turns: dict
+
+    def new_deque(self) -> deque:
         return deque(maxlen=2)
+
+    def __init__(self):
+        self.turns = defaultdict(self.new_deque)
+
+    def get_two_latest_turns(self, num: int) -> (int, int):
+        if len(self.turns[num]) <= 1:
+            return None
+        else:
+            return (self.turns[num][-1], self.turns[num][-2])
+
+    def add_latest_turn(self, num: int, turn: int) -> None:
+        self.turns[num].append(turn)
+
+    def get_size(self):
+        return len(self.turns)
+
+
+def _play(starting_numbers: list[int], number_of_turns: int) -> int:
     nums = [int(n) for n in starting_numbers]
     log(nums)
-    turns = defaultdict(new_deque)
+    turns = Turns()
     for i, n in enumerate(nums):
-        turns[n].append(i+1)
+        turns.add_latest_turn(n, i+1)
     last = n
-    # log(f"turn: {i+1}, last: {last}, turns: {turns}")
     for i in range(len(nums)+1, number_of_turns+1):
-        if len(turns[last]) <= 1:
+        latest_turns = turns.get_two_latest_turns(last)
+        if latest_turns is None:
             last = 0
         else:
-            last = turns[last][-1] - turns[last][-2]
-        turns[last].append(i)
-        # log(f"turn: {i}, last: {last}, turns: {turns.items()}")
-    log(len(turns))
+            last = latest_turns[0] - latest_turns[1]
+        turns.add_latest_turn(last, i)
+    log(turns.get_size())
     return last
 
 
