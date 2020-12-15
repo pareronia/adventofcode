@@ -4,6 +4,7 @@
 #
 
 from collections import defaultdict, deque
+from functools import lru_cache
 import my_aocd
 from common import log
 
@@ -17,17 +18,24 @@ class Turns:
     def __init__(self):
         self.turns = defaultdict(self.new_deque)
 
+    @lru_cache(maxsize=10000)
+    def _get_turns(self, num: int) -> deque:
+        return self.turns[num]
+
     def get_two_latest_turns(self, num: int) -> (int, int):
-        if len(self.turns[num]) <= 1:
+        if len(self._get_turns(num)) <= 1:
             return None
         else:
-            return (self.turns[num][-1], self.turns[num][-2])
+            return (self._get_turns(num)[-1], self._get_turns(num)[-2])
 
     def add_latest_turn(self, num: int, turn: int) -> None:
-        self.turns[num].append(turn)
+        self._get_turns(num).append(turn)
 
     def get_size(self):
         return len(self.turns)
+
+    def cache_info(self):
+        return self._get_turns.cache_info()
 
 
 def _play(starting_numbers: list[int], number_of_turns: int) -> int:
