@@ -102,22 +102,20 @@ def _all_values_valid_for_rule(values: list[int], rule: Rule) -> bool:
     return all_is_matched
 
 
-@lru_cache()
+@lru_cache(maxsize=400)
 def _match_ticket_field_and_rule(tickets, i: int, rule: Rule) -> bool:
     ticket_is = [t[i] for t in tickets]
     return _all_values_valid_for_rule(ticket_is, rule)
 
 
-def _do_match(tickets, idxs: list[int], rules):
+def _do_match(tickets, idxs: list[int], rules) -> dict[int, list[Rule]]:
     matches = defaultdict(list)
-    for i in idxs:
-        for rule in rules:
-            if _match_ticket_field_and_rule(tickets, i, rule):
-                matches[i].append(rule)
+    [matches[i].append(rule) for i in idxs for rule in rules
+     if _match_ticket_field_and_rule(tickets, i, rule)]
     return matches
 
 
-def _find_fields(target: int, fields, tickets, idxs: list[int], rules):
+def _find_fields(fields, tickets, idxs: list[int], rules) -> None:
     if len(idxs) == 0 and len(rules) == 0:
         return
     log("Fields:")
@@ -127,21 +125,14 @@ def _find_fields(target: int, fields, tickets, idxs: list[int], rules):
     [log(i) for i in matches.items()]
     temp = [i for i in matches.items()]
     temp.sort(key=lambda m: len(m[1]))
-    for t in temp:
-        idx_t = t[0]
-        matches_for_idx_t = t[1]
-        for r_t in matches_for_idx_t:
-            field = (idx_t, r_t)
-            fields.append(field)
-            new_idxs = [idx for idx in idxs if idx != idx_t]
-            new_rules = [r for r in rules if r != r_t]
-            _find_fields(target, fields, tickets, new_idxs, new_rules)
-            if len(fields) == target:
-                return
-            if fields[-1] == (-1, -1):
-                fields.pop()
-            if fields[-1] == field:
-                fields.pop()
+    if not len(temp[0][1]) == 1:
+        raise RuntimeError("Expected single match")
+    idx_t = temp[0][0]
+    r_t = temp[0][1][0]
+    fields.append((idx_t, r_t))
+    new_idxs = [idx for idx in idxs if idx != idx_t]
+    new_rules = [r for r in rules if r != r_t]
+    _find_fields(fields, tickets, new_idxs, new_rules)
 
 
 def part_2(inputs: tuple[str]) -> int:
@@ -155,9 +146,10 @@ def part_2(inputs: tuple[str]) -> int:
     log("valid tickets: " + str(len(valid_tickets)))
     idxs = [i for i in range(len(valid_tickets[0]))]
     fields = list[tuple[int, str]]()
-    _find_fields(len(rules), fields, valid_tickets, idxs, rules)
+    _find_fields(fields, valid_tickets, idxs, rules)
     log("Fields:")
     log(fields)
+    log(_match_ticket_field_and_rule.cache_info())
     departure_fields_values = []
     for f in fields:
         if f[1].field.startswith("departure"):
