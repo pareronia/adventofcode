@@ -62,7 +62,7 @@ def _fix_for_addition_preference(expr: str) -> str:
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return sum([eval(_fix_for_addition_preference(input_))
+    return sum([eval(_fix_for_addition_preference(input_))  # nosec
                 for input_ in inputs
                 ])
 
