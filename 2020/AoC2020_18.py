@@ -3,27 +3,22 @@
 # Advent of Code 2020 Day 18
 #
 
-# import re
-from dataclasses import dataclass
+from typing import NamedTuple
 import my_aocd
 from common import log
-
-
-@dataclass
-class Expression:
-    operands: tuple[int, int]
-    operation: str
-
-    def eval(self) -> int:
-        return eval(f"{self.operands[0]} {self.operation} {self.operands[1]}")
 
 
 def _parse(inputs: tuple[str]) -> list[str]:
     return [[_ for _ in input_ if _ != " "] for input_ in inputs]
 
 
-def evaluate(expression: list[str], pos: int = 0) -> tuple[int, int]:
-    stack = ["0", "+"]
+class ResultAndPosition(NamedTuple):
+    result: int
+    position: int
+
+
+def evaluate(expression: list[str], pos: int = 0) -> ResultAndPosition:
+    stack = [0, "+"]
     result = 0
     i = pos
     while i < len(expression):
@@ -31,27 +26,31 @@ def evaluate(expression: list[str], pos: int = 0) -> tuple[int, int]:
         if _ in {"+", "*"}:
             stack.append(_)
         elif _ == ")":
-            return result, i
+            return ResultAndPosition(result, i)
         else:
             if _ == "(":
                 sub = evaluate(expression, i+1)
-                operand_2 = sub[0]
-                i = sub[1]
+                operand_2 = sub.result
+                i = sub.position
+            elif not _.isnumeric():
+                raise ValueError("invalid input")
             else:
-                operand_2 = _
-            operation = stack.pop()
+                operand_2 = int(_)
+            operator = stack.pop()
             operand_1 = stack.pop()
-            exp = Expression((operand_1, operand_2), operation)
-            result = exp.eval()
+            if operator == "+":
+                result = operand_1 + operand_2
+            else:
+                result = operand_1 * operand_2
             stack.append(result)
         i += 1
-    return result, i
+    return ResultAndPosition(result, i)
 
 
 def part_1(inputs: tuple[str]) -> int:
     expressions = _parse(inputs)
     [log(str(expression)) for expression in expressions]
-    return sum([evaluate(exp)[0] for exp in expressions])
+    return sum([evaluate(exp).result for exp in expressions])
 
 
 def part_2(inputs: tuple[str]) -> int:
@@ -63,7 +62,7 @@ def part_2(inputs: tuple[str]) -> int:
         log(f"{input_} -> {x}")
         new_inputs.append(x)
     expressions = _parse(new_inputs)
-    return sum([evaluate(exp)[0] for exp in expressions])
+    return sum([evaluate(exp).result for exp in expressions])
 
 
 test = """\
