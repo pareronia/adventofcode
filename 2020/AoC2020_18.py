@@ -8,8 +8,8 @@ import my_aocd
 from common import log
 
 
-def _parse(inputs: tuple[str]) -> list[str]:
-    return [[_ for _ in input_ if _ != " "] for input_ in inputs]
+def _tokenize(input_: str) -> list[str]:
+    return [_ for _ in input_ if _ != " "]
 
 
 class ResultAndPosition(NamedTuple):
@@ -17,7 +17,7 @@ class ResultAndPosition(NamedTuple):
     position: int
 
 
-def evaluate(expression: list[str], pos: int = 0) -> ResultAndPosition:
+def _evaluate(expression: list[str], pos: int = 0) -> ResultAndPosition:
     stack = [0, "+"]
     result = 0
     i = pos
@@ -29,7 +29,7 @@ def evaluate(expression: list[str], pos: int = 0) -> ResultAndPosition:
             return ResultAndPosition(result, i)
         else:
             if _ == "(":
-                sub = evaluate(expression, i+1)
+                sub = _evaluate(expression, i+1)
                 operand_2 = sub.result
                 i = sub.position
             elif not _.isnumeric():
@@ -48,21 +48,30 @@ def evaluate(expression: list[str], pos: int = 0) -> ResultAndPosition:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    expressions = _parse(inputs)
-    [log(str(expression)) for expression in expressions]
-    return sum([evaluate(exp).result for exp in expressions])
+    return sum([_evaluate(_tokenize(input_)).result
+                for input_ in inputs
+                ])
+
+
+def _fix_for_addition_preference(expr: str) -> str:
+    x = expr.replace("(", "((")
+    x = x.replace(")", "))")
+    x = "(" + x.replace("*", ") * (") + ")"
+    log(f"{expr} -> {x}")
+    return x
 
 
 def part_2(inputs: tuple[str]) -> int:
-    new_inputs = []
-    for input_ in inputs:
-        x = input_.replace("(", "((")
-        x = x.replace(")", "))")
-        x = "(" + x.replace("*", ") * (") + ")"
-        log(f"{input_} -> {x}")
-        new_inputs.append(x)
-    expressions = _parse(new_inputs)
-    return sum([evaluate(exp).result for exp in expressions])
+    return sum([eval(_fix_for_addition_preference(input_))
+                for input_ in inputs
+                ])
+
+
+def part_2_bis(inputs: tuple[str]) -> int:
+    return sum([_evaluate(_tokenize(
+                    _fix_for_addition_preference(input_))).result
+                for input_ in inputs
+                ])
 
 
 test = """\
@@ -80,6 +89,7 @@ def main() -> None:
 
     assert part_1(test) == 71 + 51 + 26 + 437 + 12240 + 13632
     assert part_2(test) == 231 + 51 + 46 + 1445 + 669060 + 23340
+    assert part_2_bis(test) == 231 + 51 + 46 + 1445 + 669060 + 23340
 
     inputs = my_aocd.get_input_as_tuple(2020, 18, 383)
     result1 = part_1(inputs)
