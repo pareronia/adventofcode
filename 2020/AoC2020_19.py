@@ -94,14 +94,13 @@ def _reduce_rules(rules: dict) -> None:
                 rules[r[0]] = re.sub(to_replace,
                                      "(" + sink_value + ")",
                                      old_value)
-                # old_value.replace(
-                #     sink_key, "(" + sink_value + ")")
     new_sinks = [r[0] for r in rules.items()
                  if not bool(re.search(r'\d', r[1]))]
     if new_sinks == sinks:
         return
     for sink in sinks:
         del rules[sink]
+    log(rules)
     _reduce_rules(rules)
 
 
@@ -183,35 +182,60 @@ def _log_tree(tree):
             log(tree_item)
 
 
-def to_regex(rule: str) -> str:
+def _to_regex(rule: str) -> str:
     rule = rule.replace("*", "")
     return "^" + rule.replace(" ", "") + "$"
+
+
+def _construct_rule(rules: dict) -> str:
+    _reduce_rules(rules)
+    # log(rules)
+    _compact_rules(rules)
+    # log(rules)
+    # _translate_rules(rules)
+    # log(rules)
+    # _log_tree(_build_rule(rules[0])[0])
+    return rules[0]
 
 
 def part_1(inputs: tuple[str]) -> int:
     rules, messages = _parse(inputs)
     # log(rules)
     # log(messages)
-    _reduce_rules(rules)
-    # log(rules)
+    rule = _construct_rule(rules)
     assert len(rules) == 1
     assert rules.keys() == {0}
-    _compact_rules(rules)
-    # log(rules)
-    # _translate_rules(rules)
-    # log(rules)
-    # _log_tree(_build_rule(rules[0])[0])
-    regex = to_regex(rules[0])
+    regex = _to_regex(rule)
     log(regex)
 
     return sum([1 for message in messages if re.match(regex, message)])
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    rules, messages = _parse(inputs)
+    # log(rules)
+    # log(messages)
+    # rules[8] = "42 | 42 8"
+    # rules[11] = "42 31 | 42 11 31"
+    rules[8] = "(42)+"
+    # rules[11] = "(42)+ (31)+"
+    rules[11] = "42 31 | 42 42 31 31 | 42 42 42 31 31 31"\
+                " | 42 42 42 42 31 31 31 31"
+    _reduce_rules(rules)
+    log(rules)
+    assert len(rules) == 1
+    assert rules.keys() == {0}
+    rule = rules[0]
+    regex = "^" + rule.replace(" ", "") + "$"
+    log(regex)
+
+    result = sum([1 for message in messages
+                  if re.match(regex, message)])
+    log(result)
+    return result
 
 
-test = """\
+test_1 = """\
 0: 4 1 5
 1: 2 3 | 3 2
 2: 4 4 | 5 5
@@ -225,19 +249,69 @@ abbbab
 aaabbb
 aaaabbb
 """.splitlines()
+test_2 = """\
+42: 9 14 | 10 1
+9: 14 27 | 1 26
+10: 23 14 | 28 1
+1: "a"
+11: 42 31
+5: 1 14 | 15 1
+19: 14 1 | 14 14
+12: 24 14 | 19 1
+16: 15 1 | 14 14
+31: 14 17 | 1 13
+6: 14 14 | 1 14
+2: 1 24 | 14 4
+0: 8 11
+13: 14 3 | 1 12
+15: 1 | 14
+17: 14 2 | 1 7
+23: 25 1 | 22 14
+28: 16 1
+4: 1 1
+20: 14 14 | 1 15
+3: 5 14 | 16 1
+27: 1 6 | 14 18
+14: "b"
+21: 14 1 | 1 14
+25: 1 1 | 1 14
+22: 14 14
+8: 42
+26: 14 22 | 1 20
+18: 15 15
+7: 14 5 | 1 21
+24: 14 1
+
+abbbbbabbbaaaababbaabbbbabababbbabbbbbbabaaaa
+bbabbbbaabaabba
+babbbbaabbbbbabbbbbbaabaaabaaa
+aaabbbbbbaaaabaababaabababbabaaabbababababaaa
+bbbbbbbaaaabbbbaaabbabaaa
+bbbababbbbaaaaaaaabbababaaababaabab
+ababaaaaaabaaab
+ababaaaaabbbaba
+baabbaaaabbaaaababbaababb
+abbbbabbbbaaaababbbbbbaaaababb
+aaaaabbaabaaaaababaa
+aaaabbaaaabbaaa
+aaaabbaabbaaaaaaabbbabbbaaabbaabaaa
+babaaabbbaaabaababbaabababaaab
+aabbbbbaabbbaaaaaabbbbbababaaaaabbaaabba
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 19)
 
-    assert part_1(test) == 2
-    assert part_2(test) == 0
+    assert part_1(test_1) == 2
+    assert part_1(test_2) == 3
+    assert part_2(test_2) == 12
 
     inputs = my_aocd.get_input_as_tuple(2020, 19, 534)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    # result2 = part_2(inputs)
-    # print(f"Part 2: {result2}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
