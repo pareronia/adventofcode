@@ -183,20 +183,28 @@ def _log_tree(tree):
             log(tree_item)
 
 
+def to_regex(rule: str) -> str:
+    rule = rule.replace("*", "")
+    return "^" + rule.replace(" ", "") + "$"
+
+
 def part_1(inputs: tuple[str]) -> int:
     rules, messages = _parse(inputs)
-    log(rules)
+    # log(rules)
     # log(messages)
     _reduce_rules(rules)
-    log(rules)
+    # log(rules)
     assert len(rules) == 1
     assert rules.keys() == {0}
     _compact_rules(rules)
-    log(rules)
-    _translate_rules(rules)
-    log(rules)
+    # log(rules)
+    # _translate_rules(rules)
+    # log(rules)
     # _log_tree(_build_rule(rules[0])[0])
-    return 0
+    regex = to_regex(rules[0])
+    log(regex)
+
+    return sum([1 for message in messages if re.match(regex, message)])
 
 
 def part_2(inputs: tuple[str]) -> int:
@@ -222,7 +230,7 @@ aaaabbb
 def main() -> None:
     my_aocd.print_header(2020, 19)
 
-    assert part_1(test) == 0
+    assert part_1(test) == 2
     assert part_2(test) == 0
 
     inputs = my_aocd.get_input_as_tuple(2020, 19, 534)
