@@ -24,12 +24,6 @@ class Rule:
         return valid
 
 
-def _append_empty_line(lst: tuple[str]) -> list[str]:
-    new_lst = list(lst)
-    new_lst.append("")
-    return new_lst
-
-
 def parse_rules(lines: list[str]) -> list[Rule]:
     rules = list()
     for line in lines:
@@ -51,16 +45,7 @@ def parse_tickets(lines: list[str]) -> tuple[int]:
 
 
 def parse(inputs: tuple[str]):
-    _append_empty_line(inputs)
-    blocks = list[list[str]]()
-    idx = 0
-    blocks.append([])
-    for input_ in inputs:
-        if len(input_) == 0:
-            blocks.append([])
-            idx += 1
-        else:
-            blocks[idx].append(input_)
+    blocks = my_aocd.to_blocks(inputs)
     rules = parse_rules(blocks[0])
     my_ticket = parse_tickets(blocks[1])[0]
     tickets = parse_tickets(blocks[2])

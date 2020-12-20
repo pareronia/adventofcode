@@ -5,26 +5,18 @@
 import my_aocd
 
 
-def _append_empty_line(lst: tuple[str]) -> list[str]:
-    new_lst = list(lst)
-    new_lst.append("")
-    return new_lst
-
-
 def _sum_of_counts(lists: list[list]) -> int:
     return sum([len(lst) for lst in lists])
 
 
 def part_1(inputs: tuple[str]) -> int:
-    inputs = _append_empty_line(inputs)
+    blocks = my_aocd.to_blocks(inputs)
     unique_anwers_per_group = []
-    unique_answers_for_group = set()
-    for input_ in inputs:
-        if len(input_) > 0:
-            unique_answers_for_group.update(input_)
-            continue
-        unique_anwers_per_group.append(unique_answers_for_group)
+    for block in blocks:
         unique_answers_for_group = set()
+        for input_ in block:
+            unique_answers_for_group.update(input_)
+        unique_anwers_per_group.append(unique_answers_for_group)
     return _sum_of_counts(unique_anwers_per_group)
 
 
@@ -32,16 +24,14 @@ alfabet = "abcdefghijklmnopqrstuvwxyz"
 
 
 def part_2(inputs: tuple[str]) -> int:
-    inputs = _append_empty_line(inputs)
+    blocks = my_aocd.to_blocks(inputs)
     common_answers_per_group = []
-    common_answers_for_group = set(alfabet)
-    for input_ in inputs:
-        if len(input_) > 0:
+    for block in blocks:
+        common_answers_for_group = set(alfabet)
+        for input_ in block:
             common_answers_for_group = common_answers_for_group\
                     .intersection(set(input_))
-            continue
         common_answers_per_group.append(common_answers_for_group)
-        common_answers_for_group = set(alfabet)
     return _sum_of_counts(common_answers_per_group)
 
 

@@ -33,49 +33,13 @@ class Rule:
         return found
 
 
-def _append_empty_line(lst: tuple[str]) -> list[str]:
-    new_lst = list(lst)
-    new_lst.append("")
-    return new_lst
-
-
-def _parse_rules_simple(inputs: list[str]) -> dict:
+def _parse(inputs: tuple[str]):
+    blocks = my_aocd.to_blocks(inputs)
     rules = dict()
-    for input_ in inputs:
+    for input_ in blocks[0]:
         splits = input_.split(": ")
         splits[1] = splits[1].replace("\"", "")
         rules[int(splits[0])] = splits[1]
-    return rules
-
-
-# def _parse_rules(inputs: list[str]) -> RuleSet:
-#     rules = list[Rule]()
-#     for input_ in inputs:
-#         splits = input_.split(": ")
-#         rs1 = splits[1].replace("\"", "")
-#         rs3 = []
-#         for rs2 in rs1.split(" | "):
-#             rs = rs2.split()
-#             rs3.append(rs)
-#         idx = int(splits[0])
-#         rule = Rule(idx, rs3, False)
-#         rule.determine_sink()
-#         rules.append(rule)
-#     return RuleSet(rules)
-
-
-def _parse(inputs: tuple[str]):
-    _append_empty_line(inputs)
-    blocks = list[list[str]]()
-    idx = 0
-    blocks.append([])
-    for input_ in inputs:
-        if len(input_) == 0:
-            blocks.append([])
-            idx += 1
-        else:
-            blocks[idx].append(input_)
-    rules = _parse_rules_simple(blocks[0])
     messages = blocks[1]
     return rules, messages
 

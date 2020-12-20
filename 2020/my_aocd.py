@@ -2,6 +2,19 @@
 import aocd
 
 
+def to_blocks(inputs: tuple[str]) -> list[list[str]]:
+    blocks = list[list[str]]()
+    idx = 0
+    blocks.append([])
+    for input_ in inputs:
+        if len(input_) == 0:
+            blocks.append([])
+            idx += 1
+        else:
+            blocks[idx].append(input_)
+    return blocks
+
+
 def get_input_as_list(year: int, day: int, expected: int = None) -> list[str]:
     inputs = aocd.get_data(year=year, day=day).splitlines()
     if expected is not None and len(inputs) != expected:
