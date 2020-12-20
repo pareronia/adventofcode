@@ -1,7 +1,10 @@
 #! /usr/bin/env python3
 #
-# Advent of Code 2020 Day 16
+# Advent of Code 2020 Day 17
 #
+# TODO: limit boundaries when possible; points way out in the void aren't
+#       going to change...
+# TODO: make one solver for GoL for multiple dimensions
 
 from __future__ import annotations
 from math import prod
@@ -14,7 +17,6 @@ ON = "#"
 OFF = "."
 
 
-# @dataclass
 class Cube:
     layer: int
     row: int
@@ -40,7 +42,6 @@ class Cube:
         self.state = OFF
 
 
-# @dataclass
 class Tesseract(Cube):
     wtf: int
 
