@@ -113,49 +113,50 @@ def _find(fields, foods, ingredients: set[Ingredient],
     _find(fields, foods, new_ingredients, new_rules)
 
 
+def _find_i_for_a(foods: Foods, allergens: set[Allergen]):
+    possible = defaultdict(set)
+    for f in foods:
+        for a in f.allergens:
+            possible[a] = possible[a] | f.ingredients
+    log(possible)
+    m = set[tuple[Allergen, Ingredient]]()
+    while len(m) < len(allergens):
+        for p in possible:
+            for f in foods:
+                for a in f.allergens:
+                    if a in possible.keys():
+                        possible[a] = possible[a] & f.ingredients
+        log(possible)
+        for k in possible.keys():
+            if len(possible[k]) == 1:
+                i = list(possible[k])[0]
+                m.add((k, i))
+                for v in possible.values():
+                    if i in v:
+                        v.remove(i)
+        log(m)
+    return m
+
+
 def part_1(inputs: tuple[str]) -> int:
     _foods, ingredients, allergens, rules = _parse(inputs)
-    log(_foods)
-    log(ingredients)
-    log(allergens)
-    log(rules)
     foods = Foods(_foods)
-    fba = list(foods)
-    fba.sort(key=lambda f: len(f.allergens), reverse=True)
-    # log(fba)
-    # nai = set[Allergen]()
-    # for i, food in enumerate(fba):
-    #     for ingredient in food.ingredients:
-    #         foods.with_allergens(
     all_ingredients = [i for i in foods.all_ingredients()]
-    inltoa = [i for i in all_ingredients if all_ingredients.count(i) == 1]
-    log(inltoa)
-    fields = list[tuple[Ingredient, Allergen]]()
-    ftt = [f for f in foods if f not in foods.with_single_allergen()]
-    itt = set(all_ingredients).difference(inltoa)
-    _find(fields, ftt, itt,  rules)
-    log(fields)
-    f_i = [f[0] for f in fields]
-    fields = list[tuple[Ingredient, Allergen]]()
-    inltoa.extend([i
-                   for i in set(all_ingredients).difference(inltoa)
-                   if i not in f_i])
-    log(inltoa)
-    log(len(inltoa))
-    for i in inltoa:
-        for rule in rules:
-            ii = rule.ingredients.difference({i})
-            if len(ii) == 1:
-                iii = list(ii)[0]
-                if iii in f_i:
-                    inltoa.remove(i)
-    log(inltoa)
-    log(len(inltoa))
-    return sum([all_ingredients.count(i) for i in inltoa])
+    i_with_a = _find_i_for_a(foods, allergens)
+    log(i_with_a)
+    ing = {_[1] for _ in i_with_a}
+    return sum([1 for i in all_ingredients if i not in ing])
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return 0
+def part_2(inputs: tuple[str]) -> str:
+    _foods, ingredients, allergens, rules = _parse(inputs)
+    foods = Foods(_foods)
+    i_with_a = list(_find_i_for_a(foods, allergens))
+    log(i_with_a)
+    i_with_a.sort(key=lambda x: x[0])
+    log(i_with_a)
+    ings = [_[1] for _ in i_with_a]
+    return ",".join(ings)
 
 
 test = """\
@@ -170,13 +171,13 @@ def main() -> None:
     my_aocd.print_header(2020, 21)
 
     assert part_1(test) == 5
-    assert part_2(test) == 0
+    assert part_2(test) == "mxmxvkd,sqjhc,fvjkl"
 
     inputs = my_aocd.get_input_as_tuple(2020, 21, 40)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    # result2 = part_2(inputs)
-    # print(f"Part 2: {result2}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
