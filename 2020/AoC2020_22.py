@@ -22,10 +22,7 @@ def _parse(inputs: tuple[str]) -> list[list[int]]:
     return pl1, pl2
 
 
-def part_1(inputs: tuple[str]) -> int:
-    pl1, pl2 = _parse(inputs)
-    log(pl1)
-    log(pl2)
+def _play(pl1, pl2):
     while len(pl1) != 0 and len(pl2) != 0:
         n1 = pl1.pop(0)
         n2 = pl2.pop(0)
@@ -39,11 +36,23 @@ def part_1(inputs: tuple[str]) -> int:
             pl2.append(n1)
         log(pl1)
         log(pl2)
+    return pl1, pl2
+
+
+def _get_score(pl1, pl2):
     winner = pl1 if len(pl2) == 0 else pl2
     total = 0
     for i, c in enumerate(winner):
         total += (len(winner)-i) * c
     return total
+
+
+def part_1(inputs: tuple[str]) -> int:
+    pl1, pl2 = _parse(inputs)
+    log(pl1)
+    log(pl2)
+    _play(pl1, pl2)
+    return _get_score(pl1, pl2)
 
 
 def part_2(inputs: tuple[str]) -> int:
