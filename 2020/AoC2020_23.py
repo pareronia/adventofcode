@@ -13,20 +13,25 @@ def _parse(inputs: tuple[str]) -> list[int]:
     return [int(c) for c in inputs[0]]
 
 
+def _log(cups: list[int], msg):
+    if len(cups) <= 10:
+        log(msg)
+
+
 def _do_move(move: int, cups: list[int], current: int) -> list[int]:
-    log(f"-- move {move+1} --")
-    log(f"cups: {cups}")
+    _log(cups, f"-- move {move+1} --")
+    _log(cups, f"cups: {cups}")
     pickup_cups = deepcopy(cups)
     pickup_cups.extend(pickup_cups)
     pick_up = pickup_cups[current+1:current+4]
-    log(f"pick up: {pick_up}")
+    _log(cups, f"pick up: {pick_up}")
     cups_ordered = deepcopy(cups)
     cups_ordered.sort(key=lambda x: x, reverse=True)
     d = (cups_ordered.index(cups[current]) + 1) % len(cups_ordered)
     while cups_ordered[d] in pick_up:
         d = (d + 1) % len(cups_ordered)
     destination = cups_ordered[d]
-    log(f"destination: {destination}")
+    _log(cups, f"destination: {destination}")
     result = []
     for k in range(len(cups)):
         result.append(None)
@@ -37,14 +42,13 @@ def _do_move(move: int, cups: list[int], current: int) -> list[int]:
         if cups[i_] == destination:
             result[j] = cups[i_]
             j = (j + 1) % len(cups)
-            # breakpoint()
             for p in pick_up:
                 result[j] = p
                 j = (j + 1) % len(cups)
         elif cups[i_] not in pick_up:
             result[j] = cups[i_]
             j = (j + 1) % len(cups)
-    log("")
+    _log(cups, "")
     return result
 
 
@@ -61,6 +65,11 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def part_2(inputs: tuple[str]) -> int:
+    cups = _parse(inputs)
+    cups.extend([i for i in range(max(cups)+1, 1_000_001)])
+    for move in range(10_000_000):
+        cups = _do_move(move, cups, move % len(cups))
+        print('.', end='', flush=True)
     return 0
 
 
