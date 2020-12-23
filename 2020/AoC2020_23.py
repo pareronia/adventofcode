@@ -3,7 +3,6 @@
 # Advent of Code 2020 Day 23
 #
 
-from collections import deque
 import my_aocd
 from common import log
 
@@ -13,54 +12,85 @@ def _parse(inputs: tuple[str]) -> list[int]:
     return [int(c) for c in inputs[0]]
 
 
-def _log(cups: list[int], msg):
+def _log(cups: dict, msg):
     if len(cups) <= 10:
         log(msg)
 
 
-def _do_move(move: int, cups: deque[int], current: int) -> list[int]:
-    _log(cups, f"-- move {move+1} --")
-    _log(cups, f"cups: {cups}")
-    c = cups[current]
-    _log(cups, f"current: {c}")
-    p1 = cups[(current+1) % len(cups)]
-    p2 = cups[(current+2) % len(cups)]
-    p3 = cups[(current+3) % len(cups)]
-    cups.remove(p1)
-    cups.remove(p2)
-    cups.remove(p3)
-    pick_up = [p1, p2, p3]
-    _log(cups, f"pick up: {pick_up}")
-    d = c-1
-    if d < min(cups):
-        d = max(cups)
-    while d in pick_up:
-        d -= 1
-        if d < min(cups):
-            d = max(cups)
-    _log(cups, f"destination: {d}")
-    d_i = cups.index(d)
-    for i, p in enumerate(pick_up):
-        cups.insert(d_i+i+1, p)
-    current = cups.index(c)
-    current = (current+1) % len(cups)
-    _log(cups, "")
-    return cups, current
+def _print_cups(val: dict[int], current: int) -> str:
+    if len(val) > 10:
+        return
+    cups = [str(val[i]) for i in sorted(val.keys(), key=lambda k: k)]
+    result = " ".join(cups)
+    result = result.replace(str(val[current]), "(" + str(val[current]) + ")")
+    return result
+
+
+def _do_move(move: int, val: dict[int], idx: dict[int],
+             current: int) -> (dict[int], dict[int]):
+    min_val = min(val.values())
+    max_val = max(val.values())
+    size = len(val)
+    _log(val, f"-- move {move+1} --")
+    _log(val, f"cups: {_print_cups(val, current)}")
+    _log(val, idx)
+    _log(val, val)
+    cv = val[current]
+    p1v = val[(current+1) % size]
+    p2v = val[(current+2) % size]
+    p3v = val[(current+3) % size]
+    pick_up = [p1v, p2v, p3v]
+    _log(val, f"pick up: {pick_up}")
+    dv = cv-1
+    if dv < min_val:
+        dv = max_val
+    while dv in pick_up:
+        dv -= 1
+        if dv < min_val:
+            dv = max_val
+    _log(val, f"destination: {dv}")
+    for pv in reversed(pick_up):
+        di = idx[dv]
+        pvi = idx[pv]
+        if di > pvi:
+            for i in range(pvi+1, di+1):
+                i1 = i % size
+                v1 = val[i1]
+                i2 = (i-1) % size
+                val[i2], idx[v1] = v1, i2
+            val[di], idx[pv] = pv, di
+        else:
+            for i in range(pvi-1, di, -1):
+                i1 = i % size
+                v1 = val[i1]
+                i2 = (i+1) % size
+                val[i2], idx[v1] = v1, i2
+            val[(di+1) % size], idx[pv] = pv, (di+1) % size
+    current = (idx[cv]+1) % size
+    _log(val, "")
+    return val, idx, current
+
+
+def _prepare_bidi(cups: list[int]) -> (dict[int], dict[int]):
+    val = dict[int]()
+    idx = dict[int]()
+    for i, cup in enumerate(cups):
+        val[i] = cup
+        idx[cup] = i
+    return val, idx
 
 
 def part_1(inputs: tuple[str]) -> int:
-    cups = deque(_parse(inputs))
+    cups = _parse(inputs)
+    val, idx = _prepare_bidi(cups)
     current = 0
     for move in range(100):
-        cups, current = _do_move(move, cups, current)
+        val, idx, current = _do_move(move, val, idx, current)
     log("-- final --")
-    log(f"cups: {cups}")
-    one = cups.index(1)
-    result = 0
-    for i in range(len(cups)):
-        cup = cups[(one+1+i) % len(cups)]
-        if cup != 1:
-            result += cup*10**(len(cups)-2-i)
+    _log(val, f"cups: {_print_cups(val, current)}")
+    one = idx[1]
+    result = sum([val[(one+1+i) % len(val)] * 10**(len(val)-2-i)
+                  for i in range(len(val)-1)])
     log(result)
     return result
 
@@ -68,14 +98,14 @@ def part_1(inputs: tuple[str]) -> int:
 def part_2(inputs: tuple[str]) -> int:
     cups = _parse(inputs)
     cups.extend([i for i in range(max(cups)+1, 1_000_001)])
-    cups = deque(cups)
+    val, idx = _prepare_bidi(cups)
     current = 0
     for move in range(10_000_000):
-        cups, current = _do_move(move, cups, current)
+        val, idx, current = _do_move(move, val, idx, current)
         print('.', end='', flush=True)
-    one = cups.index(1)
-    star1 = cups[one+1]
-    star2 = cups[one+2]
+    one = idx[1]
+    star1 = val[one+1]
+    star2 = val[one+2]
     return star1 * star2
 
 
