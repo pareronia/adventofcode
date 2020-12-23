@@ -3,7 +3,7 @@
 # Advent of Code 2020 Day 23
 #
 
-from copy import deepcopy
+from collections import deque
 import my_aocd
 from common import log
 
@@ -18,48 +18,49 @@ def _log(cups: list[int], msg):
         log(msg)
 
 
-def _do_move(move: int, cups: list[int], current: int) -> list[int]:
+def _do_move(move: int, cups: deque[int], current: int) -> list[int]:
     _log(cups, f"-- move {move+1} --")
     _log(cups, f"cups: {cups}")
-    pickup_cups = deepcopy(cups)
-    pickup_cups.extend(pickup_cups)
-    pick_up = pickup_cups[current+1:current+4]
+    c = cups[current]
+    _log(cups, f"current: {c}")
+    p1 = cups[(current+1) % len(cups)]
+    p2 = cups[(current+2) % len(cups)]
+    p3 = cups[(current+3) % len(cups)]
+    cups.remove(p1)
+    cups.remove(p2)
+    cups.remove(p3)
+    pick_up = [p1, p2, p3]
     _log(cups, f"pick up: {pick_up}")
-    cups_ordered = deepcopy(cups)
-    cups_ordered.sort(key=lambda x: x, reverse=True)
-    d = (cups_ordered.index(cups[current]) + 1) % len(cups_ordered)
-    while cups_ordered[d] in pick_up:
-        d = (d + 1) % len(cups_ordered)
-    destination = cups_ordered[d]
-    _log(cups, f"destination: {destination}")
-    result = []
-    for k in range(len(cups)):
-        result.append(None)
-    result[current] = cups[current]
-    j = (current + 1) % len(cups)
-    for i in range(current+1, current+1+len(cups)):
-        i_ = i % len(cups)
-        if cups[i_] == destination:
-            result[j] = cups[i_]
-            j = (j + 1) % len(cups)
-            for p in pick_up:
-                result[j] = p
-                j = (j + 1) % len(cups)
-        elif cups[i_] not in pick_up:
-            result[j] = cups[i_]
-            j = (j + 1) % len(cups)
+    d = c-1
+    if d < min(cups):
+        d = max(cups)
+    while d in pick_up:
+        d -= 1
+        if d < min(cups):
+            d = max(cups)
+    _log(cups, f"destination: {d}")
+    d_i = cups.index(d)
+    for i, p in enumerate(pick_up):
+        cups.insert(d_i+i+1, p)
+    current = cups.index(c)
+    current = (current+1) % len(cups)
     _log(cups, "")
-    return result
+    return cups, current
 
 
 def part_1(inputs: tuple[str]) -> int:
-    cups = _parse(inputs)
+    cups = deque(_parse(inputs))
+    current = 0
     for move in range(100):
-        cups = _do_move(move, cups, move % len(cups))
+        cups, current = _do_move(move, cups, current)
+    log("-- final --")
+    log(f"cups: {cups}")
     one = cups.index(1)
-    final = cups[one+1:] + cups[:one]
-    result = sum([c*10**(len(final)-1-i)
-                  for i, c in enumerate(final)])
+    result = 0
+    for i in range(len(cups)):
+        cup = cups[(one+1+i) % len(cups)]
+        if cup != 1:
+            result += cup*10**(len(cups)-2-i)
     log(result)
     return result
 
@@ -67,10 +68,15 @@ def part_1(inputs: tuple[str]) -> int:
 def part_2(inputs: tuple[str]) -> int:
     cups = _parse(inputs)
     cups.extend([i for i in range(max(cups)+1, 1_000_001)])
+    cups = deque(cups)
+    current = 0
     for move in range(10_000_000):
-        cups = _do_move(move, cups, move % len(cups))
+        cups, current = _do_move(move, cups, current)
         print('.', end='', flush=True)
-    return 0
+    one = cups.index(1)
+    star1 = cups[one+1]
+    star2 = cups[one+2]
+    return star1 * star2
 
 
 test = """\
@@ -82,7 +88,7 @@ def main() -> None:
     my_aocd.print_header(2020, 23)
 
     assert part_1(test) == 67384529
-    assert part_2(test) == 0
+    assert part_2(test) == 149245887792
 
     result1 = part_1(["974618352"])
     print(f"Part 1: {result1}")
