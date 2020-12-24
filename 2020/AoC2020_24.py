@@ -22,8 +22,6 @@ NORTH = "N"
 EAST = "E"
 SOUTH = "S"
 WEST = "W"
-BLACK = "B"
-WHITE = "W"
 
 
 @dataclass(frozen=True)
@@ -32,40 +30,25 @@ class NavigationInstruction:
     value: int
 
 
-@dataclass
+@dataclass(frozen=True)
 class Tile:
     x: int
     y: int
-    color: str
-
-    def __init__(self, x: int, y: int, color: str):
-        self.x = x
-        self.y = y
-        self.color = color
-
-    def flip(self):
-        if self.color == WHITE:
-            self.color = BLACK
-        else:
-            self.color = WHITE
-
-    def __eq__(self, other: Tile):
-        return self.x == other.x and self.y == other.y
 
     def get_neighbours(self) -> list[Position]:
         neighbours = []
-        neighbours.append(Position(self.x-1, self.y+2))
-        neighbours.append(Position(self.x+1, self.y+2))
-        neighbours.append(Position(self.x+2, self.y))
-        neighbours.append(Position(self.x+1, self.y-2))
-        neighbours.append(Position(self.x-1, self.y-2))
-        neighbours.append(Position(self.x-2, self.y))
+        neighbours.append(Position(self.x-1, self.y+1))
+        neighbours.append(Position(self.x, self.y+1))
+        neighbours.append(Position(self.x-1, self.y))
+        neighbours.append(Position(self.x+1, self.y))
+        neighbours.append(Position(self.x, self.y-1))
+        neighbours.append(Position(self.x+1, self.y-1))
         return neighbours
 
 
 @dataclass(frozen=True)
 class Floor:
-    tiles: list[Tile]
+    tiles: set[Tile]
 
     def get(self, x: int, y: int):
         for tile in self.tiles:
@@ -75,21 +58,18 @@ class Floor:
     def flip(self, position: Position):
         tile = self.get(position.x, position.y)
         if tile is None:
-            tile = Tile(position.x, position.y, WHITE)
-            self.tiles.append(tile)
-            log("new tile")
-        if tile.color == WHITE:
-            tile.color = BLACK
-            log("flip to black")
+            self.tiles.add(Tile(position.x, position.y))
         else:
-            tile.color = WHITE
-            log("flip to white")
-
-    def count_black(self):
-        return sum([1 for tile in self.tiles if tile.color == BLACK])
+            self.tiles.remove(tile)
 
 
 def _parse(inputs: tuple[str]) -> list[list[NavigationInstruction]]:
+    """
+    Coordinate system:
+        NW: 1,-1    NE: 0,1
+        W : -1,0    0,0         E: 1,0
+                    SW: 0,-1    SE: 1,-1
+    """
     navs = list[list[NavigationInstruction]]()
     for input_ in inputs:
         nav = list[NavigationInstruction]()
@@ -97,21 +77,19 @@ def _parse(inputs: tuple[str]) -> list[list[NavigationInstruction]]:
         for _ in m:
             heading = _[0]
             if heading == E:
-                nav.append(NavigationInstruction(EAST, 2))
+                nav.append(NavigationInstruction(EAST, 1))
             elif heading == SE:
-                nav.append(NavigationInstruction(SOUTH, 2))
+                nav.append(NavigationInstruction(SOUTH, 1))
                 nav.append(NavigationInstruction(EAST, 1))
             elif heading == W:
-                nav.append(NavigationInstruction(WEST, 2))
-            elif heading == SW:
-                nav.append(NavigationInstruction(SOUTH, 2))
                 nav.append(NavigationInstruction(WEST, 1))
+            elif heading == SW:
+                nav.append(NavigationInstruction(SOUTH, 1))
             elif heading == NW:
-                nav.append(NavigationInstruction(NORTH, 2))
+                nav.append(NavigationInstruction(NORTH, 1))
                 nav.append(NavigationInstruction(WEST, 1))
             elif heading == NE:
-                nav.append(NavigationInstruction(NORTH, 2))
-                nav.append(NavigationInstruction(EAST, 1))
+                nav.append(NavigationInstruction(NORTH, 1))
             else:
                 raise ValueError("invalid input")
         navs.append(nav)
@@ -128,12 +106,10 @@ def _navigate_with_waypoint(navigation: NavigationWithWaypoint,
 
 
 def _build_floor(navs: list[list[NavigationInstruction]]) -> Floor:
-    floor = Floor([])
+    floor = Floor(set())
     for nav in navs:
-        start = Waypoint(0, 0)
-        navigation = NavigationWithWaypoint(Position(0, 0), start)
-        for n in nav:
-            _navigate_with_waypoint(navigation, n)
+        navigation = NavigationWithWaypoint(Position(0, 0), Waypoint(0, 0))
+        [_navigate_with_waypoint(navigation, n) for n in nav]
         floor.flip(navigation.waypoint)
     return floor
 
@@ -141,35 +117,33 @@ def _build_floor(navs: list[list[NavigationInstruction]]) -> Floor:
 def part_1(inputs: tuple[str]) -> int:
     navs = _parse(inputs)
     floor = _build_floor(navs)
-    for tile in floor.tiles:
-        log(tile)
-    return floor.count_black()
+    return len(floor.tiles)
 
 
 def _run_cycle(floor: Floor) -> Floor:
-    new_tiles = [Tile(t.x, t.y, t.color) for t in floor.tiles
-                 if t.color == BLACK]
-    for tile in new_tiles:
-        for p in tile.get_neighbours():
-            if tile not in new_tiles:
-                new_tiles.append(Tile(p.x, p.y, WHITE))
+    # check the positions of all existing black tiles
+    check = [Position(tile.x, tile.y) for tile in floor.tiles]
+    # also check all their neighbour positions (a position can only
+    #  become black if it is adjacent to at least 1 black tile)
+    for tile in floor.tiles:
+        for n in tile.get_neighbours():
+            check.append(n)
+    new_tiles = set()
+    # for each position:
+    for p in check:
+        # does it have black neighbour? yes: if that neighbour
+        #  is an existing black tile; no: if it isn't
+        bn = 0
+        for n in Tile(p.x, p.y).get_neighbours():
+            if Tile(n.x, n.y) in floor.tiles:
+                bn += 1
+        # apply rules
+        tile = Tile(p.x, p.y)
+        if tile in floor.tiles and bn in {1, 2}:
+            new_tiles.add(tile)
+        if tile not in floor.tiles and bn == 2:
+            new_tiles.add(tile)
     new_floor = Floor(new_tiles)
-    flips = []
-    for new_tile in new_floor.tiles:
-        neighbours = [new_floor.get(p.x, p.y)
-                      for p in new_tile.get_neighbours()]
-        bn = sum([1 for t in neighbours
-                  if t is not None and t.color == BLACK])
-        if new_tile.color == BLACK:
-            if bn == 0 or bn > 2:
-                flips.append((new_tile.x, new_tile.y))
-        elif new_tile.color == WHITE:
-            if bn == 2:
-                flips.append((new_tile.x, new_tile.y))
-        else:
-            raise ValueError("color should only be black or white")
-    for flip in flips:
-        new_floor.get(flip[0], flip[1]).flip()
     return new_floor
 
 
@@ -177,13 +151,12 @@ def part_2(inputs: tuple[str]) -> int:
     navs = _parse(inputs)
     floor = _build_floor(navs)
     log(len(floor.tiles))
-    log(floor.count_black())
-    for i in range(1):
+    for i in range(100):
         floor = _run_cycle(floor)
         log(len(floor.tiles))
-        log(floor.count_black())
         print(".", end="", flush=True)
-    return floor.count_black()
+    print("")
+    return len(floor.tiles)
 
 
 test = """\
@@ -214,13 +187,13 @@ def main() -> None:
     my_aocd.print_header(2020, 24)
 
     assert part_1(test) == 10
-    assert part_2(test) == 15
+    assert part_2(test) == 2208
 
-    # inputs = my_aocd.get_input_as_tuple(2020, 24, 316)
-    # result1 = part_1(inputs)
-    # print(f"Part 1: {result1}")
-    # # result2 = part_2(inputs)
-    # print(f"Part 2: {result2}")
+    inputs = my_aocd.get_input_as_tuple(2020, 24, 316)
+    result1 = part_1(inputs)
+    print(f"Part 1: {result1}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
