@@ -2,8 +2,7 @@
 #
 # Advent of Code 2020 Day 10
 #
-from dataclasses import dataclass
-from networkx import nx
+from collections import defaultdict
 import my_aocd
 from common import log
 
@@ -33,55 +32,24 @@ def part_1(inputs: tuple[int]) -> int:
     return (len(jumps_1)+1)*(len(jumps_3)+1)
 
 
-result = []
-
-
-@dataclass
-class Edge:
-    src: str
-    dst: str
-    diff: int
-
-
-def _build_edges(inputs: tuple[int]) -> list[Edge]:
-    edges = []
-    for i in range(len(inputs)-1):
-        for j in range(i+1, len(inputs)):
-            diff = inputs[j]-inputs[i]
-            if diff > 3:
-                break
-            edges.append(Edge(inputs[i], inputs[j], diff))
-    return edges
-
-
-def _build_digraph(edges: list[Edge]):
-    dg = nx.DiGraph()
-    dg.add_weighted_edges_from([(edge.src, edge.dst, edge.diff)
-                                for edge in edges])
-    return dg
-
-
-def _all_simple_paths(edges: list[Edge], source: int, target: int) -> []:
-    dg = _build_digraph(edges)
-    return nx.all_simple_paths(dg, source, target)
-
-
 def part_2(inputs: tuple[int]) -> int:
     inputs = _get_sorted(inputs)
     log(inputs)
-    edges = _build_edges(inputs)
-    log(edges)
-    cnt = 0
-    for i in range(0, len(inputs)):
-        if inputs[i] > 3:
-            break
-        paths = _all_simple_paths(edges, source=inputs[i],
-                                  target=inputs[-1])
-        for path in paths:
-            # print(path)
-            cnt += 1
-    log(cnt)
-    return cnt
+    seen = defaultdict(int)
+    seen[0] = 1
+    seen[inputs[0]] = 1
+    log(seen)
+    for i in inputs[1:]:
+        for j in range(inputs.index(i)-1, -2, -1):
+            if j == -1:
+                j_ = 0
+            else:
+                j_ = inputs[j]
+            if i - j_ <= 3:
+                seen[i] = seen[i] + seen[j_]
+        log(seen)
+    log(seen[inputs[-1]])
+    return seen[inputs[-1]]
 
 
 test_1 = (16,
