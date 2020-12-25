@@ -6,31 +6,20 @@
 import my_aocd
 
 
-def _transform_loop(val: int, subject_number: int) -> int:
-    return (val * subject_number) % 20201227
-
-
 def _find_loop_size(key: int) -> int:
-    loop_size = 1
+    loop_size = 0
     val = 1
-    while True:
+    while val != key:
+        loop_size += 1
         if loop_size % 10000 == 0:
             print(f"loop_size: {loop_size}", end="\r", flush=True)
-        val = _transform_loop(val, 7)
-        if val == key:
-            print("")
-            return loop_size
-        loop_size += 1
+        val = val * 7 % 20201227
+    print("")
+    return loop_size
 
 
 def _find_encryption_key(pub_key: int, loop_size: int):
-    priv_key = 1
-    for i in range(loop_size):
-        if i % 10000 == 0:
-            print(f"loop_size: {i}", end="\r", flush=True)
-        priv_key = _transform_loop(priv_key, pub_key)
-    print("")
-    return priv_key
+    return pow(pub_key, loop_size, 20201227)
 
 
 def part_1(inputs: tuple[str]) -> int:
