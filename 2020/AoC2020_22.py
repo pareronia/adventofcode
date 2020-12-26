@@ -79,7 +79,7 @@ def _play_2(pl1, pl2, total_games: int):
     while pl1 and pl2:
         round_ = (tuple(pl1), tuple(pl2))
         if round_ in seen:
-            return 1, pl1
+            return 1, pl1, total_games
         seen.add(round_)
         log("")
         log(f"-- Round {rnd} (Game {game}) --")
@@ -112,9 +112,9 @@ def _play_2(pl1, pl2, total_games: int):
 
 
 def part_2(inputs: tuple[str]) -> int:
-    game = 0
     pl1, pl2 = _parse(inputs)
-    winner, pl, total_games = _play_2(pl1, pl2, game)
+    total_games = 0
+    winner, pl, total_games = _play_2(pl1, pl2, total_games)
     log("")
     log("")
     log("== Post-game results ==")
