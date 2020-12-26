@@ -7,6 +7,8 @@ GREP := grep
 GAWK := awk
 SORT := sort
 SED := sed
+PYTHON_CMD := python
+JAVA_CMD := java -ea -cp $(CLASSPATH)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 PY_SRCS := **/*.py
@@ -21,8 +23,19 @@ msg = (if [ -t 1 ]; then echo ${BLUE}"\n$1\n"${NC}; else echo "$1"; fi)
 igrep = ($(GREP) --line-number --recursive --word-regexp --color=auto \
 		--ignore-case $1 $2)
 
+day_src = $(shell echo $1 | $(GAWK) --field-separator=, \
+		'{print $$1"/AoC"$$1"_"$$2"."$2""}')
+
 #: Default target - pre-push
 .DEFAULT_GOAL := pre-push
+
+#: Run Python (with ARGS=year,day)
+py:
+	@$(PYTHON_CMD) $(call day_src,$(ARGS),"py")
+
+#: Run Java (with ARGS=year,day)
+java:
+	@$(JAVA_CMD) $(call day_src,$(ARGS),"java")
 
 #: Run Flake8 Python code linter
 flake:
@@ -73,4 +86,4 @@ help:
 		| column -t -s '###' \
 		| $(SORT)
 
-.PHONY: flake vulture bandit fixme todo list help
+.PHONY: flake vulture bandit fixme todo list help py java
