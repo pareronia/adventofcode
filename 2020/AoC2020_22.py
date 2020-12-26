@@ -54,11 +54,10 @@ def _play_1(pl1, pl2):
     return pl1, pl2
 
 
-def _get_score(pl1, pl2):
-    winner = pl1 if len(pl2) == 0 else pl2
+def _get_score(pl):
     total = 0
-    for i, c in enumerate(winner):
-        total += (len(winner)-i) * c
+    for i, c in enumerate(pl):
+        total += (len(pl)-i) * c
     return total
 
 
@@ -68,21 +67,20 @@ def part_1(inputs: tuple[str]) -> int:
     log("== Post-game results ==")
     log(f"Player 1's deck: {pl1}")
     log(f"Player 2's deck: {pl2}")
-    return _get_score(pl1, pl2)
+    return _get_score(pl1 if pl1 else pl2)
 
 
-def _play_2(pl1, pl2, rnd: int = 1, game: int = 1):
+def _play_2(pl1, pl2, total_games: int):
+    total_games += 1
+    game = total_games
     log(f"=== Game {game} ===")
-    seen = set[tuple[tuple[int], tuple[int]]]()
-    pl1_old = []
-    pl2_old = []
-    while len(pl1) != 0 and len(pl2) != 0:
-        if (tuple(pl1), tuple(pl2)) in seen:
-            pl2 = []
-            break
-        pl1_old = tuple(deepcopy(pl1))
-        pl2_old = tuple(deepcopy(pl2))
-        seen.add((pl1_old, pl2_old))
+    seen = set()
+    rnd = 1
+    while pl1 and pl2:
+        round_ = (tuple(pl1), tuple(pl2))
+        if round_ in seen:
+            return 1, pl1
+        seen.add(round_)
         log("")
         log(f"-- Round {rnd} (Game {game}) --")
         log(f"Player 1's deck: {pl1}")
@@ -92,14 +90,13 @@ def _play_2(pl1, pl2, rnd: int = 1, game: int = 1):
         n2 = pl2.pop(0)
         log(f"Player 2 plays: {n2}")
         if len(pl1) >= n1 and len(pl2) >= n2:
-            pl1_sub = deepcopy(pl1[0:n1])
-            pl2_sub = deepcopy(pl2[0:n2])
+            pl1_sub = deepcopy(pl1[:n1])
+            pl2_sub = deepcopy(pl2[:n2])
             log("Playing a sub-game to determine the winner...")
             log("")
-            _play_2(pl1_sub, pl2_sub, rnd=1, game=game+1)
+            winner, pl, total_games = _play_2(pl1_sub, pl2_sub, total_games)
             log("")
             log(f"...anyway, back to game {game}.")
-            winner = 1 if len(pl2_sub) == 0 else 2
         else:
             winner = 1 if n1 > n2 else 2
         if winner == 1:
@@ -110,19 +107,20 @@ def _play_2(pl1, pl2, rnd: int = 1, game: int = 1):
             pl2.append(n1)
         log(f"Player {winner} wins round {rnd} of game {game}!")
         rnd += 1
-    winner = 1 if len(pl2) == 0 else 2
     log(f"The winner of game {game} is player {winner}!")
+    return (1, pl1, total_games) if winner == 1 else (2, pl2, total_games)
 
 
 def part_2(inputs: tuple[str]) -> int:
+    game = 0
     pl1, pl2 = _parse(inputs)
-    _play_2(pl1, pl2)
+    winner, pl, total_games = _play_2(pl1, pl2, game)
     log("")
     log("")
     log("== Post-game results ==")
     log(f"Player 1's deck: {pl1}")
     log(f"Player 2's deck: {pl2}")
-    return _get_score(pl1, pl2)
+    return _get_score(pl)
 
 
 test = """\
@@ -145,14 +143,14 @@ Player 2:
 def main() -> None:
     my_aocd.print_header(2020, 22)
 
-    # assert part_1(test) == 306
+    assert part_1(test) == 306
     assert part_2(test) == 291
 
-    # inputs = my_aocd.get_input_as_tuple(2020, 22, 53)
-    # result1 = part_1(inputs)
-    # print(f"Part 1: {result1}")
-    # result2 = part_2(inputs)
-    # print(f"Part 2: {result2}")
+    inputs = my_aocd.get_input_as_tuple(2020, 22, 53)
+    result1 = part_1(inputs)
+    print(f"Part 1: {result1}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
