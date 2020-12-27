@@ -1,16 +1,23 @@
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.union;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.mutable.MutableLong;
+import org.apache.commons.lang3.tuple.Pair;
 
 public class AoC2020_20 {
 	
@@ -37,7 +44,7 @@ public class AoC2020_20 {
 		System.out.println(obj);
 	}
 	
-	public Set<Tile> parse(List<String> inputs) {
+	public Image parse(List<String> inputs) {
 		final List<List<String>> blocks = new ArrayList<>();
 		int i = 0;
 		blocks.add(new ArrayList<String>());
@@ -61,38 +68,21 @@ public class AoC2020_20 {
 					grid.add(line.toCharArray());
 				}
 			}			
-			final char[][] cs = new char[grid.size()][];
-			tiles.add(new Tile(id, grid.toArray(cs)));
+			tiles.add(new Tile(id, Tile.toGrid(grid)));
 		}
-		return tiles;
+		return new Image(tiles);
 	}
 	
 	public long solvePart1() {
-		final Set<Tile> tiles = parse(inputs);		
-		tiles.forEach(this::log);
-		final Map<Integer, Map<Integer, Integer>> commons = new HashMap<>();
-		for (Tile tile1 : tiles) {
-			commons.put(tile1.id, new HashMap<Integer, Integer>());
-			for (Tile tile2 : tiles) {
-				if (tile1.id == tile2.id) {
-					continue;
-				}
-				int common = tile1.countCommonEdges(tile2);
-				if (common > 0) {
-					commons.get(tile1.id).put(tile2.id, common);
-				}
-			}
-		}
-		log(commons);
-		final Set<Integer> corners = commons.entrySet().stream()
-				.filter(e -> e.getValue().size() == 2)
-				.map(Map.Entry::getKey)
-				.collect(toSet());
-		long result = 1L;
-		for (Integer corner : corners) {
-			result *= corner;
-		}
-		return result;
+		final Image image = parse(inputs);		
+		image.getTiles().forEach(this::log);
+		return Math.prod(image.findCorners().stream().map(Tile::getId).collect(toSet()));
+	}
+	
+	public long solvePart2() {
+		final Image image = parse(inputs);		
+		image.lockTopLeftCorner();
+		return 0L;
 	}
 	
 	public static <V> void lap(String prefix, Callable<V> callable) throws Exception {
@@ -117,6 +107,7 @@ public class AoC2020_20 {
 	public static void main(String[] args) throws Exception {
 		assert AoC2020_20.createDebug(TEST).solvePart1() == 20899048083289L;
 		lap("Part 1", () -> AoC2020_20.create(INPUT).solvePart1());
+		assert AoC2020_20.createDebug(TEST).solvePart2() == 273L;
 	}
 
 	private static final String TEST = 
@@ -1962,44 +1953,52 @@ public class AoC2020_20 {
 		private final Integer id;
 		private final char[][] grid;
 		
+		public static char[][] toGrid(List<char[]> strings) {
+			return strings.toArray(new char[strings.size()][]);
+		}
+		
 		public Tile(Integer id, char[][] grid) {
 			this.id = id;
 			this.grid = grid;
 		}
 		
-		private CharSequence getTopEdge() {
-			return new String(grid[0]);
+		public Integer getId() {
+			return id;
 		}
 
-		private CharSequence getTopEdgeReversed() {
-			return new StringBuilder(getTopEdge()).reverse().toString();
+		private Edge getTopEdge() {
+			return Edge.top(new String(grid[0]));
 		}
 
-		private CharSequence getBottomEdge() {
-			return new String(grid[grid.length-1]);
+		private Edge getTopEdgeReversed() {
+			return Edge.topReversed(new StringBuilder(getTopEdge().getPixels()).reverse().toString());
 		}
 
-		private CharSequence getBottomEdgeReversed() {
-			return new StringBuilder(getBottomEdge()).reverse().toString();
+		private Edge getBottomEdge() {
+			return Edge.bottom(new String(grid[grid.length-1]));
+		}
+
+		private Edge getBottomEdgeReversed() {
+			return Edge.bottomReversed(new StringBuilder(getBottomEdge().getPixels()).reverse().toString());
 		}
 		
-		private CharSequence getLeftEdge() {
-			return getColumn(0);
+		private Edge getLeftEdge() {
+			return Edge.left(getColumn(0));
 		}
 		
-		private CharSequence getLeftEdgeReversed() {
-			return new StringBuilder(getLeftEdge()).reverse().toString();
+		private Edge getLeftEdgeReversed() {
+			return Edge.leftReversed(new StringBuilder(getLeftEdge().getPixels()).reverse().toString());
 		}
 		
-		private CharSequence getRightEdge() {
-			return getColumn(grid.length-1);
+		private Edge getRightEdge() {
+			return Edge.right(getColumn(grid.length-1));
 		}
 		
-		private CharSequence getRightEdgeReversed() {
-			return new StringBuilder(getRightEdge()).reverse().toString();
+		private Edge getRightEdgeReversed() {
+			return Edge.rightReversed(new StringBuilder(getRightEdge().getPixels()).reverse().toString());
 		}
 		
-		private CharSequence getColumn(int col) {
+		private String getColumn(int col) {
 			final char [] column = new char[grid.length];
 			for (int i = 0; i < grid[0].length; i++) {
 				column[i] = grid[i][col];								
@@ -2007,8 +2006,12 @@ public class AoC2020_20 {
 			return new String(column);
 		}
 		
-		public List<CharSequence> getAllEdges() {
-			return List.of(
+		private List<String> getRows() {
+			return Stream.of(grid).map(String::valueOf).collect(toList());
+		}
+		
+		public Set<Edge> getAllEdges() {
+			return Set.of(
 					getTopEdge(), 
 					getBottomEdge(), 
 					getLeftEdge(), 
@@ -2016,8 +2019,8 @@ public class AoC2020_20 {
 			);
 		}
 
-		public List<CharSequence> getAllEdgesReversed() {
-			return List.of(
+		public Set<Edge> getAllEdgesReversed() {
+			return Set.of(
 					getTopEdgeReversed(), 
 					getBottomEdgeReversed(), 
 					getLeftEdgeReversed(), 
@@ -2025,17 +2028,30 @@ public class AoC2020_20 {
 			);
 		}
 		
-		public int countCommonEdges(Tile other) {
-			final List<CharSequence> self_edges = this.getAllEdges();
-			final List<CharSequence> self_edges_reversed = this.getAllEdgesReversed();
-			final List<CharSequence> other_edges = other.getAllEdges();
-			final List<CharSequence> other_edges_reversed = other.getAllEdgesReversed();
-			int common = 0;
-			common += CollectionUtils.intersection(self_edges, other_edges).size();
-			common += CollectionUtils.intersection(self_edges, other_edges_reversed).size();
-			common += CollectionUtils.intersection(self_edges_reversed, other_edges).size();
-			common += CollectionUtils.intersection(self_edges_reversed, other_edges_reversed).size();
-			return common;
+		public Set<Pair<Edge, Edge>> getCommonEdges(Tile other) {
+			return union(this.getAllEdges(), this.getAllEdgesReversed()).stream()
+					.flatMap(selfEdge -> union(other.getAllEdges(), other.getAllEdgesReversed()).stream()
+											.filter(otherEdge -> otherEdge.matches(selfEdge))
+											.map(otherEdge -> Pair.of(selfEdge, otherEdge)))
+					.collect(toSet());
+		}
+		
+		@SuppressWarnings("unused")
+		public Tile getFlippedHorizontally() {
+			final List<char[]> newGrid = getRows().stream()
+					.map(s -> new StringBuilder(s).reverse().toString().toCharArray())
+					.collect(toList());			
+			return new Tile(id, Tile.toGrid(newGrid));
+		}
+		
+		@SuppressWarnings("unused")
+		public Tile getFlippedVertically() {
+			final List<char[]> newGrid = new ArrayList<>();
+	        final ListIterator<String> iterator = getRows().listIterator(grid.length);
+	        while (iterator.hasPrevious()) {
+	        	newGrid.add(iterator.previous().toCharArray());
+	        }
+	        return new Tile(id, Tile.toGrid(newGrid));
 		}
 
 		@Override
@@ -2063,6 +2079,204 @@ public class AoC2020_20 {
 			}
 			final Tile other = (Tile) obj;
 			return Objects.equals(id, other.id);
+		}
+		
+		private static final class Edge {
+			public enum EdgeType {
+				TOP, RIGHT, BOTTOM, LEFT, TOP_REVERSED, RIGHT_REVERSED, BOTTOM_REVERSED, LEFT_REVERSED
+			}
+			
+			private final EdgeType type;
+			private final String pixels;
+			
+			private Edge(EdgeType type, String pixels) {
+				this.type = type;
+				this.pixels = pixels;
+			}
+			
+			public static Edge top(String pixels) {
+				return new Edge(EdgeType.TOP, pixels);
+			}
+			
+			public static Edge topReversed(String pixels) {
+				return new Edge(EdgeType.TOP_REVERSED, pixels);
+			}
+			
+			public static Edge right(String pixels) {
+				return new Edge(EdgeType.RIGHT, pixels);
+			}
+			
+			public static Edge rightReversed(String pixels) {
+				return new Edge(EdgeType.RIGHT_REVERSED, pixels);
+			}
+			
+			public static Edge left(String pixels) {
+				return new Edge(EdgeType.LEFT, pixels);
+			}
+			
+			public static Edge leftReversed(String pixels) {
+				return new Edge(EdgeType.LEFT_REVERSED, pixels);
+			}
+			
+			public static Edge bottom(String pixels) {
+				return new Edge(EdgeType.BOTTOM, pixels);
+			}
+			
+			public static Edge bottomReversed(String pixels) {
+				return new Edge(EdgeType.BOTTOM_REVERSED, pixels);
+			}
+
+			public EdgeType getType() {
+				return type;
+			}
+
+			public String getPixels() {
+				return pixels;
+			}
+			
+			public boolean matches(Edge other) {
+				return Objects.equals(this.pixels, other.pixels);
+			}
+
+			@Override
+			public String toString() {
+				return "Edge [type=" + type + ", pixels=" + pixels + "]";
+			}
+
+			@Override
+			public int hashCode() {
+				return Objects.hash(pixels, type);
+			}
+
+			@Override
+			public boolean equals(Object obj) {
+				if (this == obj) {
+					return true;
+				}
+				if (!(obj instanceof Edge)) {
+					return false;
+				}
+				Edge other = (Edge) obj;
+				return Objects.equals(this.pixels, other.pixels) && this.type == other.type;
+			}
+		}
+	}
+	
+	private static final class Image {
+		private final Set<Tile> tiles;
+
+		public Image(Set<Tile> tiles) {
+			this.tiles = tiles;
+		}
+
+		public Set<Tile> getTiles() {
+			return tiles;
+		}
+		
+		public Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> getAllCommonEdges() {
+			final Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons = new HashMap<>();
+			for (Tile tile1 : getTiles()) {
+				commons.put(tile1, new HashMap<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>());
+				for (Tile tile2 : getTiles()) {
+					if (tile1.getId() == tile2.getId()) {
+						continue;
+					}
+					final Set<Pair<Tile.Edge, Tile.Edge>> common = tile1.getCommonEdges(tile2);
+					if (!common.isEmpty()) {
+						commons.get(tile1).put(tile2, common);
+					}
+				}
+			}
+			return commons;
+		}
+		
+		private Set<Tile> filterCommonEdgesByCount(Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons, int count) {
+			return getAllCommonEdges().entrySet().stream()
+					.filter(e -> e.getValue().size() == count)
+					.map(Map.Entry::getKey)
+					.collect(toSet());
+		}
+		
+		public Set<Tile> findCorners() {
+			return filterCommonEdgesByCount(getAllCommonEdges(), 2);
+		}
+
+		public void lockTopLeftCorner() {
+			final Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons = getAllCommonEdges();
+			final Set<Tile> corners = filterCommonEdgesByCount(commons, 2);
+			for (Tile corner : corners) {
+				Tile rightAdjacent = null;
+				Tile rightAdjacentFlipped= null;
+				for (Tile adjacent : commons.get(corner).keySet()) {
+					final Set<Pair<Tile.Edge, Tile.Edge>> pairs = commons.get(corner).get(adjacent);
+					assert pairs.size() == 2;
+					final Set<Pair<Tile.Edge.EdgeType, Tile.Edge.EdgeType>> types = pairs.stream()
+							.map(p -> Pair.of(p.getLeft().getType(), p.getRight().getType()))
+							.collect(toSet());
+					assert types.size() == 2;
+					if (types.contains(Pair.of(Tile.Edge.EdgeType.RIGHT, Tile.Edge.EdgeType.LEFT))
+							&& types.contains(Pair.of(Tile.Edge.EdgeType.RIGHT_REVERSED, Tile.Edge.EdgeType.LEFT_REVERSED))) {
+						rightAdjacent = adjacent;
+						break;
+					} else if (types.contains(Pair.of(Tile.Edge.EdgeType.LEFT, Tile.Edge.EdgeType.RIGHT))
+							&& types.contains(Pair.of(Tile.Edge.EdgeType.LEFT_REVERSED, Tile.Edge.EdgeType.RIGHT_REVERSED))) {
+						rightAdjacentFlipped = adjacent;
+						break;
+					}
+				}
+				Tile bottomAdjacent = null;
+				Tile bottomAdjacentFlipped = null;
+				for (Tile adjacent : commons.get(corner).keySet()) {
+					final Set<Pair<Tile.Edge, Tile.Edge>> pairs = commons.get(corner).get(adjacent);
+					assert pairs.size() == 2;
+					final Set<Pair<Tile.Edge.EdgeType, Tile.Edge.EdgeType>> types = pairs.stream()
+							.map(p -> Pair.of(p.getLeft().getType(), p.getRight().getType()))
+							.collect(toSet());
+					assert types.size() == 2;
+					if (types.contains(Pair.of(Tile.Edge.EdgeType.BOTTOM, Tile.Edge.EdgeType.TOP))
+							&& types.contains(Pair.of(Tile.Edge.EdgeType.BOTTOM_REVERSED, Tile.Edge.EdgeType.TOP_REVERSED))) {
+						bottomAdjacent = adjacent;
+						break;
+					} else if (types.contains(Pair.of(Tile.Edge.EdgeType.TOP, Tile.Edge.EdgeType.BOTTOM))
+							&& types.contains(Pair.of(Tile.Edge.EdgeType.TOP_REVERSED, Tile.Edge.EdgeType.BOTTOM_REVERSED))) {
+						bottomAdjacentFlipped = adjacent;
+						break;
+					}
+				}
+				System.out.println("================================");
+				System.out.println(corner);
+				System.out.println(rightAdjacent);
+				System.out.println(rightAdjacentFlipped);
+				System.out.println(bottomAdjacent);
+				System.out.println(bottomAdjacentFlipped);
+				if (rightAdjacent != null) {
+					if (bottomAdjacent != null) {
+						// OK - lock 3 tiles
+					} else {
+//						assert bottomAdjacentFlipped != null;
+						// horizontally flip all 3 tiles and lock
+					}
+				} else {
+//					assert rightAdjacentFlipped != null;
+					if (bottomAdjacent != null) {
+						// vertically flip all 3 tiles and lock
+					} else {
+						// horizontally and vertically flip all 3 tiles and lock ?
+					}
+				}
+			}
+		}
+	}
+	
+	private static final class Math {
+		
+		public static long prod(Collection<Integer> numbers) {
+			if (CollectionUtils.isEmpty(numbers)) {
+				return 0L;
+			}
+			final MutableLong result = new MutableLong(1L);
+			numbers.forEach(n -> result.setValue(result.longValue() * n));
+			return result.longValue();
 		}
 	}
 }
