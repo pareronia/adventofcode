@@ -6,24 +6,25 @@
 from dataclasses import dataclass
 import my_aocd
 from common import log
+from vm import Program, Instruction, VirtualMachine
 
 
-@dataclass
-class Instruction():
+@dataclass(frozen=True)
+class Instruction_():
     command: str
     args: tuple[str]
 
 
-def _parse(inputs: tuple[str]) -> list[Instruction]:
-    inss = list[Instruction]()
+def _parse(inputs: tuple[str]) -> list[Instruction_]:
+    inss = list[Instruction_]()
     for line in inputs:
         if line.startswith("mask"):
             splits = line.split(" = ")
-            inss.append(Instruction("mask", (splits[1], )))
+            inss.append(Instruction_("mask", (splits[1], )))
         elif line.startswith("mem"):
             splits = line.split(" = ")
             add = splits[0][4:][:-1]
-            inss.append(Instruction("mem", (add, splits[1])))
+            inss.append(Instruction_("mem", (add, splits[1])))
         else:
             raise ValueError("Invalid input")
     log(inss)
@@ -47,20 +48,25 @@ def _as_binary_string(num: int) -> str:
     return "{0:b}".format(num)
 
 
-def part_1(inputs: tuple[int]) -> int:
-    inss = _parse(inputs)
-    mem = dict()
+def _to_program_1(lines: list[Instruction_]) -> Program:
     mask: str
-    for ins in inss:
-        if ins.command == "mask":
-            mask = ins.args[0]
-        elif ins.command == "mem":
-            address = int(ins.args[0])
-            value = _as_binary_string(int(ins.args[1]))
-            # log(value)
-            # log(mask)
-            mem[address] = _apply_mask_1(value, mask)
-    return sum([int(m, 2) for m in mem.values()])
+    instructions = list[Instruction]()
+    for line in lines:
+        if line.command == "mask":
+            mask = line.args[0]
+        elif line.command == "mem":
+            address = int(line.args[0])
+            value = _as_binary_string(int(line.args[1]))
+            value = _apply_mask_1(value, mask)
+            instructions.append(Instruction.MEM(address, value))
+    return Program(instructions)
+
+
+def part_1(inputs: tuple[int]) -> int:
+    vm = VirtualMachine()
+    program = _to_program_1(_parse(inputs))
+    vm.run_program(program)
+    return sum([int(m, 2) for m in program.memory.values()])
 
 
 def _apply_mask_2(bits: str, mask: str) -> str:
@@ -100,16 +106,15 @@ def _perm_address(address: str) -> list[str]:
     return _double_address([address], x)
 
 
-def part_2(inputs: tuple[int]) -> int:
-    inss = _parse(inputs)
-    mem = dict()
+def _to_program_2(lines: list[Instruction_]) -> Program:
     mask: str
-    for ins in inss:
-        if ins.command == "mask":
-            mask = ins.args[0]
-        elif ins.command == "mem":
-            value = _as_binary_string(int(ins.args[1]))
-            address = int(ins.args[0])
+    instructions = list[Instruction]()
+    for line in lines:
+        if line.command == "mask":
+            mask = line.args[0]
+        elif line.command == "mem":
+            value = _as_binary_string(int(line.args[1]))
+            address = int(line.args[0])
             address = _as_binary_string(address)
             log(f"add in: {address}")
             address = _apply_mask_2(address, mask)
@@ -118,9 +123,15 @@ def part_2(inputs: tuple[int]) -> int:
             log(f"new adds: {new_adds}")
             for add in new_adds:
                 add = int(add, 2)
-                mem[add] = value
-        log(mem)
-    return sum([int(m, 2) for m in mem.values()])
+                instructions.append(Instruction.MEM(add, value))
+    return Program(instructions)
+
+
+def part_2(inputs: tuple[int]) -> int:
+    vm = VirtualMachine()
+    program = _to_program_2(_parse(inputs))
+    vm.run_program(program)
+    return sum([int(m, 2) for m in program.memory.values()])
 
 
 test_1 = """\

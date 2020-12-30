@@ -5,19 +5,16 @@
 from dataclasses import dataclass
 import my_aocd
 from common import log
+from vm import VirtualMachine, Instruction, Program
 
 
 ERROR_ON_INFINITE_LOOP = True
 
 
-@dataclass
-class Instruction:
+@dataclass(frozen=True)
+class Instruction_:
     operation: str
     argument: int
-
-    def __init__(self, operation: str, argument: int):
-        self.operation = operation
-        self.argument = argument
 
     @classmethod
     def instruction(cls, in_: tuple[str, str]):
@@ -28,48 +25,38 @@ class Instruction:
             raise ValueError("Invalid instruction operation")
 
 
-def _parse(inputs: tuple[str]) -> list[Instruction]:
-    return [Instruction.instruction(input_.split()) for input_ in inputs]
+def _parse(inputs: tuple[str]) -> list[Instruction_]:
+    return [Instruction_.instruction(input_.split()) for input_ in inputs]
 
 
-def _run_program(instructions: list[Instruction],
-                 error_on_inf_loop: bool = False) -> int:
-    log(instructions)
-    accumulator = 0
-    seen = set[int]()
-    ip = 0  # Instruction pointer
-    while ip not in seen:
-        if ip == len(instructions):
-            log("Normal exit")
-            return accumulator
-        seen.add(ip)
-        instruction = instructions[ip]
-        log(f"{ip}: {instruction}")
-        instruction.check_valid_operation()
-        if instruction.operation == "nop":
-            ip += 1
-        elif instruction.operation == "acc":
-            accumulator += instruction.argument
-            ip += 1
-        elif instruction.operation == "jmp":
-            ip += instruction.argument
-            if ip < 0:
-                raise ValueError("Invalid instruction argument")
-        log(f" -> {ip} - {accumulator}")
-    if error_on_inf_loop:
-        raise RuntimeError("Infinite loop!")
-    else:
-        return accumulator
+def _run_program(lines: list[Instruction_],
+                 error_on_inf_loop: bool = False):
+    log(lines)
+    vm = VirtualMachine()
+    instructions = list[Instruction]()
+    for line in lines:
+        line.check_valid_operation()
+        if line.operation == "nop":
+            instructions.append(Instruction.NOP())
+        elif line.operation == "acc":
+            instructions.append(Instruction.ACC(line.argument))
+        elif line.operation == "jmp":
+            instructions.append(Instruction.JMP(line.argument))
+    program = Program(instructions, error_on_inf_loop,
+                      error_on_jump_beyond_zero=False)
+    vm.run_program(program)
+    return program.accumulator
 
 
-def _try_program_run_with_replaced_operation(instructions: list[Instruction],
+def _try_program_run_with_replaced_operation(instructions: list[Instruction_],
                                              index: int,
                                              new_operation: str) -> int:
     orig_instruction = instructions[index]
-    instructions[index] = Instruction(new_operation, orig_instruction.argument)
+    instructions[index] = Instruction_(new_operation,
+                                       orig_instruction.argument)
     log("{original_instruction.operation} -> {new_operation}")
     try:
-        return _run_program(instructions, ERROR_ON_INFINITE_LOOP)
+        return _run_program(instructions, error_on_inf_loop=True)
     except RuntimeError:
         instructions[index] = orig_instruction
         return None
@@ -89,9 +76,6 @@ def part_2(inputs: tuple[str]) -> int:
         log(instruction)
         instruction.check_valid_operation()
         if instruction.operation == "nop":
-            # if instruction.argument == 0:
-            #     log("nop 0 : skip")
-            #     continue
             result = _try_program_run_with_replaced_operation(
                           instructions, i, "jmp")
             if result is not None:
