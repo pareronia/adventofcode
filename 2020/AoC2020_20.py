@@ -2,6 +2,10 @@
 #
 # Advent of Code 2020 Day 20
 #
+"""
+References:
+    * The Dihedral Group of the Square: https://solitaryroad.com/c308.html
+"""
 
 from __future__ import annotations
 from dataclasses import dataclass
