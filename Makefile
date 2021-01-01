@@ -1,4 +1,7 @@
 # statics
+SRC_ROOT := src
+SRC_ROOT_MAIN := $(SRC_ROOT)/main
+PYTHON_ROOT := $(SRC_ROOT_MAIN)/python
 CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
@@ -11,7 +14,7 @@ PYTHON_CMD := python
 JAVA_CMD := java -ea -cp $(CLASSPATH)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-PY_SRCS := **/*.py
+PY_SRCS := $(PYTHON_ROOT)/**/*.py
 
 # vars
 MAKEFILE = $(realpath $(lastword $(MAKEFILE_LIST)))
@@ -31,7 +34,7 @@ day_src = $(shell echo $1 | $(GAWK) --field-separator=, \
 
 #: Run Python (with ARGS=year,day)
 py:
-	@$(PYTHON_CMD) $(call day_src,$(ARGS),"py")
+	@$(PYTHON_CMD) $(PYTHON_ROOT)/$(call day_src,$(ARGS),"py")
 
 #: Run Java (with ARGS=year,day)
 java:
