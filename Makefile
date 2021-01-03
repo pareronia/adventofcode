@@ -14,7 +14,7 @@ PYTHON_CMD := python
 JAVA_CMD := java -ea -cp $(CLASSPATH)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-PY_SRCS := $(PYTHON_ROOT)/**/*.py
+PY_SRCS := $(PYTHON_ROOT)/**/*.py $(PYTHON_ROOT)/**.py
 
 # vars
 MAKEFILE = $(realpath $(lastword $(MAKEFILE_LIST)))
@@ -43,17 +43,17 @@ java:
 #: Run Flake8 Python code linter
 flake:
 	@$(call msg,"Running Flake8 against Python source files...")
-	@$(FLAKE) $(PY_SRCS)
+	@$(FLAKE) $(PYTHON_ROOT)
 
 #: Run Vulture - unused Python code checker
 vulture:
 	@$(call msg,"Running vulture against Python source files...")
-	@$(VULTURE) $(PY_SRCS)
+	@$(VULTURE) $(PYTHON_ROOT)
 
 #: Run Bandit - Python code security linter
 bandit:
 	@$(call msg,"Running bandit against Python source files...")
-	@$(BANDIT) $(PY_SRCS)
+	@$(BANDIT) --recursive $(PYTHON_ROOT)
 
 #: Run all linters (Flake8, Vulture, Bandit)
 lint: flake vulture bandit
