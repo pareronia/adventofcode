@@ -3,25 +3,24 @@
 # Advent of Code 2015 Day 2
 #
 
+from __future__ import annotations
 from dataclasses import dataclass
 from aoc import my_aocd
-from aoc.common import log
 
 
-@dataclass
+@dataclass(frozen=True)
 class Present:
     l: int
     w: int
     h: int
 
-    def __init__(self, length, w, h):
-        self.l = int(length)  # noqa
-        self.w = int(w)
-        self.h = int(h)
+    @classmethod
+    def create(self, length: str, width: str, height: str) -> Present:
+        return Present(int(length), int(width), int(height))
 
 
 def _parse(inputs: tuple[str]) -> list[Present]:
-    return [Present(*input_.split("x")) for input_ in inputs]
+    return [Present.create(*input_.split("x")) for input_ in inputs]
 
 
 def _calculate_required_area(present: Present) -> int:
@@ -40,7 +39,6 @@ def _calculate_required_length(present: Present) -> int:
 
 def part_1(inputs: tuple[str]) -> int:
     presents = _parse(inputs)
-    log(presents)
     return sum([_calculate_required_area(p) for p in presents])
 
 
