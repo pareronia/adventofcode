@@ -39,4 +39,7 @@ def print_header(year: int, day: int) -> None:
     print("=" * len(s))
     print(s)
     print("=" * len(s))
+    puzzle = aocd.models.Puzzle(year, day)
+    print(puzzle.title)
+    print("=" * len(s))
     print("")
