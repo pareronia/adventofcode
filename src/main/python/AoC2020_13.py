@@ -4,8 +4,8 @@
 #
 # FIXME: Make part2 bis into algorithm
 
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 def parse(inputs: tuple[str]):

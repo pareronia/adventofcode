@@ -1,5 +1,5 @@
 from __future__ import annotations
-from common import log
+from aoc.common import log
 
 
 class Instruction:

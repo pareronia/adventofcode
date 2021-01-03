@@ -2,8 +2,8 @@
 #
 # Advent of Code 2020 Day 9
 #
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 def find_two_summands(numbers: list[int], sum_: int):

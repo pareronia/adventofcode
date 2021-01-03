@@ -27,7 +27,7 @@ igrep = ($(GREP) --line-number --recursive --word-regexp --color=auto \
 		--ignore-case $1 $2)
 
 day_src = $(shell echo $1 | $(GAWK) --field-separator=, \
-		'{print $$1"/AoC"$$1"_"$$2"."$2""}')
+		'{print "AoC"$$1"_"$$2"."$2""}')
 
 #: Default target - pre-push
 .DEFAULT_GOAL := pre-push
@@ -38,7 +38,7 @@ py:
 
 #: Run Java (with ARGS=year,day)
 java:
-	@$(JAVA_CMD) $(call day_src,$(ARGS),"java")
+	@$(JAVA_CMD) 2020/$(call day_src,$(ARGS),"java")
 
 #: Run Flake8 Python code linter
 flake:

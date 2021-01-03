@@ -3,7 +3,7 @@
 # Advent of Code 2020 Day 4
 #
 import re
-import my_aocd
+from aoc import my_aocd
 
 
 def _normalize(inputs: tuple[str]) -> list[str]:

@@ -4,8 +4,8 @@
 #
 
 from typing import NamedTuple
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 def _tokenize(input_: str) -> list[str]:

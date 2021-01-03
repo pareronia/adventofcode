@@ -4,7 +4,7 @@
 #
 import re
 from operator import xor
-import my_aocd
+from aoc import my_aocd
 
 
 def _parse(input_: str) -> (int, int, str, str, int):

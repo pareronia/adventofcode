@@ -3,7 +3,7 @@
 # Advent of Code 2020 Day 1
 #
 import time
-import my_aocd
+from aoc import my_aocd
 
 
 def _print_elapsed(prefix: str, start: float, stop: float) -> None:

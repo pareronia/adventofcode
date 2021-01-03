@@ -3,7 +3,7 @@
 # Advent of Code 2020 Day 3
 #
 import math
-import my_aocd
+from aoc import my_aocd
 
 
 open_square = "."

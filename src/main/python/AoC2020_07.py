@@ -5,8 +5,8 @@
 from dataclasses import dataclass
 from collections import defaultdict
 from networkx import nx
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 def _parse_line(line: str) -> tuple[str, set[tuple[int, str]]]:

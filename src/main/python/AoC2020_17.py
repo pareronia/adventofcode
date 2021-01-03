@@ -8,9 +8,9 @@
 
 from __future__ import annotations
 from math import prod
-import my_aocd
 from dataclasses import dataclass
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 ON = "#"

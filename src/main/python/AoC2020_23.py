@@ -5,8 +5,8 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 @dataclass

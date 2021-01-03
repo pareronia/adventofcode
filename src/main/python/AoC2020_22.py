@@ -4,9 +4,9 @@
 #
 
 from dataclasses import dataclass
-import my_aocd
-from common import log
 from copy import deepcopy
+from aoc import my_aocd
+from aoc.common import log
 
 
 @dataclass

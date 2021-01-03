@@ -4,9 +4,9 @@
 #
 
 from dataclasses import dataclass
-import my_aocd
-from common import log
-from vm import Program, Instruction, VirtualMachine
+from aoc import my_aocd
+from aoc.common import log
+from aoc.vm import Program, Instruction, VirtualMachine
 
 
 @dataclass(frozen=True)

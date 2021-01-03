@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from collections import defaultdict
 from functools import lru_cache
 from math import prod
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 @dataclass(eq=True, frozen=True)

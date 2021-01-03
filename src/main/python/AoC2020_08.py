@@ -3,9 +3,9 @@
 # Advent of Code 2020 Day 8
 #
 from dataclasses import dataclass
-import my_aocd
-from common import log
-from vm import VirtualMachine, Instruction, Program
+from aoc import my_aocd
+from aoc.common import log
+from aoc.vm import VirtualMachine, Instruction, Program
 
 
 ERROR_ON_INFINITE_LOOP = True

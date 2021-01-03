@@ -3,8 +3,8 @@
 # Advent of Code 2020 Day 10
 #
 from collections import defaultdict
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 def _get_sorted(inputs: tuple[int]) -> tuple[int]:

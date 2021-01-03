@@ -2,7 +2,7 @@
 #
 # Advent of Code 2020 Day 5
 #
-import my_aocd
+from aoc import my_aocd
 
 
 def _translate(input_: str) -> str:

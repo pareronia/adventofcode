@@ -3,7 +3,7 @@
 # Advent of Code 2020 Day 25
 #
 
-import my_aocd
+from aoc import my_aocd
 
 
 def _find_loop_size(key: int) -> int:

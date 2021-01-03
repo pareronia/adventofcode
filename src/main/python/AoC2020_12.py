@@ -5,10 +5,10 @@
 
 from __future__ import annotations
 from dataclasses import dataclass
-import my_aocd
-from common import log
-from geometry import Position
-from navigation import Headings, Waypoint,\
+from aoc import my_aocd
+from aoc.common import log
+from aoc.geometry import Position
+from aoc.navigation import Headings, Waypoint,\
         NavigationWithHeading, NavigationWithWaypoint
 
 

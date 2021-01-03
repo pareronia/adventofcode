@@ -5,8 +5,8 @@
 
 from collections import defaultdict, deque
 from functools import lru_cache
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 class Turns:

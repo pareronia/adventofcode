@@ -6,8 +6,8 @@
 from dataclasses import dataclass
 from collections import defaultdict
 from typing import Iterator
-import my_aocd
-from common import log
+from aoc import my_aocd
+from aoc.common import log
 
 
 @dataclass(frozen=True)

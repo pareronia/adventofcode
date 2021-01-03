@@ -2,7 +2,7 @@
 #
 # Advent of Code 2020 Day 6
 #
-import my_aocd
+from aoc import my_aocd
 
 
 def _sum_of_counts(lists: list[list]) -> int:

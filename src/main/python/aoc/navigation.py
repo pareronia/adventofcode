@@ -1,6 +1,6 @@
 from __future__ import annotations
 from enum import Enum
-from geometry import Position, Vector
+from aoc.geometry import Position, Vector
 from dataclasses import dataclass
 
 
