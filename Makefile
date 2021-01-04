@@ -1,7 +1,10 @@
 # statics
 SRC_ROOT := src
 SRC_ROOT_MAIN := $(SRC_ROOT)/main
+SRC_ROOT_TEST := $(SRC_ROOT)/test
 PYTHON_ROOT := $(SRC_ROOT_MAIN)/python
+PYTHON_TEST_ROOT := $(SRC_ROOT_TEST)/python
+PYTHON_PATH := PYTHONPATH=$(PYTHON_ROOT)
 CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
@@ -10,7 +13,8 @@ GREP := grep
 GAWK := awk
 SORT := sort
 SED := sed
-PYTHON_CMD := python
+PYTHON_CMD := python -O
+UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := java -ea -cp $(CLASSPATH)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
@@ -40,6 +44,10 @@ py:
 java:
 	@$(JAVA_CMD) 2020/$(call day_src,$(ARGS),"java")
 
+#: Run unit tests
+unittest:
+	@$(PYTHON_PATH) $(PYTHON_CMD) $(UNITTEST_CMD)
+		
 #: Run Flake8 Python code linter
 flake:
 	@$(call msg,"Running Flake8 against Python source files...")
@@ -64,8 +72,8 @@ fixme todo:
 #: Show FIXMEs and TODOs in code files
 tasks: fixme todo
 
-#: git pre-push hook: show tasks, linters
-pre-push: tasks lint
+#: git pre-push hook: show tasks, linters, unit tests
+pre-push: tasks lint unittest
 
 # https://stackoverflow.com/a/26339924
 #: Show all targets in this Makefile
@@ -89,4 +97,4 @@ help:
 		| column -t -s '###' \
 		| $(SORT)
 
-.PHONY: flake vulture bandit fixme todo list help py java
+.PHONY: flake vulture bandit fixme todo list help py java unittest

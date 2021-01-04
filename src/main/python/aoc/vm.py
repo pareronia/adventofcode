@@ -1,5 +1,5 @@
 from __future__ import annotations
-from aoc.common import log
+from .common import log
 
 
 class Instruction:
@@ -130,30 +130,3 @@ class VirtualMachine:
                 raise RuntimeError("Infinite loop!")
         log("Normal exit")
         return
-
-
-def main() -> None:
-    vm = VirtualMachine()
-    prog = Program([
-        Instruction.NOP(),
-        Instruction.NOP(),
-        Instruction.JMP(2),
-        Instruction.NOP(),
-        Instruction.NOP(),
-        Instruction.MEM(1, 100),
-        Instruction.ACC(6),
-        Instruction.MEM(3, 300),
-        Instruction.ACC(7),
-    ])
-    vm.run_program(prog)
-    print(prog.__dict__)
-    prog = Program([
-        Instruction.NOP(),
-        Instruction.JMP(-1),
-    ], error_on_inf_loop=True)
-    vm.run_program(prog)
-    print(prog.__dict__)
-
-
-if __name__ == '__main__':
-    main()
