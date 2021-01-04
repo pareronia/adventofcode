@@ -1,5 +1,6 @@
 from __future__ import annotations
 from enum import Enum
+from copy import deepcopy
 from aoc.geometry import Position, Vector
 from dataclasses import dataclass
 
@@ -48,9 +49,22 @@ class Waypoint(Vector):
 
 class Navigation:
     position: Position
+    visited_positions: list[Position]
 
     def __init__(self, position: Position):
         self.position = position
+        self.visited_positions = list[Position]()
+        self._remember_visited_position(position)
+
+    def _remember_visited_position(self, position: Position) -> None:
+        self.visited_positions.append(deepcopy(position))
+
+    def get_visited_positions(
+            self, include_start_position: bool = False) -> list[Position]:
+        if include_start_position:
+            return self.visited_positions
+        else:
+            return self.visited_positions[1:]
 
 
 class NavigationWithHeading(Navigation):
@@ -74,9 +88,11 @@ class NavigationWithHeading(Navigation):
 
     def forward(self, amount: int) -> None:
         self.position.translate(vector=self.heading, amplitude=amount)
+        self._remember_visited_position(self.position)
 
     def drift(self, heading: Heading, amount: int) -> None:
         self.position.translate(vector=heading, amplitude=amount)
+        self._remember_visited_position(self.position)
 
 
 class NavigationWithWaypoint(Navigation):
@@ -99,6 +115,7 @@ class NavigationWithWaypoint(Navigation):
 
     def forward(self, amount: int) -> None:
         self.position.translate(vector=self.waypoint, amplitude=amount)
+        self._remember_visited_position(self.position)
 
     def update_waypoint(self, heading: Heading, amount: int) -> None:
         self.waypoint.add(heading, amplitude=amount)
