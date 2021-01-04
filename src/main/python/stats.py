@@ -1,3 +1,4 @@
+import sys
 import html
 from typing import NamedTuple
 import requests
@@ -47,6 +48,9 @@ def get_leaderboard(year: int):
     cookies = dict(session=get_session_cookie())
     r = requests.get(LEADERBOARD_URL.format(year=year),
                      cookies=cookies)
+    leaderboards = dict[int, LeaderBoard]()
+    if r.text.find('<pre>') == -1:
+        return leaderboards
     to_parse = r.text[r.text.index('<pre>'):r.text.index('</pre>')]
     start = 0
     idx = to_parse.find("</span>")
@@ -56,7 +60,6 @@ def get_leaderboard(year: int):
     start += len("</span>")
     to_parse = to_parse[start:]
     lines = to_parse.splitlines()
-    leaderboards = dict[int, LeaderBoard]()
     for line in lines:
         if len(line) == 0:
             continue
@@ -89,8 +92,10 @@ def get_score(year: int):
     for i in range(1, max(stats.keys())+1):
         puzzle = aocd.models.Puzzle(year=year, day=i)
         title = "-- " + puzzle.title + " --"
-        title = title.ljust(30)
-        if i in leaderboard and leaderboard[i].rank_both is not None:
+        title = title.ljust(45)
+        if i not in leaderboard:
+            continue
+        if leaderboard[i].rank_both is not None:
             rank_both = leaderboard[i].rank_both
             time_both = format_time(leaderboard[i].time_both)
             pct = (leaderboard[i].rank_both-1) / stats[i].both \
@@ -130,7 +135,7 @@ def get_score(year: int):
 
 
 def main():
-    get_score(2020)
+    get_score(int(sys.argv[1]))
 
 
 if __name__ == '__main__':
