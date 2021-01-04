@@ -21,10 +21,10 @@ def spinner(rnd: int):
     print(ch, end="\r", flush=True)
 
 
-def part_1(input_: str) -> int:
+def _find_md5_starting_with_zeroes(input_: str, zeroes: int) -> int:
     i = 0
     val = input_
-    while val[:5] != "00000":
+    while val[:zeroes] != "0"*zeroes:
         i += 1
         spinner(i)
         str2hash = input_ + str(i)
@@ -32,8 +32,12 @@ def part_1(input_: str) -> int:
     return i
 
 
+def part_1(input_: str) -> int:
+    return _find_md5_starting_with_zeroes(input_, 5)
+
+
 def part_2(input_: str) -> int:
-    return 0
+    return _find_md5_starting_with_zeroes(input_, 6)
 
 
 TEST1 = "abcdef"
@@ -48,6 +52,8 @@ def main() -> None:
 
     result1 = part_1("iwrupvqb")
     print(f"Part 1: {result1}")
+    result2 = part_2("iwrupvqb")
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':
