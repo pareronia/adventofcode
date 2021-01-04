@@ -24,7 +24,8 @@ def spinner(rnd: int):
 def _find_md5_starting_with_zeroes(input_: str, zeroes: int) -> int:
     i = 0
     val = input_
-    while val[:zeroes] != "0"*zeroes:
+    target = "0" * zeroes
+    while val[:zeroes] != target:
         i += 1
         spinner(i)
         str2hash = input_ + str(i)
