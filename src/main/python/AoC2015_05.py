@@ -5,38 +5,25 @@
 
 import re
 from aoc import my_aocd
-from aoc.common import log
 
 
-def _is_nice_1(string: str) -> bool:
-    log(string)
-    m1 = re.findall(r"(a|e|i|o|u)", string)
-    log(m1)
-    m2 = re.findall(r"([a-z])\1", string)
-    log(m2)
-    m3 = re.findall(r"(ab|cd|pq|xy)", string)
-    log(m3)
-    result = len(m1) >= 3 and len(m2) >= 1 and len(m3) == 0
-    log(result)
-    return result
+def _count_matches(regexp: str, string: str) -> int:
+    return len(re.findall(regexp, string))
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return sum(1 for input_ in inputs if _is_nice_1(input_))
-
-
-def _is_nice_2(string: str) -> bool:
-    log(string)
-    m1 = re.findall(r"([a-z]{2})[a-z]*\1", string)
-    log(m1)
-    m2 = re.findall(r"([a-z])[a-z]\1", string)
-    log(m2)
-    result = len(m1) >= 1 and len(m2) >= 1
-    return result
+    return sum(1 for input_ in inputs
+               if _count_matches(r"(a|e|i|o|u)", input_) >= 3
+               and _count_matches(r"([a-z])\1", input_) >= 1
+               and _count_matches(r"(ab|cd|pq|xy)", input_) == 0
+               )
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return sum(1 for input_ in inputs if _is_nice_2(input_))
+    return sum(1 for input_ in inputs
+               if _count_matches(r"([a-z]{2})[a-z]*\1", input_) >= 1
+               and _count_matches(r"([a-z])[a-z]\1", input_) >= 1
+               )
 
 
 TEST1 = "ugknbfddgicrmopn".splitlines()
