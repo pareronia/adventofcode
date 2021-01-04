@@ -16,7 +16,7 @@ def _find_md5_starting_with_zeroes(input_: str, zeroes: int) -> int:
         i += 1
         spinner(i)
         str2hash = input_ + str(i)
-        val = md5(str2hash.encode()).hexdigest()
+        val = md5(str2hash.encode()).hexdigest()  # nosec
     return i
 
 
