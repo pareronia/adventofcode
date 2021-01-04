@@ -5,20 +5,7 @@
 
 from hashlib import md5
 from aoc import my_aocd
-
-
-def spinner(rnd: int):
-    if rnd % 1000 == 0:
-        ch = "|"
-    elif rnd % 1000 == 250:
-        ch = "/"
-    elif rnd % 1000 == 500:
-        ch = "-"
-    elif rnd % 1000 == 750:
-        ch = "\\"
-    else:
-        return
-    print(ch, end="\r", flush=True)
+from aoc.common import spinner
 
 
 def _find_md5_starting_with_zeroes(input_: str, zeroes: int) -> int:

@@ -6,7 +6,7 @@
 from dataclasses import dataclass
 from copy import deepcopy
 from aoc import my_aocd
-from aoc.common import log
+from aoc.common import log, spinner
 
 
 @dataclass
@@ -28,20 +28,6 @@ def _parse(inputs: tuple[str]) -> Players:
             continue
         pl2.append(int(line))
     return Players(pl1, pl2)
-
-
-def spinner(rnd: int):
-    if rnd % 1000 == 0:
-        ch = "|"
-    elif rnd % 1000 == 250:
-        ch = "/"
-    elif rnd % 1000 == 500:
-        ch = "-"
-    elif rnd % 1000 == 750:
-        ch = "\\"
-    else:
-        return
-    print(ch, end="\r", flush=True)
 
 
 def _get_score(players: Players):
