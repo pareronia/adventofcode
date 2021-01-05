@@ -8,7 +8,7 @@ from enum import Enum
 from dataclasses import dataclass
 from aoc import my_aocd
 from aoc.geometry import Position
-from aoc.common import log, spinner
+from aoc.common import spinner
 
 
 class Action(Enum):
@@ -56,10 +56,11 @@ def _parse(inputs: tuple[str]) -> list[Instruction]:
     return inss
 
 
-def part_1(inputs: tuple[str]) -> int:
-    inss = _parse(inputs)
-    log(inss)
-    lights = dict()
+def _sum_of_all_values(lights: dict) -> int:
+    return sum([light[1] for light in lights.items()])
+
+
+def _process_instructions_1(lights: dict, inss: list[Instruction]):
     for ins in inss:
         for i in range(ins.start.x, ins.end.x + 1):
             for j in range(ins.start.y, ins.end.y + 1):
@@ -83,16 +84,55 @@ def part_1(inputs: tuple[str]) -> int:
                     else:
                         lights[(i, j)] = 1
                 spinner(i * j)
-    return len(lights)
+
+
+def part_1(inputs: tuple[str]) -> int:
+    inss = _parse(inputs)
+    lights = dict()
+    _process_instructions_1(lights, inss)
+    return _sum_of_all_values(lights)
+
+
+def _process_instructions_2(lights: dict, inss: list[Instruction]):
+    for ins in inss:
+        for i in range(ins.start.x, ins.end.x + 1):
+            for j in range(ins.start.y, ins.end.y + 1):
+                if (i, j) in lights:
+                    prev = lights[(i, j)]
+                else:
+                    prev = None
+                if ins.is_turn_on():
+                    if prev:
+                        lights[(i, j)] = lights[(i, j)] + 1
+                    else:
+                        lights[(i, j)] = 1
+                elif ins.is_turn_off():
+                    if not prev:
+                        continue
+                    elif prev == 1:
+                        del lights[(i, j)]
+                    else:
+                        lights[(i, j)] = lights[(i, j)] - 1
+                elif ins.is_toggle():
+                    if prev:
+                        lights[(i, j)] = lights[(i, j)] + 2
+                    else:
+                        lights[(i, j)] = 2
+                spinner(i * j)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    inss = _parse(inputs)
+    lights = dict()
+    _process_instructions_2(lights, inss)
+    return _sum_of_all_values(lights)
 
 
 TEST1 = "turn on 0,0 through 999,999".splitlines()
 TEST2 = "toggle 0,0 through 999,0".splitlines()
 TEST3 = "turn off 499,499 through 500,500".splitlines()
+TEST4 = "turn on 0,0 through 0,0".splitlines()
+TEST5 = "toggle 0,0 through 999,999".splitlines()
 
 
 def main() -> None:
@@ -101,6 +141,8 @@ def main() -> None:
     assert part_1(TEST1) == 1_000_000
     assert part_1(TEST2) == 1000
     assert part_1(TEST3) == 0
+    assert part_2(TEST4) == 1
+    assert part_2(TEST5) == 2_000_000
 
     inputs = my_aocd.get_input_as_tuple(2015, 6, 300)
     result1 = part_1(inputs)
