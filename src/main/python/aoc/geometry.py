@@ -14,6 +14,10 @@ class Position(Point):
         self.x = self.x + vector.x * amplitude
         self.y = self.y + vector.y * amplitude
 
+    @classmethod
+    def of(cls, x: int, y: int) -> Position:
+        return Position(x, y)
+
 
 @dataclass
 class Vector(Point):
