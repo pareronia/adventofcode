@@ -5,28 +5,16 @@
 
 import re
 from aoc import my_aocd
-from aoc.common import log
 
 
 def _count_decoding_overhead(string: str) -> int:
     assert string[0] == '\"' and string[-1] == '\"'
-    string = string[1:-1]
-    log(string)
     cnt = 2
     while string.find('\\\\') != -1:
         string = string.replace('\\\\', '', 1)
         cnt += 1
-    log("Backslashes: " + string)
-    while string.find('\\\"') != -1:
-        string = string.replace('\\\"', '', 1)
-        cnt += 1
-    log("Double quotes: " + string)
-    while re.search(r'\\x[0-9a-f]{2}', string):
-        string = re.sub(r'\\x[0-9a-f]{2}', '', string, count=1)
-        cnt += 3
-    log("Hex: " + string)
-    log(cnt)
-    return cnt
+    return cnt + string.count('\\\"') \
+        + 3 * len(re.findall(r'\\x[0-9a-f]{2}', string))
 
 
 def part_1(inputs: tuple[str]) -> int:
@@ -34,18 +22,7 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def _count_encoding_overhead(string: str) -> int:
-    log(string)
-    cnt = 2
-    while string.find('\\') != -1:
-        string = string.replace('\\', '', 1)
-        cnt += 1
-    log("Backslashes: " + string)
-    while string.find('\"') != -1:
-        string = string.replace('\"', '', 1)
-        cnt += 1
-    log("Double quotes: " + string)
-    log(cnt)
-    return cnt
+    return 2 + string.count('\\') + string.count('\"')
 
 
 def part_2(inputs: tuple[str]) -> int:
