@@ -8,7 +8,7 @@ from aoc import my_aocd
 from aoc.common import log
 
 
-def _get_char_count(string: str) -> int:
+def _count_decoding_overhead(string: str) -> int:
     assert string[0] == '\"' and string[-1] == '\"'
     string = string[1:-1]
     log(string)
@@ -30,11 +30,26 @@ def _get_char_count(string: str) -> int:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return sum([_get_char_count(s) for s in inputs])
+    return sum([_count_decoding_overhead(s) for s in inputs])
+
+
+def _count_encoding_overhead(string: str) -> int:
+    log(string)
+    cnt = 2
+    while string.find('\\') != -1:
+        string = string.replace('\\', '', 1)
+        cnt += 1
+    log("Backslashes: " + string)
+    while string.find('\"') != -1:
+        string = string.replace('\"', '', 1)
+        cnt += 1
+    log("Double quotes: " + string)
+    log(cnt)
+    return cnt
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    return sum([_count_encoding_overhead(s) for s in inputs])
 
 
 TEST = """\
@@ -49,6 +64,7 @@ def main() -> None:
     my_aocd.print_header(2015, 8)
 
     assert part_1(TEST) == 12
+    assert part_2(TEST) == 19
 
     inputs = my_aocd.get_input_as_tuple(2015, 8, 300)
     result1 = part_1(inputs)
