@@ -6,14 +6,16 @@ def log(msg) -> None:
         cpprint(msg)
 
 
-def spinner(num: int):
-    if num % 1000 == 0:
+def spinner(num: int, period: int = 1000):
+    val = num % period
+    level = period // 4
+    if val == 0:
         ch = "|"
-    elif num % 1000 == 250:
+    elif val == level:
         ch = "/"
-    elif num % 1000 == 500:
+    elif val == level * 2:
         ch = "-"
-    elif num % 1000 == 750:
+    elif val == level * 3:
         ch = "\\"
     else:
         return
