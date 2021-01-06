@@ -4,11 +4,10 @@
 #
 
 from aoc import my_aocd
+from aoc.common import spinner
 
 
 def _look_and_say(string: str) -> str:
-    if len(string) == 1:
-        return "1" + string[0]
     result = ""
     i = 0
     while i < len(string):
@@ -21,16 +20,21 @@ def _look_and_say(string: str) -> str:
     return result
 
 
-def part_1(inputs: tuple[str], iterations: int) -> int:
-    assert len(inputs) == 1
-    string = inputs[0]
+def _look_and_say_iterations(string: str, iterations: int) -> str:
     for i in range(iterations):
         string = _look_and_say(string)
-    return len(string)
+        spinner(i, iterations // 4)
+    return string
+
+
+def part_1(inputs: tuple[str]) -> int:
+    assert len(inputs) == 1
+    return len(_look_and_say_iterations(inputs[0], 40))
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    assert len(inputs) == 1
+    return len(_look_and_say_iterations(inputs[0], 50))
 
 
 TEST = """\
@@ -41,11 +45,10 @@ TEST = """\
 def main() -> None:
     my_aocd.print_header(2015, 10)
 
-    assert part_1(TEST, 5) == 6
-    assert part_2(TEST) == 0
+    assert _look_and_say_iterations(TEST, 5) == "312211"
 
     inputs = my_aocd.get_input_as_tuple(2015, 10, 1)
-    result1 = part_1(inputs, 40)
+    result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
