@@ -6,9 +6,9 @@
 
 from enum import Enum
 from dataclasses import dataclass
+import numpy as np
 from aoc import my_aocd
 from aoc.geometry import Position
-from aoc.common import spinner
 
 
 class Action(Enum):
@@ -56,76 +56,48 @@ def _parse(inputs: tuple[str]) -> list[Instruction]:
     return inss
 
 
-def _sum_of_all_values(lights: dict) -> int:
-    return sum([light[1] for light in lights.items()])
-
-
-def _process_instructions_1(lights: dict, inss: list[Instruction]):
+def _process_instructions_1(lights, inss: list[Instruction]):
     for ins in inss:
-        for i in range(ins.start.x, ins.end.x + 1):
-            for j in range(ins.start.y, ins.end.y + 1):
-                if (i, j) in lights:
-                    prev = lights[(i, j)]
-                else:
-                    prev = None
-                if ins.is_turn_on():
-                    if prev:
-                        continue
-                    else:
-                        lights[(i, j)] = 1
-                elif ins.is_turn_off():
-                    if prev:
-                        del lights[(i, j)]
-                    else:
-                        continue
-                elif ins.is_toggle():
-                    if prev:
-                        del lights[(i, j)]
-                    else:
-                        lights[(i, j)] = 1
-                spinner(i * j)
+        start_x = ins.start.x
+        end_x = ins.end.x + 1
+        start_y = ins.start.y
+        end_y = ins.end.y + 1
+        if ins.is_turn_on():
+            lights[start_x:end_x, start_y:end_y] = 1
+        elif ins.is_turn_off():
+            lights[start_x:end_x, start_y:end_y] = 0
+        elif ins.is_toggle():
+            lights[start_x:end_x, start_y:end_y] \
+                = np.logical_not(lights[start_x:end_x, start_y:end_y])
 
 
 def part_1(inputs: tuple[str]) -> int:
     inss = _parse(inputs)
-    lights = dict()
+    lights = np.zeros((1000, 1000), np.int)
     _process_instructions_1(lights, inss)
-    return _sum_of_all_values(lights)
+    return np.sum(lights)
 
 
-def _process_instructions_2(lights: dict, inss: list[Instruction]):
+def _process_instructions_2(lights, inss: list[Instruction]):
     for ins in inss:
-        for i in range(ins.start.x, ins.end.x + 1):
-            for j in range(ins.start.y, ins.end.y + 1):
-                if (i, j) in lights:
-                    prev = lights[(i, j)]
-                else:
-                    prev = None
-                if ins.is_turn_on():
-                    if prev:
-                        lights[(i, j)] = lights[(i, j)] + 1
-                    else:
-                        lights[(i, j)] = 1
-                elif ins.is_turn_off():
-                    if not prev:
-                        continue
-                    elif prev == 1:
-                        del lights[(i, j)]
-                    else:
-                        lights[(i, j)] = lights[(i, j)] - 1
-                elif ins.is_toggle():
-                    if prev:
-                        lights[(i, j)] = lights[(i, j)] + 2
-                    else:
-                        lights[(i, j)] = 2
-                spinner(i * j)
+        start_x = ins.start.x
+        end_x = ins.end.x + 1
+        start_y = ins.start.y
+        end_y = ins.end.y + 1
+        if ins.is_turn_on():
+            lights[start_x:end_x, start_y:end_y] += 1
+        elif ins.is_turn_off():
+            lights[start_x:end_x, start_y:end_y] -= 1
+            lights[lights < 0] = 0
+        elif ins.is_toggle():
+            lights[start_x:end_x, start_y:end_y] += 2
 
 
 def part_2(inputs: tuple[str]) -> int:
     inss = _parse(inputs)
-    lights = dict()
+    lights = np.zeros((1000, 1000), np.int)
     _process_instructions_2(lights, inss)
-    return _sum_of_all_values(lights)
+    return np.sum(lights)
 
 
 TEST1 = "turn on 0,0 through 999,999".splitlines()

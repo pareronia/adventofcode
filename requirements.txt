@@ -11,6 +11,7 @@ GitPython==3.1.11
 idna==2.10
 mccabe==0.6.1
 networkx==2.5
+numpy==1.19.5
 pbr==5.5.1
 Pebble==4.5.3
 prettyprinter==0.18.0
