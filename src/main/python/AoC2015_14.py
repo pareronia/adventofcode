@@ -6,8 +6,8 @@
 from __future__ import annotations
 import re
 from dataclasses import dataclass
+from collections import defaultdict
 from aoc import my_aocd
-from aoc.common import log
 
 
 REGEXP = r'([A-Za-z]+) can fly ([0-9]+) km/s for ([0-9]+) seconds, but then must rest for ([0-9]+) seconds\.'  # noqa
@@ -38,20 +38,20 @@ def _distance_reached(reindeer: Reindeer, time: int) -> int:
     if left >= reindeer.go:
         return periods * period_distance + period_distance
     else:
-        return periods * period_distance \
-                + reindeer.speed // reindeer.go * left
+        return periods * period_distance + reindeer.speed * left
 
 
 def part_1(inputs: tuple[str], time: int) -> int:
+    return max([_distance_reached(r, time) for r in _parse(inputs)])
+
+
+def part_2(inputs: tuple[str], time: int) -> int:
     reindeer = _parse(inputs)
-    log(reindeer)
-    distances = {r.name: _distance_reached(r, time) for r in reindeer}
-    log(distances)
-    return max(distances.values())
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return 0
+    points = defaultdict(int)
+    for i in range(time):
+        distances = {_distance_reached(r, i+1): r.name for r in reindeer}
+        points[distances[max(distances.keys())]] += 1
+    return max(points.values())
 
 
 TEST = """\
@@ -64,11 +64,12 @@ def main() -> None:
     my_aocd.print_header(2015, 14)
 
     assert part_1(TEST, 1000) == 1120
+    assert part_2(TEST, 1000) == 689
 
     inputs = my_aocd.get_input_as_tuple(2015, 14, 9)
     result1 = part_1(inputs, 2503)
     print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
+    result2 = part_2(inputs, 2503)
     print(f"Part 2: {result2}")
 
 
