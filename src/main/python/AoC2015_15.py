@@ -9,10 +9,9 @@ import math
 import itertools
 from dataclasses import dataclass
 from aoc import my_aocd
-from aoc.common import log
 
 
-REGEXP = r'([A-Za-z]+): capacity ([-0-9]+), durability ([-0-9]+), flavor ([-0-9]+), texture ([-0-9]+), calories [-0-9]+'  # noqa
+REGEXP = r'([A-Za-z]+): capacity ([-0-9]+), durability ([-0-9]+), flavor ([-0-9]+), texture ([-0-9]+), calories ([-0-9]+)'  # noqa
 
 
 @dataclass(frozen=True)
@@ -22,12 +21,13 @@ class Ingredient:
     durability: int
     flavor: int
     texture: int
+    calories: int
 
     @classmethod
     def of(cls, name: str, capacity: str, durability: str, flavor: str,
-           texture: str) -> Ingredient:
+           texture: str, calories: str) -> Ingredient:
         return Ingredient(name, int(capacity), int(durability), int(flavor),
-                          int(texture))
+                          int(texture), int(calories))
 
 
 def _parse(inputs: tuple[str]) -> list[Ingredient]:
@@ -43,9 +43,15 @@ def _generate_measures(size: int):
 
 
 def _caclulate_score(ingredients: list[Ingredient],
-                     measure: tuple[int]) -> int:
+                     measure: tuple[int],
+                     calories_target: int = None) -> int:
     assert len(measure) == len(ingredients)
     size = len(measure)
+    if calories_target is not None:
+        total_calories = sum([measure[i] * ingredients[i].calories
+                              for i in range(size)])
+        if total_calories != calories_target:
+            return 0
     total_capacity = sum([measure[i] * ingredients[i].capacity
                           for i in range(size)])
     if total_capacity < 0:
@@ -66,21 +72,23 @@ def _caclulate_score(ingredients: list[Ingredient],
                       total_flavor, total_texture))
 
 
-def part_1(inputs: tuple[str]) -> int:
-    ingredients = _parse(inputs)
-    log(ingredients)
+def _find_max_score(ingredients: list[Ingredient],
+                    calories_target: int = None) -> int:
     max_score = 0
     for measure in _generate_measures(len(ingredients)):
-        score = _caclulate_score(ingredients, measure)
+        score = _caclulate_score(ingredients, measure, calories_target)
         if score > max_score:
             max_score = score
             print(max_score, end="\r", flush=True)
-    log(max_score)
     return max_score
 
 
+def part_1(inputs: tuple[str]) -> int:
+    return _find_max_score(_parse(inputs))
+
+
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    return _find_max_score(_parse(inputs), calories_target=500)
 
 
 TEST = """\
@@ -93,7 +101,7 @@ def main() -> None:
     my_aocd.print_header(2015, 15)
 
     assert part_1(TEST) == 62842880
-    assert part_2(TEST) == 0
+    assert part_2(TEST) == 57600000
 
     inputs = my_aocd.get_input(2015, 15, 4)
     result1 = part_1(inputs)
