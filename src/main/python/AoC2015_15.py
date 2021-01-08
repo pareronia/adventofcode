@@ -36,10 +36,22 @@ def _parse(inputs: tuple[str]) -> list[Ingredient]:
 
 
 def _generate_measures(size: int):
-    for x in itertools.product(range(101), repeat=size):
+    def yield_permutations(x: tuple[int], size: int):
         if sum(x) == 100:
             for p in itertools.permutations(x, size):
                 yield p
+
+    assert size in {2, 4}
+    for i in range(100, -1, -1):
+        for j in range(i, -1, -1):
+            if size == 2:
+                for p in yield_permutations((i, j), size):
+                    yield p
+                continue
+            for k in range(j, -1, -1):
+                for m in range(k, -1, -1):
+                    for p in yield_permutations((i, j, k, m), size):
+                        yield p
 
 
 def _caclulate_score(ingredients: list[Ingredient],
