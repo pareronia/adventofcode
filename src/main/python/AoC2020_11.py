@@ -143,7 +143,7 @@ def part_2(inputs: tuple[str]) -> int:
     return _find_count_of_equilibrium(inputs, _find_visible, tolerance=5)
 
 
-test = """
+TEST = """\
 L.LL.LL.LL
 LLLLLLL.LL
 L.L.L..L..
@@ -154,16 +154,16 @@ L.LLLLL.LL
 LLLLLLLLLL
 L.LLLLLL.L
 L.LLLLL.LL
-"""
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 11)
 
-    assert part_1(test.split()) == 37
-    assert part_2(test.split()) == 26
+    assert part_1(TEST) == 37
+    assert part_2(TEST) == 26
 
-    inputs = my_aocd.get_input_as_tuple(2020, 11, 94)
+    inputs = my_aocd.get_input(2020, 11, 94)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

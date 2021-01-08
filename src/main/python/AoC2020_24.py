@@ -159,7 +159,7 @@ def part_2(inputs: tuple[str]) -> int:
     return len(floor.tiles)
 
 
-test = """\
+TEST = """\
 sesenwnenenewseeswwswswwnenewsewsw
 neeenesenwnwwswnenewnwwsewnenwseswesw
 seswneswswsenwwnwse
@@ -186,10 +186,10 @@ wseweeenwnesenwwwswnew
 def main() -> None:
     my_aocd.print_header(2020, 24)
 
-    assert part_1(test) == 10
-    assert part_2(test) == 2208
+    assert part_1(TEST) == 10
+    assert part_2(TEST) == 2208
 
-    inputs = my_aocd.get_input_as_tuple(2020, 24, 316)
+    inputs = my_aocd.get_input(2020, 24, 316)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

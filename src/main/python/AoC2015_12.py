@@ -61,7 +61,7 @@ def main() -> None:
     assert part_2(TEST10) == 0
     assert part_2(TEST11) == 6
 
-    inputs = my_aocd.get_input_as_tuple(2015, 12, 1)
+    inputs = my_aocd.get_input(2015, 12, 1)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

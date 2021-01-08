@@ -5,6 +5,7 @@
 import re
 from operator import xor
 from aoc import my_aocd
+from aoc.common import log
 
 
 def _parse(input_: str) -> (int, int, str, str, int):
@@ -17,22 +18,21 @@ def _parse(input_: str) -> (int, int, str, str, int):
     return (first, second, wanted, passw, len(m1))
 
 
-def _output(input_: str, parsed: str, check: bool) -> None:
-    print(f"{input_} -> {parsed} : {check}")
+def _output(input_: str, parsed: str, check: bool) -> str:
+    return f"{input_} -> {parsed} : {check}"
 
 
-def part_1(inputs: tuple[str], verbose: bool = False) -> int:
-    def _check_valid_1(input_: str, verbose: bool) -> bool:
+def part_1(inputs: tuple[str]) -> int:
+    def _check_valid_1(input_: str) -> bool:
         parsed = _parse(input_)
         check = parsed[4] in range(parsed[0], parsed[1] + 1)
-        if (verbose):
-            _output(input_, parsed, check)
+        log(_output(input_, parsed, check))
         return check
-    return len([i for i in inputs if _check_valid_1(i, verbose)])
+    return len([i for i in inputs if _check_valid_1(i)])
 
 
-def part_2(inputs: tuple[str], verbose: bool = False) -> int:
-    def _check_valid_2(input_: str, verbose: bool) -> bool:
+def part_2(inputs: tuple[str]) -> int:
+    def _check_valid_2(input_: str) -> bool:
         parsed = _parse(input_)
         first = parsed[0]
         second = parsed[1]
@@ -41,29 +41,29 @@ def part_2(inputs: tuple[str], verbose: bool = False) -> int:
         first_matched = passw[first - 1] == wanted
         second_matched = passw[second - 1] == wanted
         check = xor(first_matched, second_matched)
-        if (verbose):
-            _output(input_, parsed, check)
+        log(_output(input_, parsed, check))
         return check
-    return len([i for i in inputs if _check_valid_2(i, verbose)])
+    return len([i for i in inputs if _check_valid_2(i)])
 
 
-test = {"1-3 a: abcde",
-        "2-9 c: ccccccccc",
-        "1-3 b: cdefg",
-        }
+TEST = """\
+1-3 a: abcde
+2-9 c: ccccccccc
+1-3 b: cdefg
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 2)
 
-    assert part_1(test) == 2
-    assert part_2(test) == 1
+    assert part_1(TEST) == 2
+    assert part_2(TEST) == 1
 
-    inputs = my_aocd.get_input_as_tuple(2020, 2, 1000)
+    inputs = my_aocd.get_input(2020, 2, 1000)
     result1 = part_1(inputs)
+    print(f"Part 1: {result1}")
     result2 = part_2(inputs)
-    print("Part 1: " + str(result1))
-    print("Part 2: " + str(result2))
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':

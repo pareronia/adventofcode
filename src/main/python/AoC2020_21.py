@@ -159,7 +159,7 @@ def part_2(inputs: tuple[str]) -> str:
     return ",".join(ings)
 
 
-test = """\
+TEST = """\
 mxmxvkd kfcds sqjhc nhms (contains dairy, fish)
 trh fvjkl sbzzf mxmxvkd (contains dairy)
 sqjhc fvjkl (contains soy)
@@ -170,10 +170,10 @@ sqjhc mxmxvkd sbzzf (contains fish)
 def main() -> None:
     my_aocd.print_header(2020, 21)
 
-    assert part_1(test) == 5
-    assert part_2(test) == "mxmxvkd,sqjhc,fvjkl"
+    assert part_1(TEST) == 5
+    assert part_2(TEST) == "mxmxvkd,sqjhc,fvjkl"
 
-    inputs = my_aocd.get_input_as_tuple(2020, 21, 40)
+    inputs = my_aocd.get_input(2020, 21, 40)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

@@ -74,7 +74,7 @@ def part_2_bis(inputs: tuple[str]) -> int:
                 ])
 
 
-test = """\
+TEST = """\
 1 + 2 * 3 + 4 * 5 + 6
 1 + (2 * 3) + (4 * (5 + 6))
 2 * 3 + (4 * 5)
@@ -87,11 +87,11 @@ test = """\
 def main() -> None:
     my_aocd.print_header(2020, 18)
 
-    assert part_1(test) == 71 + 51 + 26 + 437 + 12240 + 13632
-    assert part_2(test) == 231 + 51 + 46 + 1445 + 669060 + 23340
-    assert part_2_bis(test) == 231 + 51 + 46 + 1445 + 669060 + 23340
+    assert part_1(TEST) == 71 + 51 + 26 + 437 + 12240 + 13632
+    assert part_2(TEST) == 231 + 51 + 46 + 1445 + 669060 + 23340
+    assert part_2_bis(TEST) == 231 + 51 + 46 + 1445 + 669060 + 23340
 
-    inputs = my_aocd.get_input_as_tuple(2020, 18, 383)
+    inputs = my_aocd.get_input(2020, 18, 383)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

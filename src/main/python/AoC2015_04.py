@@ -20,16 +20,18 @@ def _find_md5_starting_with_zeroes(input_: str, zeroes: int) -> int:
     return i
 
 
-def part_1(input_: str) -> int:
-    return _find_md5_starting_with_zeroes(input_, 5)
+def part_1(inputs: tuple[str]) -> int:
+    assert len(inputs) == 1
+    return _find_md5_starting_with_zeroes(inputs[0], 5)
 
 
-def part_2(input_: str) -> int:
-    return _find_md5_starting_with_zeroes(input_, 6)
+def part_2(inputs: tuple[str]) -> int:
+    assert len(inputs) == 1
+    return _find_md5_starting_with_zeroes(inputs[0], 6)
 
 
-TEST1 = "abcdef"
-TEST2 = "pqrstuv"
+TEST1 = "abcdef".splitlines()
+TEST2 = "pqrstuv".splitlines()
 
 
 def main() -> None:
@@ -38,9 +40,10 @@ def main() -> None:
     assert part_1(TEST1) == 609043
     assert part_1(TEST2) == 1048970
 
-    result1 = part_1("iwrupvqb")
+    inputs = my_aocd.get_input(2015, 4, 1)
+    result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    result2 = part_2("iwrupvqb")
+    result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 

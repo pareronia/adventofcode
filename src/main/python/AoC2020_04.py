@@ -4,30 +4,22 @@
 #
 import re
 from aoc import my_aocd
+from aoc.common import log
 
 
 def _normalize(inputs: tuple[str]) -> list[str]:
-    lines = []
-    line = ""
-    for input_ in inputs:
-        if len(input_) > 0:
-            line += input_ + " "
-            continue
-        lines.append(line)
-        line = ""
-    lines.append(line[:-1])
-    return lines
+    return [" ".join(line for line in block)
+            for block in my_aocd.to_blocks(inputs)]
 
 
-def _check_valid_1(line: str, verbose: bool) -> bool:
+def _check_valid_1(line: str) -> bool:
     colons = line.count(":")
     has_cid = "cid:" in line
     valid = colons == 8 or (colons == 7 and not has_cid)
-    if verbose:
-        if valid:
-            print(f"colons: {colons}, has_cid: {has_cid} -> valid ({line})")
-        else:
-            print(f"colons: {colons}, has_cid: {has_cid} -> INVALID ({line})")
+    if valid:
+        log(f"colons: {colons}, has_cid: {has_cid} -> valid ({line})")
+    else:
+        log(f"colons: {colons}, has_cid: {has_cid} -> INVALID ({line})")
     return valid
 
 
@@ -86,8 +78,8 @@ def _get_value(line: str, field: str) -> str:
     return m.group(1) if m is not None else None
 
 
-def _check_valid_2(line: str, verbose: bool) -> bool:
-    if not _check_valid_1(line, verbose):
+def _check_valid_2(line: str) -> bool:
+    if not _check_valid_1(line):
         return False
 
     passport = Passport()
@@ -101,67 +93,68 @@ def _check_valid_2(line: str, verbose: bool) -> bool:
     return passport.valid()
 
 
-def part_1(inputs: tuple[str], verbose: bool = False) -> int:
+def part_1(inputs: tuple[str]) -> int:
     return len([input_ for input_ in _normalize(inputs)
-                if _check_valid_1(input_, verbose)])
+                if _check_valid_1(input_)])
 
 
-def part_2(inputs: tuple[str], verbose: bool = False) -> int:
+def part_2(inputs: tuple[str]) -> int:
     return len([input_ for input_ in _normalize(inputs)
-                if _check_valid_2(input_, verbose)])
+                if _check_valid_2(input_)])
 
 
-test = ["ecl:gry pid:860033327 eyr:2020 hcl:#fffffd",
-        "byr:1937 iyr:2017 cid:147 hgt:183cm",
-        "",
-        "iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884",
-        "hcl:#cfa07d byr:1929",
-        "",
-        "hcl:#ae17e1 iyr:2013",
-        "eyr:2024",
-        "ecl:brn pid:760753108 byr:1931",
-        "hgt:179cm",
-        "",
-        "hcl:#cfa07d eyr:2025 pid:166559648",
-        "iyr:2011 ecl:brn hgt:59in",
-        "",
-        "eyr:1972 cid:100",
-        "hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926",
-        "",
-        "iyr:2019",
-        "hcl:#602927 eyr:1967 hgt:170cm",
-        "ecl:grn pid:012533040 byr:1946",
-        "",
-        "hcl:dab227 iyr:2012",
-        "ecl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277",
-        "",
-        "hgt:59cm ecl:zzz",
-        "eyr:2038 hcl:74454a iyr:2023",
-        "pid:3556412378 byr:2007",
-        "",
-        "pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980",
-        "hcl:#623a2f",
-        "",
-        "eyr:2029 ecl:blu cid:129 byr:1989",
-        "iyr:2014 pid:896056539 hcl:#a97842 hgt:165cm",
-        "",
-        "hcl:#888785",
-        "hgt:164cm byr:2001 iyr:2015 cid:88",
-        "pid:545766238 ecl:hzl",
-        "eyr:2022",
-        "",
-        "iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021",
-        "pid:093154719",
-        ]
+TEST = """\
+ecl:gry pid:860033327 eyr:2020 hcl:#fffffd
+byr:1937 iyr:2017 cid:147 hgt:183cm
+
+iyr:2013 ecl:amb cid:350 eyr:2023 pid:028048884
+hcl:#cfa07d byr:1929
+
+hcl:#ae17e1 iyr:2013
+eyr:2024
+ecl:brn pid:760753108 byr:1931
+hgt:179cm
+
+hcl:#cfa07d eyr:2025 pid:166559648
+iyr:2011 ecl:brn hgt:59in
+
+eyr:1972 cid:100
+hcl:#18171d ecl:amb hgt:170 pid:186cm iyr:2018 byr:1926
+
+iyr:2019
+hcl:#602927 eyr:1967 hgt:170cm
+ecl:grn pid:012533040 byr:1946
+
+hcl:dab227 iyr:2012
+ecl:brn hgt:182cm pid:021572410 eyr:2020 byr:1992 cid:277
+
+hgt:59cm ecl:zzz
+eyr:2038 hcl:74454a iyr:2023
+pid:3556412378 byr:2007
+
+pid:087499704 hgt:74in ecl:grn iyr:2012 eyr:2030 byr:1980
+hcl:#623a2f
+
+eyr:2029 ecl:blu cid:129 byr:1989
+iyr:2014 pid:896056539 hcl:#a97842 hgt:165cm
+
+hcl:#888785
+hgt:164cm byr:2001 iyr:2015 cid:88
+pid:545766238 ecl:hzl
+eyr:2022
+
+iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021
+pid:093154719
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 4)
 
-    assert part_1(test) == 10
-    assert part_2(test) == 6
+    assert part_1(TEST) == 10
+    assert part_2(TEST) == 6
 
-    inputs = my_aocd.get_input_as_tuple(2020, 4, 1009)
+    inputs = my_aocd.get_input(2020, 4, 1009)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

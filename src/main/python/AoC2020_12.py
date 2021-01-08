@@ -46,8 +46,9 @@ def _navigate_with_heading(navigation: NavigationWithHeading,
         raise ValueError("invalid input")
 
 
-def part_1(inputs: tuple[str], start: str) -> int:
+def part_1(inputs: tuple[str]) -> int:
     navs = _parse(inputs)
+    start = EAST
     navigation = NavigationWithHeading(
         position=Position(0, 0),
         heading=Headings[start].value)
@@ -73,8 +74,9 @@ def _navigate_with_waypoint(navigation: NavigationWithWaypoint,
         raise ValueError("invalid input")
 
 
-def part_2(inputs: tuple[str], start: Waypoint) -> int:
+def part_2(inputs: tuple[str]) -> int:
     navs = _parse(inputs)
+    start = Waypoint(10, 1)
     navigation = NavigationWithWaypoint(Position(0, 0), start)
     for nav in navs:
         _navigate_with_waypoint(navigation, nav)
@@ -82,25 +84,25 @@ def part_2(inputs: tuple[str], start: Waypoint) -> int:
     return abs(navigation.position.x) + abs(navigation.position.y)
 
 
-test = """\
+TEST = """\
 F10
 N3
 F7
 R90
 F11
-"""
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 12)
 
-    assert part_1(test.split(), EAST) == 25
-    assert part_2(test.split(), Waypoint(10, 1)) == 286
+    assert part_1(TEST) == 25
+    assert part_2(TEST) == 286
 
-    inputs = my_aocd.get_input_as_tuple(2020, 12, 785)
-    result1 = part_1(inputs, start=EAST)
+    inputs = my_aocd.get_input(2020, 12, 785)
+    result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    result2 = part_2(inputs, start=Waypoint(10, 1))
+    result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 

@@ -35,31 +35,32 @@ def part_2(inputs: tuple[str]) -> int:
     return _sum_of_counts(common_answers_per_group)
 
 
-test = ["abc",
-        "",
-        "a",
-        "b",
-        "c",
-        "",
-        "ab",
-        "ac",
-        "",
-        "a",
-        "a",
-        "a",
-        "a",
-        "",
-        "b",
-        ]
+TEST = """\
+abc
+
+a
+b
+c
+
+ab
+ac
+
+a
+a
+a
+a
+
+b
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 6)
 
-    assert part_1(test) == 11
-    assert part_2(test) == 6
+    assert part_1(TEST) == 11
+    assert part_2(TEST) == 6
 
-    inputs = my_aocd.get_input_as_tuple(2020, 6, 2042)
+    inputs = my_aocd.get_input(2020, 6, 2042)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

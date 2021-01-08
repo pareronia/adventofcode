@@ -330,7 +330,7 @@ def part_2(inputs: tuple[str]) -> int:
     return space.count_active()
 
 
-test = """\
+TEST = """\
 .#.
 ..#
 ###
@@ -340,10 +340,10 @@ test = """\
 def main() -> None:
     my_aocd.print_header(2020, 17)
 
-    assert part_1(test) == 112
-    assert part_2(test) == 848
+    assert part_1(TEST) == 112
+    assert part_2(TEST) == 848
 
-    inputs = my_aocd.get_input_as_tuple(2020, 17, 8)
+    inputs = my_aocd.get_input(2020, 17, 8)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

@@ -127,7 +127,7 @@ def part_2(inputs: tuple[str]) -> int:
     return star1 * star2
 
 
-test = """\
+TEST = """\
 389125467
 """.splitlines()
 
@@ -135,12 +135,13 @@ test = """\
 def main() -> None:
     my_aocd.print_header(2020, 23)
 
-    assert part_1(test) == 67384529
-    assert part_2(test) == 149245887792
+    assert part_1(TEST) == 67384529
+    assert part_2(TEST) == 149245887792
 
-    result1 = part_1(["974618352"])
+    inputs = my_aocd.get_input(2020, 23, 1)
+    result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    result2 = part_2(["974618352"])
+    result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 

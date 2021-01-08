@@ -150,7 +150,7 @@ def part_2(inputs: tuple[str]) -> int:
     return 0
 
 
-test = """\
+TEST = """\
 Tile 2311:
 ..##.#..#.
 ##..#.....
@@ -264,10 +264,10 @@ Tile 3079:
 def main() -> None:
     my_aocd.print_header(2020, 20)
 
-    assert part_1(test) == 1951 * 3079 * 2971 * 1171
-    assert part_2(test) == 0
+    assert part_1(TEST) == 1951 * 3079 * 2971 * 1171
+    assert part_2(TEST) == 0
 
-    inputs = my_aocd.get_input_as_tuple(2020, 20, 1727)
+    inputs = my_aocd.get_input(2020, 20, 1727)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     # result2 = part_2(inputs)

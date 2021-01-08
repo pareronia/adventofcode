@@ -142,7 +142,7 @@ def part_2(inputs: tuple[str]) -> int:
     return prod(departure_fields_values)
 
 
-test_1 = """\
+TEST1 = """\
 class: 1-3 or 5-7
 row: 6-11 or 33-44
 seat: 13-40 or 45-50
@@ -156,7 +156,7 @@ nearby tickets:
 55,2,20
 38,6,12
 """.splitlines()
-test_2 = """\
+TEST2 = """\
 departure date: 0-1 or 4-19
 departure time: 0-5 or 8-19
 departure track: 0-13 or 16-19
@@ -174,10 +174,10 @@ nearby tickets:
 def main() -> None:
     my_aocd.print_header(2020, 16)
 
-    assert part_1(test_1) == 71
-    assert part_2(test_2) == 1716
+    assert part_1(TEST1) == 71
+    assert part_2(TEST2) == 1716
 
-    inputs = my_aocd.get_input_as_tuple(2020, 16, 261)
+    inputs = my_aocd.get_input(2020, 16, 261)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

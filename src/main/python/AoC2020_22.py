@@ -113,7 +113,7 @@ def part_2(inputs: tuple[str]) -> int:
     return _get_score(players)
 
 
-test = """\
+TEST = """\
 Player 1:
 9
 2
@@ -133,10 +133,10 @@ Player 2:
 def main() -> None:
     my_aocd.print_header(2020, 22)
 
-    assert part_1(test) == 306
-    assert part_2(test) == 291
+    assert part_1(TEST) == 306
+    assert part_2(TEST) == 291
 
-    inputs = my_aocd.get_input_as_tuple(2020, 22, 53)
+    inputs = my_aocd.get_input(2020, 22, 53)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

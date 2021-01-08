@@ -62,7 +62,7 @@ def _to_program_1(lines: list[Instruction_]) -> Program:
     return Program(instructions)
 
 
-def part_1(inputs: tuple[int]) -> int:
+def part_1(inputs: tuple[str]) -> int:
     vm = VirtualMachine()
     program = _to_program_1(_parse(inputs))
     vm.run_program(program)
@@ -127,34 +127,34 @@ def _to_program_2(lines: list[Instruction_]) -> Program:
     return Program(instructions)
 
 
-def part_2(inputs: tuple[int]) -> int:
+def part_2(inputs: tuple[str]) -> int:
     vm = VirtualMachine()
     program = _to_program_2(_parse(inputs))
     vm.run_program(program)
     return sum([int(m, 2) for m in program.memory.values()])
 
 
-test_1 = """\
+TEST1 = """\
 mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
 mem[8] = 11
 mem[7] = 101
 mem[8] = 0
-"""
-test_2 = """\
+""".splitlines()
+TEST2 = """\
 mask = 000000000000000000000000000000X1001X
 mem[42] = 100
 mask = 00000000000000000000000000000000X0XX
 mem[26] = 1
-"""
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 14)
 
-    assert part_1(test_1.splitlines()) == 165
-    assert part_2(test_2.splitlines()) == 208
+    assert part_1(TEST1) == 165
+    assert part_2(TEST2) == 208
 
-    inputs = my_aocd.get_input_as_tuple(2020, 14, 556)
+    inputs = my_aocd.get_input(2020, 14, 556)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

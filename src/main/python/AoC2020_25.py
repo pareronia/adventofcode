@@ -29,7 +29,11 @@ def part_1(inputs: tuple[str]) -> int:
     return _find_encryption_key(pub_key1, loop_size2)
 
 
-test = """\
+def part_2(inputs: tuple[str]) -> int:
+    return
+
+
+TEST = """\
 5764801
 17807724
 """.splitlines()
@@ -38,11 +42,13 @@ test = """\
 def main() -> None:
     my_aocd.print_header(2020, 25)
 
-    assert part_1(test) == 14897079
+    assert part_1(TEST) == 14897079
 
-    inputs = my_aocd.get_input_as_tuple(2020, 25, 2)
+    inputs = my_aocd.get_input(2020, 25, 2)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
+    result2 = part_2(inputs)
+    print(f"Part 2: {result2}")
 
 
 if __name__ == '__main__':

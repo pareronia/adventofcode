@@ -41,17 +41,25 @@ def _distance_reached(reindeer: Reindeer, time: int) -> int:
         return periods * period_distance + reindeer.speed * left
 
 
-def part_1(inputs: tuple[str], time: int) -> int:
+def _do_part_1(inputs: tuple[str], time: int) -> int:
     return max([_distance_reached(r, time) for r in _parse(inputs)])
 
 
-def part_2(inputs: tuple[str], time: int) -> int:
+def part_1(inputs: tuple[str]) -> int:
+    return _do_part_1(inputs, 2503)
+
+
+def _do_part_2(inputs: tuple[str], time: int) -> int:
     reindeer = _parse(inputs)
     points = defaultdict(int)
     for i in range(time):
         distances = {_distance_reached(r, i+1): r.name for r in reindeer}
         points[distances[max(distances.keys())]] += 1
     return max(points.values())
+
+
+def part_2(inputs: tuple[str]) -> int:
+    return _do_part_2(inputs, 2503)
 
 
 TEST = """\
@@ -63,13 +71,13 @@ Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.
 def main() -> None:
     my_aocd.print_header(2015, 14)
 
-    assert part_1(TEST, 1000) == 1120
-    assert part_2(TEST, 1000) == 689
+    assert _do_part_1(TEST, 1000) == 1120
+    assert _do_part_2(TEST, 1000) == 689
 
-    inputs = my_aocd.get_input_as_tuple(2015, 14, 9)
-    result1 = part_1(inputs, 2503)
+    inputs = my_aocd.get_input(2015, 14, 9)
+    result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    result2 = part_2(inputs, 2503)
+    result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 

@@ -89,28 +89,29 @@ def part_2(inputs: tuple[str]) -> int:
             log("acc: skip")
 
 
-test = ("nop +0",
-        "acc +1",
-        "jmp +4",
-        "acc +3",
-        "jmp -3",
-        "acc -99",
-        "acc +1",
-        "jmp -4",
-        "acc +6",
-        )
+TEST = """\
+nop +0
+acc +1
+jmp +4
+acc +3
+jmp -3
+acc -99
+acc +1
+jmp -4
+acc +6
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 8)
 
-    assert part_1(test) == 5
-    assert part_2(test) == 8
+    assert part_1(TEST) == 5
+    assert part_2(TEST) == 8
 
-    inputs = my_aocd.get_input_as_tuple(2020, 8, 608)
+    inputs = my_aocd.get_input(2020, 8, 608)
     result1 = part_1(inputs)
-    result2 = part_2(inputs)
     print(f"Part 1: {result1}")
+    result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 

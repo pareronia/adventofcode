@@ -47,19 +47,19 @@ def part_2(inputs: tuple[str]) -> int:
     return sum([_calculate_required_length(p) for p in presents])
 
 
-test1 = "2x3x4".splitlines()
-test2 = "1x1x10".splitlines()
+TEST1 = "2x3x4".splitlines()
+TEST2 = "1x1x10".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2015, 2)
 
-    assert part_1(test1) == 58
-    assert part_1(test2) == 43
-    assert part_2(test1) == 34
-    assert part_2(test2) == 14
+    assert part_1(TEST1) == 58
+    assert part_1(TEST2) == 43
+    assert part_2(TEST1) == 34
+    assert part_2(TEST2) == 14
 
-    inputs = my_aocd.get_input_as_tuple(2015, 2, 1000)
+    inputs = my_aocd.get_input(2015, 2, 1000)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

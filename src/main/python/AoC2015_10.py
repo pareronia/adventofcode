@@ -37,9 +37,7 @@ def part_2(inputs: tuple[str]) -> int:
     return len(_look_and_say_iterations(inputs[0], 50))
 
 
-TEST = """\
-1
-""".splitlines()
+TEST = "1".splitlines()
 
 
 def main() -> None:
@@ -47,7 +45,7 @@ def main() -> None:
 
     assert _look_and_say_iterations(TEST, 5) == "312211"
 
-    inputs = my_aocd.get_input_as_tuple(2015, 10, 1)
+    inputs = my_aocd.get_input(2015, 10, 1)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

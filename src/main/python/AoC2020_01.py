@@ -19,10 +19,11 @@ def _print_part_2(prefix: str, first: int, second: int, third: int,
     print(f"{prefix} Threesome: {first} * {second} * {third} = {result}")
 
 
-def part_1_primeagen(inputs: tuple[int]) -> int:
+def part_1_primeagen(inputs: tuple[str]) -> int:
     others = set[int]()
     start = time.perf_counter()
-    for n1 in inputs:
+    for i in range(len(inputs)):
+        n1 = int(inputs[i])
         others.add(n1)
         check = 2020 - n1
         if check in others:
@@ -33,13 +34,14 @@ def part_1_primeagen(inputs: tuple[int]) -> int:
             return result
 
 
-def part_2_primeagen(inputs: tuple[int]) -> int:
+def part_2_primeagen(inputs: tuple[str]) -> int:
     others = set[int]()
     start = time.perf_counter()
     for i in range(len(inputs)):
-        n1 = inputs[i]
+        n1 = int(inputs[i])
         others.add(n1)
-        for n2 in inputs[i:]:
+        for j in range(i, len(inputs)):
+            n2 = int(inputs[j])
             check = 2020 - n1 - n2
             if check in others:
                 result = n1*n2*check
@@ -49,15 +51,16 @@ def part_2_primeagen(inputs: tuple[int]) -> int:
                 return result
 
 
-def _squared(inputs: tuple[int], target: int) -> tuple[int]:
+def _squared(inputs: tuple[str], target: int) -> tuple[int]:
     for i in range(len(inputs)):
-        n1 = inputs[i]
-        for n2 in inputs[i:]:
+        n1 = int(inputs[i])
+        for j in range(i, len(inputs)):
+            n2 = int(inputs[j])
             if n1 + n2 == target:
                 return (n1, n2)
 
 
-def part_1_squared(inputs: tuple[int]) -> int:
+def part_1_squared(inputs: tuple[str]) -> int:
     start = time.perf_counter()
     twosome = _squared(inputs, 2020)
     result = twosome[0]*twosome[1]
@@ -67,10 +70,10 @@ def part_1_squared(inputs: tuple[int]) -> int:
     return result
 
 
-def part_2_cubed(inputs: tuple[int]) -> int:
+def part_2_cubed(inputs: tuple[str]) -> int:
     start = time.perf_counter()
     for i in range(len(inputs)):
-        n1 = inputs[i]
+        n1 = int(inputs[i])
         twosome = _squared(inputs[i:], 2020-n1)
         if twosome is not None:
             threesome = (twosome[0], twosome[1], n1)
@@ -83,24 +86,25 @@ def part_2_cubed(inputs: tuple[int]) -> int:
     return result
 
 
-test = (1721,
-        979,
-        366,
-        299,
-        675,
-        1456,
-        )
+TEST = """\
+1721
+979
+366
+299
+675
+1456
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 1)
 
-    assert part_1_squared(test) == 514579
-    assert part_2_cubed(test) == 241861950
-    assert part_1_primeagen(test) == 514579
-    assert part_2_primeagen(test) == 241861950
+    assert part_1_squared(TEST) == 514579
+    assert part_2_cubed(TEST) == 241861950
+    assert part_1_primeagen(TEST) == 514579
+    assert part_2_primeagen(TEST) == 241861950
 
-    inputs = my_aocd.get_input_as_ints_tuple(2020, 1, 200)
+    inputs = my_aocd.get_input(2020, 1, 200)
     part_1_squared(inputs)
     part_1_primeagen(inputs)
     part_2_cubed(inputs)

@@ -7,8 +7,8 @@ from aoc import my_aocd
 from aoc.common import log
 
 
-def _get_sorted(inputs: tuple[int]) -> tuple[int]:
-    sorted_ = list(inputs)
+def _parse(inputs: tuple[str]) -> tuple[int]:
+    sorted_ = [int(_) for _ in inputs]
     sorted_.sort()
     return tuple(sorted_)
 
@@ -24,16 +24,16 @@ def _find_jumps(inputs: tuple[int]):
     return jumps_1, jumps_3
 
 
-def part_1(inputs: tuple[int]) -> int:
-    inputs = _get_sorted(inputs)
+def part_1(inputs: tuple[str]) -> int:
+    inputs = _parse(inputs)
     log(inputs)
     jumps_1, jumps_3 = _find_jumps(inputs)
     log((jumps_1, jumps_3))
     return (len(jumps_1)+1)*(len(jumps_3)+1)
 
 
-def part_2(inputs: tuple[int]) -> int:
-    inputs = _get_sorted(inputs)
+def part_2(inputs: tuple[str]) -> int:
+    inputs = _parse(inputs)
     log(inputs)
     seen = defaultdict(int)
     seen[0] = 1
@@ -52,61 +52,63 @@ def part_2(inputs: tuple[int]) -> int:
     return seen[inputs[-1]]
 
 
-test_1 = (16,
-          10,
-          15,
-          5,
-          1,
-          11,
-          7,
-          19,
-          6,
-          12,
-          4
-          )
-test_2 = (28,
-          33,
-          18,
-          42,
-          31,
-          14,
-          46,
-          20,
-          48,
-          47,
-          24,
-          23,
-          49,
-          45,
-          19,
-          38,
-          39,
-          11,
-          1,
-          32,
-          25,
-          35,
-          8,
-          17,
-          7,
-          9,
-          4,
-          2,
-          34,
-          10,
-          3
-          )
+TEST1 = """\
+16
+10
+15
+5
+1
+11
+7
+19
+6
+12
+4
+""".splitlines()
+TEST2 = """\
+28
+33
+18
+42
+31
+14
+46
+20
+48
+47
+24
+23
+49
+45
+19
+38
+39
+11
+1
+32
+25
+35
+8
+17
+7
+9
+4
+2
+34
+10
+3
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 10)
 
-    assert part_1(test_1) == 35
-    assert part_1(test_2) == 220
-    assert part_2(test_1) == 8
-    assert part_2(test_2) == 19208
+    assert part_1(TEST1) == 35
+    assert part_1(TEST2) == 220
+    assert part_2(TEST1) == 8
+    assert part_2(TEST2) == 19208
 
-    inputs = my_aocd.get_input_as_ints_tuple(2020, 10, 101)
+    inputs = my_aocd.get_input(2020, 10, 101)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)

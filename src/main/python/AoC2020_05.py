@@ -28,28 +28,30 @@ def part_2(inputs: tuple[str]) -> int:
             return _as_int(_translate(sorted_inputs[i])) + 1
 
 
-test_1 = ["FBFBBFFRLR",
-          "BFFFBBFRRR",
-          "FFFBBBFRRR",
-          "BBFFBBFRLL"
-          ]
+TEST1 = """\
+FBFBBFFRLR
+BFFFBBFRRR
+FFFBBBFRRR
+BBFFBBFRLL
+""".splitlines()
 
 
-test_2 = ["FFFFFFFFFF",
-          "FFFFFFFFFR",
-          "FFFFFFFFRF",
-          # "FFFFFFFFRR",
-          "FFFFFFFRFF"
-          ]
+TEST2 = """\
+FFFFFFFLLL
+FFFFFFFLLR
+FFFFFFFLRL
+FFFFFFFRLL
+FFFFFFFRLR
+""".splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2020, 5)
 
-    assert part_1(test_1) == 820
-    assert part_2(test_2) == 3
+    assert part_1(TEST1) == 820
+    assert part_2(TEST2) == 3
 
-    inputs = my_aocd.get_input_as_tuple(2020, 5, 839)
+    inputs = my_aocd.get_input(2020, 5, 839)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
