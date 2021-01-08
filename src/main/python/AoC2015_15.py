@@ -45,31 +45,21 @@ def _generate_measures(size: int):
 def _caclulate_score(ingredients: list[Ingredient],
                      measure: tuple[int],
                      calories_target: int = None) -> int:
+    def calculate_total(attribute: str) -> int:
+        return sum([measure[i] * getattr(ingredients[i], attribute)
+                    for i in range(size)])
+
     assert len(measure) == len(ingredients)
     size = len(measure)
     if calories_target is not None:
-        total_calories = sum([measure[i] * ingredients[i].calories
-                              for i in range(size)])
-        if total_calories != calories_target:
+        if calculate_total('calories') != calories_target:
             return 0
-    total_capacity = sum([measure[i] * ingredients[i].capacity
-                          for i in range(size)])
-    if total_capacity < 0:
-        return 0
-    total_durability = sum([measure[i] * ingredients[i].durability
-                            for i in range(size)])
-    if total_durability < 0:
-        return 0
-    total_flavor = sum([measure[i] * ingredients[i].flavor
-                        for i in range(size)])
-    if total_flavor < 0:
-        return 0
-    total_texture = sum([measure[i] * ingredients[i].texture
-                         for i in range(size)])
-    if total_texture < 0:
-        return 0
-    return math.prod((total_capacity, total_durability,
-                      total_flavor, total_texture))
+    totals = dict()
+    for attribute in ['capacity', 'durability', 'flavor', 'texture']:
+        totals[attribute] = calculate_total(attribute)
+        if totals[attribute] < 0:
+            return 0
+    return math.prod(totals.values())
 
 
 def _find_max_score(ingredients: list[Ingredient],
