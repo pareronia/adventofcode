@@ -12,12 +12,16 @@ def _parse(inputs: tuple[str]) -> tuple[int]:
 
 
 def _get_cocos(containers: tuple[int], eggnog_volume: int) -> list[tuple[int]]:
-    cocos = list[tuple[int]]()
-    for i in range(1, len(containers) + 1):
-        for c in itertools.combinations(containers, i):
-            if sum(c) == eggnog_volume:
-                cocos.append(c)
-    return cocos
+    containers = list(containers)
+    containers.sort(reverse=True)
+    minimal_containers = []
+    j = 0
+    while sum([sum(minimal_containers), containers[j]]) > eggnog_volume:
+        minimal_containers.append(containers[j])
+        j += 1
+    return [c for i in range(len(minimal_containers), len(containers) + 1)
+            for c in itertools.combinations(containers, i)
+            if sum(c) == eggnog_volume]
 
 
 def _do_part_1(inputs: tuple[str], eggnog_volume: int) -> int:
