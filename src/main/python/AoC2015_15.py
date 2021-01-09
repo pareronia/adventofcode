@@ -1,6 +1,6 @@
 #! /usr/bin/env python3
 #
-# Advent of Code 2020 Day 2
+# Advent of Code 2015 Day 15
 #
 
 from __future__ import annotations
