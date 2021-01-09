@@ -5,10 +5,9 @@
 
 from collections import defaultdict
 from aoc import my_aocd
-from aoc.common import log
 
 
-def _parse(inputs: tuple[str]):
+def _parse(inputs: tuple[str]) -> tuple[dict, str]:
     blocks = my_aocd.to_blocks(inputs)
     replacements = defaultdict(list[str])
     for line in blocks[0]:
@@ -18,10 +17,7 @@ def _parse(inputs: tuple[str]):
     return replacements, blocks[1][0]
 
 
-def part_1(inputs: tuple[str]) -> int:
-    replacements, molecule = _parse(inputs)
-    log(molecule)
-    log(replacements)
+def _run_replacement(replacements: dict, molecule: str) -> set[str]:
     molecules = set[str]()
     key = ""
     for i, c in enumerate(molecule):
@@ -36,11 +32,31 @@ def part_1(inputs: tuple[str]) -> int:
             continue
         for r in replacements[key]:
             molecules.add(molecule[:i] + r + molecule[i+len(key):])
-    return len(molecules)
+    return molecules
+
+
+def part_1(inputs: tuple[str]) -> int:
+    replacements, molecule = _parse(inputs)
+    return len(_run_replacement(replacements, molecule))
+
+
+def _find(replacements: dict, molecule: str, target: str, cnt: int) -> int:
+    new_molecules = _run_replacement(replacements, molecule)
+    if target in new_molecules:
+        return cnt + 1
+    else:
+        for m in new_molecules:
+            if len(m) > len(target):
+                return 0
+            result = _find(replacements, m, target, cnt + 1)
+            if result > 0:
+                return result
+        return 0
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    replacements, molecule = _parse(inputs)
+    return _find(replacements, "e", molecule, 0)
 
 
 TEST1 = """\
@@ -64,6 +80,24 @@ Oo => HH
 
 HOHOoHO
 """.splitlines()
+TEST4 = """\
+e => H
+e => O
+H => HO
+H => OH
+O => HH
+
+HOH
+""".splitlines()
+TEST5 = """\
+e => H
+e => O
+H => HO
+H => OH
+O => HH
+
+HOHOHO
+""".splitlines()
 
 
 def main() -> None:
@@ -72,6 +106,8 @@ def main() -> None:
     assert part_1(TEST1) == 4
     assert part_1(TEST2) == 7
     assert part_1(TEST3) == 6
+    assert part_2(TEST4) == 3
+    assert part_2(TEST5) == 6
 
     inputs = my_aocd.get_input(2015, 19, 45)
     result1 = part_1(inputs)
