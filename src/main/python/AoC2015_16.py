@@ -3,10 +3,11 @@
 # Advent of Code 2015 Day 16
 #
 
+import operator
+import itertools
 from dataclasses import dataclass
 from collections import defaultdict
 from aoc import my_aocd
-from aoc.common import log
 
 
 @dataclass(frozen=True)
@@ -14,14 +15,24 @@ class AuntSue:
     nbr: int
     things: dict
 
-    def match_thing(self, thing: str, amount: int) -> bool:
-        return thing in self.things and self.things[thing] == amount
-
     def get_thing(self, thing: str) -> int:
         return self.things[thing] if thing in self.things else None
 
-    def has_thing(self, thing: str) -> bool:
-        return thing in self.things
+
+@dataclass(frozen=True)
+class Rule:
+    operation: str
+    operand: int
+
+    def matches(self, value) -> bool:
+        if self.operation == "eq":
+            return value is not None and value == self.operand
+        elif self.operation == "lt":
+            return value is not None and value < self.operand
+        elif self.operation == "gt":
+            return value is not None and value > self.operand
+        else:
+            raise RuntimeError("Unsupported operation")
 
 
 def _parse(inputs: tuple[str]) -> list[AuntSue]:
@@ -38,128 +49,47 @@ def _parse(inputs: tuple[str]) -> list[AuntSue]:
     return aunt_sues
 
 
+def _find_aunt_sue_with_best_score(aunt_sues: list[AuntSue],
+                                   rules: dict) -> int:
+    scores = defaultdict(int)
+    for p in itertools.product(aunt_sues, rules.keys()):
+        aunt_sue = p[0]
+        thing = p[1]
+        if rules[thing].matches(aunt_sue.get_thing(thing)):
+            scores[aunt_sue.nbr] += 1
+    return max(scores.items(), key=operator.itemgetter(1))[0]
+
+
 def part_1(inputs: tuple[str]) -> int:
     aunt_sues = _parse(inputs)
-    log(aunt_sues)
-    scores = defaultdict(int)
-    for aunt_sue in aunt_sues:
-        if aunt_sue.has_thing('children'):
-            if aunt_sue.get_thing('children') == 3:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('cats'):
-            if aunt_sue.get_thing('cats') == 7:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('samoyeds'):
-            if aunt_sue.get_thing('samoyeds') == 2:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('pomeranians'):
-            if aunt_sue.get_thing('pomeranians') == 3:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('akitas'):
-            if aunt_sue.get_thing('akitas') == 0:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('vizslas'):
-            if aunt_sue.get_thing('vizslas') == 0:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('goldfish'):
-            if aunt_sue.get_thing('goldfish') == 5:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('trees'):
-            if aunt_sue.get_thing('trees') == 3:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('cars'):
-            if aunt_sue.get_thing('cars') == 2:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('perfumes'):
-            if aunt_sue.get_thing('perfumes') == 1:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-    best_score = None
-    for score in scores.items():
-        if best_score is None or score[1] > best_score[1]:
-            best_score = score
-    return best_score[0]
+    rules = {'children': Rule("eq", 3),
+             'cats': Rule("eq", 7),
+             'samoyeds': Rule("eq", 2),
+             'pomeranians': Rule("eq", 3),
+             'akitas': Rule("eq", 0),
+             'vizslas': Rule("eq", 0),
+             'goldfish': Rule("eq", 5),
+             'trees': Rule("eq", 3),
+             'cars': Rule("eq", 2),
+             'perfumes': Rule("eq", 1),
+             }
+    return _find_aunt_sue_with_best_score(aunt_sues, rules)
 
 
 def part_2(inputs: tuple[str]) -> int:
     aunt_sues = _parse(inputs)
-    log(aunt_sues)
-    scores = defaultdict(int)
-    for aunt_sue in aunt_sues:
-        if aunt_sue.has_thing('children'):
-            if aunt_sue.get_thing('children') == 3:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('cats'):
-            if aunt_sue.get_thing('cats') > 7:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('samoyeds'):
-            if aunt_sue.get_thing('samoyeds') == 2:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('pomeranians'):
-            if aunt_sue.get_thing('pomeranians') < 3:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('akitas'):
-            if aunt_sue.get_thing('akitas') == 0:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('vizslas'):
-            if aunt_sue.get_thing('vizslas') == 0:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('goldfish'):
-            if aunt_sue.get_thing('goldfish') < 5:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('trees'):
-            if aunt_sue.get_thing('trees') > 3:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('cars'):
-            if aunt_sue.get_thing('cars') == 2:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-        if aunt_sue.has_thing('perfumes'):
-            if aunt_sue.get_thing('perfumes') == 1:
-                scores[aunt_sue.nbr] += 1
-            else:
-                continue
-    best_score = None
-    for score in scores.items():
-        if best_score is None or score[1] > best_score[1]:
-            best_score = score
-    return best_score[0]
+    rules = {'children': Rule("eq", 3),
+             'cats': Rule("gt", 7),
+             'samoyeds': Rule("eq", 2),
+             'pomeranians': Rule("lt", 3),
+             'akitas': Rule("eq", 0),
+             'vizslas': Rule("eq", 0),
+             'goldfish': Rule("lt", 5),
+             'trees': Rule("gt", 3),
+             'cars': Rule("eq", 2),
+             'perfumes': Rule("eq", 1),
+             }
+    return _find_aunt_sue_with_best_score(aunt_sues, rules)
 
 
 def main() -> None:
