@@ -65,13 +65,20 @@ public class AoC2015_07 {
 	}
 	
 	long part1(String wire) {
-		final Circuit gates = parse();
-		log(gates);
-		return gates.getValue(wire);
+		final Circuit circuit = parse();
+		log(circuit);
+		return circuit.getValue(wire);
 	}
 	
 	public long solvePart1() {
 		return part1("a");
+	}
+	
+	public long solvePart2() {
+		final int a = (int) part1("a");
+		final Circuit circuit2 = parse();
+		circuit2.getGate("b").setResult(a);
+		return circuit2.getValue("a");
 	}
 
 	public static <V> void lap(String prefix, Callable<V> callable) throws Exception {
@@ -104,7 +111,9 @@ public class AoC2015_07 {
 		assert AoC2015_07.createDebug(TEST).part1("h") == 65412;
 		assert AoC2015_07.createDebug(TEST).part1("i") == 65079;
 		assert AoC2015_07.createDebug(TEST).part1("j") == 65079;
+
 		lap("Part 1", () -> AoC2015_07.create(INPUT).solvePart1());
+		lap("Part 2", () -> AoC2015_07.create(INPUT).solvePart2());
 	}
 
 	private static final String TEST =
@@ -583,7 +592,7 @@ public class AoC2015_07 {
 								.collect(toMap(Gate::getName, identity())));
 		}
 		
-		private Gate getGate(String gate) {
+		public Gate getGate(String gate) {
 			return this.gates.get(requireNonNull(gate));
 		}
 		
