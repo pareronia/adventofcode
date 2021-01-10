@@ -75,12 +75,12 @@ public class AoC2015_07 {
 	}
 	
 	public long solvePart2() {
-		final int a = (int) part1("a");
-		final Circuit circuit2 = parse();
-		circuit2.getGate("b").setResult(a);
-		return circuit2.getValue("a");
+		final long a = part1("a");
+		final Circuit circuit = parse();
+		circuit.setGate("b", Gate.set("b", String.valueOf(a)));
+		return circuit.getValue("a");
 	}
-
+	
 	public static <V> void lap(String prefix, Callable<V> callable) throws Exception {
 		final long timerStart = System.nanoTime();
 		final V answer = callable.call();
@@ -523,8 +523,30 @@ public class AoC2015_07 {
 			return result;
 		}
 
-		public void setResult(Integer result) {
-			this.result = result;
+		public Integer updateResult(Integer in1, Integer in2) {
+			switch (this.op) {
+			case SET:
+				this.result = in1;
+				break;
+			case AND:
+				this.result = in1 & in2;
+				break;
+			case LSHIFT:
+				this.result = in1 << arg;
+				break;
+			case NOT:
+				this.result = (int) (Math.pow(2, BIT_SIZE) + ~in1);
+				break;
+			case OR:
+				this.result = in1 | in2;
+				break;
+			case RSHIFT:
+				this.result = in1 >>> arg;
+				break;
+			default:
+				throw new IllegalStateException();
+			}
+			return this.result;
 		}
 
 		@Override
@@ -554,30 +576,6 @@ public class AoC2015_07 {
 			}
 			return sb.toString();
 		}
-
-		public boolean isSet() {
-			return this.op == Op.SET;
-		}
-
-		public boolean isAnd() {
-			return this.op == Op.AND;
-		}
-
-		public boolean isOr() {
-			return this.op == Op.OR;
-		}
-
-		public boolean isLShift() {
-			return this.op == Op.LSHIFT;
-		}
-
-		public boolean isRShift() {
-			return this.op == Op.RSHIFT;
-		}
-
-		public boolean isNot() {
-			return this.op == Op.NOT;
-		}
 	}
 	
 	private static final class Circuit {
@@ -592,54 +590,29 @@ public class AoC2015_07 {
 								.collect(toMap(Gate::getName, identity())));
 		}
 		
-		public Gate getGate(String gate) {
-			return this.gates.get(requireNonNull(gate));
+		public Gate getGate(String name) {
+			return this.gates.get(requireNonNull(name));
+		}
+		
+		public void setGate(String name, Gate gate) {
+			this.gates.put(requireNonNull(name), requireNonNull(gate));
 		}
 		
 		public int getValue(String name) {
 			assert name != null && !name.isEmpty(): "name is empty";
 			if (StringUtils.isNumeric(name)) {
-				return Integer.valueOf(name);
-			} else {
-				final Gate gate = getGate(name);
-				assert gate != null : "Gate '" + name + "' not found";
-				final Integer result = gate.getResult();
-				if (result != null) {
-					return result;
-				} else {
-					final int in1 = getValue(gate.in1);
-					if (gate.isSet()) {
-						final int out = in1;
-						gate.setResult(out);
-						return out;
-					} else if (gate.isLShift()) {
-						final int out = in1 << gate.arg;
-						gate.setResult(out);
-						return out;
-					} else if (gate.isRShift()) {
-						final int out = in1 >>> gate.arg;
-						gate.setResult(out);
-						return out;
-					} else if (gate.isNot()) {
-						final int out = (int) (Math.pow(2, BIT_SIZE) + ~in1);
-						gate.setResult(out);
-						return out;
-					} else {
-						final int in2 = getValue(gate.in2);
-						if (gate.isAnd()) {
-							final int out = in1 & in2;
-							gate.setResult(out);
-							return out;
-						} else if (gate.isOr()) {
-							final int out = in1 | in2;
-							gate.setResult(out);
-							return out;
-						} else {
-							throw new UnsupportedOperationException();
-						}
-					}
-				}
+				final int out = Integer.valueOf(name);
+				return out;
 			}
+			final Gate gate = getGate(name);
+			assert gate != null : "Gate '" + name + "' not found";
+			final Integer result = gate.getResult();
+			if (result != null) {
+				return result;
+			}
+			final Integer in1 = getValue(gate.in1);
+			final Integer in2 = gate.in2 != null ? getValue(gate.in2) : null;
+			return gate.updateResult(in1, in2);
 		}
 
 		@Override
