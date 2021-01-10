@@ -3,12 +3,16 @@ import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class AoC2015_07 {
@@ -81,6 +85,25 @@ public class AoC2015_07 {
 		return circuit.getValue("a");
 	}
 	
+	public void visualize(OutputStream os) throws IOException {
+		final Circuit circuit = parse();
+		final StringBuilder sb = new StringBuilder("digraph circuit {");
+		sb.append("rankdir=LR ");
+		sb.append("node [ shape=rect ];" );
+		for (final Gate gate : circuit.getGates()) {
+			sb.append(gate.in1).append(" -> ").append(gate.name);
+			sb.append(" [label=\"").append(gate.op.name()).append("\"]");
+			sb.append(";");
+			if (gate.in2 != null) {
+				sb.append(gate.in2).append(" -> ").append(gate.name);
+				sb.append(" [label=\"").append(gate.op.name()).append("\"]");
+				sb.append(";");
+			}
+		}
+		sb.append("}").append(System.lineSeparator());
+		IOUtils.write(sb.toString(), os, Charset.forName("UTF-8"));
+	}
+	
 	public static <V> void lap(String prefix, Callable<V> callable) throws Exception {
 		final long timerStart = System.nanoTime();
 		final V answer = callable.call();
@@ -114,6 +137,9 @@ public class AoC2015_07 {
 
 		lap("Part 1", () -> AoC2015_07.create(INPUT).solvePart1());
 		lap("Part 2", () -> AoC2015_07.create(INPUT).solvePart2());
+		
+		AoC2015_07.create(TEST).visualize(System.out);
+		AoC2015_07.create(INPUT).visualize(System.out);
 	}
 
 	private static final String TEST =
@@ -588,6 +614,10 @@ public class AoC2015_07 {
 		public static Circuit of(Collection<Gate> gates) {
 			return new Circuit(requireNonNull(gates).stream()
 								.collect(toMap(Gate::getName, identity())));
+		}
+		
+		public Collection<Gate> getGates() {
+			return this.gates.values();
 		}
 		
 		public Gate getGate(String name) {
