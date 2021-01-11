@@ -5,6 +5,7 @@
 
 from collections import defaultdict
 from aoc import my_aocd
+from aoc.common import log
 
 
 def _parse(inputs: tuple[str]) -> tuple[dict, str]:
@@ -40,7 +41,8 @@ def part_1(inputs: tuple[str]) -> int:
     return len(_run_replacement(replacements, molecule))
 
 
-def _find(replacements: dict, molecule: str, target: str, cnt: int) -> int:
+def _fabricate(target: str, molecule: str, replacements: dict,
+               cnt: int) -> int:
     new_molecules = _run_replacement(replacements, molecule)
     if target in new_molecules:
         return cnt + 1
@@ -48,15 +50,30 @@ def _find(replacements: dict, molecule: str, target: str, cnt: int) -> int:
         for m in new_molecules:
             if len(m) > len(target):
                 return 0
-            result = _find(replacements, m, target, cnt + 1)
+            result = _fabricate(target, m, replacements, cnt + 1)
             if result > 0:
                 return result
         return 0
 
 
+def part_2_bis(inputs: tuple[str]) -> int:
+    replacements, molecule = _parse(inputs)
+    return _fabricate(molecule, "e", replacements, 0)
+
+
 def part_2(inputs: tuple[str]) -> int:
     replacements, molecule = _parse(inputs)
-    return _find(replacements, "e", molecule, 0)
+    cnt = 0
+    new_molecule = molecule
+    while new_molecule != "e":
+        for new in replacements.keys():
+            for old in replacements[new]:
+                if old in new_molecule:
+                    new_molecule = new_molecule.replace(old, new, 1)
+                    cnt += 1
+                    log(cnt)
+                    log(new_molecule)
+    return cnt
 
 
 TEST1 = """\
@@ -106,8 +123,8 @@ def main() -> None:
     assert part_1(TEST1) == 4
     assert part_1(TEST2) == 7
     assert part_1(TEST3) == 6
-    assert part_2(TEST4) == 3
-    assert part_2(TEST5) == 6
+    assert part_2_bis(TEST4) == 3
+    assert part_2_bis(TEST5) == 6
 
     inputs = my_aocd.get_input(2015, 19, 45)
     result1 = part_1(inputs)
