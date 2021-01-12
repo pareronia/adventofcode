@@ -11,21 +11,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-public class AoC2015_07 {
+public class AoC2015_07 extends AoCBase {
 
 	private static final int BIT_SIZE = 16;
 
 	private final List<String> inputs;
-	private final boolean debug;
 	
 	private AoC2015_07(String input, boolean debug) {
+		super(debug);
 		this.inputs = asList((input + "\n").split("\\r?\\n"));
-		this.debug = debug;
 	}
 	
 	public static final AoC2015_07 create(String input) {
@@ -34,13 +32,6 @@ public class AoC2015_07 {
 
 	public static final AoC2015_07 createDebug(String input) {
 		return new AoC2015_07(input, true);
-	}
-	
-	private void log(Object obj) {
-		if (!debug) {
-			return;
-		}
-		System.out.println(obj);
 	}
 	
 	private Circuit parse() {
@@ -75,10 +66,12 @@ public class AoC2015_07 {
 		return circuit.getValue(wire);
 	}
 	
+	@Override
 	public long solvePart1() {
 		return part1("a");
 	}
 	
+	@Override
 	public long solvePart2() {
 		final long a = part1("a");
 		final Circuit circuit = parse();
@@ -138,26 +131,6 @@ public class AoC2015_07 {
 		IOUtils.write(sb.toString(), os, Charset.forName("UTF-8"));
 	}
 	
-	public static <V> void lap(String prefix, Callable<V> callable) throws Exception {
-		final long timerStart = System.nanoTime();
-		final V answer = callable.call();
-		final long timeSpent = (System.nanoTime() - timerStart) / 1000;
-		double time;
-		String unit;
-		if (timeSpent < 1000) {
-			time = timeSpent;
-			unit = "µs";
-		} else if (timeSpent < 1000000) {
-			time = timeSpent / 1000.0;
-			unit = "ms";
-		} else {
-			time = timeSpent / 1000000.0;
-			unit = "s";
-		}
-		System.out.println(String.format("%s : %s, took: %.3f %s",
-										 prefix, answer, time, unit));
-	}
-
 	public static void main(String[] args) throws Exception {
 		assert AoC2015_07.createDebug(TEST).part1("x") == 123;
 		assert AoC2015_07.createDebug(TEST).part1("y") == 456;

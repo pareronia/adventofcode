@@ -5,19 +5,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.Callable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
-public class AoC2020_22 {
+public class AoC2020_22 extends AoCBase {
 	
 	private final List<String> inputs;
-	private final boolean debug;
 	
 	private AoC2020_22(String input, boolean debug) {
+		super(debug);
 		this.inputs = asList((input + "\n").split("\\r?\\n"));
-		this.debug = debug;
 	}
 	
 	public static final AoC2020_22 create(String input) {
@@ -28,23 +26,16 @@ public class AoC2020_22 {
 		return new AoC2020_22(input, true);
 	}
 	
-	private void log(Object obj) {
-		if (!debug) {
-			return;
-		}
-		System.out.println(obj);
-	}
-	
 	private Players parse() {
 		final List<List<String>> blocks = new ArrayList<>();
 		int i = 0;
 		blocks.add(new ArrayList<String>());
-		for (String input: inputs) {
+		for (final String input: inputs) {
 			if (input.isEmpty()) {
 				blocks.add(new ArrayList<String>());
-				i++;				
+				i++;
 			} else {
-				blocks.get(i).add(input);				
+				blocks.get(i).add(input);
 			}
 		}
 		assert blocks.size() == 2;
@@ -52,13 +43,13 @@ public class AoC2020_22 {
 		final List<Integer> pl1 = new ArrayList<>();
 		final List<Integer> pl2 = new ArrayList<>();
 		
-		for (String string : blocks.get(0)) {
+		for (final String string : blocks.get(0)) {
 			if (string.startsWith("Player")) {
 				continue;
 			}
 			pl1.add(Integer.valueOf(string));
 		}
-		for (String string : blocks.get(1)) {
+		for (final String string : blocks.get(1)) {
 			if (string.startsWith("Player")) {
 				continue;
 			}
@@ -78,9 +69,9 @@ public class AoC2020_22 {
 	
 	private void playCombat(Players players, MutableInt _game, boolean recursive) {
 		_game.increment();
-		int game = _game.intValue();
+		final int game = _game.intValue();
 		log(String.format("=== Game %d ===", game));
-		final Set<Round> seen = new HashSet<>();				
+		final Set<Round> seen = new HashSet<>();
 		int rnd = 1;
 		final List<Integer> pl1 = players.player1;
 		final List<Integer> pl2 = players.player2;
@@ -97,7 +88,7 @@ public class AoC2020_22 {
 			seen.add(round);
 			final Integer n1 = pl1.remove(0);
 			log(String.format("Player 1 plays: %d", n1));
-			final Integer n2 = pl2.remove(0);			
+			final Integer n2 = pl2.remove(0);
 			log(String.format("Player 2 plays: %d", n2));
 			final Integer winner;
 			if (recursive && pl1.size() >= n1 && pl2.size() >= n2) {
@@ -140,37 +131,20 @@ public class AoC2020_22 {
 		return total;
 	}
 	
+	@Override
 	public long solvePart1() {
 		final Players players = parse();
 		playRegularCombat(players);
 		return getScore(players);
 	}
 	
+	@Override
 	public long solvePart2() {
 		final Players players = parse();
 		playRecursiveCombat(players);
 		return getScore(players);
 	}
 	
-	public static <V> void lap(String prefix, Callable<V> callable) throws Exception {
-		long timerStart = System.nanoTime();
-		final V answer = callable.call();
-		long timeSpent = (System.nanoTime() - timerStart) / 1000;
-		double time;
-		String unit;
-		if (timeSpent < 1000) {
-			time = timeSpent;
-			unit = "µs";
-		} else if (timeSpent < 1000000) {
-			time = timeSpent / 1000.0;
-			unit = "ms";
-		} else {
-			time = timeSpent / 1000000.0;
-			unit = "s";
-		}
-		System.out.println(String.format("%s : %s, took: %.3f %s", prefix, answer, time, unit));
-	}
-
 	public static void main(String[] args) throws Exception {
 		assert AoC2020_22.createDebug(TEST).solvePart1() == 306;
 		assert AoC2020_22.createDebug(TEST).solvePart2() == 291;
@@ -179,84 +153,84 @@ public class AoC2020_22 {
 		lap("Part 2", () -> AoC2020_22.create(INPUT).solvePart2());
 	}
 	
-	private static final String TEST = 
-			"Player 1:\r\n" + 
-			"9\r\n" + 
-			"2\r\n" + 
-			"6\r\n" + 
-			"3\r\n" + 
-			"1\r\n" + 
-			"\r\n" + 
-			"Player 2:\r\n" + 
-			"5\r\n" + 
-			"8\r\n" + 
-			"4\r\n" + 
-			"7\r\n" + 
+	private static final String TEST =
+			"Player 1:\r\n" +
+			"9\r\n" +
+			"2\r\n" +
+			"6\r\n" +
+			"3\r\n" +
+			"1\r\n" +
+			"\r\n" +
+			"Player 2:\r\n" +
+			"5\r\n" +
+			"8\r\n" +
+			"4\r\n" +
+			"7\r\n" +
 			"10";
 	
-	private static final String LOOP = 
-			"Player 1:\r\n" + 
-			"43\r\n" + 
-			"19\r\n" + 
-			"\r\n" + 
-			"Player 2:\r\n" + 
-			"2\r\n" + 
-			"29\r\n" + 
+	private static final String LOOP =
+			"Player 1:\r\n" +
+			"43\r\n" +
+			"19\r\n" +
+			"\r\n" +
+			"Player 2:\r\n" +
+			"2\r\n" +
+			"29\r\n" +
 			"14";
 	
-	private static final String INPUT = 
-			"Player 1:\r\n" + 
-			"14\r\n" + 
-			"23\r\n" + 
-			"6\r\n" + 
-			"16\r\n" + 
-			"46\r\n" + 
-			"24\r\n" + 
-			"13\r\n" + 
-			"25\r\n" + 
-			"17\r\n" + 
-			"4\r\n" + 
-			"31\r\n" + 
-			"7\r\n" + 
-			"1\r\n" + 
-			"47\r\n" + 
-			"15\r\n" + 
-			"9\r\n" + 
-			"50\r\n" + 
-			"3\r\n" + 
-			"30\r\n" + 
-			"37\r\n" + 
-			"43\r\n" + 
-			"10\r\n" + 
-			"28\r\n" + 
-			"33\r\n" + 
-			"32\r\n" + 
-			"\r\n" + 
-			"Player 2:\r\n" + 
-			"29\r\n" + 
-			"49\r\n" + 
-			"11\r\n" + 
-			"42\r\n" + 
-			"35\r\n" + 
-			"18\r\n" + 
-			"39\r\n" + 
-			"40\r\n" + 
-			"36\r\n" + 
-			"19\r\n" + 
-			"48\r\n" + 
-			"22\r\n" + 
-			"2\r\n" + 
-			"20\r\n" + 
-			"26\r\n" + 
-			"8\r\n" + 
-			"12\r\n" + 
-			"44\r\n" + 
-			"45\r\n" + 
-			"21\r\n" + 
-			"38\r\n" + 
-			"41\r\n" + 
-			"34\r\n" + 
-			"5\r\n" + 
+	private static final String INPUT =
+			"Player 1:\r\n" +
+			"14\r\n" +
+			"23\r\n" +
+			"6\r\n" +
+			"16\r\n" +
+			"46\r\n" +
+			"24\r\n" +
+			"13\r\n" +
+			"25\r\n" +
+			"17\r\n" +
+			"4\r\n" +
+			"31\r\n" +
+			"7\r\n" +
+			"1\r\n" +
+			"47\r\n" +
+			"15\r\n" +
+			"9\r\n" +
+			"50\r\n" +
+			"3\r\n" +
+			"30\r\n" +
+			"37\r\n" +
+			"43\r\n" +
+			"10\r\n" +
+			"28\r\n" +
+			"33\r\n" +
+			"32\r\n" +
+			"\r\n" +
+			"Player 2:\r\n" +
+			"29\r\n" +
+			"49\r\n" +
+			"11\r\n" +
+			"42\r\n" +
+			"35\r\n" +
+			"18\r\n" +
+			"39\r\n" +
+			"40\r\n" +
+			"36\r\n" +
+			"19\r\n" +
+			"48\r\n" +
+			"22\r\n" +
+			"2\r\n" +
+			"20\r\n" +
+			"26\r\n" +
+			"8\r\n" +
+			"12\r\n" +
+			"44\r\n" +
+			"45\r\n" +
+			"21\r\n" +
+			"38\r\n" +
+			"41\r\n" +
+			"34\r\n" +
+			"5\r\n" +
 			"27";
 	
 	private static final class Players {
@@ -270,8 +244,8 @@ public class AoC2020_22 {
 	}
 	
 	private static final class Round {
-		private List<Integer> pl1;
-		private List<Integer> pl2;
+		private final List<Integer> pl1;
+		private final List<Integer> pl2;
 		
 		public Round(List<Integer> pl1, List<Integer> pl2) {
 			this.pl1 = new ArrayList<>(pl1);
@@ -291,7 +265,7 @@ public class AoC2020_22 {
 			if (!(obj instanceof Round)) {
 				return false;
 			}
-			Round other = (Round) obj;
+			final Round other = (Round) obj;
 			return Objects.equals(pl1, other.pl1) && Objects.equals(pl2, other.pl2);
 		}
 	}

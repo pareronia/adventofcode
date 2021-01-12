@@ -170,6 +170,7 @@ tags
 ##
 
 bin/
+bin-test/
 .settings/
 .project
 .classpath
