@@ -5,6 +5,8 @@ SRC_ROOT_TEST := $(SRC_ROOT)/test
 PYTHON_ROOT := $(SRC_ROOT_MAIN)/python
 PYTHON_TEST_ROOT := $(SRC_ROOT_TEST)/python
 PYTHON_PATH := PYTHONPATH=$(PYTHON_ROOT)
+JAVA_ROOT := $(SRC_ROOT_MAIN)/java
+JAVA_TEST_ROOT := $(SRC_ROOT_TEST)/java
 CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
@@ -18,11 +20,12 @@ UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := java -ea -cp $(CLASSPATH)
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
-PY_SRCS := $(PYTHON_ROOT)/**/*.py $(PYTHON_ROOT)/**.py
 
 # vars
 MAKEFILE = $(realpath $(lastword $(MAKEFILE_LIST)))
-SRCS = $(PY_SRCS)
+PY_SRCS = $(shell find $(PYTHON_ROOT) $(PYTHON_TEST_ROOT) -name "*.py")
+JAVA_SRCS = $(shell find $(JAVA_ROOT) $(JAVA_TEST_ROOT) -name "*.java")
+SRCS = $(PY_SRCS) $(JAVA_SRCS) $(MAKEFILE)
 
 # functions
 msg = (if [ -t 1 ]; then echo ${BLUE}"\n$1\n"${NC}; else echo "$1"; fi)
@@ -42,7 +45,7 @@ py:
 
 #: Run Java (with ARGS=year,day)
 java:
-	@$(JAVA_CMD) 2020/$(call day_src,$(ARGS),"java")
+	@$(JAVA_CMD) $(JAVA_ROOT)/$(call day_src,$(ARGS),"java")
 
 #: Run unit tests
 unittest:
@@ -51,29 +54,35 @@ unittest:
 #: Run Flake8 Python code linter
 flake:
 	@$(call msg,"Running Flake8 against Python source files...")
-	@$(FLAKE) $(PYTHON_ROOT)
+	@$(FLAKE) $(PY_SRCS)
 
 #: Run Vulture - unused Python code checker
 vulture:
 	@$(call msg,"Running vulture against Python source files...")
-	@$(VULTURE) $(PYTHON_ROOT)
+	@$(VULTURE) $(PY_SRCS)
 
 #: Run Bandit - Python code security linter
 bandit:
 	@$(call msg,"Running bandit against Python source files...")
-	@$(BANDIT) --recursive $(PYTHON_ROOT)
+	@$(BANDIT) $(PY_SRCS)
 
 #: Run all linters (Flake8, Vulture, Bandit)
 lint: flake vulture bandit
 
 fixme todo:
-	-@$(call igrep,"$@",$(SRCS))
+	-@$(call igrep,"$@",$(PY_SRCS) $(JAVA_SRCS))
 
 #: Show FIXMEs and TODOs in code files
 tasks: fixme todo
 
 #: git pre-push hook: show tasks, linters, unit tests
 pre-push: tasks lint unittest
+
+#: Show values of some selected make variables
+dump:
+	@echo "JAVA_SRCS: "$(JAVA_SRCS)""
+	@echo "PY_SRCS: "$(PY_SRCS)""
+	@echo "SRCS: "$(SRCS)""
 
 # https://stackoverflow.com/a/26339924
 #: Show all targets in this Makefile
