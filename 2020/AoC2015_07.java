@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 
 import org.apache.commons.io.IOUtils;
@@ -88,17 +89,50 @@ public class AoC2015_07 {
 	public void visualize(OutputStream os) throws IOException {
 		final Circuit circuit = parse();
 		final StringBuilder sb = new StringBuilder("digraph circuit {");
-		sb.append("rankdir=LR ");
-		sb.append("node [ shape=rect ];" );
+		sb.append("rankdir=LR charset=UTF-8 ");
+		sb.append("node [ shape=rect ]; " );
+		sb.append("edge [ dir=none tailport=e ]; " );
+		for (final Gate gate : circuit.getGates()) {
+			sb.append(gate.name);
+			sb.append(" [label=\"");
+			sb.append(gate.op.name());
+			if (gate.op.name().endsWith("SHIFT")) {
+				sb.append(" ").append(gate.arg);
+			}
+			sb.append("\"");
+			if (asList("SET", "NOT").contains(gate.op.name())) {
+				sb.append(" shape=triangle orientation=270");
+			} else if ("OR".equals(gate.op.name())) {
+				sb.append(" shape=house orientation=270");
+			} else if ("AND".equals(gate.op.name())) {
+				sb.append(" shape=egg orientation=270");
+			} else if ("LSHIFT".equals(gate.op.name())) {
+				sb.append(" shape=cds orientation=180");
+			} else if ("RSHIFT".equals(gate.op.name())) {
+				sb.append(" shape=cds");
+			}
+			sb.append("]; ");
+		}
 		for (final Gate gate : circuit.getGates()) {
 			sb.append(gate.in1).append(" -> ").append(gate.name);
-			sb.append(" [label=\"").append(gate.op.name()).append("\"]");
-			sb.append(";");
-			if (gate.in2 != null) {
-				sb.append(gate.in2).append(" -> ").append(gate.name);
-				sb.append(" [label=\"").append(gate.op.name()).append("\"]");
-				sb.append(";");
+			sb.append(" [label=\"").append(gate.in1).append("\"");
+			circuit.getGateIn1(gate.name).ifPresent(in1 -> {
+				if ("NOT".equals(in1.op.name())) {
+					sb.append(" dir=back arrowtail=odot");
+				}
+			});
+			sb.append("];");
+			if (gate.in2 == null) {
+				continue;
 			}
+			sb.append(gate.in2).append(" -> ").append(gate.name);
+			sb.append(" [label=\"").append(gate.in2).append("\"");
+			circuit.getGateIn2(gate.name).ifPresent(in2 -> {
+				if ("NOT".equals(in2.op.name())) {
+					sb.append(" dir=back arrowtail=odot");
+				}
+			});
+			sb.append("];");
 		}
 		sb.append("}").append(System.lineSeparator());
 		IOUtils.write(sb.toString(), os, Charset.forName("UTF-8"));
@@ -626,6 +660,16 @@ public class AoC2015_07 {
 		
 		public void setGate(String name, Gate gate) {
 			this.gates.put(requireNonNull(name), requireNonNull(gate));
+		}
+		
+		public Optional<Gate> getGateIn1(String name) {
+			final Gate gate = this.getGate(name);
+			return Optional.ofNullable(gate.in1).map(this::getGate);
+		}
+		
+		public Optional<Gate> getGateIn2(String name) {
+			final Gate gate = this.getGate(name);
+			return Optional.ofNullable(gate.in2).map(this::getGate);
 		}
 		
 		public int getValue(String name) {
