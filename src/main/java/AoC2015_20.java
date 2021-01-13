@@ -19,6 +19,7 @@ public class AoC2015_20 extends AoCBase {
 		return new AoC2015_20(input, false);
 	}
 	
+	@SuppressWarnings("unused")
 	private int divSum(int number) {
 		if (number == 1) {
 			return 1;
@@ -37,13 +38,35 @@ public class AoC2015_20 extends AoCBase {
 		result += (1 + number);
 		return result;
 	}
+	
+	private int sumOfFactors(int number) {
+		if (number == 1) {
+			return 1;
+		}
+		
+		int result = 1;
+		for (int divider = 2; divider <= Math.sqrt(number); divider++) {
+			int curr_sum = 1; 
+            int curr_term = 1; 
+            while (number % divider == 0) { 
+                number = number / divider; 
+                curr_term *= divider; 
+                curr_sum += curr_term; 
+            } 
+            result *= curr_sum; 
+		}
+		if (number >= 2) {
+			result *= (1 + number);
+		} 
+		return result;
+	}
 
 	@Override
 	public long solvePart1() {
 		assert inputs.size() == 1;
 		final int numberOfGifts = Integer.valueOf(inputs.get(0)) / 10;
 		int houseNumber = 1;
-		while (divSum(houseNumber) < numberOfGifts) {
+		while (sumOfFactors(houseNumber) < numberOfGifts) {
 			houseNumber++;
 		}
 		return houseNumber;
