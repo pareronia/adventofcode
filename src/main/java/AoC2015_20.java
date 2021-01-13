@@ -19,14 +19,13 @@ public class AoC2015_20 extends AoCBase {
 		return new AoC2015_20(input, false);
 	}
 	
-	@SuppressWarnings("unused")
-	private int divSum(int number) {
+	private int divSum(int number, int max) {
 		if (number == 1) {
 			return 1;
 		}
 		
 		int result = 0;
-		for (int divider = 2; divider <= Math.sqrt(number); divider++) {
+		for (int divider = 1; divider <= max; divider++) {
 			if (number % divider == 0) {
 				final int otherDivider = number / divider;
 				if (divider != otherDivider) {
@@ -35,7 +34,6 @@ public class AoC2015_20 extends AoCBase {
 				result += divider;
 			}
 		}
-		result += (1 + number);
 		return result;
 	}
 	
@@ -72,6 +70,17 @@ public class AoC2015_20 extends AoCBase {
 		return houseNumber;
 	}
 
+	@Override
+	public long solvePart2() {
+		assert inputs.size() == 1;
+		int numberOfGifts = Double.valueOf(Math.ceil(Integer.valueOf(inputs.get(0)) / 11.0)).intValue();
+		int houseNumber = 1;
+		while (divSum(houseNumber, 50) < numberOfGifts) {
+			houseNumber++;
+		}
+		return houseNumber;
+	}
+
 	public static void main(String[] args) throws Exception {
 		assert AoC2015_20.createDebug("10").solvePart1() == 1;
 		assert AoC2015_20.createDebug("20").solvePart1() == 2;
@@ -85,5 +94,6 @@ public class AoC2015_20 extends AoCBase {
 		assert AoC2015_20.createDebug("100").solvePart1() == 6;
 
 		lap("Part 1", () -> AoC2015_20.createDebug("33100000").solvePart1());
+		lap("Part 2", () -> AoC2015_20.createDebug("33100000").solvePart2());
 	}
 }
