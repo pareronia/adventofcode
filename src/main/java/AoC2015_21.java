@@ -10,39 +10,52 @@ import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsItera
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 public class AoC2015_21 extends AoCBase {
-
-	private final List<String> inputs;
+	
+	private final Boss boss;
+	private final List<PlayerConfig> playerConfigs;
 
 	protected AoC2015_21(String input, boolean debug) {
 		super(debug);
-		this.inputs = asList((input + "\n").split("\\r?\\n"));
+		this.boss = parse(asList((input + "\n").split("\\r?\\n")));
+		this.playerConfigs = setUpPlayerConfigs(setUpShop());
 	}
 
 	public static AoC2015_21 create(String input) {
 		return new AoC2015_21(input, false);
 	}
 	
+	private final Boss parse(List<String> inputs) {
+		assert inputs.size() == 3;
+		final Integer damage
+				= Integer.valueOf(inputs.get(1).substring("Damage: ".length()));
+		final Integer armor
+				= Integer.valueOf(inputs.get(2).substring("Armor: ".length()));
+		return new Boss(damage, armor);
+	}
+	
 	private Shop setUpShop() {
 		final Set<ShopItem> items = new HashSet<>();
-		items.add(ShopItem.weapon("Dagger", 8, 4, 0));
-		items.add(ShopItem.weapon("Shortsword", 10, 5, 0));
-		items.add(ShopItem.weapon("Warhammer", 25, 6, 0));
-		items.add(ShopItem.weapon("Longsword", 40, 7, 0));
-		items.add(ShopItem.weapon("Greataxe", 74, 8, 0));
-		items.add(ShopItem.armor("Leather", 13, 0, 1));
-		items.add(ShopItem.armor("Chainmail", 31, 0, 2));
-		items.add(ShopItem.armor("Splintmail", 53, 0, 3));
-		items.add(ShopItem.armor("Bandedmail", 75, 0, 4));
-		items.add(ShopItem.armor("Platemail", 102, 0, 5));
+		items.add(ShopItem.weapon("Dagger", 8, 4));
+		items.add(ShopItem.weapon("Shortsword", 10, 5));
+		items.add(ShopItem.weapon("Warhammer", 25, 6));
+		items.add(ShopItem.weapon("Longsword", 40, 7));
+		items.add(ShopItem.weapon("Greataxe", 74, 8));
+		items.add(ShopItem.armor("Leather", 13, 1));
+		items.add(ShopItem.armor("Chainmail", 31, 2));
+		items.add(ShopItem.armor("Splintmail", 53, 3));
+		items.add(ShopItem.armor("Bandedmail", 75, 4));
+		items.add(ShopItem.armor("Platemail", 102, 5));
 		items.add(ShopItem.ring("Damage +1", 25, 1, 0));
 		items.add(ShopItem.ring("Damage +2", 50, 2, 0));
 		items.add(ShopItem.ring("Damage +3", 100, 3, 0));
@@ -53,8 +66,7 @@ public class AoC2015_21 extends AoCBase {
 		return new Shop(items);
 	}
 	
-	private List<PlayerConfig> collectAllPlayerConfigs(Shop shop,
-													   Integer hitPoints) {
+	private List<PlayerConfig> setUpPlayerConfigs(Shop shop) {
 		final ArrayList<PlayerConfig> configs = new ArrayList<>();
 		for (final ShopItem weapon : shop.getWeapons()) {
 			for (final ShopItem armor : shop.getArmor()) {
@@ -65,7 +77,7 @@ public class AoC2015_21 extends AoCBase {
 						items.add(armor);
 					}
 					items.addAll(rings);
-					configs.add(new PlayerConfig(hitPoints, items));
+					configs.add(new PlayerConfig(items));
 				}
 			}
 		}
@@ -73,38 +85,32 @@ public class AoC2015_21 extends AoCBase {
 		return configs;
 	}
 
+	private Predicate<PlayerConfig> winsFromBoss() {
+		return playerConfig ->
+				playerConfig.getTotalDamage() - boss.getArmor() >=
+				boss.getDamage() - playerConfig.getTotalArmor();
+	}
+	
+	private int solve(	Comparator<PlayerConfig> comparator,
+						Predicate<PlayerConfig> filter) {
+		return this.playerConfigs.stream()
+			.sorted(comparator)
+			.filter(filter)
+			.findFirst()
+			.map(PlayerConfig::getTotalCost)
+			.orElseThrow(() -> new IllegalStateException("Unsolvable"));
+	}
+
 	@Override
 	public long solvePart1() {
-		final Shop shop = setUpShop();
-		log(shop);
-		final List<PlayerConfig> playerConfigs = collectAllPlayerConfigs(shop, 100);
-		playerConfigs.sort(comparing(PlayerConfig::getTotalCost));
-		log(playerConfigs);
-		for (final PlayerConfig playerConfig : playerConfigs) {
-			if (playerConfig.getTotalDamage() - 2 >
-					7 - playerConfig.getTotalArmor()) {
-				return playerConfig.getTotalCost();
-			}
-			
-		}
-		throw new IllegalStateException("Unsolvable");
+		return solve(	comparing(PlayerConfig::getTotalCost),
+						winsFromBoss());
 	}
 
 	@Override
 	public long solvePart2() {
-		final Shop shop = setUpShop();
-		log(shop);
-		final List<PlayerConfig> playerConfigs = collectAllPlayerConfigs(shop, 100);
-		playerConfigs.sort(comparing(PlayerConfig::getTotalCost).reversed());
-		log(playerConfigs);
-		for (final PlayerConfig playerConfig : playerConfigs) {
-			if (!(playerConfig.getTotalDamage() - 2 >
-					7 - playerConfig.getTotalArmor())) {
-				return playerConfig.getTotalCost();
-			}
-			
-		}
-		throw new IllegalStateException("Unsolvable");
+		return solve(	comparing(PlayerConfig::getTotalCost).reversed(),
+						winsFromBoss().negate());
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -135,14 +141,12 @@ public class AoC2015_21 extends AoCBase {
 			this.armor = armor;
 		}
 		
-		public static ShopItem weapon(String name, Integer cost,
-						 			  Integer damage, Integer armor) {
-			return new ShopItem(Type.WEAPON, name, cost, damage, armor);
+		public static ShopItem weapon(String name, Integer cost, Integer damage) {
+			return new ShopItem(Type.WEAPON, name, cost, damage, 0);
 		}
 		
-		public static ShopItem armor(String name, Integer cost,
-						 			 Integer damage, Integer armor) {
-			return new ShopItem(Type.ARMOR, name, cost, damage, armor);
+		public static ShopItem armor(String name, Integer cost, Integer armor) {
+			return new ShopItem(Type.ARMOR, name, cost, 0, armor);
 		}
 		
 		public static ShopItem ring(String name, Integer cost,
@@ -268,18 +272,12 @@ public class AoC2015_21 extends AoCBase {
 	}
 	
 	private static final class PlayerConfig {
-		private final Integer hitPoints;
 		private final Set<ShopItem> items;
 
-		public PlayerConfig(Integer hitPoints, Set<ShopItem> items) {
-			this.hitPoints = hitPoints;
+		public PlayerConfig(Set<ShopItem> items) {
 			this.items = items;
 		}
 		
-		public int getHitPoints() {
-			return this.hitPoints;
-		}
-
 		public int getTotalCost() {
 			return this.items.stream().collect(summingInt(ShopItem::getCost));
 		}
@@ -300,6 +298,24 @@ public class AoC2015_21 extends AoCBase {
 					.forEach(i -> tsb.append(i.getName()));
 			tsb.append("totalCost", this.getTotalCost());
 			return tsb.toString();
+		}
+	}
+	
+	private static final class Boss {
+		private final Integer damage;
+		private final Integer armor;
+
+		public Boss(Integer damage, Integer armor) {
+			this.damage = damage;
+			this.armor = armor;
+		}
+
+		public Integer getDamage() {
+			return damage;
+		}
+
+		public Integer getArmor() {
+			return armor;
 		}
 	}
 }
