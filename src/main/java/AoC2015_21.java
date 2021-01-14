@@ -90,8 +90,26 @@ public class AoC2015_21 extends AoCBase {
 		throw new IllegalStateException("Unsolvable");
 	}
 
+	@Override
+	public long solvePart2() {
+		final Shop shop = setUpShop();
+		log(shop);
+		final List<PlayerConfig> playerConfigs = collectAllPlayerConfigs(shop, 100);
+		playerConfigs.sort(comparing(PlayerConfig::getTotalCost).reversed());
+		log(playerConfigs);
+		for (final PlayerConfig playerConfig : playerConfigs) {
+			if (!(playerConfig.getTotalDamage() - 2 >
+					7 - playerConfig.getTotalArmor())) {
+				return playerConfig.getTotalCost();
+			}
+			
+		}
+		throw new IllegalStateException("Unsolvable");
+	}
+
 	public static void main(String[] args) throws Exception {
 		lap("Part 1", () -> AoC2015_21.create(INPUT).solvePart1());
+		lap("Part 2", () -> AoC2015_21.create(INPUT).solvePart2());
 	}
 	
 	private static final String INPUT =
