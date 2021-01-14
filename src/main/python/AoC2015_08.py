@@ -8,12 +8,12 @@ from aoc import my_aocd
 
 
 def _count_decoding_overhead(string: str) -> int:
-    assert string[0] == '\"' and string[-1] == '\"'
+    assert string[0] == '"' and string[-1] == '"'
     cnt = 2
-    while string.find('\\\\') != -1:
-        string = string.replace('\\\\', '', 1)
+    while string.find(r'\\') != -1:
+        string = string.replace(r'\\', '', 1)
         cnt += 1
-    return cnt + string.count('\\\"') \
+    return cnt + string.count(r'\"') \
         + 3 * len(re.findall(r'\\x[0-9a-f]{2}', string))
 
 
@@ -22,19 +22,18 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def _count_encoding_overhead(string: str) -> int:
-    return 2 + string.count('\\') + string.count('\"')
+    return 2 + string.count('\\') + string.count('"')
 
 
 def part_2(inputs: tuple[str]) -> int:
     return sum([_count_encoding_overhead(s) for s in inputs])
 
 
-TEST = """\
-\"\"
-\"abc\"
-\"aaa\\"aaa\"
-\"\\x27\"
-""".splitlines()
+TEST = r'''""
+"abc"
+"aaa\"aaa"
+"\x27"
+'''.splitlines()
 
 
 def main() -> None:
