@@ -5,28 +5,26 @@
 
 import re
 from aoc import my_aocd
-# from aoc.common import log
+
+ALPH = "abcdefghijklmnopqrstuvwxyz"
+NEXT = "bcdefghjjkmmnppqrstuvwxyza"
+
+
+def _next_letter(letter: str) -> str:
+    return NEXT[ALPH.index(letter)]
 
 
 def _increment(password: str) -> str:
-    def next_letter(letter: str) -> str:
-        return chr(ord('a') + (ord(letter) + 1 - ord('a')) % 26)
-
     i = len(password) - 1
-    password = password[:i] + next_letter(password[i])
+    password = password[:i] + _next_letter(password[i])
     while password[i] == 'a' and i > 0:
         i -= 1
-        password = password[:i] + next_letter(password[i]) + password[i+1:]
+        password = password[:i] + _next_letter(password[i]) + password[i+1:]
     return password
 
 
 def _is_ok(password: str) -> bool:
-    def get_matches(regexp: str, string: str):
-        return re.findall(regexp, string)
-
-    if 'i' in password or 'o' in password or 'l' in password:
-        return False
-    if len({p for p in get_matches(r"([a-z])\1", password)}) < 2:
+    if len({p for p in re.findall(r"([a-z])\1", password)}) < 2:
         return False
     for i in range(len(password) - 3):
         if ord(password[i]) == ord(password[i+1]) - 1 \
@@ -35,36 +33,39 @@ def _is_ok(password: str) -> bool:
     return False
 
 
+def _get_next(password: str) -> str:
+    h = (password.find('i'), password.find('o'), password.find('l'))
+    if h != (-1, -1, -1):
+        h = min(_ for _ in h if _ != -1)
+        if h < len(password) - 1:
+            password = password[:h] + _next_letter(password[h]) \
+                    + 'a' * len(password[h+1:])
+    else:
+        password = _increment(password)
+    while not _is_ok(password):
+        password = _increment(password)
+    return password
+
+
 def part_1(inputs: tuple[str]) -> str:
     assert len(inputs) == 1
-    password = inputs[0]
-    while not _is_ok(password):
-        password = _increment(password)
-    return password
+    return _get_next(inputs[0])
 
 
-def part_2(inputs: tuple[str]) -> int:
-    password = _increment(part_1(inputs))
-    while not _is_ok(password):
-        password = _increment(password)
-    return password
+def part_2(inputs: tuple[str]) -> str:
+    assert len(inputs) == 1
+    return _get_next(_get_next(inputs[0]))
 
 
-TEST1 = """\
-abcdefgh
-""".splitlines()
-TEST2 = """\
-ghijklmn
-""".splitlines()
+TEST1 = "abcdefgh"
+TEST2 = "ghijklmn"
 
 
 def main() -> None:
     my_aocd.print_header(2015, 11)
 
-    assert part_1(TEST1) == "abcdffaa"
-    assert part_1(TEST2) == "ghjaabcc"
-    assert part_2(TEST1) == 0
-    assert part_2(TEST2) == 0
+    assert _get_next(TEST1) == "abcdffaa"
+    assert _get_next(TEST2) == "ghjaabcc"
 
     inputs = my_aocd.get_input(2015, 11, 1)
     result1 = part_1(inputs)
