@@ -37,7 +37,11 @@ def _count_stops(distances: set[Distance]) -> set[str]:
     return {d.frôm for d in distances} | {d.to for d in distances}
 
 
-def _find_all_routes(distances: set[Distance], stops: set[str]) -> set[Route]:
+def _find_all_routes(distances: set[Distance]) -> set[Route]:
+    stops = _count_stops(distances)
+    distances = _add_reverse(distances)
+    log(distances)
+    log(stops)
     routes = set[Route]()
     for c in itertools.permutations(stops, len(stops)):
         dist = 0
@@ -47,25 +51,21 @@ def _find_all_routes(distances: set[Distance], stops: set[str]) -> set[Route]:
             d = next(d for d in distances if d.frôm == frôm and d.to == to)
             dist += d.distance
         routes.add(Route(c, dist))
-    return routes
-
-
-def part_1(inputs: tuple[str]) -> int:
-    distances = _parse(inputs)
-    stops = _count_stops(distances)
-    distances = _add_reverse(distances)
-    log(distances)
-    log(stops)
-    routes = _find_all_routes(distances, stops)
     log(f"Routes: {len(routes)}")
     for i, r in enumerate(routes):
         if i < 100:
             log(r)
+    return routes
+
+
+def part_1(inputs: tuple[str]) -> int:
+    routes = _find_all_routes(_parse(inputs))
     return min({r.total for r in routes})
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    routes = _find_all_routes(_parse(inputs))
+    return max({r.total for r in routes})
 
 
 TEST = """\
@@ -79,7 +79,7 @@ def main() -> None:
     my_aocd.print_header(2015, 9)
 
     assert part_1(TEST) == 605
-    assert part_2(TEST) == 0
+    assert part_2(TEST) == 982
 
     inputs = my_aocd.get_input(2015, 9, 28)
     result1 = part_1(inputs)
