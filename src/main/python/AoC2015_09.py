@@ -9,7 +9,7 @@ from aoc import my_aocd
 from aoc.common import log
 
 
-class Distance(NamedTuple):
+class Leg(NamedTuple):
     frôm: str
     to: str
     distance: int
@@ -19,53 +19,51 @@ class Route(NamedTuple):
     stops: tuple[str]
     total: int
 
+    def __repr__(self):
+        return " -> ".join(self.stops) + " = " + str(self.total)
 
-def _parse(inputs: tuple[str]) -> set[Distance]:
-    def to_Distance(input_: str) -> Distance:
+
+def _parse(inputs: tuple[str]) -> set[Leg]:
+    def to_Leg(input_: str) -> Leg:
         _, dist = input_.split(" = ")
-        return Distance(*_.split(" to "), int(dist))
+        return Leg(*_.split(" to "), int(dist))
 
-    return {to_Distance(input_) for input_ in inputs}
-
-
-def _add_reverse(distances: set[Distance]) -> set[Distance]:
-    return distances | {Distance(d.to, d.frôm, d.distance)
-                        for d in distances}
+    return {to_Leg(input_) for input_ in inputs}
 
 
-def _count_stops(distances: set[Distance]) -> set[str]:
-    return {d.frôm for d in distances} | {d.to for d in distances}
+def _find_all_routes(legs: set[Leg]) -> set[Route]:
+    def find_distance(frôm: str, to: str) -> int:
+        return next(d.distance for d in legs
+                    if (d.frôm == frôm and d.to == to)
+                    or (d.frôm == to and d.to == frôm))
 
-
-def _find_all_routes(distances: set[Distance]) -> set[Route]:
-    stops = _count_stops(distances)
-    distances = _add_reverse(distances)
-    log(distances)
+    stops = {d.frôm for d in legs} | {d.to for d in legs}
+    log("Stops:")
     log(stops)
-    routes = set[Route]()
-    for c in itertools.permutations(stops, len(stops)):
-        dist = 0
-        for i in range(0, len(c) - 1):
-            frôm = c[i]
-            to = c[i+1]
-            d = next(d for d in distances if d.frôm == frôm and d.to == to)
-            dist += d.distance
-        routes.add(Route(c, dist))
-    log(f"Routes: {len(routes)}")
-    for i, r in enumerate(routes):
-        if i < 100:
-            log(r)
-    return routes
+    log("Legs:")
+    log(legs)
+    return {
+        Route(
+            c,
+            sum([find_distance(c[i], c[i+1]) for i in range(0, len(c) - 1)]))
+        for c in itertools.permutations(stops, len(stops))
+    }
+
+
+def _log_routes(routes: set[Route]):
+    if len(routes) <= 24:
+        log(f"Routes: {len(routes)}")
+        [log(str(r)) for r in routes]
 
 
 def part_1(inputs: tuple[str]) -> int:
     routes = _find_all_routes(_parse(inputs))
+    _log_routes(routes)
     return min({r.total for r in routes})
 
 
 def part_2(inputs: tuple[str]) -> int:
-    routes = _find_all_routes(_parse(inputs))
-    return max({r.total for r in routes})
+    return max({r.total for r in _find_all_routes(_parse(inputs))})
 
 
 TEST = """\
