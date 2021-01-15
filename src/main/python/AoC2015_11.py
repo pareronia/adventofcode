@@ -44,7 +44,10 @@ def part_1(inputs: tuple[str]) -> str:
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    password = _increment(part_1(inputs))
+    while not _is_ok(password):
+        password = _increment(password)
+    return password
 
 
 TEST1 = """\
