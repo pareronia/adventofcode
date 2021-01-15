@@ -26,17 +26,19 @@ def _parse(inputs: tuple[str]) -> set[Seating]:
         return Seating(splits[0], splits[10],
                        int(splits[3]) * (1 if splits[2] == "gain" else -1))
 
-    return {to_Seating(input_) for input_ in inputs}
+    seatings = {to_Seating(input_) for input_ in inputs}
+    diners = {s.diner1 for s in seatings} | {s.diner2 for s in seatings}
+    return diners, seatings
 
 
-def _find_all_arrangements(seatings: set[Seating]) -> set[SeatingArrangement]:
+def _find_all_arrangements(diners: set[str],
+                           seatings: set[Seating]) -> set[SeatingArrangement]:
     def find_happiness_gain(diner1: str, diner2: str) -> int:
         return next(s.happiness_gain for s in seatings
                     if s.diner1 == diner1 and s.diner2 == diner2) \
                 + next(s.happiness_gain for s in seatings
                        if s.diner2 == diner1 and s.diner1 == diner2)
 
-    diners = {s.diner1 for s in seatings} | {s.diner2 for s in seatings}
     log(diners)
     log(seatings)
     return {
@@ -54,14 +56,20 @@ def _log_arrangements(arrangements: set[SeatingArrangement]):
 
 
 def part_1(inputs: tuple[str]) -> int:
-    seatings = _parse(inputs)
-    arrangements = _find_all_arrangements(seatings)
+    diners, seatings = _parse(inputs)
+    arrangements = _find_all_arrangements(diners, seatings)
     _log_arrangements(arrangements)
     return max({a.happiness_change for a in arrangements})
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    diners, seatings = _parse(inputs)
+    for d in diners:
+        seatings.add(Seating("me", d, 0))
+        seatings.add(Seating(d, "me", 0))
+    diners.add("me")
+    arrangements = _find_all_arrangements(diners, seatings)
+    return max({a.happiness_change for a in arrangements})
 
 
 TEST = """\
@@ -84,7 +92,6 @@ def main() -> None:
     my_aocd.print_header(2015, 13)
 
     assert part_1(TEST) == 330
-    assert part_2(TEST) == 0
 
     inputs = my_aocd.get_input(2015, 13, 56)
     result1 = part_1(inputs)
