@@ -8,9 +8,6 @@ from aoc.common import log
 from aoc.vm import VirtualMachine, Instruction, Program
 
 
-ERROR_ON_INFINITE_LOOP = True
-
-
 @dataclass(frozen=True)
 class Instruction_:
     operation: str
@@ -29,10 +26,8 @@ def _parse(inputs: tuple[str]) -> list[Instruction_]:
     return [Instruction_.instruction(input_.split()) for input_ in inputs]
 
 
-def _run_program(lines: list[Instruction_],
-                 error_on_inf_loop: bool = False):
+def _build_program(lines: list[Instruction_]) -> Program:
     log(lines)
-    vm = VirtualMachine()
     instructions = list[Instruction]()
     for line in lines:
         line.check_valid_operation()
@@ -42,10 +37,8 @@ def _run_program(lines: list[Instruction_],
             instructions.append(Instruction.ADD("ACC", line.argument))
         elif line.operation == "jmp":
             instructions.append(Instruction.JMP(line.argument))
-    program = Program(instructions, error_on_inf_loop,
-                      error_on_jump_beyond_zero=False)
-    vm.run_program(program)
-    return program.registers["ACC"]
+    return Program(instructions, inf_loop_treshold=1,
+                   error_on_jump_beyond_zero=False)
 
 
 def _try_program_run_with_replaced_operation(instructions: list[Instruction_],
@@ -56,16 +49,23 @@ def _try_program_run_with_replaced_operation(instructions: list[Instruction_],
                                        orig_instruction.argument)
     log("{original_instruction.operation} -> {new_operation}")
     try:
-        return _run_program(instructions, error_on_inf_loop=True)
+        program = _build_program(instructions)
+        VirtualMachine().run_program(program)
     except RuntimeError:
         instructions[index] = orig_instruction
         return None
+    return program.registers["ACC"]
 
 
 def part_1(inputs: tuple[str]) -> int:
     log(inputs)
     instructions = _parse(inputs)
-    return _run_program(instructions)
+    program = _build_program(instructions)
+    try:
+        VirtualMachine().run_program(program)
+    except RuntimeError:
+        pass
+    return program.registers["ACC"]
 
 
 def part_2(inputs: tuple[str]) -> int:

@@ -14,34 +14,28 @@ class Instruction_(NamedTuple):
 
 
 def _parse(inputs: tuple[str]) -> list[Instruction_]:
-    inss = list[Instruction_]()
-    for input_ in inputs:
-        operation = input_[:3]
-        operands = input_[4:].split(", ")
-        inss.append(Instruction_(operation, operands))
-    return inss
+    return [Instruction_(input_[:3], input_[4:].split(", "))
+            for input_ in inputs]
 
 
 def _build_program(inss: list[Instruction_]) -> Program:
-    p_inss = list[Instruction]()
-    for ins in inss:
+    def translate_instruction(ins: Instruction_) -> Instruction:
         if ins.operation == "hlf":
-            p_inss.append(Instruction.DIV(ins.operands[0], 2))
+            return Instruction.DIV(ins.operands[0], 2)
         elif ins.operation == "tpl":
-            p_inss.append(Instruction.MUL(ins.operands[0], 3))
+            return Instruction.MUL(ins.operands[0], 3)
         elif ins.operation == "inc":
-            p_inss.append(Instruction.ADD(ins.operands[0], 1))
+            return Instruction.ADD(ins.operands[0], 1)
         elif ins.operation == "jmp":
-            p_inss.append(Instruction.JMP(int(ins.operands[0])))
+            return Instruction.JMP(int(ins.operands[0]))
         elif ins.operation == "jie":
-            p_inss.append(
-                Instruction.JIE(ins.operands[0], int(ins.operands[1])))
+            return Instruction.JIE(ins.operands[0], int(ins.operands[1]))
         elif ins.operation == "jio":
-            p_inss.append(
-                Instruction.JI1(ins.operands[0], int(ins.operands[1])))
+            return Instruction.JI1(ins.operands[0], int(ins.operands[1]))
         else:
             raise ValueError("Invalid instruction")
-    return Program(p_inss)
+
+    return Program([translate_instruction(ins) for ins in inss])
 
 
 def part_1(inputs: tuple[str]) -> int:

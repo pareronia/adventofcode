@@ -42,7 +42,7 @@ class TestVM(unittest.TestCase):
         prog = Program([
             Instruction.NOP(),
             Instruction.JMP(-1),
-        ], error_on_inf_loop=True)
+        ], inf_loop_treshold=2)
 
         self.assertRaises(RuntimeError,
                           vm.run_program,

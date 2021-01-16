@@ -1,4 +1,6 @@
 from __future__ import annotations
+import math
+from collections import defaultdict
 from collections.abc import Callable
 from aoc.common import log
 
@@ -65,16 +67,16 @@ class Program:
     _memory: dict[int, object]
     _registers: dict[str, object]
     _instruction_pointer: int
-    _error_on_inf_loop: bool
+    _inf_loop_treshold: int
     _error_on_jump_beyond_zero: bool
 
     def __init__(self,
                  instructions: list[Instruction],
-                 error_on_inf_loop: bool = False,
+                 inf_loop_treshold: int = math.inf,
                  error_on_jump_beyond_zero: bool = True
                  ) -> None:
         self._instructions = instructions
-        self._error_on_inf_loop = error_on_inf_loop
+        self._inf_loop_treshold = inf_loop_treshold
         self._error_on_jump_beyond_zero = error_on_jump_beyond_zero
         self._memory = dict[int, object]()
         self._registers = dict[str, object]()
@@ -85,8 +87,8 @@ class Program:
         return self._instructions
 
     @property
-    def error_on_inf_loop(self) -> bool:
-        return self._error_on_inf_loop
+    def inf_loop_treshold(self) -> int:
+        return self._inf_loop_treshold
 
     @property
     def error_on_jump_beyond_zero(self) -> bool:
@@ -205,10 +207,10 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
 
     def run_program(self, program: Program):
-        seen = set[int]()
+        seen = defaultdict(int)
         while 0 <= program.instruction_pointer < len(program.instructions):
             instruction = program.instructions[program.instruction_pointer]
-            seen.add(program.instruction_pointer)
+            seen[program.instruction_pointer] += 1
             if instruction.opcode not in self._instruction_set:
                 raise ValueError("Unsupported instruction: "
                                  + instruction.opcode)
@@ -216,7 +218,8 @@ class VirtualMachine:
             if program.instruction_pointer < 0 \
                and program.error_on_jump_beyond_zero:
                 raise ValueError("Invalid instruction argument")
-            if program.instruction_pointer in seen \
-                    and program.error_on_inf_loop:
-                raise RuntimeError("Infinite loop!")
+            if program.instruction_pointer in seen:
+                instruction_count = seen[program.instruction_pointer]
+                if instruction_count >= program.inf_loop_treshold:
+                    raise RuntimeError("Infinite loop!")
         log("Normal exit")
