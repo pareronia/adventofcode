@@ -4,6 +4,7 @@
 #
 
 from typing import NamedTuple
+from functools import lru_cache
 import itertools
 from aoc import my_aocd
 from aoc.common import log
@@ -32,22 +33,24 @@ def _parse(inputs: tuple[str]) -> set[Leg]:
 
 
 def _find_all_routes(legs: set[Leg]) -> set[Route]:
+    @lru_cache
     def find_distance(frôm: str, to: str) -> int:
         return next(d.distance for d in legs
-                    if (d.frôm == frôm and d.to == to)
-                    or (d.frôm == to and d.to == frôm))
+                    if {frôm, to} == {d.frôm, d.to})
 
     stops = {d.frôm for d in legs} | {d.to for d in legs}
     log("Stops:")
     log(stops)
     log("Legs:")
     log(legs)
-    return {
+    routes = {
         Route(
             c,
-            sum([find_distance(c[i], c[i+1]) for i in range(0, len(c) - 1)]))
+            sum([find_distance(c[i], c[i+1]) for i in range(len(c) - 1)]))
         for c in itertools.permutations(stops, len(stops))
     }
+    log(find_distance.cache_info())
+    return routes
 
 
 def _log_routes(routes: set[Route]):
