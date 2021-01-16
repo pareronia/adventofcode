@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections.abc import Callable
-from .common import log
+from aoc.common import log
 
 
 class Instruction:
@@ -24,12 +24,32 @@ class Instruction:
         return Instruction("JMP", (value, ))
 
     @classmethod
-    def MEM(cls, address: int, value: object) -> Instruction:
-        return Instruction("MEM", (address, value))
+    def JIE(cls, register: str, value: int) -> Instruction:
+        return Instruction("JIE", (register, value))
+
+    @classmethod
+    def JI1(cls, register: str, value: int) -> Instruction:
+        return Instruction("JI1", (register, value))
+
+    @classmethod
+    def SET(cls, register: str, value: int) -> Instruction:
+        return Instruction("SET", (register, value))
 
     @classmethod
     def ADD(cls, register: str, value: int) -> Instruction:
         return Instruction("ADD", (register, value))
+
+    @classmethod
+    def MUL(cls, register: str, value: int) -> Instruction:
+        return Instruction("MUL", (register, value))
+
+    @classmethod
+    def DIV(cls, register: str, value: int) -> Instruction:
+        return Instruction("DIV", (register, value))
+
+    @classmethod
+    def MEM(cls, address: int, value: object) -> Instruction:
+        return Instruction("MEM", (address, value))
 
     @property
     def opcode(self) -> str:
@@ -105,7 +125,12 @@ class VirtualMachine:
         self._instruction_set = {
             "NOP": self._nop,
             "JMP": self._jmp,
+            "JIE": self._jie,
+            "JI1": self._ji1,
+            "SET": self._set,
             "ADD": self._add,
+            "MUL": self._mul,
+            "DIV": self._div,
             "MEM": self._mem,
         }
 
@@ -114,16 +139,65 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
 
     def _jmp(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
         (count, *_) = instruction.operands
         program.move_instruction_pointer(count)
+        log(program.registers)
+
+    def _jie(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
+        (register, count) = instruction.operands
+        if register not in program.registers \
+                or program.registers[register] % 2 == 0:
+            program.move_instruction_pointer(count)
+        else:
+            program.move_instruction_pointer(1)
+        log(program.registers)
+
+    def _ji1(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
+        (register, count) = instruction.operands
+        if register in program.registers \
+                and program.registers[register] == 1:
+            program.move_instruction_pointer(count)
+        else:
+            program.move_instruction_pointer(1)
+        log(program.registers)
+
+    def _set(self, program: Program, instruction: Instruction):
+        (register, value) = instruction.operands
+        program.set_register_value(register, value)
+        program.move_instruction_pointer(1)
 
     def _add(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         new_value = value \
             if register not in program.registers \
             else program.registers[register] + value
         program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
+        log(program.registers)
+
+    def _div(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        new_value = 0 \
+            if register not in program.registers \
+            else program.registers[register] // value
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        log(program.registers)
+
+    def _mul(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        new_value = value \
+            if register not in program.registers \
+            else program.registers[register] * value
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        log(program.registers)
 
     def _mem(self, program: Program, instruction: Instruction):
         (address, value) = instruction.operands
@@ -132,8 +206,7 @@ class VirtualMachine:
 
     def run_program(self, program: Program):
         seen = set[int]()
-        while 0 <= program.instruction_pointer < len(program.instructions) \
-                and program.instruction_pointer not in seen:
+        while 0 <= program.instruction_pointer < len(program.instructions):
             instruction = program.instructions[program.instruction_pointer]
             seen.add(program.instruction_pointer)
             if instruction.opcode not in self._instruction_set:
