@@ -1,4 +1,5 @@
 from __future__ import annotations
+from collections.abc import Callable
 from .common import log
 
 
@@ -41,7 +42,7 @@ class Instruction:
 
 class Program:
     _instructions: list[Instruction]
-    _memory: dict[int, int]
+    _memory: dict[int, object]
     _accumulator: int
     _instruction_pointer: int
     _error_on_inf_loop: bool
@@ -94,39 +95,53 @@ class Program:
         self._instruction_pointer += value
         return self._instruction_pointer
 
-    def set_memory_value(self, address: int, value: int) -> None:
+    def set_memory_value(self, address: int, value: object) -> None:
         self._memory[address] = value
 
 
 class VirtualMachine:
+    _instruction_set: dict[str, Callable[[Program, Instruction], None]]
 
-    def run_program(self, program: Program) -> None:
+    def __init__(self):
+        self._instruction_set = {
+            "NOP": self._nop,
+            "JMP": self._jmp,
+            "ACC": self._acc,
+            "MEM": self._mem,
+        }
+
+    def _nop(self, program: Program, instruction: Instruction):
+        program.null_operation()
+        program.move_instruction_pointer(1)
+
+    def _jmp(self, program: Program, instruction: Instruction):
+        (count, *_) = instruction.operands
+        program.move_instruction_pointer(count)
+
+    def _acc(self, program: Program, instruction: Instruction):
+        (value, *_) = instruction.operands
+        program.add_to_accumulator(value)
+        program.move_instruction_pointer(1)
+
+    def _mem(self, program: Program, instruction: Instruction):
+        (address, value) = instruction.operands
+        program.set_memory_value(address, value)
+        program.move_instruction_pointer(1)
+
+    def run_program(self, program: Program):
         seen = set[int]()
-        while program.instruction_pointer < len(program.instructions) \
-                and not program.instruction_pointer < 0 \
+        while 0 <= program.instruction_pointer < len(program.instructions) \
                 and program.instruction_pointer not in seen:
             instruction = program.instructions[program.instruction_pointer]
             seen.add(program.instruction_pointer)
-            if instruction.opcode == "NOP":
-                program.null_operation()
-                program.move_instruction_pointer(1)
-            elif instruction.opcode == "JMP":
-                program.move_instruction_pointer(instruction.operands[0])
-                if program.instruction_pointer < 0 \
-                        and program.error_on_jump_beyond_zero:
-                    raise ValueError("Invalid instruction argument")
-            elif instruction.opcode == "ACC":
-                program.add_to_accumulator(instruction.operands[0])
-                program.move_instruction_pointer(1)
-            elif instruction.opcode == "MEM":
-                program.set_memory_value(instruction.operands[0],
-                                         instruction.operands[1])
-                program.move_instruction_pointer(1)
-            else:
+            if instruction.opcode not in self._instruction_set:
                 raise ValueError("Unsupported instruction: "
                                  + instruction.opcode)
+            self._instruction_set[instruction.opcode](program, instruction)
+            if program.instruction_pointer < 0 \
+               and program.error_on_jump_beyond_zero:
+                raise ValueError("Invalid instruction argument")
             if program.instruction_pointer in seen \
                     and program.error_on_inf_loop:
                 raise RuntimeError("Infinite loop!")
         log("Normal exit")
-        return

@@ -36,11 +36,9 @@ class TestVM(unittest.TestCase):
             Instruction.JMP(-1),
         ], error_on_inf_loop=True)
 
-        try:
-            vm.run_program(prog)
-        except RuntimeError:
-            pass
-
+        self.assertRaises(RuntimeError,
+                          vm.run_program,
+                          prog)
         self.assertEqual(prog.instruction_pointer, 0)
 
     def test_error_on_jump_beyond_zero(self):
@@ -50,11 +48,9 @@ class TestVM(unittest.TestCase):
             Instruction.JMP(-2),
         ], error_on_jump_beyond_zero=True)
 
-        try:
-            vm.run_program(prog)
-        except ValueError:
-            pass
-
+        self.assertRaises(ValueError,
+                          vm.run_program,
+                          prog)
         self.assertEqual(prog.instruction_pointer, -1)
 
     def test_invalidInstruction(self):
@@ -63,10 +59,9 @@ class TestVM(unittest.TestCase):
             Instruction("XXX", ()),
         ])
 
-        try:
-            vm.run_program(prog)
-        except ValueError:
-            pass
+        self.assertRaises(ValueError,
+                          vm.run_program,
+                          prog)
 
 
 if __name__ == '__main__':
