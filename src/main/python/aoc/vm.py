@@ -24,12 +24,12 @@ class Instruction:
         return Instruction("JMP", (value, ))
 
     @classmethod
-    def MEM(cls, address: int, value: int) -> Instruction:
+    def MEM(cls, address: int, value: object) -> Instruction:
         return Instruction("MEM", (address, value))
 
     @classmethod
-    def ACC(cls, value: int) -> Instruction:
-        return Instruction("ACC", (value, ))
+    def ADD(cls, register: str, value: int) -> Instruction:
+        return Instruction("ADD", (register, value))
 
     @property
     def opcode(self) -> str:
@@ -43,7 +43,7 @@ class Instruction:
 class Program:
     _instructions: list[Instruction]
     _memory: dict[int, object]
-    _accumulator: int
+    _registers: dict[str, object]
     _instruction_pointer: int
     _error_on_inf_loop: bool
     _error_on_jump_beyond_zero: bool
@@ -57,7 +57,7 @@ class Program:
         self._error_on_inf_loop = error_on_inf_loop
         self._error_on_jump_beyond_zero = error_on_jump_beyond_zero
         self._memory = dict[int, object]()
-        self._accumulator = 0
+        self._registers = dict[str, object]()
         self._instruction_pointer = 0
 
     @property
@@ -81,15 +81,14 @@ class Program:
         return self._memory
 
     @property
-    def accumulator(self) -> int:
-        return self._accumulator
+    def registers(self) -> dict[str, object]:
+        return self._registers
 
     def null_operation(self) -> None:
         pass
 
-    def add_to_accumulator(self, value: int) -> int:
-        self._accumulator += value
-        return self._accumulator
+    def set_register_value(self, register: str, value: object) -> None:
+        self._registers[register] = value
 
     def move_instruction_pointer(self, value: int) -> int:
         self._instruction_pointer += value
@@ -106,7 +105,7 @@ class VirtualMachine:
         self._instruction_set = {
             "NOP": self._nop,
             "JMP": self._jmp,
-            "ACC": self._acc,
+            "ADD": self._add,
             "MEM": self._mem,
         }
 
@@ -118,9 +117,12 @@ class VirtualMachine:
         (count, *_) = instruction.operands
         program.move_instruction_pointer(count)
 
-    def _acc(self, program: Program, instruction: Instruction):
-        (value, *_) = instruction.operands
-        program.add_to_accumulator(value)
+    def _add(self, program: Program, instruction: Instruction):
+        (register, value) = instruction.operands
+        new_value = value \
+            if register not in program.registers \
+            else program.registers[register] + value
+        program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
 
     def _mem(self, program: Program, instruction: Instruction):

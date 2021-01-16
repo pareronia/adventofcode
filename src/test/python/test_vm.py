@@ -16,9 +16,9 @@ class TestVM(unittest.TestCase):
             Instruction.NOP(),
             Instruction.NOP(),
             Instruction.MEM(1, 100),
-            Instruction.ACC(6),
+            Instruction.ADD("A", 6),
             Instruction.MEM(3, 300),
-            Instruction.ACC(7),
+            Instruction.ADD("A", 7),
         ])
 
         vm.run_program(prog)
@@ -26,7 +26,7 @@ class TestVM(unittest.TestCase):
         self.assertEqual(len(prog.memory), 2)
         self.assertEqual(prog.memory[1], 100)
         self.assertEqual(prog.memory[3], 300)
-        self.assertEqual(prog.accumulator, 13)
+        self.assertEqual(prog.registers["A"], 13)
         self.assertEqual(prog.instruction_pointer, 9)
 
     def test_error_on_infinite_loop(self):

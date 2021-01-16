@@ -39,13 +39,13 @@ def _run_program(lines: list[Instruction_],
         if line.operation == "nop":
             instructions.append(Instruction.NOP())
         elif line.operation == "acc":
-            instructions.append(Instruction.ACC(line.argument))
+            instructions.append(Instruction.ADD("ACC", line.argument))
         elif line.operation == "jmp":
             instructions.append(Instruction.JMP(line.argument))
     program = Program(instructions, error_on_inf_loop,
                       error_on_jump_beyond_zero=False)
     vm.run_program(program)
-    return program.accumulator
+    return program.registers["ACC"]
 
 
 def _try_program_run_with_replaced_operation(instructions: list[Instruction_],
