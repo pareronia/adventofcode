@@ -6,7 +6,6 @@
 from typing import NamedTuple
 from aoc import my_aocd
 from aoc.vm import Program, Instruction, VirtualMachine
-from aoc.common import log
 
 
 class Instruction_(NamedTuple):
@@ -46,23 +45,21 @@ def _build_program(inss: list[Instruction_]) -> Program:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    inss = _parse(inputs)
-    log(inss)
-    vm = VirtualMachine()
-    program = _build_program(inss)
-    log(program._instructions)
-    vm.run_program(program)
-    log(program.registers)
+    program = _build_program(_parse(inputs))
+    VirtualMachine().run_program(program)
     return program.registers["b"]
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    program = _build_program(_parse(inputs))
+    program.instructions.insert(0, Instruction.SET("a", 1))
+    VirtualMachine().run_program(program)
+    return program.registers["b"]
 
 
 TEST = """\
 inc b
-jio b, +2
+jio a, +2
 tpl b
 inc b
 """.splitlines()
@@ -71,8 +68,8 @@ inc b
 def main() -> None:
     my_aocd.print_header(2015, 23)
 
-    assert part_1(TEST) == 2
-    assert part_2(TEST) == 0
+    assert part_1(TEST) == 4
+    assert part_2(TEST) == 2
 
     inputs = my_aocd.get_input(2015, 23, 47)
     result1 = part_1(inputs)
