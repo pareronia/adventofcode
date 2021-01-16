@@ -4,6 +4,7 @@
 #
 
 from typing import NamedTuple
+from functools import lru_cache
 import itertools
 from aoc import my_aocd
 from aoc.common import log
@@ -33,20 +34,21 @@ def _parse(inputs: tuple[str]) -> set[Seating]:
 
 def _find_all_arrangements(diners: set[str],
                            seatings: set[Seating]) -> set[SeatingArrangement]:
+    @lru_cache
     def find_happiness_gain(diner1: str, diner2: str) -> int:
-        return next(s.happiness_gain for s in seatings
-                    if s.diner1 == diner1 and s.diner2 == diner2) \
-                + next(s.happiness_gain for s in seatings
-                       if s.diner2 == diner1 and s.diner1 == diner2)
+        return sum(s.happiness_gain for s in seatings
+                   if {s.diner1, s.diner2} == {diner1, diner2})
 
     log(diners)
     log(seatings)
-    return {
+    arrangements = {
         SeatingArrangement(c,
                            sum([find_happiness_gain(c[i], c[(i+1) % len(c)])
-                                for i in range(0, len(c))]))
+                                for i in range(len(c))]))
         for c in itertools.permutations(diners, len(diners))
     }
+    log(find_happiness_gain.cache_info())
+    return arrangements
 
 
 def _log_arrangements(arrangements: set[SeatingArrangement]):
