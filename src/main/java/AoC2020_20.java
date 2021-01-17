@@ -18,9 +18,12 @@ import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -85,32 +88,40 @@ public class AoC2020_20 extends AoCBase {
 	public long solvePart2() {
 		final Image image = parse(inputs);
 		image.puzzle();
-		image.printPlacedTiles();
 		image.removeTileEdges();
 		image.printPlacedTiles();
 		image.createImageGrid();
 		image.print();
+		log("Octothorps: " + image.countOctothorps());
+		log("Looking for Nessies...");
 		List<Pair<Integer, Integer>> nessies = null;
 		for (int i = 0; i < 8; i++) {
+			if (i == 4) {
+				image.flipHorizontally();
+				log("Plipping");
+				log("Octothorps: " + image.countOctothorps());
+			} else if (i > 0)  {
+				image.rotate();
+				log("Rotating");
+				log("Octothorps: " + image.countOctothorps());
+			}
 			nessies = NessieFinder.findNessies(image.grid);
-			if (nessies.size() > 0) {
+			if (nessies.size() > 1) {
 				break;
 			}
-			if (i == 3) {
-				image.flipHorizontally();
-			} else  {
-				image.rotate();
-			}
+			log("One is not enough? Looking for more Nessies...");
 		}
 		image.print();
-		return image.countOctothorps();
+		final long octothorps = image.countOctothorps();
+		log("Octothorps: " + octothorps);
+		return octothorps - 15 * nessies.size();
 	}
 	
 	public static void main(String[] args) throws Exception {
 		assert AoC2020_20.createDebug(TEST).solvePart1() == 20899048083289L;
 		lap("Part 1", () -> AoC2020_20.create(INPUT).solvePart1());
 		assert AoC2020_20.createDebug(TEST).solvePart2() == 273L;
-		lap("Part 2", () -> AoC2020_20.create(INPUT).solvePart2());
+		lap("Part 2", () -> AoC2020_20.createDebug(INPUT).solvePart2());
 	}
 
 	private static final String TEST =
@@ -2211,6 +2222,10 @@ public class AoC2020_20 extends AoCBase {
 			this.placedTiles = new Tile[Math.sqrt(tiles.size())][Math.sqrt(tiles.size())];
 			this.grid = new ArrayList<>();
 		}
+		
+		public Set<Tile> unplacedTiles() {
+			return this.tiles;
+		}
 
 		public Set<Tile> getTiles() {
 			final HashSet<Tile> allTiles = new HashSet<>(tiles);
@@ -2281,7 +2296,7 @@ public class AoC2020_20 extends AoCBase {
 				System.out.println("Testing top left corner on: "+ corner.getId());
 				final Optional<Tile> candidate = checkIfPossibleTopLeftCorner(corner);
 				if (candidate.isPresent()) {
-					if (findRightSideMatch(candidate.get()).isPresent()) {
+					if (_findRightSideMatch(candidate.get()).isPresent()) {
 						System.out.println("Top Left corner: " + candidate.get().getId());
 						return candidate.get();
 					}
@@ -2344,7 +2359,7 @@ public class AoC2020_20 extends AoCBase {
 			return false;
 		}
 		
-		private Optional<Tile> findRightSideMatch(Tile tile) {
+		private Optional<Tile> _findRightSideMatch(Tile tile) {
 			System.out.println("Find right side match for: " + tile.getId());
 			final Set<Tile> tilesWithCommonEdges = getAllCommonEdges().get(tile).keySet();
 			for (final Tile singleCommonEdge : tilesWithCommonEdges) {
@@ -2359,7 +2374,7 @@ public class AoC2020_20 extends AoCBase {
 			return Optional.empty();
 		}
 
-		private Optional<Tile> findBottomSideMatch(Tile tile) {
+		private Optional<Tile> _findBottomSideMatch(Tile tile) {
 			System.out.println("Find bottom side match for: " + tile.getId());
 			final Set<Tile> tilesWithCommonEdges = getAllCommonEdges().get(tile).keySet();
 			for (final Tile singleCommonEdge : tilesWithCommonEdges) {
@@ -2375,25 +2390,77 @@ public class AoC2020_20 extends AoCBase {
 		}
 		
 		public void puzzle() {
+			final Set<Tile> corners = findCorners();
+			// Pick a corner, any corner...
+			final Tile corner = corners.iterator().next();
+			System.out.println("Unplaced tiles: " + unplacedTiles().size());
+			System.out.println("Starting with " + corner.getId());
+			placeTile(corner, 0, 0);
+			System.out.println("Unplaced tiles: " + unplacedTiles().size());
+			printPlacedTiles();
+			Tile current = corner;
+			// first row
+			System.out.println("First row");
+			for (int i = 1; i < placedTiles[0].length; i++) {
+				final Optional<Tile> right = TileMatcher.findRightSideMatch(current, unplacedTiles());
+				assert right.isPresent();
+				placeTile(right.get(), 0, i);
+				printPlacedTiles();
+				System.out.println("Unplaced tiles: " + unplacedTiles().size());
+				current = right.get();
+			}
+			
+			final Optional<Tile> bottom = TileMatcher.findBottomSideMatch(corner, unplacedTiles());
+			final Optional<Tile> top = TileMatcher.findTopSideMatch(corner, unplacedTiles());
+			assert bottom.isPresent() || top.isPresent();
+			final Function<Tile, Optional<Tile>> matcher;
+			if (bottom.isPresent()) {
+				System.out.println("Going down");
+				matcher = t -> TileMatcher.findBottomSideMatch(t, unplacedTiles());
+			} else {
+				System.out.println("Flipping before going down");
+				for (int k = 0; k < placedTiles[0].length; k++) {
+					placeTile(placedTiles[0][k].getFlippedHorizontally(), 0, k);
+				}
+				printPlacedTiles();
+				System.out.println("Unplaced tiles: " + unplacedTiles().size());
+				matcher = t -> TileMatcher.findBottomSideMatch(t, unplacedTiles());
+			}
+			
+			// next rows
+			for (int j = 1; j < placedTiles.length; j++) {
+				System.out.println("Row " + (j + 1));
+				for (int i = 0; i < placedTiles[j].length; i++) {
+					current = placedTiles[j-1][i];
+					final Optional<Tile> match = matcher.apply(current);
+					assert match.isPresent();
+					placeTile(match.get(), j, i);
+					System.out.println("Unplaced tiles: " + unplacedTiles().size());
+					printPlacedTiles();
+				}
+			}
+		}
+		
+		public void __puzzle() {
 			// find top left
 			final Tile topLeft = findTopLeft();
 			assert topLeft != null;
 			// first row
 			placeTile(topLeft, 0, 0);
 //			Tile current = topLeft;
-			final Optional<Tile> right1 = findRightSideMatch(topLeft);
+			final Optional<Tile> right1 = _findRightSideMatch(topLeft);
 			assert right1.isPresent();
 			placeTile(right1.get(), 0, 1);
-			final Optional<Tile> right2 = findRightSideMatch(right1.get());
+			final Optional<Tile> right2 = _findRightSideMatch(right1.get());
 			assert right2.isPresent();
 			placeTile(right2.get(), 0, 2);
-			Optional<Tile> bottom0 = findBottomSideMatch(topLeft);
+			Optional<Tile> bottom0 = _findBottomSideMatch(topLeft);
 			if (!bottom0.isPresent()) {
 				for (int k = 0; k < placedTiles[0].length; k++) {
 					placedTiles[0][k] = placedTiles[0][k].getFlippedHorizontally();
 				}
 			}
-			bottom0 = findBottomSideMatch(topLeft);
+			bottom0 = _findBottomSideMatch(topLeft);
 			assert bottom0.isPresent();
 			placeTile(bottom0.get(), 1, 0);
 		}
@@ -2538,6 +2605,9 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		public void printPlacedTiles() {
+			if (placedTiles.length > 3) {
+				return;
+			}
 			for (final Tile[] tiles : placedTiles) {
 				final Tile tile = ObjectUtils.firstNonNull(tiles);
 				if (tile == null) {
@@ -2592,7 +2662,7 @@ public class AoC2020_20 extends AoCBase {
 			final List<Pair<Integer, Integer>> nessies = new ArrayList<>();
 			for (int i = 1; i < grid.size(); i++) {
 				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.get(i));
-				if (m1.find()) {
+				while (m1.find()) {
 					final int tail = m1.start(0);
 					if ("#".equals(grid.get(i - 1).substring(tail + 18, tail + 19))) {
 						final Matcher m2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#")
@@ -2604,30 +2674,30 @@ public class AoC2020_20 extends AoCBase {
 					}
 				}
 			}
-			for (final Pair<Integer, Integer> nessie : nessies) {
-				final int idx = nessie.getRight();
-				final char[] chars0 = grid.get(nessie.getLeft() - 1).toCharArray();
-				chars0[idx+18] = 'O';
-				grid.set(nessie.getLeft() - 1, new String(chars0));
-				final char[] chars1 = grid.get(nessie.getLeft()).toCharArray();
-				chars1[idx] = 'O';
-				chars1[idx+5] = 'O';
-				chars1[idx+6] = 'O';
-				chars1[idx+11] = 'O';
-				chars1[idx+12] = 'O';
-				chars1[idx+17] = 'O';
-				chars1[idx+18] = 'O';
-				chars1[idx+19] = 'O';
-				grid.set(nessie.getLeft(), new String(chars1));
-				final char[] chars2 = grid.get(nessie.getLeft() + 1).toCharArray();
-				chars2[idx+1] = 'O';
-				chars2[idx+4] = 'O';
-				chars2[idx+7] = 'O';
-				chars2[idx+10] = 'O';
-				chars2[idx+13] = 'O';
-				chars2[idx+16] = 'O';
-				grid.set(nessie.getLeft() + 1, new String(chars2));
-			}
+//			for (final Pair<Integer, Integer> nessie : nessies) {
+//				final int idx = nessie.getRight();
+//				final char[] chars0 = grid.get(nessie.getLeft() - 1).toCharArray();
+//				chars0[idx+18] = 'O';
+//				grid.set(nessie.getLeft() - 1, new String(chars0));
+//				final char[] chars1 = grid.get(nessie.getLeft()).toCharArray();
+//				chars1[idx] = 'O';
+//				chars1[idx+5] = 'O';
+//				chars1[idx+6] = 'O';
+//				chars1[idx+11] = 'O';
+//				chars1[idx+12] = 'O';
+//				chars1[idx+17] = 'O';
+//				chars1[idx+18] = 'O';
+//				chars1[idx+19] = 'O';
+//				grid.set(nessie.getLeft(), new String(chars1));
+//				final char[] chars2 = grid.get(nessie.getLeft() + 1).toCharArray();
+//				chars2[idx+1] = 'O';
+//				chars2[idx+4] = 'O';
+//				chars2[idx+7] = 'O';
+//				chars2[idx+10] = 'O';
+//				chars2[idx+13] = 'O';
+//				chars2[idx+16] = 'O';
+//				grid.set(nessie.getLeft() + 1, new String(chars2));
+//			}
 			return nessies;
 		}
 	}
@@ -2656,5 +2726,44 @@ public class AoC2020_20 extends AoCBase {
 				}
 			};
 		}
+	}
+	
+	static final class TileMatcher {
+		
+		private static Predicate<AoC2020_20.Tile> rightSide(Tile tile) {
+			return t -> tile.getRightEdge().matches(t.getLeftEdge());
+		}
+		
+		private static Predicate<AoC2020_20.Tile> bottomSide(Tile tile) {
+			return t -> tile.getBottomEdge().matches(t.getTopEdge());
+		}
+		
+		private static Predicate<AoC2020_20.Tile> topSide(Tile tile) {
+			return t -> tile.getTopEdge().matches(t.getBottomEdge());
+		}
+		
+		public static Optional<Tile> findRightSideMatch(Tile tile, Set<Tile> tiles) {
+			return findMatch(tile, tiles, rightSide(tile));
+		}
+		
+		public static Optional<Tile> findBottomSideMatch(Tile tile, Set<Tile> tiles) {
+			return findMatch(tile, tiles, bottomSide(tile));
+		}
+		
+		public static Optional<Tile> findTopSideMatch(Tile tile, Set<Tile> tiles) {
+			return findMatch(tile, tiles, topSide(tile));
+		}
+		
+		private static Optional<Tile> findMatch(Tile tile, Set<Tile> tiles, Predicate<AoC2020_20.Tile> matcher) {
+			return tiles.stream()
+				.flatMap(t -> asStream(TilePermutator.getAllPermutations(t)))
+				.filter(matcher)
+				.findAny();
+		}
+	    
+		private static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
+	        final Iterable<T> iterable = () -> sourceIterator;
+	        return StreamSupport.stream(iterable.spliterator(), false);
+	    }
 	}
 }
