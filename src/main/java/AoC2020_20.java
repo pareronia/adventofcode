@@ -1952,7 +1952,7 @@ public class AoC2020_20 extends AoCBase {
 			"##.###...#\r\n" +
 			"";
 	
-	private static final class Tile {
+	static final class Tile {
 		private final Integer id;
 		private final char[][] grid;
 		
@@ -1967,6 +1967,10 @@ public class AoC2020_20 extends AoCBase {
 		
 		public Integer getId() {
 			return id;
+		}
+
+		public char[][] getGrid() {
+			return grid;
 		}
 
 		private Edge getTopEdge() {
@@ -2039,13 +2043,6 @@ public class AoC2020_20 extends AoCBase {
 			return set;
 		}
 		
-//		public Tile getFlippedVertically() {
-//			final List<char[]> newGrid = getRows().stream()
-//					.map(s -> new StringBuilder(s).reverse().toString().toCharArray())
-//					.collect(toList());
-//			return new Tile(id, Tile.toGrid(newGrid));
-//		}
-//
 		public Tile getFlippedHorizontally() {
 			final List<char[]> newGrid = new ArrayList<>();
 	        final ListIterator<String> iterator = getRows().listIterator(grid.length);
@@ -2061,31 +2058,6 @@ public class AoC2020_20 extends AoCBase {
 				newGrid.add(getColumnReversed(i).toCharArray());
 			}
 			return new Tile(id, Tile.toGrid(newGrid));
-		}
-		
-		public Iterator<Tile> getAllPermutations() {
-			return new Iterator<Tile>() {
-				int i = 0;
-				Tile tile = null;
-				
-				@Override
-				public boolean hasNext() {
-					return i < 8;
-				}
-
-				@Override
-				public Tile next() {
-					if (i == 0) {
-						tile = Tile.this;
-					} else if (i == 4) {
-						tile = tile.getFlippedHorizontally();
-					} else  {
-						tile = tile.getRotated();
-					}
-					i++;
-					return tile;
-				}
-			};
 		}
 		
 		public Tile getWithEdgesRemoved() {
@@ -2305,7 +2277,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		private Tile findTopLeft() {
 			final Set<Tile> corners = filterCommonEdgesByCount(getAllCommonEdges(), 2);
-			for (Tile corner : corners) {
+			for (final Tile corner : corners) {
 				System.out.println("Testing top left corner on: "+ corner.getId());
 				final Optional<Tile> candidate = checkIfPossibleTopLeftCorner(corner);
 				if (candidate.isPresent()) {
@@ -2319,12 +2291,12 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		private Optional<Tile> checkIfPossibleTopLeftCorner(Tile corner) {
-			final Iterator<Tile> allPermutations = corner.getAllPermutations();
+			final Iterator<Tile> allPermutations = TilePermutator.getAllPermutations(corner);
 			while (allPermutations.hasNext()) {
 				final Tile candidate = allPermutations.next();
 				placeTile(candidate, 0, 0);
 				final Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons = getAllCommonEdges();
-				final List<Entry<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> rightAndBottomEdgeShared 
+				final List<Entry<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> rightAndBottomEdgeShared
 					= commons.get(candidate).entrySet().stream()
 						.filter(e -> e.getValue().stream().anyMatch(m -> m.getLeft().isRight() && m.getRight().isLeft())
 								|| e.getValue().stream().anyMatch(m -> m.getLeft().isTop() && m.getRight().isBottom()))
@@ -2337,24 +2309,24 @@ public class AoC2020_20 extends AoCBase {
 			return Optional.empty();
 		}
 		
-//		private Tile _findTopLeft() {
-//			final Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons = getAllCommonEdges();
-//			final Set<Tile> corners = filterCommonEdgesByCount(commons, 2);
-//			for (final Tile corner : corners) {
-//				final List<Entry<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> possible = commons.get(corner).entrySet().stream()
-//						.filter(e -> e.getValue().stream().anyMatch(m -> m.getLeft().isRight() && m.getRight().isLeft())
-//								|| e.getValue().stream().anyMatch(m -> m.getLeft().isTop() && m.getRight().isBottom()))
-//						.collect(toList());
-//				if (possible.size() == 2) {
-//					return corner;
-//				}
-//			}
-//			return null;
-//		}
+		private Tile _findTopLeft() {
+			final Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons = getAllCommonEdges();
+			final Set<Tile> corners = filterCommonEdgesByCount(commons, 2);
+			for (final Tile corner : corners) {
+				final List<Entry<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> possible = commons.get(corner).entrySet().stream()
+						.filter(e -> e.getValue().stream().anyMatch(m -> m.getLeft().isRight() && m.getRight().isLeft())
+								|| e.getValue().stream().anyMatch(m -> m.getLeft().isTop() && m.getRight().isBottom()))
+						.collect(toList());
+				if (possible.size() == 2) {
+					return corner;
+				}
+			}
+			return null;
+		}
 		
 		private boolean isSingleRightMatch(Tile tile1, Tile tile2) {
 			final Set<Pair<Tile.Edge, Tile.Edge>> commonEdges = getCommonEdges(tile1, tile2);
-			for (Pair<Tile.Edge, Tile.Edge> commonEdge : commonEdges) {
+			for (final Pair<Tile.Edge, Tile.Edge> commonEdge : commonEdges) {
 				if (commonEdge.getLeft().isRight() && commonEdge.getRight().isLeft()) {
 					return true;
 				}
@@ -2364,7 +2336,7 @@ public class AoC2020_20 extends AoCBase {
 
 		private boolean isSingleBottomMatch(Tile tile1, Tile tile2) {
 			final Set<Pair<Tile.Edge, Tile.Edge>> commonEdges = getCommonEdges(tile1, tile2);
-			for (Pair<Tile.Edge, Tile.Edge> commonEdge : commonEdges) {
+			for (final Pair<Tile.Edge, Tile.Edge> commonEdge : commonEdges) {
 				if (commonEdge.getLeft().isBottom() && commonEdge.getRight().isTop()) {
 					return true;
 				}
@@ -2375,8 +2347,8 @@ public class AoC2020_20 extends AoCBase {
 		private Optional<Tile> findRightSideMatch(Tile tile) {
 			System.out.println("Find right side match for: " + tile.getId());
 			final Set<Tile> tilesWithCommonEdges = getAllCommonEdges().get(tile).keySet();
-			for (Tile singleCommonEdge : tilesWithCommonEdges) {
-				final Iterator<Tile> allPermutations = singleCommonEdge.getAllPermutations();
+			for (final Tile singleCommonEdge : tilesWithCommonEdges) {
+				final Iterator<Tile> allPermutations = TilePermutator.getAllPermutations(singleCommonEdge);
 				while (allPermutations.hasNext()) {
 					final Tile next = allPermutations.next();
 					if (isSingleRightMatch(tile, next)) {
@@ -2390,8 +2362,8 @@ public class AoC2020_20 extends AoCBase {
 		private Optional<Tile> findBottomSideMatch(Tile tile) {
 			System.out.println("Find bottom side match for: " + tile.getId());
 			final Set<Tile> tilesWithCommonEdges = getAllCommonEdges().get(tile).keySet();
-			for (Tile singleCommonEdge : tilesWithCommonEdges) {
-				final Iterator<Tile> allPermutations = singleCommonEdge.getAllPermutations();
+			for (final Tile singleCommonEdge : tilesWithCommonEdges) {
+				final Iterator<Tile> allPermutations = TilePermutator.getAllPermutations(singleCommonEdge);
 				while (allPermutations.hasNext()) {
 					final Tile next = allPermutations.next();
 					if (isSingleBottomMatch(tile, next)) {
@@ -2408,7 +2380,7 @@ public class AoC2020_20 extends AoCBase {
 			assert topLeft != null;
 			// first row
 			placeTile(topLeft, 0, 0);
-			Tile current = topLeft;
+//			Tile current = topLeft;
 			final Optional<Tile> right1 = findRightSideMatch(topLeft);
 			assert right1.isPresent();
 			placeTile(right1.get(), 0, 1);
@@ -2422,11 +2394,17 @@ public class AoC2020_20 extends AoCBase {
 				}
 			}
 			bottom0 = findBottomSideMatch(topLeft);
-//			assert bottom0.isPresent();
-//			placeTile(bottom0.get(), 1, 0);
-			//
-			//
-			//
+			assert bottom0.isPresent();
+			placeTile(bottom0.get(), 1, 0);
+		}
+		
+		public void _puzzle() {
+			// find top left
+			final Tile topLeft = _findTopLeft();
+			assert topLeft != null;
+			// first row
+			placeTile(topLeft, 0, 0);
+			Tile current = topLeft;
 			Map<Tile, Map<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> commons = getAllCommonEdges();
 			Optional<Entry<Tile, Set<Pair<Tile.Edge, Tile.Edge>>>> match = commons.get(topLeft).entrySet().stream()
 					.filter(e -> e.getValue().stream().anyMatch(m -> m.getLeft().isRight()))
@@ -2651,6 +2629,32 @@ public class AoC2020_20 extends AoCBase {
 				grid.set(nessie.getLeft() + 1, new String(chars2));
 			}
 			return nessies;
+		}
+	}
+	
+	static final class TilePermutator {
+		
+		public static Iterator<Tile> getAllPermutations(Tile in) {
+			return new Iterator<Tile>() {
+				int i = 0;
+				Tile tile = in;
+				
+				@Override
+				public boolean hasNext() {
+					return i < 8;
+				}
+
+				@Override
+				public Tile next() {
+					if (i == 4) {
+						tile = tile.getFlippedHorizontally();
+					} else if (i > 0)  {
+						tile = tile.getRotated();
+					}
+					i++;
+					return tile;
+				}
+			};
 		}
 	}
 }
