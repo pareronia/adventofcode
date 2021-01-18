@@ -142,20 +142,4 @@ public class TileMatcherTestCase {
 		assertThat(match.isPresent(), is(TRUE));
 		assertThat(match.get(), is(tile2));
 	}
-
-	@Test
-	public void testTopSide1() {
-		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
-			0,
-			new char[][] {
-				{ 'X', 'Y', 'Z' },
-				{ '.', '.', '.' },
-				{ '.', '.', '.' }
-			}
-		);
-		
-		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findTopSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
-	}
 }
