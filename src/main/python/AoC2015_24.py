@@ -13,9 +13,8 @@ def _parse(inputs: tuple[str]) -> list[int]:
     return [int(input_.split(",")[0]) for input_ in inputs]
 
 
-def part_1(inputs: tuple[str]) -> int:
-    weights = _parse(inputs)
-    target = sum(weights) // 3
+def solve(weights: list[int], groups: int) -> int:
+    target = sum(weights) // groups
     log(target)
     weights.sort(reverse=True)
     minimal = []
@@ -32,11 +31,23 @@ def part_1(inputs: tuple[str]) -> int:
     remainder = target - 1 - sum(minimal[:-1])
     if remainder in weights:
         return math.prod(minimal[:-1]) * remainder
+    new_ = minimal[:-1]
+    skip = new_[-1]
+    new_ = new_[:-1]
+    new_.append(max(w for w in weights if w not in new_ and w < skip))
+    log(new_)
+    remainder = target - 1 - sum(new_)
+    if remainder in weights:
+        return math.prod(new_) * remainder
     raise RuntimeError
 
 
+def part_1(inputs: tuple[str]) -> int:
+    return solve(_parse(inputs), 3)
+
+
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    return solve(_parse(inputs), 4)
 
 
 TEST = """\
@@ -57,6 +68,7 @@ def main() -> None:
     my_aocd.print_header(2015, 24)
 
     assert part_1(TEST) == 99
+    assert part_2(TEST) == 44
 
     inputs = my_aocd.get_input(2015, 24, 28)
     result1 = part_1(inputs)
