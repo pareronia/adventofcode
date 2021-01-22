@@ -4,7 +4,6 @@
 #
 
 import math
-# from copy import deepcopy
 from aoc import my_aocd
 from aoc.common import log
 
@@ -13,33 +12,38 @@ def _parse(inputs: tuple[str]) -> list[int]:
     return [int(input_.split(",")[0]) for input_ in inputs]
 
 
+# works, but only for the first group, and probably depends on specific input
 def solve(weights: list[int], groups: int) -> int:
     target = sum(weights) // groups
     log(target)
     weights.sort(reverse=True)
-    minimal = []
+    candidates = []
     for w in weights:
-        minimal.append(w)
-        if sum(minimal) >= target:
+        if sum(candidates) + w >= target:
             break
-    log(minimal)
-    if sum(minimal) == target:
-        return math.prod(minimal)
-    remainder = target - sum(minimal[:-1])
-    if remainder in weights:
-        return math.prod(minimal[:-1]) * remainder
-    remainder = target - 1 - sum(minimal[:-1])
-    if remainder in weights:
-        return math.prod(minimal[:-1]) * remainder
-    new_ = minimal[:-1]
-    skip = new_[-1]
-    new_ = new_[:-1]
-    new_.append(max(w for w in weights if w not in new_ and w < skip))
-    log(new_)
-    remainder = target - 1 - sum(new_)
-    if remainder in weights:
-        return math.prod(new_) * remainder
-    raise RuntimeError
+        candidates.append(w)
+    seen = set[tuple[int]]()
+    while tuple(candidates) not in seen:
+        seen.add(tuple(candidates))
+        total = sum(candidates)
+        remainder = target - total
+        if remainder in weights:
+            group = [c for c in candidates]
+            group.append(remainder)
+            log(group)
+            return math.prod(group)
+        remainder = target - 1 - total
+        if remainder in weights:
+            group = [c for c in candidates]
+            group.append(remainder)
+            group.append(1)
+            log(group)
+            return math.prod(group)
+        skip = candidates[-1]
+        candidates = candidates[:-1]
+        candidates.append(max(w for w in weights
+                              if w not in candidates and w < skip))
+    raise RuntimeError("Unsolvable")
 
 
 def part_1(inputs: tuple[str]) -> int:
