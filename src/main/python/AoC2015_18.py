@@ -21,7 +21,9 @@ def _log_grid(grid: list[str]):
     log("")
 
 
-def _next_generation(grid: list[str]) -> list[str]:
+def _next_generation(grid: list[str],
+                     stuck_positions: list[tuple[int, int]],
+                     stuck_value: str) -> list[str]:
     new_grid = list[str]()
     for r, row in enumerate(grid):
         new_row = ""
@@ -36,7 +38,8 @@ def _next_generation(grid: list[str]) -> list[str]:
                                if not (r == rr and c == cc))
             neighbours_on = neighbours.count(ON)
             if cell == ON and neighbours_on in {2, 3} \
-                    or cell == OFF and neighbours_on == 3:
+                    or cell == OFF and neighbours_on == 3 \
+                    or stuck_value == ON and (r, c) in stuck_positions:
                 new_row += ON
             else:
                 new_row += OFF
@@ -44,12 +47,19 @@ def _next_generation(grid: list[str]) -> list[str]:
     return new_grid
 
 
+def _run_generations(grid: list[str], generations: int,
+                     stuck_positions: list[tuple[int, int]] = [],
+                     stuck_value: str = ON) -> list[str]:
+    for i in range(generations):
+        grid = _next_generation(grid, stuck_positions, stuck_value)
+        _log_grid(grid)
+    return grid
+
+
 def _do_part_1(inputs: tuple[str], generations: int) -> int:
     grid = _parse(inputs)
     _log_grid(grid)
-    for i in range(generations):
-        grid = _next_generation(grid)
-        _log_grid(grid)
+    grid = _run_generations(grid, generations)
     return sum(line.count(ON) for line in grid)
 
 
@@ -57,8 +67,28 @@ def part_1(inputs: tuple[str]) -> int:
     return _do_part_1(inputs, 100)
 
 
+def _do_part_2(inputs: tuple[str], generations: int) -> int:
+    grid = _parse(inputs)
+    _log_grid(grid)
+    max_r = len(grid) - 1
+    max_c = len(grid[0]) - 1
+    stuck_positions = [(0, 0), (0, max_c), (max_r, 0), (max_r, max_c)]
+    new_grid = list[str]()
+    for r, row in enumerate(grid):
+        new_row = ""
+        for c, cell in enumerate(row):
+            if (r, c) in stuck_positions:
+                new_row += ON
+            else:
+                new_row += cell
+        new_grid.append(new_row)
+    grid = new_grid
+    grid = _run_generations(grid, generations, stuck_positions, stuck_value=ON)
+    return sum(line.count(ON) for line in grid)
+
+
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    return _do_part_2(inputs, 100)
 
 
 TEST = """\
@@ -75,7 +105,7 @@ def main() -> None:
     my_aocd.print_header(2015, 18)
 
     assert _do_part_1(TEST, 4) == 4
-    assert part_2(TEST) == 0
+    assert _do_part_2(TEST, 5) == 17
 
     inputs = my_aocd.get_input(2015, 18, 100)
     result1 = part_1(inputs)
