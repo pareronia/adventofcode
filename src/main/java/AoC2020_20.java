@@ -7,6 +7,7 @@ import static org.apache.commons.collections4.CollectionUtils.union;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -16,7 +17,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -2251,37 +2251,36 @@ public class AoC2020_20 extends AoCBase {
 		public void puzzle() {
 			final Set<Tile> corners = findCorners();
 			// Pick a corner, any corner...
-			final Tile corner = corners.iterator().next();
+			final ArrayList<Tile> cornersList = new ArrayList<>(corners);
+			Collections.shuffle(cornersList);
+			final Tile corner = cornersList.get(0);
 			System.out.println("Unplaced tiles: " + getTiles().size());
 			System.out.println("Starting with " + corner.getId());
-			placeTile(corner, 0, 0);
+			final Iterator<Tile> allPermutations = TilePermutator.getAllPermutations(corner);
+			while (allPermutations.hasNext()) {
+				final Tile next = allPermutations.next();
+				placeTile(next, 0, 0);
+				final Optional<Tile> right = TileMatcher.findRightSideMatch(next, getTiles());
+				final Optional<Tile> bottom = TileMatcher.findBottomSideMatch(next, getTiles());
+				if (right.isPresent() && bottom.isPresent()) {
+					System.out.println("Found corner orientation with right and bottom side match");
+					placeTile(right.get(), 0, 1);
+					break;
+				}
+			}
+			assert placedTiles[0][0] != null && placedTiles[0][1] != null;
 			System.out.println("Unplaced tiles: " + getTiles().size());
 			printPlacedTiles();
-			Tile current = corner;
+			Tile current = placedTiles[0][1];
 			// first row
-			System.out.println("First row");
-			for (int i = 1; i < placedTiles[0].length; i++) {
+			System.out.println("Continue first row");
+			for (int i = 2; i < placedTiles[0].length; i++) {
+				current = placedTiles[0][i-1];
 				final Optional<Tile> right = TileMatcher.findRightSideMatch(current, getTiles());
 				assert right.isPresent();
 				placeTile(right.get(), 0, i);
 				printPlacedTiles();
 				System.out.println("Unplaced tiles: " + getTiles().size());
-				current = right.get();
-			}
-			
-			final Optional<Tile> bottom = TileMatcher.findBottomSideMatch(corner, getTiles());
-			final Function<Tile, Optional<Tile>> matcher;
-			if (bottom.isPresent()) {
-				System.out.println("Going down");
-				matcher = t -> TileMatcher.findBottomSideMatch(t, getTiles());
-			} else {
-				System.out.println("Flipping first row before going down");
-				for (int k = 0; k < placedTiles[0].length; k++) {
-					placeTile(placedTiles[0][k].getFlippedHorizontally(), 0, k);
-				}
-				printPlacedTiles();
-				System.out.println("Unplaced tiles: " + getTiles().size());
-				matcher = t -> TileMatcher.findBottomSideMatch(t, getTiles());
 			}
 			
 			// next rows
@@ -2289,11 +2288,11 @@ public class AoC2020_20 extends AoCBase {
 				System.out.println("Row " + (j + 1));
 				for (int i = 0; i < placedTiles[j].length; i++) {
 					current = placedTiles[j-1][i];
-					final Optional<Tile> match = matcher.apply(current);
-					assert match.isPresent();
-					placeTile(match.get(), j, i);
-					System.out.println("Unplaced tiles: " + getTiles().size());
+					final Optional<Tile> bottom = TileMatcher.findBottomSideMatch(current, getTiles());
+					assert bottom.isPresent();
+					placeTile(bottom.get(), j, i);
 					printPlacedTiles();
+					System.out.println("Unplaced tiles: " + getTiles().size());
 				}
 			}
 		}
