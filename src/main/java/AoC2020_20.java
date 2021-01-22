@@ -1989,35 +1989,35 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		private Edge getTopEdge() {
-			return Edge.top(getRow(0));
+			return new Edge(getRow(0));
 		}
 
 		private Edge getTopEdgeReversed() {
-			return Edge.topReversed(new StringBuilder(getTopEdge().getPixels()).reverse().toString());
+			return new Edge(new StringBuilder(getTopEdge().getPixels()).reverse().toString());
 		}
 
 		private Edge getBottomEdge() {
-			return Edge.bottom(getRow(grid.length-1));
+			return new Edge(getRow(grid.length-1));
 		}
 
 		private Edge getBottomEdgeReversed() {
-			return Edge.bottomReversed(new StringBuilder(getBottomEdge().getPixels()).reverse().toString());
+			return new Edge(new StringBuilder(getBottomEdge().getPixels()).reverse().toString());
 		}
 		
 		private Edge getLeftEdge() {
-			return Edge.left(getColumn(0));
+			return new Edge(getColumn(0));
 		}
 		
 		private Edge getLeftEdgeReversed() {
-			return Edge.leftReversed(new StringBuilder(getLeftEdge().getPixels()).reverse().toString());
+			return new Edge(new StringBuilder(getLeftEdge().getPixels()).reverse().toString());
 		}
 		
 		private Edge getRightEdge() {
-			return Edge.right(getColumn(grid.length-1));
+			return new Edge(getColumn(grid.length-1));
 		}
 		
 		private Edge getRightEdgeReversed() {
-			return Edge.rightReversed(new StringBuilder(getRightEdge().getPixels()).reverse().toString());
+			return new Edge(new StringBuilder(getRightEdge().getPixels()).reverse().toString());
 		}
 		
 		private String getColumn(int col) {
@@ -2112,66 +2112,19 @@ public class AoC2020_20 extends AoCBase {
 		}
 		
 		private static final class Edge {
-			public enum EdgeType {
-				TOP, RIGHT, BOTTOM, LEFT, TOP_REVERSED, RIGHT_REVERSED, BOTTOM_REVERSED, LEFT_REVERSED
-			}
-			
-			private final EdgeType type;
 			private final String pixels;
 			
-			private Edge(EdgeType type, String pixels) {
-				this.type = type;
+			public Edge(String pixels) {
 				this.pixels = pixels;
 			}
 			
-			public static Edge top(String pixels) {
-				return new Edge(EdgeType.TOP, pixels);
-			}
-			
-			public static Edge topReversed(String pixels) {
-				return new Edge(EdgeType.TOP_REVERSED, pixels);
-			}
-			
-			public static Edge right(String pixels) {
-				return new Edge(EdgeType.RIGHT, pixels);
-			}
-			
-			public static Edge rightReversed(String pixels) {
-				return new Edge(EdgeType.RIGHT_REVERSED, pixels);
-			}
-			
-			public static Edge left(String pixels) {
-				return new Edge(EdgeType.LEFT, pixels);
-			}
-			
-			public static Edge leftReversed(String pixels) {
-				return new Edge(EdgeType.LEFT_REVERSED, pixels);
-			}
-			
-			public static Edge bottom(String pixels) {
-				return new Edge(EdgeType.BOTTOM, pixels);
-			}
-			
-			public static Edge bottomReversed(String pixels) {
-				return new Edge(EdgeType.BOTTOM_REVERSED, pixels);
-			}
-
 			public String getPixels() {
 				return pixels;
 			}
 			
-			public boolean matches(Edge other) {
-				return Objects.equals(this.pixels, other.pixels);
-			}
-
-			@Override
-			public String toString() {
-				return "Edge [type=" + type /*+ ", pixels=" + pixels*/ + "]";
-			}
-
 			@Override
 			public int hashCode() {
-				return Objects.hash(pixels, type);
+				return Objects.hash(pixels);
 			}
 
 			@Override
@@ -2183,7 +2136,7 @@ public class AoC2020_20 extends AoCBase {
 					return false;
 				}
 				final Edge other = (Edge) obj;
-				return Objects.equals(this.pixels, other.pixels) && this.type == other.type;
+				return Objects.equals(this.pixels, other.pixels);
 			}
 		}
 	}
@@ -2219,7 +2172,7 @@ public class AoC2020_20 extends AoCBase {
 		private Set<Pair<Tile.Edge, Tile.Edge>> getCommonEdges(Tile tile1, Tile tile2) {
 			return getEdgesForMatching(tile1).stream()
 					.flatMap(tile1Edge -> getEdgesForMatching(tile2).stream()
-											.filter(tile2Edge -> tile2Edge.matches(tile1Edge))
+											.filter(tile2Edge -> tile2Edge.equals(tile1Edge))
 											.map(tile2Edge -> Pair.of(tile1Edge, tile2Edge)))
 					.collect(toSet());
 		}
@@ -2494,11 +2447,11 @@ public class AoC2020_20 extends AoCBase {
 	static final class TileMatcher {
 		
 		private static Predicate<AoC2020_20.Tile> rightSide(Tile tile) {
-			return t -> tile.getRightEdge().matches(t.getLeftEdge());
+			return t -> tile.getRightEdge().equals(t.getLeftEdge());
 		}
 		
 		private static Predicate<AoC2020_20.Tile> bottomSide(Tile tile) {
-			return t -> tile.getBottomEdge().matches(t.getTopEdge());
+			return t -> tile.getBottomEdge().equals(t.getTopEdge());
 		}
 		
 		public static Optional<Tile> findRightSideMatch(Tile tile, Set<Tile> tiles) {
