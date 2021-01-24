@@ -8,42 +8,30 @@ from aoc import my_aocd
 from aoc.common import log
 
 
-def _parse(input_: str) -> (int, int, str, str, int):
+def _parse(input_: str) -> (int, int, str, str):
     m = re.search(r'^(\d{1,2})-(\d{1,2}) ([a-z]{1}): ([a-z]+)$', input_)
-    first = int(m.group(1))
-    second = int(m.group(2))
-    wanted = m.group(3)
-    passw = m.group(4)
-    m1 = re.findall(r'(' + wanted + '{1})', passw)
-    return (first, second, wanted, passw, len(m1))
-
-
-def _output(input_: str, parsed: str, check: bool) -> str:
-    return f"{input_} -> {parsed} : {check}"
+    return (int(m.group(1)), int(m.group(2)), m.group(3), m.group(4))
 
 
 def part_1(inputs: tuple[str]) -> int:
     def _check_valid_1(input_: str) -> bool:
-        parsed = _parse(input_)
-        check = parsed[4] in range(parsed[0], parsed[1] + 1)
-        log(_output(input_, parsed, check))
+        first, second, wanted, passw = _parse(input_)
+        cnt = passw.count(wanted)
+        check = cnt in range(first, second + 1)
+        log(f"{input_}, {(first, second, wanted, passw, cnt)}, {check}")
         return check
-    return len([i for i in inputs if _check_valid_1(i)])
+    return sum(1 for i in inputs if _check_valid_1(i))
 
 
 def part_2(inputs: tuple[str]) -> int:
     def _check_valid_2(input_: str) -> bool:
-        parsed = _parse(input_)
-        first = parsed[0]
-        second = parsed[1]
-        wanted = parsed[2]
-        passw = parsed[3]
+        first, second, wanted, passw = _parse(input_)
         first_matched = passw[first - 1] == wanted
         second_matched = passw[second - 1] == wanted
         check = xor(first_matched, second_matched)
-        log(_output(input_, parsed, check))
+        log(f"{input_}, {(first, second, wanted, passw)}, {check}")
         return check
-    return len([i for i in inputs if _check_valid_2(i)])
+    return sum(1 for i in inputs if _check_valid_2(i))
 
 
 TEST = """\
