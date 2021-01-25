@@ -2,7 +2,7 @@
 
 ## 2020
 
-![2020 Calendar](https://github.com/pareronia/adventofcode/blob/main/doc/aoc202.jpg "2020 Calendar")
+![2020 Calendar](https://github.com/pareronia/adventofcode/blob/main/doc/aoc2020.jpg "2020 Calendar")
 
 ## 2015
 
