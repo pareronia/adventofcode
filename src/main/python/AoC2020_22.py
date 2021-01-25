@@ -6,7 +6,7 @@
 from dataclasses import dataclass
 from copy import deepcopy
 from aoc import my_aocd
-from aoc.common import log, spinner
+from aoc.common import log
 
 
 @dataclass
@@ -86,8 +86,8 @@ def _play_combat(players: Players, total_games: int, recursive: bool):
             pl2.append(n2)
             pl2.append(n1)
         log(f"Player {winner} wins round {rnd} of game {game}!")
-        if recursive:
-            spinner(rnd)
+        if recursive and rnd % 2000 == 0:
+            print('.', end='', flush=True)
         rnd += 1
     log(f"The winner of game {game} is player {winner}!")
     return players, total_games
@@ -110,6 +110,7 @@ def part_1(inputs: tuple[str]) -> int:
 def part_2(inputs: tuple[str]) -> int:
     players = _parse(inputs)
     players, _ = _play_recursive_combat(players, total_games=0)
+    print("")
     return _get_score(players)
 
 

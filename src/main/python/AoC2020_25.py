@@ -11,10 +11,7 @@ def _find_loop_size(key: int) -> int:
     val = 1
     while val != key:
         loop_size += 1
-        if loop_size % 10000 == 0:
-            print(f"loop_size: {loop_size}", end="\r", flush=True)
         val = val * 7 % 20201227
-    print("")
     return loop_size
 
 

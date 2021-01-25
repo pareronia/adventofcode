@@ -4,6 +4,7 @@ SRC_ROOT_MAIN := $(SRC_ROOT)/main
 SRC_ROOT_TEST := $(SRC_ROOT)/test
 PYTHON_ROOT := $(SRC_ROOT_MAIN)/python
 PYTHON_TEST_ROOT := $(SRC_ROOT_TEST)/python
+CLITEST_ROOT := $(SRC_ROOT_TEST)/clitest
 PYTHON_PATH := PYTHONPATH=$(PYTHON_ROOT)
 JAVA_ROOT := $(SRC_ROOT_MAIN)/java
 JAVA_TEST_ROOT := $(SRC_ROOT_TEST)/java
@@ -15,6 +16,7 @@ GREP := grep
 GAWK := awk
 SORT := sort
 SED := sed
+CLITEST := clitest
 PYTHON_CMD := python -O
 UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := java -ea -cp $(CLASSPATH)
@@ -25,7 +27,8 @@ NC='\033[0m' # No Color
 MAKEFILE = $(realpath $(lastword $(MAKEFILE_LIST)))
 PY_SRCS = $(shell find $(PYTHON_ROOT) $(PYTHON_TEST_ROOT) -name "*.py")
 JAVA_SRCS = $(shell find $(JAVA_ROOT) $(JAVA_TEST_ROOT) -name "*.java")
-SRCS = $(PY_SRCS) $(JAVA_SRCS) $(MAKEFILE)
+CLITEST_SRCS = $(shell find $(CLITEST_ROOT) -name "*.md")
+SRCS = $(PY_SRCS) $(JAVA_SRCS) $(CLITEST_SRCS) $(MAKEFILE)
 
 # functions
 msg = (if [ -t 1 ]; then echo ${BLUE}"\n$1\n"${NC}; else echo "$1"; fi)
@@ -50,7 +53,15 @@ java:
 #: Run unit tests
 unittest:
 	@$(PYTHON_PATH) $(PYTHON_CMD) $(UNITTEST_CMD)
-		
+
+#: Run command line integration tests
+clitest:
+	@$(call msg,"Running clitest...")
+	@$(CLITEST) $(CLITEST_SRCS)
+
+#: Run all tests (unit tests, command line integration tests)
+alltest: unittest clitest
+
 #: Run Flake8 Python code linter
 flake:
 	@$(call msg,"Running Flake8 against Python source files...")
@@ -106,4 +117,4 @@ help:
 		| column -t -s '###' \
 		| $(SORT)
 
-.PHONY: flake vulture bandit fixme todo list help py java unittest
+.PHONY: flake vulture bandit fixme todo list help py java unittest clitest
