@@ -2,7 +2,7 @@
 
 # Advent of Code 2020
 
-## Day 1
+## Day 2
 
 ```console
 $ python -O src/main/python/AoC2020_02.py
@@ -17,7 +17,7 @@ Part 2: 342
 $
 ```
 
-## Day 2
+## Day 3
 
 ```console
 $ python -O src/main/python/AoC2020_03.py
