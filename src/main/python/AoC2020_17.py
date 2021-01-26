@@ -7,6 +7,7 @@
 # TODO: make one solver for GoL for multiple dimensions
 
 from __future__ import annotations
+from functools import lru_cache
 from math import prod
 from dataclasses import dataclass
 from aoc import my_aocd
@@ -114,29 +115,28 @@ class Space:
     def get_cube(self, layer: int, row: int, col: int) -> Cube:
         return self.cubes[layer][row][col]
 
-    def get_neighbours(self, cube: Cube) -> list[Cube]:
-        neighbours = []
-        z = cube.layer
-        y = cube.row
-        x = cube.col
-        dim_z, dim_y, dim_x = self.get_dimension()
-        min_z = max(z-1, 0)
-        max_z = min(z+1, dim_z-1)
-        min_y = max(y-1, 0)
-        max_y = min(y+1, dim_y-1)
-        min_x = max(x-1, 0)
-        max_x = min(x+1, dim_x-1)
-        for layer in range(min_z, max_z+1):
-            for row in range(min_y, max_y+1):
-                for col in range(min_x, max_x+1):
-                    if (layer, row, col) == (cube.layer, cube.row, cube.col):
-                        continue
-                    neighbours.append(self.get_cube(layer, row, col))
-        return neighbours
+    @classmethod
+    @lru_cache(maxsize=5200)
+    def get_neighbours(cls, z: int, y: int, x: int,
+                       dimensions: tuple[int]) -> tuple[int]:
+        return tuple((layer, row, col)
+                     for layer in range(z-1, z+2)
+                     for row in range(y-1, y+2)
+                     for col in range(x-1, x+2)
+                     if not (layer == z and row == y and col == x)
+                     and 0 <= layer < dimensions[0]
+                     and 0 <= row < dimensions[1]
+                     and 0 <= col < dimensions[2]
+                     )
 
     def count_active_neighbours(self, cube: Cube) -> int:
-        return sum([1 for c in self.get_neighbours(cube)
-                    if c.is_active()])
+        dimensions = self.get_dimension()
+        return sum([
+            1
+            for c in Space.get_neighbours(cube.layer, cube.row, cube.col,
+                                          dimensions)
+            if self.get_cube(*c).is_active()
+        ])
 
     def run_cycle(self) -> None:
         new_space = Space.build(*self.get_dimension())
@@ -237,34 +237,31 @@ class HyperSpace:
                     new_t7t.set_inactive()
         self.set_t7ts(new_space.t7ts)
 
-    def get_neighbours(self, t7t: Cube) -> list[Cube]:
-        neighbours = []
-        w = t7t.wtf
-        z = t7t.layer
-        y = t7t.row
-        x = t7t.col
-        dim_w, dim_z, dim_y, dim_x = self.get_dimension()
-        min_w = max(w-1, 0)
-        max_w = min(w+1, dim_w-1)
-        min_z = max(z-1, 0)
-        max_z = min(z+1, dim_z-1)
-        min_y = max(y-1, 0)
-        max_y = min(y+1, dim_y-1)
-        min_x = max(x-1, 0)
-        max_x = min(x+1, dim_x-1)
-        for wtf in range(min_w, max_w+1):
-            for layer in range(min_z, max_z+1):
-                for row in range(min_y, max_y+1):
-                    for col in range(min_x, max_x+1):
-                        if (wtf, layer, row, col) \
-                                == (t7t.wtf, t7t.layer, t7t.row, t7t.col):
-                            continue
-                        neighbours.append(self.get_t7t(wtf, layer, row, col))
-        return neighbours
+    @classmethod
+    @lru_cache(maxsize=67600)
+    def get_neighbours(cls, w: int, z: int, y: int, x: int,
+                       dimensions: tuple[int]) -> tuple[int]:
+        return tuple((wtf, layer, row, col)
+                     for wtf in range(w-1, w+2)
+                     for layer in range(z-1, z+2)
+                     for row in range(y-1, y+2)
+                     for col in range(x-1, x+2)
+                     if not (wtf == w and layer == z and row == y and col == x)
+                     and 0 <= wtf < dimensions[0]
+                     and 0 <= layer < dimensions[1]
+                     and 0 <= row < dimensions[2]
+                     and 0 <= col < dimensions[3]
+                     )
 
     def count_active_neighbours(self, t7t: Tesseract) -> int:
-        return sum([1 for t in self.get_neighbours(t7t)
-                    if t.is_active()])
+        dimensions = self.get_dimension()
+        return sum([
+            1
+            for t in HyperSpace.get_neighbours(t7t.wtf,
+                                               t7t.layer, t7t.row, t7t.col,
+                                               dimensions)
+            if self.get_t7t(*t).is_active()
+        ])
 
 
 def _parse_1(inputs: tuple[str], cycles: int) -> Space:
@@ -314,6 +311,7 @@ def part_1(inputs: tuple[str]) -> int:
         log(space.output())
         log(space.get_count())
         log(space.count_active())
+    log(Space.get_neighbours.cache_info())
     return space.count_active()
 
 
@@ -327,6 +325,7 @@ def part_2(inputs: tuple[str]) -> int:
         log(space.output())
         log(space.get_count())
         log(space.count_active())
+    log(HyperSpace.get_neighbours.cache_info())
     return space.count_active()
 
 
