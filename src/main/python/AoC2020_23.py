@@ -12,16 +12,7 @@ from aoc.common import log
 @dataclass
 class Cup:
     label: int
-    prev: Cup
     next_: Cup
-
-    def move_after(self, cup: Cup):
-        self.next_.prev = self.prev
-        self.prev.next_ = self.next_
-        cup.next_.prev = self
-        self.next_ = cup.next_
-        self.prev = cup
-        cup.next_ = self
 
 
 def _parse(inputs: tuple[str]) -> list[int]:
@@ -34,21 +25,17 @@ def _log(size: int, msg):
         log(msg)
 
 
-def _print_cups(move: int, cups: dict[int, Cup], current: int) -> str:
+def _print_cups(move: int, cups: dict[int, Cup], current: Cup) -> str:
     if len(cups) > 10:
         return
-    c = cups[current]
-    start = c
-    for i in range(move):
-        start = start.prev
-    p = start
+    p = current
     result = ""
     while True:
         result += f"{p.label} "
         p = p.next_
-        if p == start:
+        if p == current:
             break
-    result = result.replace(str(c.label), "(" + str(c.label) + ")")
+    result = result.replace(str(current.label), "(" + str(current.label) + ")")
     return result
 
 
@@ -58,28 +45,26 @@ def _prepare_cups(labels: list[int]) -> (dict[int, Cup], int, int, int):
     max_val = max(labels)
     cups = dict[int, Cup]()
     for label in labels:
-        cups[label] = Cup(label, None, None)
+        cups[label] = Cup(label, None)
     for i, label in enumerate(labels):
-        prev = labels[(i-1) % len(labels)]
         next_ = labels[(i+1) % len(labels)]
-        cups[label].prev = cups[prev] if prev in cups else None
         cups[label].next_ = cups[next_] if next_ in cups else None
-    cups[labels[0]].prev = cups[labels[-1]]
     cups[labels[-1]].next_ = cups[labels[0]]
     return cups, size, min_val, max_val
 
 
 def _do_move(move: int, cups: dict[int, Cup],
-             current: int, size: int, min_val: int,
+             current: Cup, size: int, min_val: int,
              max_val: int) -> (dict[int, Cup], int):
-    _log(size, f"-- move {move+1} --")
-    _log(size, f"cups: {_print_cups(move, cups, current)}")
-    c = cups[current]
+    # _log(size, f"-- move {move+1} --")
+    # _log(size, f"cups: {_print_cups(move, cups, current)}")
+    c = current
     p1 = c.next_
     p2 = p1.next_
     p3 = p2.next_
+    c.next_ = p3.next_
     pickup = (p1.label, p2.label, p3.label)
-    _log(size, f"pick up: {p1.label}, {p2.label}, {p3.label}")
+    # _log(size, f"pick up: {p1.label}, {p2.label}, {p3.label}")
     d = c.label-1
     if d < min_val:
         d = max_val
@@ -87,24 +72,24 @@ def _do_move(move: int, cups: dict[int, Cup],
         d -= 1
         if d < min_val:
             d = max_val
-    _log(size, f"destination: {d}")
-    p1.move_after(cups[d])
-    p2.move_after(p1)
-    p3.move_after(p2)
-    current = c.next_.label
-    _log(size, "")
+    # _log(size, f"destination: {d}")
+    destination = cups[d]
+    p3.next_ = destination.next_
+    destination.next_ = p1
+    current = c.next_
+    # _log(size, "")
     return cups, current
 
 
 def part_1(inputs: tuple[str]) -> int:
     cups = _parse(inputs)
     cd, size, min_val, max_val = _prepare_cups(cups)
-    current = cups[0]
+    current = cd[cups[0]]
     for move in range(100):
         cd, current = _do_move(move, cd, current, size, min_val, max_val)
     cup = cd[1]
     result = ""
-    while cup.next_ != cd[1]:
+    while cup.next_.label != 1:
         result += str(cup.next_.label)
         cup = cup.next_
     log(result)
@@ -115,7 +100,7 @@ def part_2(inputs: tuple[str]) -> int:
     cups = _parse(inputs)
     cups.extend([i for i in range(max(cups)+1, 1_000_001)])
     cd, size, min_val, max_val = _prepare_cups(cups)
-    current = cups[0]
+    current = cd[cups[0]]
     for move in range(10_000_000):
         cd, current = _do_move(move, cd, current, size, min_val, max_val)
         if move % 100_000 == 0:
