@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 import re
+from functools import lru_cache
 from dataclasses import dataclass
 from aoc import my_aocd
 from aoc.common import log
@@ -35,14 +36,16 @@ class Tile:
     x: int
     y: int
 
-    def get_neighbours(self) -> list[Position]:
+    @classmethod
+    @lru_cache(maxsize=10000)
+    def get_neighbours(cls, x: int, y: int) -> list[Position]:
         neighbours = []
-        neighbours.append(Position(self.x-1, self.y+1))
-        neighbours.append(Position(self.x, self.y+1))
-        neighbours.append(Position(self.x-1, self.y))
-        neighbours.append(Position(self.x+1, self.y))
-        neighbours.append(Position(self.x, self.y-1))
-        neighbours.append(Position(self.x+1, self.y-1))
+        neighbours.append(Position(x-1, y+1))
+        neighbours.append(Position(x, y+1))
+        neighbours.append(Position(x-1, y))
+        neighbours.append(Position(x+1, y))
+        neighbours.append(Position(x, y-1))
+        neighbours.append(Position(x+1, y-1))
         return neighbours
 
 
@@ -126,7 +129,7 @@ def _run_cycle(floor: Floor) -> Floor:
     # also check all their neighbour positions (a position can only
     #  become black if it is adjacent to at least 1 black tile)
     for tile in floor.tiles:
-        for n in tile.get_neighbours():
+        for n in Tile.get_neighbours(tile.x, tile.y):
             check.append(n)
     new_tiles = set()
     # for each position:
@@ -134,7 +137,7 @@ def _run_cycle(floor: Floor) -> Floor:
         # does it have black neighbour? yes: if that neighbour
         #  is an existing black tile; no: if it isn't
         bn = 0
-        for n in Tile(p.x, p.y).get_neighbours():
+        for n in Tile.get_neighbours(p.x, p.y):
             if Tile(n.x, n.y) in floor.tiles:
                 bn += 1
         # apply rules
@@ -156,6 +159,7 @@ def part_2(inputs: tuple[str]) -> int:
         log(len(floor.tiles))
         print(".", end="", flush=True)
     print("")
+    log(Tile.get_neighbours.cache_info())
     return len(floor.tiles)
 
 
