@@ -2,6 +2,7 @@
 #
 # Advent of Code 2020 Day 11
 #
+from functools import lru_cache
 from aoc import my_aocd
 from aoc.common import log
 
@@ -11,35 +12,24 @@ EMPTY = "L"
 OCCUPIED = "#"
 
 
-# TODO: check grid limits in _find_adjacent, so this check can be simpler
-def _check_value(grid: list[str], seat: tuple[int, int], value) -> bool:
+@lru_cache(maxsize=8648)
+def _find_neighbours(r: int, c: int, num_rows: int, num_cols: int) -> tuple:
+    return tuple((rr, cc)
+                 for rr in range(r-1, r+2)
+                 for cc in range(c-1, c+2)
+                 if not (r == rr and c == cc)
+                 and 0 <= rr < num_rows and 0 <= cc < num_cols)
+
+
+def _find_adjacent(grid: list[str], seat: tuple[int, int],
+                   len_x: int, len_y: int) -> tuple[tuple[int, int]]:
+    return _find_neighbours(seat[0], seat[1], len_x, len_y)
+
+
+def _find_visible(grid: list[str], seat: tuple[int, int],
+                  len_x: int, len_y: int) -> list[tuple[int, int]]:
     x = seat[0]
     y = seat[1]
-    max_x = len(grid[0])-1
-    max_y = len(grid)-1
-    if x < 0 or x > max_x or y < 0 or y > max_y:
-        return None
-    return grid[y][x] == value
-
-
-def _find_adjacent(grid: list[str],
-                   seat: tuple[int, int]) -> list[tuple[int, int]]:
-    x = seat[0]
-    y = seat[1]
-    adj = []
-    for i in range(x-1, x+2):
-        for j in range(y-1, y+2):
-            adj.append((i, j))
-    adj.remove((x, y))
-    return adj
-
-
-def _find_visible(grid: list[str],
-                  seat: tuple[int, int]) -> list[tuple[int, int]]:
-    x = seat[0]
-    y = seat[1]
-    len_x = len(grid[0])
-    len_y = len(grid)
     vis = []
     for i in range(x-1, -1, -1):
         if grid[y][i] != FLOOR:
@@ -88,31 +78,25 @@ def _find_visible(grid: list[str],
     return vis
 
 
-def _select_seats_to_check(strategy, grid: list[str],
-                           seat: tuple[int, int]) -> list[tuple[int, int]]:
-    return strategy(grid, seat)
-
-
-def _count_with_value(grid: list[str], seats: list[tuple[int, int]],
-                      value: str) -> int:
-    return sum([1 for s in seats if _check_value(grid, s, value)])
-
-
 def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
     new_grid = list[str]()
     changed = False
-    for y in range(len(grid)):
+    len_y = len(grid)
+    len_x = len(grid[0])
+    for y in range(len_y):
         new_row = ""
-        for x in range(len(grid[y])):
+        for x in range(len_x):
             if grid[y][x] == EMPTY:
-                to_check = _select_seats_to_check(strategy, grid, seat=(x, y))
-                if _count_with_value(grid, to_check, OCCUPIED) == 0:
+                to_check = strategy(grid, (x, y), len_x, len_y)
+                if sum(1 for s in to_check
+                       if grid[s[1]][s[0]] == OCCUPIED) == 0:
                     new_row += OCCUPIED
                     changed = True
                     continue
             elif grid[y][x] == OCCUPIED:
-                to_check = _select_seats_to_check(strategy, grid, seat=(x, y))
-                if _count_with_value(grid, to_check, OCCUPIED) >= tolerance:
+                to_check = strategy(grid, (x, y), len_x, len_y)
+                if sum(1 for s in to_check
+                       if grid[s[1]][s[0]] == OCCUPIED) >= tolerance:
                     new_row += EMPTY
                     changed = True
                     continue
@@ -131,7 +115,7 @@ def _find_count_of_equilibrium(inputs: tuple[str], strategy,
         new_grid, changed = _run_cycle(grid, strategy, tolerance)
         log(new_grid)
         if not changed:
-            return sum([row.count(OCCUPIED) for row in grid])
+            return sum(row.count(OCCUPIED) for row in grid)
         grid = new_grid
 
 
