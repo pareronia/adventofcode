@@ -3,8 +3,6 @@
 # Advent of Code 2020 Day 15
 #
 
-from collections import defaultdict, deque
-from functools import lru_cache
 from aoc import my_aocd
 from aoc.common import log
 
@@ -14,78 +12,25 @@ def _parse(inputs: tuple[str]) -> tuple[int]:
     return tuple([int(n) for n in inputs[0].split(",")])
 
 
-class Turns:
-    turns: dict
-
-    def new_deque(self) -> deque:
-        return deque(maxlen=2)
-
-    def __init__(self):
-        self.turns = defaultdict(self.new_deque)
-
-    @lru_cache(maxsize=10000)
-    def _get_turns(self, num: int) -> deque:
-        return self.turns[num]
-
-    def get_two_latest_turns(self, num: int) -> (int, int):
-        if len(self._get_turns(num)) <= 1:
-            return None
-        else:
-            return (self._get_turns(num)[-1], self._get_turns(num)[-2])
-
-    def add_latest_turn(self, num: int, turn: int) -> None:
-        self._get_turns(num).append(turn)
-
-    def get_size(self):
-        return len(self.turns)
-
-    def cache_info(self):
-        return self._get_turns.cache_info()
-
-
 def _play(starting_numbers: tuple[int], number_of_turns: int) -> int:
-    nums = starting_numbers
-    log(nums)
-    turns = Turns()
-    for i, n in enumerate(nums):
-        turns.add_latest_turn(n, i+1)
-    last = n
-    for i in range(len(nums)+1, number_of_turns+1):
-        latest_turns = turns.get_two_latest_turns(last)
-        if latest_turns is None:
-            last = 0
-        else:
-            last = latest_turns[0] - latest_turns[1]
-        turns.add_latest_turn(last, i)
-    log(turns.get_size())
-    return last
-
-
-def _play_bis(starting_numbers: tuple[int], number_of_turns: int) -> int:
-    nums = starting_numbers
-    log(f"{nums} ({number_of_turns} turns)")
-    turns = {}
-    for i, n in enumerate(nums):
+    log(f"{starting_numbers} ({number_of_turns} turns)")
+    turns = [-1] * number_of_turns
+    for i, n in enumerate(starting_numbers[:-1], start=1):
         turns[n] = i
-    prev = nums[-1]
-    turns[prev] = -1
-    for i in range(len(nums), number_of_turns):
-        prev_prev = turns.get(prev, -1)
-        if (prev_prev == -1):
-            next_ = 0
-        else:
-            next_ = i - 1 - prev_prev
-        turns[prev] = i - 1
-        prev = next_
-    return next_
+    prev = starting_numbers[-1]
+    for i in range(len(starting_numbers), number_of_turns):
+        prev_prev = turns[prev]
+        turns[prev] = i
+        prev = 0 if prev_prev == -1 else i - prev_prev
+    return prev
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _play_bis(starting_numbers=_parse(inputs), number_of_turns=2020)
+    return _play(starting_numbers=_parse(inputs), number_of_turns=2020)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return _play_bis(starting_numbers=_parse(inputs), number_of_turns=30000000)
+    return _play(starting_numbers=_parse(inputs), number_of_turns=30000000)
 
 
 TEST1 = "0,3,6".splitlines()
