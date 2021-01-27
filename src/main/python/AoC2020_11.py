@@ -11,9 +11,12 @@ FLOOR = "."
 EMPTY = "L"
 OCCUPIED = "#"
 
+the_grid: list[str]
+
 
 @lru_cache(maxsize=8648)
-def _find_neighbours(r: int, c: int, num_rows: int, num_cols: int) -> tuple:
+def _find_adjacent(r: int, c: int,
+                   num_rows: int, num_cols: int) -> tuple[tuple[int, int]]:
     return tuple((rr, cc)
                  for rr in range(r-1, r+2)
                  for cc in range(c-1, c+2)
@@ -21,15 +24,11 @@ def _find_neighbours(r: int, c: int, num_rows: int, num_cols: int) -> tuple:
                  and 0 <= rr < num_rows and 0 <= cc < num_cols)
 
 
-def _find_adjacent(grid: list[str], seat: tuple[int, int],
-                   len_x: int, len_y: int) -> tuple[tuple[int, int]]:
-    return _find_neighbours(seat[0], seat[1], len_x, len_y)
-
-
-def _find_visible(grid: list[str], seat: tuple[int, int],
+@lru_cache(maxsize=8648)
+def _find_visible(x: int, y: int,
                   len_x: int, len_y: int) -> list[tuple[int, int]]:
-    x = seat[0]
-    y = seat[1]
+    global the_grid
+    grid = the_grid
     vis = []
     for i in range(x-1, -1, -1):
         if grid[y][i] != FLOOR:
@@ -87,14 +86,14 @@ def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
         new_row = ""
         for x in range(len_x):
             if grid[y][x] == EMPTY:
-                to_check = strategy(grid, (x, y), len_x, len_y)
+                to_check = strategy(x, y, len_x, len_y)
                 if sum(1 for s in to_check
                        if grid[s[1]][s[0]] == OCCUPIED) == 0:
                     new_row += OCCUPIED
                     changed = True
                     continue
             elif grid[y][x] == OCCUPIED:
-                to_check = strategy(grid, (x, y), len_x, len_y)
+                to_check = strategy(x, y, len_x, len_y)
                 if sum(1 for s in to_check
                        if grid[s[1]][s[0]] == OCCUPIED) >= tolerance:
                     new_row += EMPTY
@@ -109,7 +108,9 @@ def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
 
 def _find_count_of_equilibrium(inputs: tuple[str], strategy,
                                tolerance: int) -> int:
-    grid = list(inputs)
+    global the_grid
+    the_grid = list(inputs)
+    grid = the_grid
     log(grid)
     while True:
         new_grid, changed = _run_cycle(grid, strategy, tolerance)
