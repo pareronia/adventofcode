@@ -25,83 +25,73 @@ def _find_adjacent(r: int, c: int,
 
 
 @lru_cache(maxsize=8648)
-def _find_visible(x: int, y: int,
-                  len_x: int, len_y: int) -> list[tuple[int, int]]:
+def _find_visible(r: int, c: int,
+                  num_rows: int, num_cols: int) -> list[tuple[int, int]]:
     global the_grid
     grid = the_grid
     vis = []
-    for i in range(x-1, -1, -1):
-        if grid[y][i] != FLOOR:
-            vis.append((i, y))
+    for rg in [range(c-1, -1, -1), range(c+1, num_cols)]:
+        for i in rg:
+            if grid[r][i] != FLOOR:
+                vis.append((r, i))
+                break
+    for rg in [range(r-1, -1, -1), range(r+1, num_rows)]:
+        for i in rg:
+            if grid[i][c] != FLOOR:
+                vis.append((i, c))
+                break
+    cnt_right = num_cols-1-c
+    cnt_up = r
+    cnt_down = num_rows-1-r
+    cnt_left = c
+    i = 0
+    while (i := i + 1) <= min(cnt_right, cnt_down):
+        if grid[r+i][c+i] != FLOOR:
+            vis.append((r+i, c+i))
             break
-    for i in range(x+1, len_x):
-        if grid[y][i] != FLOOR:
-            vis.append((i, y))
+    i = 0
+    while (i := i + 1) <= min(cnt_left, cnt_down):
+        if grid[r+i][c-i] != FLOOR:
+            vis.append((r+i, c-i))
             break
-    for i in range(y-1, -1, -1):
-        if grid[i][x] != FLOOR:
-            vis.append((x, i))
+    i = 0
+    while (i := i + 1) <= min(cnt_left, cnt_up):
+        if grid[r-i][c-i] != FLOOR:
+            vis.append((r-i, c-i))
             break
-    for i in range(y+1, len_y):
-        if grid[i][x] != FLOOR:
-            vis.append((x, i))
+    i = 0
+    while (i := i + 1) <= min(cnt_right, cnt_up):
+        if grid[r-i][c+i] != FLOOR:
+            vis.append((r-i, c+i))
             break
-    cnt_right = len_x-1-x
-    cnt_up = y
-    cnt_down = len_y-1-y
-    cnt_left = x
-    i = 1
-    while i <= min(cnt_right, cnt_down):
-        if grid[y+i][x+i] != FLOOR:
-            vis.append((x+i, y+i))
-            break
-        i += 1
-    i = 1
-    while i <= min(cnt_left, cnt_down):
-        if grid[y+i][x-i] != FLOOR:
-            vis.append((x-i, y+i))
-            break
-        i += 1
-    i = 1
-    while i <= min(cnt_left, cnt_up):
-        if grid[y-i][x-i] != FLOOR:
-            vis.append((x-i, y-i))
-            break
-        i += 1
-    i = 1
-    while i <= min(cnt_right, cnt_up):
-        if grid[y-i][x+i] != FLOOR:
-            vis.append((x+i, y-i))
-            break
-        i += 1
     return vis
 
 
 def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
     new_grid = list[str]()
     changed = False
-    len_y = len(grid)
-    len_x = len(grid[0])
-    for y in range(len_y):
+    num_rows = len(grid)
+    num_cols = len(grid[0])
+    for r in range(num_rows):
         new_row = ""
-        for x in range(len_x):
-            if grid[y][x] == EMPTY:
-                to_check = strategy(x, y, len_x, len_y)
-                if sum(1 for s in to_check
-                       if grid[s[1]][s[0]] == OCCUPIED) == 0:
+        for c in range(num_cols):
+            if grid[r][c] == EMPTY:
+                to_check = strategy(r, c, num_rows, num_cols)
+                if sum(1 for rr, cc in to_check
+                       if grid[rr][cc] == OCCUPIED) == 0:
                     new_row += OCCUPIED
                     changed = True
                     continue
-            elif grid[y][x] == OCCUPIED:
-                to_check = strategy(x, y, len_x, len_y)
-                if sum(1 for s in to_check
-                       if grid[s[1]][s[0]] == OCCUPIED) >= tolerance:
+            elif grid[r][c] == OCCUPIED:
+                to_check = strategy(r, c, num_rows, num_cols)
+                if sum(1 for rr, cc in to_check
+                       if grid[rr][cc] == OCCUPIED) >= tolerance:
                     new_row += EMPTY
                     changed = True
                     continue
-            elif grid[y][x] != FLOOR:
+            elif grid[r][c] != FLOOR:
                 raise ValueError("invalid grid")
-            new_row += grid[y][x]
+            new_row += grid[r][c]
         new_grid.append(new_row)
     return new_grid, changed
 
