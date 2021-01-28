@@ -32,38 +32,14 @@ class NavigationInstruction:
 
 
 @dataclass(frozen=True)
-class Tile:
-    x: int
-    y: int
-
-    @classmethod
-    @lru_cache(maxsize=10000)
-    def get_neighbours(cls, x: int, y: int) -> list[Position]:
-        neighbours = []
-        neighbours.append(Position(x-1, y+1))
-        neighbours.append(Position(x, y+1))
-        neighbours.append(Position(x-1, y))
-        neighbours.append(Position(x+1, y))
-        neighbours.append(Position(x, y-1))
-        neighbours.append(Position(x+1, y-1))
-        return neighbours
-
-
-@dataclass(frozen=True)
 class Floor:
-    tiles: set[Tile]
+    tiles: set[tuple[int, int]]
 
-    def get(self, x: int, y: int):
-        for tile in self.tiles:
-            if tile.x == x and tile.y == y:
-                return tile
-
-    def flip(self, position: Position):
-        tile = self.get(position.x, position.y)
-        if tile is None:
-            self.tiles.add(Tile(position.x, position.y))
-        else:
+    def flip(self, tile: tuple[int, int]):
+        if tile in self.tiles:
             self.tiles.remove(tile)
+        else:
+            self.tiles.add(tile)
 
 
 def _parse(inputs: tuple[str]) -> list[list[NavigationInstruction]]:
@@ -113,7 +89,7 @@ def _build_floor(navs: list[list[NavigationInstruction]]) -> Floor:
     for nav in navs:
         navigation = NavigationWithWaypoint(Position(0, 0), Waypoint(0, 0))
         [_navigate_with_waypoint(navigation, n) for n in nav]
-        floor.flip(navigation.waypoint)
+        floor.flip((navigation.waypoint.x, navigation.waypoint.y))
     return floor
 
 
@@ -123,13 +99,25 @@ def part_1(inputs: tuple[str]) -> int:
     return len(floor.tiles)
 
 
+@lru_cache(maxsize=11000)
+def _get_neighbours(x: int, y: int) -> list[Position]:
+    neighbours = []
+    neighbours.append((x-1, y+1))
+    neighbours.append((x, y+1))
+    neighbours.append((x-1, y))
+    neighbours.append((x+1, y))
+    neighbours.append((x, y-1))
+    neighbours.append((x+1, y-1))
+    return neighbours
+
+
 def _run_cycle(floor: Floor) -> Floor:
     # check the positions of all existing black tiles
-    check = [Position(tile.x, tile.y) for tile in floor.tiles]
+    check = [tile for tile in floor.tiles]
     # also check all their neighbour positions (a position can only
     #  become black if it is adjacent to at least 1 black tile)
     for tile in floor.tiles:
-        for n in Tile.get_neighbours(tile.x, tile.y):
+        for n in _get_neighbours(*tile):
             check.append(n)
     new_tiles = set()
     # for each position:
@@ -137,15 +125,14 @@ def _run_cycle(floor: Floor) -> Floor:
         # does it have black neighbour? yes: if that neighbour
         #  is an existing black tile; no: if it isn't
         bn = 0
-        for n in Tile.get_neighbours(p.x, p.y):
-            if Tile(n.x, n.y) in floor.tiles:
+        for n in _get_neighbours(*p):
+            if n in floor.tiles:
                 bn += 1
         # apply rules
-        tile = Tile(p.x, p.y)
-        if tile in floor.tiles and bn in {1, 2}:
-            new_tiles.add(tile)
-        if tile not in floor.tiles and bn == 2:
-            new_tiles.add(tile)
+        if p in floor.tiles and bn in {1, 2}:
+            new_tiles.add(p)
+        if p not in floor.tiles and bn == 2:
+            new_tiles.add(p)
     new_floor = Floor(new_tiles)
     return new_floor
 
@@ -157,9 +144,7 @@ def part_2(inputs: tuple[str]) -> int:
     for i in range(100):
         floor = _run_cycle(floor)
         log(len(floor.tiles))
-        print(".", end="", flush=True)
-    print("")
-    log(Tile.get_neighbours.cache_info())
+    log(_get_neighbours.cache_info())
     return len(floor.tiles)
 
 
