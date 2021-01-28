@@ -2,6 +2,12 @@
 #
 # Advent of Code 2020 Day 24
 #
+"""
+Coordinate system:
+    NW: 1,-1    NE: 0,1
+    W : -1,0    0,0         E: 1,0
+                SW: 0,-1    SE: 1,-1
+"""
 
 from __future__ import annotations
 import re
@@ -43,12 +49,6 @@ class Floor:
 
 
 def _parse(inputs: tuple[str]) -> list[list[NavigationInstruction]]:
-    """
-    Coordinate system:
-        NW: 1,-1    NE: 0,1
-        W : -1,0    0,0         E: 1,0
-                    SW: 0,-1    SE: 1,-1
-    """
     navs = list[list[NavigationInstruction]]()
     for input_ in inputs:
         nav = list[NavigationInstruction]()
@@ -101,27 +101,26 @@ def part_1(inputs: tuple[str]) -> int:
 
 @lru_cache(maxsize=11000)
 def _get_neighbours(x: int, y: int) -> list[Position]:
-    neighbours = []
-    neighbours.append((x-1, y+1))
-    neighbours.append((x, y+1))
-    neighbours.append((x-1, y))
-    neighbours.append((x+1, y))
-    neighbours.append((x, y-1))
-    neighbours.append((x+1, y-1))
-    return neighbours
+    return [((x + dx, y + dy))
+            for dx, dy in [(-1, 1), (0, 1),
+                           (-1, 0), (1, 0),
+                           (0, -1), (1, -1)]
+            ]
 
 
 def _run_cycle(floor: Floor) -> Floor:
-    # check the positions of all existing black tiles
-    check = [tile for tile in floor.tiles]
-    # also check all their neighbour positions (a position can only
-    #  become black if it is adjacent to at least 1 black tile)
-    for tile in floor.tiles:
-        for n in _get_neighbours(*tile):
-            check.append(n)
+    def to_check():
+        for tile in floor.tiles:
+            # check the positions of all existing black tiles
+            yield tile
+            # also check all their neighbour positions (a position can only
+            #  become black if it is adjacent to at least 1 black tile)
+            for n in _get_neighbours(*tile):
+                yield n
+
     new_tiles = set()
     # for each position:
-    for p in check:
+    for p in to_check():
         # does it have black neighbour? yes: if that neighbour
         #  is an existing black tile; no: if it isn't
         bn = 0
@@ -133,8 +132,7 @@ def _run_cycle(floor: Floor) -> Floor:
             new_tiles.add(p)
         if p not in floor.tiles and bn == 2:
             new_tiles.add(p)
-    new_floor = Floor(new_tiles)
-    return new_floor
+    return Floor(new_tiles)
 
 
 def part_2(inputs: tuple[str]) -> int:
