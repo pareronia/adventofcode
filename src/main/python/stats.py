@@ -4,6 +4,7 @@ from typing import NamedTuple
 import requests
 import re
 import aocd
+from datetime import timedelta
 
 
 STATS_URL = "https://adventofcode.com/{year}/stats"
@@ -39,13 +40,29 @@ class LeaderBoard(NamedTuple):
     score_both: int
 
 
-def get_session_cookie() -> str:
-    u = aocd.models.default_user()
-    return u.token
+def get_aocd_leaderboard(user, year: int):
+    def as_str(t: timedelta) -> str:
+        if t.days > 0:
+            return ">24h"
+        else:
+            hours = t.seconds // 3600
+            minutes = (t.seconds - hours * 3600) // 60
+            seconds = t.seconds - hours * 3600 - minutes * 60
+            return ":".join(str(_).rjust(2, '0')
+                            for _ in [hours, minutes, seconds])
+
+    return {k[1]: LeaderBoard(time_first=as_str(v['a']['time']),
+                              rank_first=v['a']['rank'],
+                              score_first=v['a']['score'],
+                              time_both=as_str(v['b']['time']),
+                              rank_both=v['b']['rank'],
+                              score_both=v['b']['score']
+                              ) for k, v in user.get_stats(year).items()
+            }
 
 
-def get_leaderboard(year: int):
-    cookies = dict(session=get_session_cookie())
+def scrape_leaderboard(user, year: int):
+    cookies = dict(session=user.token)
     r = requests.get(LEADERBOARD_URL.format(year=year),
                      cookies=cookies)
     leaderboards = dict[int, LeaderBoard]()
@@ -77,6 +94,13 @@ def get_leaderboard(year: int):
     return leaderboards
 
 
+def get_leaderboard(user, year: int):
+    try:
+        return get_aocd_leaderboard(user, year)
+    except AttributeError:
+        return scrape_leaderboard(user, year)
+
+
 def format_time(time: str) -> str:
     if time != ">24h":
         time = time[:-3]
@@ -86,9 +110,9 @@ def format_time(time: str) -> str:
     return time
 
 
-def get_score(year: int):
+def get_score(user, year: int):
     stats = get_stats(year)
-    leaderboard = get_leaderboard(year)
+    leaderboard = get_leaderboard(user, year)
     print(" " * 53 + " Part 1 ".center(30, '_')
           + " " * 5 + " Part 2 ".center(30, '_'))
     print("")
@@ -145,18 +169,10 @@ def get_score(year: int):
         print(output)
 
 
-def get_score_aocd(year: int):
-    u = aocd.models.default_user()
-    try:
-        stats = u.get_stats(year)
-        print(stats)
-    except AttributeError:
-        pass
-
-
 def main():
-    get_score_aocd(int(sys.argv[1]))
-    get_score(int(sys.argv[1]))
+    user = aocd.models.default_user()
+    year = int(sys.argv[1])
+    get_score(user, year)
 
 
 if __name__ == '__main__':
