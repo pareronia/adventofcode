@@ -89,52 +89,73 @@ def format_time(time: str) -> str:
 def get_score(year: int):
     stats = get_stats(year)
     leaderboard = get_leaderboard(year)
+    print(" " * 53 + " Part 1 ".center(30, '_')
+          + " " * 5 + " Part 2 ".center(30, '_'))
+    print("")
     for i in range(1, max(stats.keys())+1):
         puzzle = aocd.models.Puzzle(year=year, day=i)
         title = "-- " + puzzle.title + " --"
         title = title.ljust(45)
         if i not in leaderboard:
             continue
+        rank_first = leaderboard[i].rank_first
+        time_first = format_time(leaderboard[i].time_first)
+        first = stats[i].first_only + stats[i].both
+        pct_first = (leaderboard[i].rank_first-1) / first * 100 // 0.01 / 100
         if leaderboard[i].rank_both is not None:
             rank_both = leaderboard[i].rank_both
             time_both = format_time(leaderboard[i].time_both)
-            pct = (leaderboard[i].rank_both-1) / stats[i].both \
+            pct_both = (leaderboard[i].rank_both-1) / stats[i].both \
                 * 100 // 0.01 / 100
             stars = "**"
-            f = "{day:3d} {title} :  {time_both}  {rank_both:6d}"\
-                + " / {both:6d} = {pct:2.2f}  {stars}"
-            output = f.format(
-                day=i,
-                title=title,
-                time_both=time_both,
-                rank_both=rank_both,
-                both=stats[i].both,
-                pct=pct,
-                stars=stars
-            )
+            f = "{day:3d} {title} :  " \
+                + "{time_first}  {rank_first:6d}"\
+                + " / {first:6d} = {pct_first:2.2f}"\
+                + "  |  "\
+                + "{time_both}  {rank_both:6d}"\
+                + " / {both:6d} = {pct_both:2.2f}"\
+                + "  |  "\
+                + "{stars}"
         else:
-            rank_first = leaderboard[i].rank_first
-            time_first = format_time(leaderboard[i].time_first)
-            first = stats[i].first_only + stats[i].both
-            pct = (leaderboard[i].rank_first-1) / first * 100 // 0.01 / 100
+            rank_both = "--".rjust(6)
+            time_both = "-:--".rjust(5)
+            pct_both = "--.--"
             stars = "*"
-            f = "{day:3d} {title} :  {time_first}  {rank_first:6d}"\
-                + " / {first:6d} = {pct:2.2f}  {stars}"
-            output = f.format(
-                day=i,
-                title=title,
-                time_first=time_first,
-                rank_first=rank_first,
-                first=first,
-                pct=pct,
-                stars=stars
+            f = "{day:3d} {title} :  " \
+                + "{time_first}  {rank_first:6d}"\
+                + " / {first:6d} = {pct_first:2.2f}"\
+                + "  |  "\
+                + "{time_both}  {rank_both}"\
+                + " / {both:6d} = {pct_both}"\
+                + "  |  "\
+                + "{stars}"
+        output = f.format(
+            day=i,
+            title=title,
+            time_first=time_first,
+            rank_first=rank_first,
+            first=first,
+            pct_first=pct_first,
+            time_both=time_both,
+            rank_both=rank_both,
+            both=stats[i].both,
+            pct_both=pct_both,
+            stars=stars
             )
         print(output)
-    # u = aocd.models.default_user()
-    # print(u.get_stats(year))
+
+
+def get_score_aocd(year: int):
+    u = aocd.models.default_user()
+    try:
+        stats = u.get_stats(year)
+        print(stats)
+    except AttributeError:
+        pass
 
 
 def main():
+    get_score_aocd(int(sys.argv[1]))
     get_score(int(sys.argv[1]))
 
 
