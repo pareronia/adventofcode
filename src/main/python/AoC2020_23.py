@@ -40,17 +40,20 @@ def _print_cups(move: int, cups: dict[int, Cup], current: Cup) -> str:
 
 
 def _prepare_cups(labels: list[int]) -> (dict[int, Cup], int, int, int):
-    size = len(labels)
-    min_val = min(labels)
-    max_val = max(labels)
     cups = dict[int, Cup]()
-    for label in labels:
-        cups[label] = Cup(label, None)
-    for i, label in enumerate(labels):
-        next_ = labels[(i+1) % len(labels)]
-        cups[label].next_ = cups[next_] if next_ in cups else None
-    cups[labels[-1]].next_ = cups[labels[0]]
-    return cups, size, min_val, max_val
+    first = labels[0]
+    last = labels[-1]
+    tail = Cup(last, None)
+    prev = tail
+    for label in reversed(labels[1:-1]):
+        cup = Cup(label, prev)
+        cups[label] = cup
+        prev = cup
+    head = Cup(first, prev)
+    cups[first] = head
+    tail.next_ = head
+    cups[last] = tail
+    return cups, len(labels), min(labels), max(labels)
 
 
 def _do_move(move: int, cups: dict[int, Cup],
