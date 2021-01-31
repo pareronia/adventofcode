@@ -1,4 +1,5 @@
 import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 public abstract class AoCBase {
 
@@ -41,5 +42,12 @@ public abstract class AoCBase {
 			return;
 		}
 		System.out.println(obj);
+	}
+
+	protected void log(Supplier<Object> supplier) {
+		if (!debug) {
+			return;
+		}
+		System.out.println(supplier.get());
 	}
 }

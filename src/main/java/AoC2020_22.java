@@ -70,16 +70,16 @@ public class AoC2020_22 extends AoCBase {
 	private void playCombat(Players players, MutableInt _game, boolean recursive) {
 		_game.increment();
 		final int game = _game.intValue();
-		log(String.format("=== Game %d ===", game));
+		log(() ->String.format("=== Game %d ===", game));
 		final Set<Round> seen = new HashSet<>();
-		int rnd = 1;
+		final MutableInt rnd = new MutableInt(1);
 		final List<Integer> pl1 = players.player1;
 		final List<Integer> pl2 = players.player2;
 		while (!pl1.isEmpty() && !pl2.isEmpty()) {
-			log("");
-			log(String.format("-- Round %d (Game %d) --", rnd, game));
-			log(String.format("Player 1's deck: %s", StringUtils.join(pl1, ", ")));
-			log(String.format("Player 2's deck: %s", StringUtils.join(pl2, ", ")));
+			log(() ->"");
+			log(() ->String.format("-- Round %d (Game %d) --", rnd.intValue(), game));
+			log(() ->String.format("Player 1's deck: %s", StringUtils.join(pl1, ", ")));
+			log(() ->String.format("Player 2's deck: %s", StringUtils.join(pl2, ", ")));
 			final Round round = new Round(pl1, pl2);
 			if (recursive && seen.contains(round)) {
 				pl2.clear();
@@ -87,18 +87,18 @@ public class AoC2020_22 extends AoCBase {
 			}
 			seen.add(round);
 			final Integer n1 = pl1.remove(0);
-			log(String.format("Player 1 plays: %d", n1));
+			log(() ->String.format("Player 1 plays: %d", n1));
 			final Integer n2 = pl2.remove(0);
-			log(String.format("Player 2 plays: %d", n2));
+			log(() ->String.format("Player 2 plays: %d", n2));
 			final Integer winner;
 			if (recursive && pl1.size() >= n1 && pl2.size() >= n2) {
-				log("Playing a sub-game to determine the winner...");
-				log("");
+				log(() ->"Playing a sub-game to determine the winner...");
+				log(() ->"");
 				final List<Integer> pl1_sub = new ArrayList<>(pl1.subList(0, n1));
 				final List<Integer> pl2_sub = new ArrayList<>(pl2.subList(0, n2));
 				playCombat(new Players(pl1_sub, pl2_sub), _game, true);
-				log("");
-				log(String.format("...anyway, back to game %d.", game));
+				log(() ->"");
+				log(() ->String.format("...anyway, back to game %d.", game));
 				winner = pl2_sub.isEmpty() ? 1 : 2;
 			} else {
 				winner = n1 > n2 ? 1 : 2;
@@ -108,11 +108,11 @@ public class AoC2020_22 extends AoCBase {
 			} else {
 				pl2.addAll(asList(n2, n1));
 			}
-			log(String.format("Player %d wins round %d of game %d!", winner, rnd, game));
-			rnd++;
+			log(() ->String.format("Player %d wins round %d of game %d!", winner, rnd.intValue(), game));
+			rnd.increment();
 		}
 		final Integer winner = pl2.isEmpty() ? 1 : 2;
-		log(String.format("The winner of game %d is player %d!", game, winner));
+		log(() ->String.format("The winner of game %d is player %d!", game, winner));
 	}
 	
 	private long getScore(Players players) {
