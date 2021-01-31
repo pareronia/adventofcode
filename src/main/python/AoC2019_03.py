@@ -6,13 +6,15 @@
 from typing import Iterator
 from aoc import my_aocd
 
+Coord = tuple[int, int]
+Wire = list[Coord]
+
 
 def _parse(inputs: tuple[str]) -> (Iterator[str], Iterator[str]):
     return ((_ for _ in inputs[i].split(",")) for i in range(2))
 
 
-def _to_leg(start: tuple[int, int],
-            instruction: str) -> Iterator[tuple[int, int]]:
+def _to_leg(start: Coord, instruction: str) -> Iterator[Coord]:
     direction = instruction[0]
     amount = int(instruction[1:])
     if direction not in {"R", "U", "L", "D"}:
@@ -28,23 +30,29 @@ def _to_leg(start: tuple[int, int],
             yield (start[0], start[1] - i)
 
 
-def _to_wire(start: tuple[int, int], instructions: Iterator[str]):
-    wc = set()
+def _to_wire(start: Coord, instructions: Iterator[str]) -> Wire:
+    wire = Wire()
     for instruction in instructions:
         for coord in _to_leg(start, instruction):
-            wc.add(coord)
+            wire.append(coord)
             start = coord
-    return wc
+    return wire
+
+
+def _get_wires(wire_instructions) -> (Wire, Wire):
+    return (_to_wire((0, 0), instructions)
+            for instructions in wire_instructions)
 
 
 def part_1(inputs: tuple[str]) -> int:
-    wire1, wire2 = (_to_wire((0, 0), instructions)
-                    for instructions in _parse(inputs))
-    return min(abs(x) + abs(y) for x, y in wire1 & wire2)
+    wire1, wire2 = _get_wires(_parse(inputs))
+    return min(abs(x) + abs(y) for x, y in set(wire1) & set(wire2))
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    wire1, wire2 = _get_wires(_parse(inputs))
+    return min(wire1.index(c) + 1 + wire2.index(c) + 1
+               for c in set(wire1) & set(wire2))
 
 
 TEST1 = """\
@@ -67,6 +75,9 @@ def main() -> None:
     assert part_1(TEST1) == 6
     assert part_1(TEST2) == 159
     assert part_1(TEST3) == 135
+    assert part_2(TEST1) == 30
+    assert part_2(TEST2) == 610
+    assert part_2(TEST3) == 410
 
     inputs = my_aocd.get_input(2019, 3, 2)
     result1 = part_1(inputs)
