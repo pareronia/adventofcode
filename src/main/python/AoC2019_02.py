@@ -3,6 +3,8 @@
 # Advent of Code 2019 Day 2
 #
 
+import itertools
+from copy import deepcopy
 from aoc import my_aocd
 
 
@@ -24,16 +26,22 @@ def _run_intcode(prog: list[int]) -> list[int]:
             raise ValueError("Invalid op")
 
 
+def _run_prog(prog: list[int], noun: int, verb: int) -> int:
+    prog[1] = noun
+    prog[2] = verb
+    return _run_intcode(prog)
+
+
 def part_1(inputs: tuple[str]) -> int:
-    prog = _parse(inputs)
-    prog[1] = 12
-    prog[2] = 2
-    prog = _run_intcode(prog)
-    return prog[0]
+    return _run_prog(_parse(inputs), 12, 2)[0]
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    prog = _parse(inputs)
+    for noun, verb in itertools.product(range(100), repeat=2):
+        if _run_prog(deepcopy(prog), noun, verb)[0] == 19690720:
+            return 100 * noun + verb
+    raise RuntimeError("Unsolved")
 
 
 TEST1 = "1,9,10,3,2,3,11,0,99,30,40,50".splitlines()
