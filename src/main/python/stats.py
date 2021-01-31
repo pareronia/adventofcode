@@ -51,13 +51,15 @@ def get_aocd_leaderboard(user, year: int):
             return ":".join(str(_).rjust(2, '0')
                             for _ in [hours, minutes, seconds])
 
-    return {k[1]: LeaderBoard(time_first=as_str(v['a']['time']),
-                              rank_first=v['a']['rank'],
-                              score_first=v['a']['score'],
-                              time_both=as_str(v['b']['time']),
-                              rank_both=v['b']['rank'],
-                              score_both=v['b']['score']
-                              ) for k, v in user.get_stats(year).items()
+    return {k[1]:
+            LeaderBoard(
+                time_first=as_str(v['a']['time']),
+                rank_first=v['a']['rank'],
+                score_first=v['a']['score'],
+                time_both=as_str(v['b']['time']) if 'b' in v else None,
+                rank_both=v['b']['rank'] if 'b' in v else None,
+                score_both=v['b']['score'] if 'b' in v else None)
+            for k, v in user.get_stats(year).items()
             }
 
 
