@@ -48,9 +48,9 @@ def _get_score(players: Players):
 def _play_combat(players: Players, total_games: int, recursive: bool):
     total_games += 1
     # game = total_games
-    # log(f"=== Game {game} ===")
+    # clog(lambda: f"=== Game {game} ===")
     seen = set()
-    rnd = 1
+    # rnd = 1
     pl1 = players.player1
     pl2 = players.player2
     while pl1 and pl2:
@@ -58,25 +58,25 @@ def _play_combat(players: Players, total_games: int, recursive: bool):
         if recursive and round_ in seen:
             return players, total_games
         seen.add(round_)
-        log("")
-        # log(f"-- Round {rnd} (Game {game}) --")
-        # log(f"Player 1's deck: {pl1}")
-        # log(f"Player 2's deck: {pl2}")
+        # clog(lambda: "")
+        # clog(lambda: f"-- Round {rnd} (Game {game}) --")
+        # clog(f"Player 1's deck: {pl1}")
+        # clog(lambda: f"Player 2's deck: {pl2}")
         n1 = pl1.pop(0)
-        # log(f"Player 1 plays: {n1}")
+        # clog(lambda: f"Player 1 plays: {n1}")
         n2 = pl2.pop(0)
-        # log(f"Player 2 plays: {n2}")
+        # clog(lambda: f"Player 2 plays: {n2}")
         if recursive and len(pl1) >= n1 and len(pl2) >= n2:
-            # log("Playing a sub-game to determine the winner...")
-            # log("")
+            # clog(lambda: "Playing a sub-game to determine the winner...")
+            # clog(lambda: "")
             pl1_sub = deepcopy(pl1[:n1])
             pl2_sub = deepcopy(pl2[:n2])
             players_sub = Players(pl1_sub, pl2_sub)
             players_sub, total_games = _play_combat(players_sub,
                                                     total_games, True)
             winner = 1 if players_sub.player1 else players_sub.player2
-            # log("")
-            # log(f"...anyway, back to game {game}.")
+            # clog(lambda: "")
+            # clog(lambda: f"...anyway, back to game {game}.")
         else:
             winner = 1 if n1 > n2 else 2
         if winner == 1:
@@ -85,11 +85,11 @@ def _play_combat(players: Players, total_games: int, recursive: bool):
         else:
             pl2.append(n2)
             pl2.append(n1)
-        # log(f"Player {winner} wins round {rnd} of game {game}!")
+        # clog(lambda: f"Player {winner} wins round {rnd} of game {game}!")
         # if recursive and rnd % 2000 == 0:
         #     print('.', end='', flush=True)
-        rnd += 1
-    # log(f"The winner of game {game} is player {winner}!")
+        # rnd += 1
+    # clog(lambda: f"The winner of game {game} is player {winner}!")
     return players, total_games
 
 
