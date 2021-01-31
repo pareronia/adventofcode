@@ -1,4 +1,10 @@
 from prettyprinter import cpprint
+from typing import Callable
+
+
+def clog(c: Callable) -> None:
+    if __debug__:
+        log(c())
 
 
 def log(msg) -> None:
