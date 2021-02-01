@@ -3,7 +3,6 @@
 # Advent of Code 2019 Day 3
 #
 
-import re
 from typing import Callable
 from collections import Counter
 from aoc import my_aocd
@@ -14,30 +13,17 @@ def _parse(inputs: tuple[str]) -> (int, int):
 
 
 def _does_not_decrease(passw: str) -> bool:
-    for i, c in enumerate(passw):
-        if i == len(passw) - 1:
-            continue
-        if int(passw[i+1]) < int(c):
-            return False
-    return True
+    return list(passw) == sorted(passw)
 
 
 def _is_valid_1(passw: int) -> bool:
     passw = str(passw)
-    if _does_not_decrease(passw):
-        groups_count = len(re.findall(r'([0-9])\1', passw))
-        return groups_count >= 1
-    return False
+    return _does_not_decrease(passw) and len(set(passw)) != len(passw)
 
 
 def _is_valid_2(passw: int) -> bool:
     passw = str(passw)
-    if _does_not_decrease(passw):
-        groups_count_by_length = Counter(
-            [len(match.group(0))
-             for match in re.finditer(r'([0-9])\1+', passw)])
-        return groups_count_by_length[2] >= 1
-    return False
+    return _does_not_decrease(passw) and 2 in Counter(passw).values()
 
 
 def _count_valid(inputs: tuple[str], check: Callable) -> int:
