@@ -1,6 +1,6 @@
 [[_TOC_]]
 
-#: Advent of Code 2020
+# Advent of Code 2020
 
 ## Day 1
 
