@@ -1,21 +1,21 @@
-import static java.util.Arrays.asList;
-
 import java.util.List;
+
+import com.github.pareronia.aocd.Aocd;
 
 public class AoC2015_20 extends AoCBase {
 
 	private final List<String> inputs;
 
-	private AoC2015_20(String input, boolean debug) {
+	private AoC2015_20(List<String> input, boolean debug) {
 		super(debug);
-		this.inputs = asList((input + "\n").split("\\r?\\n"));
+		this.inputs = input;
 	}
 	
-	public static AoC2015_20 createDebug(String input) {
+	public static AoC2015_20 createDebug(List<String> input) {
 		return new AoC2015_20(input, true);
 	}
 	
-	public static AoC2015_20 create(String input) {
+	public static AoC2015_20 create(List<String> input) {
 		return new AoC2015_20(input, false);
 	}
 	
@@ -44,18 +44,18 @@ public class AoC2015_20 extends AoCBase {
 		
 		int result = 1;
 		for (int divider = 2; divider <= Math.sqrt(number); divider++) {
-			int curr_sum = 1; 
-            int curr_term = 1; 
-            while (number % divider == 0) { 
-                number = number / divider; 
-                curr_term *= divider; 
-                curr_sum += curr_term; 
-            } 
-            result *= curr_sum; 
+			int curr_sum = 1;
+            int curr_term = 1;
+            while (number % divider == 0) {
+                number = number / divider;
+                curr_term *= divider;
+                curr_sum += curr_term;
+            }
+            result *= curr_sum;
 		}
 		if (number >= 2) {
 			result *= (1 + number);
-		} 
+		}
 		return result;
 	}
 
@@ -73,7 +73,7 @@ public class AoC2015_20 extends AoCBase {
 	@Override
 	public long solvePart2() {
 		assert inputs.size() == 1;
-		int numberOfGifts = Double.valueOf(Math.ceil(Integer.valueOf(inputs.get(0)) / 11.0)).intValue();
+		final int numberOfGifts = Double.valueOf(Math.ceil(Integer.valueOf(inputs.get(0)) / 11.0)).intValue();
 		int houseNumber = 1;
 		while (divSum(houseNumber, 50) < numberOfGifts) {
 			houseNumber++;
@@ -82,18 +82,19 @@ public class AoC2015_20 extends AoCBase {
 	}
 
 	public static void main(String[] args) throws Exception {
-		assert AoC2015_20.createDebug("10").solvePart1() == 1;
-		assert AoC2015_20.createDebug("20").solvePart1() == 2;
-		assert AoC2015_20.createDebug("30").solvePart1() == 2;
-		assert AoC2015_20.createDebug("40").solvePart1() == 3;
-		assert AoC2015_20.createDebug("50").solvePart1() == 4;
-		assert AoC2015_20.createDebug("60").solvePart1() == 4;
-		assert AoC2015_20.createDebug("70").solvePart1() == 4;
-		assert AoC2015_20.createDebug("80").solvePart1() == 6;
-		assert AoC2015_20.createDebug("90").solvePart1() == 6;
-		assert AoC2015_20.createDebug("100").solvePart1() == 6;
-
-		lap("Part 1", () -> AoC2015_20.createDebug("33100000").solvePart1());
-		lap("Part 2", () -> AoC2015_20.createDebug("33100000").solvePart2());
+		assert AoC2015_20.createDebug(splitLines("10")).solvePart1() == 1;
+		assert AoC2015_20.createDebug(splitLines("20")).solvePart1() == 2;
+		assert AoC2015_20.createDebug(splitLines("30")).solvePart1() == 2;
+		assert AoC2015_20.createDebug(splitLines("40")).solvePart1() == 3;
+		assert AoC2015_20.createDebug(splitLines("50")).solvePart1() == 4;
+		assert AoC2015_20.createDebug(splitLines("60")).solvePart1() == 4;
+		assert AoC2015_20.createDebug(splitLines("70")).solvePart1() == 4;
+		assert AoC2015_20.createDebug(splitLines("80")).solvePart1() == 6;
+		assert AoC2015_20.createDebug(splitLines("90")).solvePart1() == 6;
+		assert AoC2015_20.createDebug(splitLines("100")).solvePart1() == 6;
+		
+		final List<String> input = Aocd.getData(2015, 20);
+		lap("Part 1", () -> AoC2015_20.createDebug(input).solvePart1());
+		lap("Part 2", () -> AoC2015_20.createDebug(input).solvePart2());
 	}
 }

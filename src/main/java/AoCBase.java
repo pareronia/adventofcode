@@ -1,9 +1,17 @@
+import static java.util.Arrays.asList;
+import static java.util.Objects.requireNonNull;
+
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
 public abstract class AoCBase {
 
 	protected final boolean debug;
+	
+	protected static List<String> splitLines(String input) {
+		return asList((requireNonNull(input) + "\n").split("\\r?\\n"));
+	}
 
 	protected static <V> void lap(String prefix, Callable<V> callable) throws Exception {
 	    final long timerStart = System.nanoTime();

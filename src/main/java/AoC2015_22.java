@@ -1,6 +1,5 @@
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
-import static java.util.Arrays.asList;
 import static java.util.Comparator.comparing;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
@@ -14,6 +13,8 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import com.github.pareronia.aocd.Aocd;
+
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,19 +25,19 @@ import lombok.With;
 public class AoC2015_22 extends AoCBase {
 	private final Fight fight;
 	
-	private AoC2015_22(String input, boolean debug) {
+	private AoC2015_22(List<String> input, boolean debug) {
 		super(debug);
-		final Boss boss = parse(asList((input + "\n").split("\\r?\\n")));
+		final Boss boss = parse(input);
 		final Player player = setUpPlayer();
 		final Spells spells = setUpSpells();
 		this.fight = setUpFight(spells, player, boss);
 	}
 	
-	public static final AoC2015_22 createDebug(String input) {
+	public static final AoC2015_22 createDebug(List<String> input) {
 		return new AoC2015_22(input, true);
 	}
 
-	public static final AoC2015_22 create(String input) {
+	public static final AoC2015_22 create(List<String> input) {
 		return new AoC2015_22(input, false);
 	}
 
@@ -160,13 +161,10 @@ public class AoC2015_22 extends AoCBase {
 	}
 
 	public static void main(String[] args) throws Exception {
-		lap("Part 1", () -> AoC2015_22.create(INPUT).solvePart1());
-		lap("Part 2", () -> AoC2015_22.create(INPUT).solvePart2());
+		final List<String> input = Aocd.getData(2015, 22);
+		lap("Part 1", () -> AoC2015_22.create(input).solvePart1());
+		lap("Part 2", () -> AoC2015_22.create(input).solvePart2());
 	}
-	
-	private static final String INPUT =
-			"Hit Points: 58\r\n" +
-			"Damage: 9";
 	
 	@RequiredArgsConstructor
 	static final class Fight {

@@ -9,20 +9,22 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import com.github.pareronia.aocd.Aocd;
+
 public class AoC2020_22 extends AoCBase {
 	
 	private final List<String> inputs;
 	
-	private AoC2020_22(String input, boolean debug) {
+	private AoC2020_22(List<String> input, boolean debug) {
 		super(debug);
-		this.inputs = asList((input + "\n").split("\\r?\\n"));
+		this.inputs = input;
 	}
 	
-	public static final AoC2020_22 create(String input) {
+	public static final AoC2020_22 create(List<String> input) {
 		return new AoC2020_22(input, false);
 	}
 
-	public static final AoC2020_22 createDebug(String input) {
+	public static final AoC2020_22 createDebug(List<String> input) {
 		return new AoC2020_22(input, true);
 	}
 	
@@ -146,11 +148,13 @@ public class AoC2020_22 extends AoCBase {
 	}
 	
 	public static void main(String[] args) throws Exception {
-		assert AoC2020_22.createDebug(TEST).solvePart1() == 306;
-		assert AoC2020_22.createDebug(TEST).solvePart2() == 291;
-		assert AoC2020_22.createDebug(LOOP).solvePart2() == 105;
-		lap("Part 1", () -> AoC2020_22.create(INPUT).solvePart1());
-		lap("Part 2", () -> AoC2020_22.create(INPUT).solvePart2());
+		assert AoC2020_22.createDebug(splitLines(TEST)).solvePart1() == 306;
+		assert AoC2020_22.createDebug(splitLines(TEST)).solvePart2() == 291;
+		assert AoC2020_22.createDebug(splitLines(LOOP)).solvePart2() == 105;
+		
+		final List<String> input = Aocd.getData(2020, 22);
+		lap("Part 1", () -> AoC2020_22.create(input).solvePart1());
+		lap("Part 2", () -> AoC2020_22.create(input).solvePart2());
 	}
 	
 	private static final String TEST =
@@ -177,61 +181,6 @@ public class AoC2020_22 extends AoCBase {
 			"2\r\n" +
 			"29\r\n" +
 			"14";
-	
-	private static final String INPUT =
-			"Player 1:\r\n" +
-			"14\r\n" +
-			"23\r\n" +
-			"6\r\n" +
-			"16\r\n" +
-			"46\r\n" +
-			"24\r\n" +
-			"13\r\n" +
-			"25\r\n" +
-			"17\r\n" +
-			"4\r\n" +
-			"31\r\n" +
-			"7\r\n" +
-			"1\r\n" +
-			"47\r\n" +
-			"15\r\n" +
-			"9\r\n" +
-			"50\r\n" +
-			"3\r\n" +
-			"30\r\n" +
-			"37\r\n" +
-			"43\r\n" +
-			"10\r\n" +
-			"28\r\n" +
-			"33\r\n" +
-			"32\r\n" +
-			"\r\n" +
-			"Player 2:\r\n" +
-			"29\r\n" +
-			"49\r\n" +
-			"11\r\n" +
-			"42\r\n" +
-			"35\r\n" +
-			"18\r\n" +
-			"39\r\n" +
-			"40\r\n" +
-			"36\r\n" +
-			"19\r\n" +
-			"48\r\n" +
-			"22\r\n" +
-			"2\r\n" +
-			"20\r\n" +
-			"26\r\n" +
-			"8\r\n" +
-			"12\r\n" +
-			"44\r\n" +
-			"45\r\n" +
-			"21\r\n" +
-			"38\r\n" +
-			"41\r\n" +
-			"34\r\n" +
-			"5\r\n" +
-			"27";
 	
 	private static final class Players {
 		private final List<Integer> player1;

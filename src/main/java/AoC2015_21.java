@@ -1,4 +1,3 @@
-import static java.util.Arrays.asList;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.summingInt;
@@ -20,18 +19,20 @@ import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.github.pareronia.aocd.Aocd;
+
 public class AoC2015_21 extends AoCBase {
 	
 	private final Boss boss;
 	private final List<PlayerConfig> playerConfigs;
 
-	protected AoC2015_21(String input, boolean debug) {
+	protected AoC2015_21(List<String> input, boolean debug) {
 		super(debug);
-		this.boss = parse(asList((input + "\n").split("\\r?\\n")));
+		this.boss = parse(input);
 		this.playerConfigs = setUpPlayerConfigs(setUpShop());
 	}
 
-	public static AoC2015_21 create(String input) {
+	public static AoC2015_21 create(List<String> input) {
 		return new AoC2015_21(input, false);
 	}
 	
@@ -114,14 +115,11 @@ public class AoC2015_21 extends AoCBase {
 	}
 
 	public static void main(String[] args) throws Exception {
-		lap("Part 1", () -> AoC2015_21.create(INPUT).solvePart1());
-		lap("Part 2", () -> AoC2015_21.create(INPUT).solvePart2());
+		final List<String> input = Aocd.getData(2015, 21);
+		
+		lap("Part 1", () -> AoC2015_21.create(input).solvePart1());
+		lap("Part 2", () -> AoC2015_21.create(input).solvePart2());
 	}
-	
-	private static final String INPUT =
-			"Hit Points: 100\r\n" +
-			"Damage: 8\r\n" +
-			"Armor: 2";
 	
 	private static final class ShopItem {
 		private enum Type { WEAPON, ARMOR, RING, NONE }
