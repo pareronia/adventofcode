@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import lombok.Getter;
 import lombok.NonNull;
@@ -188,7 +189,7 @@ public class AoC2015_22 extends AoCBase {
 			this.turnStorage.push(new Turn(0, this.boss, this.player));
 			while (true) {
 				Turn oldTurn = this.turnStorage.pop();
-				log("\n-- Player turn --");
+				log(() -> "\n-- Player turn --");
 				logTurn(oldTurn);
 				if (this.difficultyHard) {
 					oldTurn = oldTurn.withPlayer(oldTurn.getPlayer()
@@ -203,12 +204,12 @@ public class AoC2015_22 extends AoCBase {
 				}
 				final Set<Spell> available = this.spellSelector.select(oldTurn);
 				for (final Spell spell : available) {
-					log(String.format("Player casts %s.", spell.getName()));
+					log(() -> String.format("Player casts %s.", spell.getName()));
 					Turn newTurn = spell.cast.apply(oldTurn);
 					if (isGameOver(newTurn)) {
 						return newTurn.getManaSpent();
 					}
-					log("\n-- Boss turn --");
+					log(() -> "\n-- Boss turn --");
 					logTurn(newTurn);
 					newTurn = applyActiveSpellsEffect(newTurn);
 					if (isGameOver(newTurn)) {
@@ -223,20 +224,22 @@ public class AoC2015_22 extends AoCBase {
 		}
 
 		private Turn applyActiveSpellsEffect(Turn turn) {
-			if (turn.getPlayer().getShieldTimer() > 0) {
+			final Integer shieldTimer = turn.getPlayer().getShieldTimer();
+			if (shieldTimer > 0) {
 				turn = this.spells.getByName("Shield").effect.apply(turn);
-				log(String.format("Shield's timer is now %d.",
-						turn.getPlayer().getShieldTimer()));
+				log(() -> String.format("Shield's timer is now %d.", shieldTimer));
 			}
-			if (turn.getPlayer().getPoisonTimer() > 0) {
+			final Integer poisonTimer = turn.getPlayer().getPoisonTimer();
+			if (poisonTimer > 0) {
 				turn = this.spells.getByName("Poison").effect.apply(turn);
-				log(String.format("Poison deals 3 damage; its timer is now %d.",
-						turn.getPlayer().getPoisonTimer()));
+				log(() -> String.format("Poison deals 3 damage; its timer is now %d.",
+						poisonTimer));
 			}
-			if (turn.getPlayer().getRechargeTimer() > 0) {
+			final Integer rechargeTimer = turn.getPlayer().getRechargeTimer();
+			if (rechargeTimer > 0) {
 				turn = this.spells.getByName("Recharge").effect.apply(turn);
-				log(String.format("Recharge provides 101 mana; its timer is now %d.",
-						turn.getPlayer().getRechargeTimer()));
+				log(() -> String.format("Recharge provides 101 mana; its timer is now %d.",
+										rechargeTimer));
 			}
 			return turn;
 		}
@@ -245,7 +248,7 @@ public class AoC2015_22 extends AoCBase {
 			final int bossDamage = Math.max(turnIn.getBoss().getDamage()
 												- turnIn.getPlayer().getArmor(),
 											1);
-			log(String.format("Boss attacks for %d damage.", bossDamage));
+			log(() -> String.format("Boss attacks for %d damage.", bossDamage));
 			return turnIn
 					.withPlayer(turnIn.getPlayer()
 							.withHitpoints(turnIn.getPlayer().getHitpoints() - bossDamage));
@@ -253,29 +256,29 @@ public class AoC2015_22 extends AoCBase {
 		
 		private boolean isGameOver(AoC2015_22.Turn turn) {
 			if (turn.isBossDead()) {
-				log("Boss is dead. Player wins!!");
+				log(() -> "Boss is dead. Player wins!!");
 				return TRUE;
 			} else if (turn.isPlayerDead()) {
-				log("Player is dead!!");
+				log(() -> "Player is dead!!");
 				return TRUE;
 			}
 			return FALSE;
 		}
 
-		protected void log(Object obj) {
-			if (!this.debug) {
+		protected void log(Supplier<Object> supplier) {
+			if (!debug) {
 				return;
 			}
-			System.out.println(obj);
+			System.out.println(supplier.get());
 		}
 
 		private void logTurn(final Turn playerTurn) {
-			log(String.format("- Player has %d hit points, %d armor, %d mana",
-					playerTurn.getPlayer().getHitpoints(),
-					playerTurn.getPlayer().getArmor(),
-					playerTurn.getPlayer().getMana()));
-			log(String.format("- Boss has %d hit points",
-					playerTurn.getBoss().getHitpoints()));
+			log(() -> String.format("- Player has %d hit points, %d armor, %d mana",
+						playerTurn.getPlayer().getHitpoints(),
+						playerTurn.getPlayer().getArmor(),
+						playerTurn.getPlayer().getMana()));
+			log(() -> String.format("- Boss has %d hit points",
+						playerTurn.getBoss().getHitpoints()));
 		}
 	}
 	
