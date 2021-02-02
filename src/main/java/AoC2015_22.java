@@ -6,6 +6,7 @@ import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -202,7 +203,8 @@ public class AoC2015_22 extends AoCBase {
 				if (isGameOver(oldTurn)) {
 					return oldTurn.getManaSpent();
 				}
-				final Set<Spell> available = this.spellSelector.select(oldTurn);
+				final List<Spell> available = new ArrayList<>(this.spellSelector.select(oldTurn));
+				available.sort(comparing(Spell::getCost));
 				for (final Spell spell : available) {
 					log(() -> String.format("Player casts %s.", spell.getName()));
 					Turn newTurn = spell.cast.apply(oldTurn);
