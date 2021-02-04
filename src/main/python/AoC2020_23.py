@@ -106,9 +106,9 @@ def part_2(inputs: tuple[str]) -> int:
     current = cd[cups[0]]
     for move in range(10_000_000):
         cd, current = _do_move(move, cd, current, size, min_val, max_val)
-        if move % 100_000 == 0:
-            print('.', end='', flush=True)
-    print("")
+        # if move % 100_000 == 0:
+        #     print('.', end='', flush=True)
+    # print("")
     one = cd[1]
     star1 = one.next_.label
     star2 = one.next_.next_.label

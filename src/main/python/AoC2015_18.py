@@ -190,6 +190,14 @@ def part_2_array(inputs: tuple[str]) -> int:
     return _do_part_2_array(inputs, 100)
 
 
+def part_1(inputs: tuple[str]) -> int:
+    return part_1_dict(inputs)
+
+
+def part_2(inputs: tuple[str]) -> int:
+    return part_2_dict(inputs)
+
+
 TEST = """\
 .#.#.#
 ...##.

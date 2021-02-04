@@ -46,6 +46,10 @@ def part_1(inputs: tuple[str]) -> int:
     return _calculate_code(code)
 
 
+def part_2(inputs: tuple[str]) -> int:
+    return None
+
+
 TEST1 = """\
 To continue, please consult the code grid in the manual.\
   Enter the code at row 1, column 1.

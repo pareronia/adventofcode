@@ -92,6 +92,14 @@ def part_2_seen(inputs: tuple[str]) -> int:
     return _do_part_2(_parse(inputs), _seen_3, "[part_2_seen]")
 
 
+def part_1(inputs: tuple[str]) -> int:
+    return part_1_seen(inputs)
+
+
+def part_2(inputs: tuple[str]) -> int:
+    return part_2_seen(inputs)
+
+
 TEST = """\
 1721
 979
@@ -111,9 +119,9 @@ def main() -> None:
     assert part_2_seen(TEST) == 241861950
 
     inputs = my_aocd.get_input(2020, 1, 200)
-    result1 = part_1_seen(inputs)
+    result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    result2 = part_2_seen(inputs)
+    result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 
