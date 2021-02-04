@@ -23,11 +23,14 @@ SOFTWARE.
  */
 package com.github.pareronia.aocd;
 
+import java.time.ZoneId;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 
 public class Aocd {
+	
+	public static final ZoneId AOC_TZ = ZoneId.of("America/New_York");
 	
 	public static List<String> getData(Integer year, Integer day) {
 		final List<String> inputData = Puzzle.create(year, day).getInputData();
