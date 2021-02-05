@@ -40,9 +40,14 @@ public class Runner {
 	}
 	
 	private void run() throws Exception {
-		final String className = "AoC" + this.year.toString()
-				+ "_" + String.format("%02d", this.day);
-		final Class<?> klass = Class.forName(className);
+		final Class<?> klass;
+		try {
+			final String className = "AoC" + this.year.toString()
+									+ "_" + String.format("%02d", this.day);
+			klass = Class.forName(className);
+		} catch (final ClassNotFoundException e) {
+			return;
+		}
 		final Object puzzle = klass
 				.getDeclaredMethod("create", List.class)
 				.invoke(null, this.inputs);
