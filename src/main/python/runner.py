@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 import importlib
+import subprocess  # nosec
 import pebble
 import itertools
 import time
@@ -40,6 +41,7 @@ from aocd.models import default_user
 DEFAULT_TIMEOUT = 60
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
+root = os.getcwd()
 
 
 def main():
@@ -70,7 +72,7 @@ def main():
         sys.exit(1)
     logging.basicConfig(level=getattr(logging, args.log_level))
     rc = run_for(
-        funcs=[py],
+        funcs=[py, java],
         years=args.years or years,
         days=args.days or days,
         datasets={k: users[k] for k in (args.users or users)},
@@ -213,9 +215,30 @@ def run_for(funcs, years, days, datasets, timeout=DEFAULT_TIMEOUT):
 
 def py(year: int, day: int, data: str):
     day_mod_name = "AoC" + str(year) + "_" + str(day).rjust(2, '0')
-    day_mod = importlib.import_module(day_mod_name)
+    try:
+        day_mod = importlib.import_module(day_mod_name)
+    except ModuleNotFoundError:
+        return None, None
     inputs = data.splitlines()
     return day_mod.part_1(inputs), day_mod.part_2(inputs)
+
+
+def java(year: int, day: int, data: str):
+    global root
+    completed = subprocess.run(  # nosec
+        ["java",
+         "-cp",
+         os.environ['CLASSPATH'] + ":" + root + "/target/classes",
+         "com.github.pareronia.aocd.Runner",
+         str(year), str(day), data],
+        text=True,
+        capture_output=True,
+    )
+    results = completed.stdout
+    if results:
+        return tuple(results.splitlines())
+    else:
+        return None, None
 
 
 if __name__ == '__main__':
