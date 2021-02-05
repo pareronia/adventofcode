@@ -1,10 +1,8 @@
+import static com.github.pareronia.aoc.Utils.asCharacterStream;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import com.github.pareronia.aocd.Aocd;
 
@@ -84,7 +82,7 @@ public class AoC2020_02 extends AoCBase {
 		}
 		
 		public boolean isValid1() {
-			final long count = Arrays.stream(ArrayUtils.toObject(password.toCharArray()))
+			final long count = asCharacterStream(password)
 					.filter(c -> equal(c, wanted))
 					.count();
 			return first <= count && count <= second;
