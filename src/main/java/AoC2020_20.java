@@ -48,23 +48,8 @@ public class AoC2020_20 extends AoCBase {
 	}
 	
 	public Image parse(List<String> inputs) {
-		final List<List<String>> blocks = new ArrayList<>();
-		int i = 0;
-		blocks.add(new ArrayList<String>());
-		for (final String input: inputs) {
-			if (input.isEmpty()) {
-				blocks.add(new ArrayList<String>());
-				i++;
-			} else {
-				blocks.get(i).add(input);
-			}
-		}
-		
 		final Set<Tile> tiles = new HashSet<>();
-		for (final List<String> block : blocks) {
-			if (block.size() == 0) {
-				continue;
-			}
+		for (final List<String> block : toBlocks(inputs)) {
 			Integer id = null;
 			final List<char[]> grid = new ArrayList<>();
 			for (final String line : block) {

@@ -1,6 +1,8 @@
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
@@ -11,6 +13,27 @@ public abstract class AoCBase {
 	
 	protected static List<String> splitLines(String input) {
 		return asList((requireNonNull(input) + "\n").split("\\r?\\n"));
+	}
+	
+	protected static List<List<String>> toBlocks(List<String> inputs) {
+		if (inputs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		final List<List<String>> blocks = new ArrayList<>();
+		int i = 0;
+		final int last = inputs.size() - 1;
+		blocks.add(new ArrayList<String>());
+		for (int j = 0; j <= last; j++) {
+			if (inputs.get(j).isEmpty()) {
+				if (j != last) {
+					blocks.add(new ArrayList<String>());
+					i++;
+				}
+			} else {
+				blocks.get(i).add(inputs.get(j));
+			}
+		}
+		return blocks;
 	}
 
 	protected static <V> void lap(String prefix, Callable<V> callable) throws Exception {
