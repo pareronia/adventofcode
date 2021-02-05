@@ -23,14 +23,16 @@ import lombok.Value;
 import lombok.With;
 
 public class AoC2015_22 extends AoCBase {
-	private final Fight fight;
 	
+	private final Boss boss;
+	private final Player player;
+	private final Spells spells;
+
 	private AoC2015_22(List<String> input, boolean debug) {
 		super(debug);
-		final Boss boss = parse(input);
-		final Player player = setUpPlayer();
-		final Spells spells = setUpSpells();
-		this.fight = setUpFight(spells, player, boss);
+		this.boss = parse(input);
+		this.player = setUpPlayer();
+		this.spells = setUpSpells();
 	}
 	
 	public static final AoC2015_22 createDebug(List<String> input) {
@@ -151,12 +153,14 @@ public class AoC2015_22 extends AoCBase {
 	
 	@Override
 	public long solvePart1() {
-		return this.fight.run();
+		final Fight fight = setUpFight(this.spells, this.player, this.boss);
+		return fight.run();
 	}
 
 	@Override
 	public long solvePart2() {
-		this.fight.setDifficultyHard(true);
+		final Fight fight = setUpFight(this.spells, this.player, this.boss);
+		fight.setDifficultyHard(true);
 		return fight.run();
 	}
 
