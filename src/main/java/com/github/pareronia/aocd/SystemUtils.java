@@ -44,7 +44,8 @@ public class SystemUtils {
 		} else if (org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS) {
 			return Paths.get(System.getenv("APPDATA"), "aocd");
 		} else if (org.apache.commons.lang3.SystemUtils.IS_OS_UNIX) {
-			return Paths.get("$HOME", ".config", "aocd");
+			final Path userHome = org.apache.commons.lang3.SystemUtils.getUserHome().toPath();
+			return userHome.resolve(".config").resolve("aocd");
 		} else {
 			throw new UnsupportedOperationException("OS not supported");
 		}
