@@ -57,9 +57,8 @@ def part_1(inputs: tuple[str]) -> int:
     unique_containers = set[str]()
     for source in unique_sources:
         paths = nx.all_simple_paths(G, source=source, target=SHINY_GOLD)
-        for path in paths:
-            log(path)
-            unique_containers.add(path[0])
+        if next(paths, None):
+            unique_containers.add(source)
     log(unique_containers)
     return len(unique_containers)
 
