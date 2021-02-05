@@ -174,3 +174,9 @@ bin-test/
 .settings/
 .project
 .classpath
+
+##
+## Java
+##
+*.class
+*.jar
