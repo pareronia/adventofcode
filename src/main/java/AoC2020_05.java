@@ -1,6 +1,6 @@
+import static com.github.pareronia.aoc.Utils.max;
 import static java.util.stream.Collectors.toList;
 
-import java.util.Comparator;
 import java.util.List;
 
 import com.github.pareronia.aocd.Aocd;
@@ -32,10 +32,9 @@ public class AoC2020_05 extends AoCBase {
 	
 	@Override
 	public long solvePart1() {
-		return translated(this.inputs).stream()
-			.map(b -> Integer.valueOf(b, 2))
-			.max(Comparator.naturalOrder())
-			.orElseThrow(() -> new RuntimeException("Unsolvable"));
+		return max(translated(this.inputs).stream()
+						.map(b -> Integer.valueOf(b, 2)),
+				   "Unsolvable").intValue();
 	}
 
 	@Override
