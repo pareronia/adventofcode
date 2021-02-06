@@ -2,9 +2,8 @@
 #
 # Advent of Code 2020 Day 7
 #
-from dataclasses import dataclass
-from collections import defaultdict
-from networkx import nx
+from typing import NamedTuple
+from functools import reduce, cache
 from aoc import my_aocd
 from aoc.common import log
 
@@ -26,54 +25,47 @@ def _parse_line(line: str) -> tuple[str, set[tuple[int, str]]]:
     return result
 
 
-@dataclass
-class Edge:
+class Edge(NamedTuple):
     src: str
     dst: str
     cnt: int
 
 
-def _build_edges(inputs: tuple[str]) -> list[Edge]:
+def _build_edges(inputs: tuple[str]) -> frozenset[Edge]:
     parsed_lines = [_parse_line(line) for line in inputs]
     log(parsed_lines)
-    return [Edge(parsed_line[0], dst[1], dst[0])
-            for parsed_line in parsed_lines
-            for dst in parsed_line[1]]
-
-
-def _build_digraph(edges: list[Edge]):
-    dg = nx.DiGraph()
-    dg.add_weighted_edges_from([(edge.src, edge.dst, edge.cnt)
-                                for edge in edges])
-    return dg
+    return frozenset({Edge(parsed_line[0], dst[1], dst[0])
+                      for parsed_line in parsed_lines
+                      for dst in parsed_line[1]})
 
 
 def part_1(inputs: tuple[str]) -> int:
-    log(inputs)
+    @cache
+    def exists_path(src: str, dst: str) -> bool:
+        return reduce(
+            lambda x, y: x or y,
+            map(lambda edge: edge.dst == dst or exists_path(edge.dst, dst),
+                [edge for edge in edges if edge.src == src]),
+            False)
+
     edges = _build_edges(inputs)
-    log(edges)
-    unique_sources = (edge.src for edge in edges)
-    G = _build_digraph(edges)
-    unique_containers = set[str]()
-    for source in unique_sources:
-        paths = nx.all_simple_paths(G, source=source, target=SHINY_GOLD)
-        if next(paths, None):
-            unique_containers.add(source)
-    log(unique_containers)
-    return len(unique_containers)
-
-
-def _count_contained(containers: dict, start: str) -> int:
-    return sum([c[1] + c[1]*_count_contained(containers, c[0])
-                for c in containers[start]])
+    return len({edge.src
+                for edge in edges
+                if edge.src != SHINY_GOLD
+                and exists_path(edge.src, SHINY_GOLD)})
 
 
 def part_2(inputs: tuple[str]) -> int:
+    @cache
+    def count_contained(src: str) -> int:
+        return reduce(
+            lambda x, y: x + y,
+            map(lambda edge: edge.cnt + edge.cnt * count_contained(edge.dst),
+                [edge for edge in edges if edge.src == src]),
+            0)
+
     edges = _build_edges(inputs)
-    containers = defaultdict(list)
-    for edge in edges:
-        containers[edge.src].append((edge.dst, edge.cnt))
-    return _count_contained(containers, SHINY_GOLD)
+    return count_contained(SHINY_GOLD)
 
 
 TEST1 = """\
