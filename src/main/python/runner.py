@@ -30,6 +30,7 @@ import tempfile
 import logging
 import json
 from argparse import ArgumentParser
+from collections import OrderedDict
 from datetime import datetime
 from termcolor import colored
 from dateutil.tz import gettz
@@ -46,6 +47,7 @@ root = os.getcwd()
 
 def main():
     aoc_now = datetime.now(tz=AOC_TZ)
+    plugins = OrderedDict([(ep.__name__, ep) for ep in all_entry_points])
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
     path = os.path.join(AOCD_DIR, "tokens.json")
@@ -56,6 +58,7 @@ def main():
         users = {"default": default_user().token}
     log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
     parser = ArgumentParser(description="AoC runner")
+    parser.add_argument("-p", "--plugins", nargs="+", choices=plugins)
     parser.add_argument("-y", "--years", type=int, nargs="+", choices=years)
     parser.add_argument("-d", "--days", type=int, nargs="+", choices=days)
     parser.add_argument("-u", "--users", nargs="+", choices=users)
@@ -72,7 +75,7 @@ def main():
         sys.exit(1)
     logging.basicConfig(level=getattr(logging, args.log_level))
     rc = run_for(
-        funcs=[py, java],
+        plugins=args.plugins or list(plugins),
         years=args.years or years,
         days=args.days or days,
         datasets={k: users[k] for k in (args.users or users)},
@@ -81,14 +84,14 @@ def main():
     sys.exit(rc)
 
 
-def run_with_timeout(func, timeout, progress, dt=0.005, **kwargs):
+def run_with_timeout(entry_point, timeout, progress, dt=0.005, **kwargs):
     # TO_DO : multi-process over the different tokens
     spinner = itertools.cycle(r"\|/-")
     pool = pebble.ProcessPool(max_workers=1)
     line = elapsed = format_time(0)
     with pool:
         t0 = time.time()
-        future = pool.schedule(func, kwargs=kwargs, timeout=timeout)
+        future = pool.schedule(entry_point, kwargs=kwargs, timeout=timeout)
         while not future.done():
             if progress is not None:
                 line = "\r" + elapsed + "   " + progress \
@@ -125,7 +128,7 @@ def format_time(t, timeout=DEFAULT_TIMEOUT):
     return runtime
 
 
-def run_one(year, day, input_data, func,
+def run_one(year, day, input_data, entry_point,
             timeout=DEFAULT_TIMEOUT, progress=None):
     prev = os.getcwd()
     scratch = tempfile.mkdtemp(prefix="{}-{:02d}-".format(year, day))
@@ -135,7 +138,7 @@ def run_one(year, day, input_data, func,
         with open("input.txt", "w") as f:
             f.write(input_data)
         a, b, walltime, error = run_with_timeout(
-            func=func,
+            entry_point=entry_point,
             timeout=timeout,
             year=year,
             day=day,
@@ -149,29 +152,35 @@ def run_one(year, day, input_data, func,
     return a, b, walltime, error
 
 
-def run_for(funcs, years, days, datasets, timeout=DEFAULT_TIMEOUT):
+def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT):
     aoc_now = datetime.now(tz=AOC_TZ)
-    it = itertools.product(years, days, funcs, datasets)
+    entry_points = {ep.__name__: ep
+                    for ep in all_entry_points
+                    if ep.__name__ in plugins}
+    it = itertools.product(years, days, plugins, datasets)
     userpad = 3
     datasetpad = 8
     n_incorrect = 0
+    if entry_points:
+        userpad = len(max(entry_points, key=len))
     if datasets:
         datasetpad = len(max(datasets, key=len))
-    for year, day, func, dataset in it:
+    for year, day, plugin, dataset in it:
         if year == aoc_now.year and day > aoc_now.day:
             continue
         token = datasets[dataset]
+        entry_point = entry_points[plugin]
         os.environ["AOC_SESSION"] = token
         puzzle = Puzzle(year=year, day=day)
         title = puzzle.title
         progress = "{}/{:<2d} - {:<40}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
-        progress = progress.format(year, day, title, func.__name__, dataset)
+        progress = progress.format(year, day, title, plugin, dataset)
         a, b, walltime, error = run_one(
             year=year,
             day=day,
             input_data=puzzle.input_data,
-            func=func,
+            entry_point=entry_point,
             timeout=timeout,
             progress=progress,
         )
@@ -242,4 +251,5 @@ def java(year: int, day: int, data: str):
 
 
 if __name__ == '__main__':
+    all_entry_points = [py, java]
     main()
