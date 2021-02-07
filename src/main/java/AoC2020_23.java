@@ -102,15 +102,14 @@ public class AoC2020_23 extends AoCBase {
 	
 	@Override
 	public long solvePart2() {
+		final Integer min = min(this.labels.stream());
 		final Integer max = max(this.labels.stream());
 		Stream.iterate(max + 1, i -> i + 1).limit(1_000_000 - this.labels.size())
 			.collect(toCollection(() -> this.labels));
 		final Map<Integer, Cup> cups = prepareCups();
-		final int size = this.labels.size();
-		final Integer min = min(this.labels.stream());
 		Cup current = cups.get(this.labels.get(0));
 		for (int i = 0; i < 10_000_000; i++) {
-			current = doMove(cups, current, size, min, 1_000_000);
+			current = doMove(cups, current, 1_000_000, min, 1_000_000);
 		}
 		final Cup one = cups.get(1);
 		final long star1 = one.getNext().getLabel().longValue();
