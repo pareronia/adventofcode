@@ -118,37 +118,28 @@ public class AoC2019_06 extends AoCBase {
 		private final Map<String, Integer> stepsUp = new HashMap<>();
 		
 		public Integer countStepsUp(String from, String to) {
-			final String key = from + to;
-			if (!stepsUp.containsKey(key)) {
-				stepsUp.put(
-						key,
-						this.edges.stream()
-							.filter(e -> e.getDst().equals(from))
-							.map(e -> {
-								if (e.getSrc().equals(to)) {
-									return 1;
-								} else {
-									return 1 + countStepsUp(e.getSrc(), to);
-								}
-							})
-							.findFirst().orElseThrow(() -> new RuntimeException())
-				);
-			}
-			return stepsUp.get(key);
+			return stepsUp.computeIfAbsent(
+				from + to,
+				k -> this.edges.stream()
+						.filter(e -> e.getDst().equals(from))
+						.map(e -> {
+							if (e.getSrc().equals(to)) {
+								return 1;
+							} else {
+								return 1 + countStepsUp(e.getSrc(), to);
+							}
+						})
+						.findFirst().orElseThrow(() -> new RuntimeException())
+			);
 		}
 		
-		public boolean containsPath(String src, String dst) {
-			final String key = src + dst;
-			if (!paths.containsKey(key)) {
-				paths.put(
-					key,
-					this.edges.stream()
-						.filter(e -> e.getSrc().equals(src))
-						.map(e -> e.getDst().equals(dst) || containsPath(e.getDst(), dst))
-						.reduce(FALSE, (a, b) -> a || b)
-				);
-			}
-			return paths.get(key);
+		public boolean containsPath(String from, String to) {
+			return paths.computeIfAbsent(
+				from + to,
+				k -> this.edges.stream()
+						.filter(e -> e.getSrc().equals(from))
+						.map(e -> e.getDst().equals(to) || containsPath(e.getDst(), to))
+						.reduce(FALSE, (a, b) -> a || b));
 		}
 	}
 }
