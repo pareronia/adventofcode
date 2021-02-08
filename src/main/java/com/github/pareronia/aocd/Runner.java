@@ -10,11 +10,20 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aocd.RunServer.RequestHandler;
+
 public class Runner {
 
 	public static void main(String[] args) throws Exception {
 		final Response result = Runner.create().run(args);
 		System.out.println(result.toString());
+	}
+	
+	public static RequestHandler createRequestHandler() {
+		return request -> {
+			final String[] args = request.toArray(new String[request.size()]);
+			return Runner.create().run(args).toString();
+		};
 	}
 
 	private static Runner create() {
