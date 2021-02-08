@@ -33,10 +33,12 @@ import com.github.pareronia.aocd.Aocd;
 public class AoC2020_20 extends AoCBase {
 	
 	private final List<String> inputs;
+	private final Logger logger;
 	
 	private AoC2020_20(List<String> input, boolean debug) {
 		super(debug);
 		this.inputs = input;
+		this.logger = obj -> log(() -> obj);
 	}
 
 	public static final AoC2020_20 create(List<String> input) {
@@ -61,7 +63,7 @@ public class AoC2020_20 extends AoCBase {
 			}
 			tiles.add(new Tile(id, Tile.toGrid(grid)));
 		}
-		return new Image(tiles);
+		return new Image(tiles, logger);
 	}
 	
 	@Override
@@ -91,6 +93,10 @@ public class AoC2020_20 extends AoCBase {
 			}
 			nessies = NessieFinder.findNessies(image.grid);
 			if (nessies.size() > 1) {
+				for (final Pair<Integer, Integer> nessie : nessies) {
+					log(String.format("Found 1 Nessie at (%d, %d)!",
+							nessie.getLeft(), nessie.getRight()));
+				}
 				break;
 			} else if (nessies.size() == 1) {
 				final List<String> grid = image.grid
@@ -98,7 +104,7 @@ public class AoC2020_20 extends AoCBase {
 						.collect(toList());
 				NessieFinder.markNessies(nessies, grid);
 				for (final String row : grid) {
-					System.out.println(row);
+					log(row);
 				}
 				log("One is not enough? Looking for more Nessies...");
 			}
@@ -116,7 +122,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		final List<String> input = Aocd.getData(2020, 20);
 		lap("Part 1", () -> AoC2020_20.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_20.createDebug(input).solvePart2());
+		lap("Part 2", () -> AoC2020_20.create(input).solvePart2());
 	}
 
 	private static final String TEST =
@@ -406,15 +412,21 @@ public class AoC2020_20 extends AoCBase {
 		private final Set<Tile> tiles;
 		private final Tile[][] placedTiles;
 		private final List<String> grid;
+		private final Logger logger;
 
-		public Image(Set<Tile> tiles) {
+		public Image(Set<Tile> tiles, Logger logger) {
 			this.tiles = tiles;
+			this.logger = logger;
 			this.placedTiles = new Tile[Math.sqrt(tiles.size())][Math.sqrt(tiles.size())];
 			this.grid = new ArrayList<>();
 		}
 		
 		public Set<Tile> getTiles() {
 			return this.tiles;
+		}
+		
+		private void log(Object object) {
+			this.logger.log(object);
 		}
 		
 		private void placeTile(Tile tile, int row, int col) {
@@ -468,8 +480,8 @@ public class AoC2020_20 extends AoCBase {
 			final ArrayList<Tile> cornersList = new ArrayList<>(corners);
 			Collections.shuffle(cornersList);
 			final Tile corner = cornersList.get(0);
-			System.out.println("Unplaced tiles: " + getTiles().size());
-			System.out.println("Starting with " + corner.getId());
+			log("Unplaced tiles: " + getTiles().size());
+			log("Starting with " + corner.getId());
 			final Iterator<Tile> allPermutations = TilePermutator.getAllPermutations(corner);
 			while (allPermutations.hasNext()) {
 				final Tile next = allPermutations.next();
@@ -477,36 +489,36 @@ public class AoC2020_20 extends AoCBase {
 				final Optional<Tile> right = TileMatcher.findRightSideMatch(next, getTiles());
 				final Optional<Tile> bottom = TileMatcher.findBottomSideMatch(next, getTiles());
 				if (right.isPresent() && bottom.isPresent()) {
-					System.out.println("Found corner orientation with right and bottom side match");
+					log("Found corner orientation with right and bottom side match");
 					placeTile(right.get(), 0, 1);
 					break;
 				}
 			}
 			assert placedTiles[0][0] != null && placedTiles[0][1] != null;
-			System.out.println("Unplaced tiles: " + getTiles().size());
+			log("Unplaced tiles: " + getTiles().size());
 			printPlacedTiles();
 			Tile current = placedTiles[0][1];
 			// first row
-			System.out.println("Continue first row");
+			log("Continue first row");
 			for (int i = 2; i < placedTiles[0].length; i++) {
 				current = placedTiles[0][i-1];
 				final Optional<Tile> right = TileMatcher.findRightSideMatch(current, getTiles());
 				assert right.isPresent();
 				placeTile(right.get(), 0, i);
 				printPlacedTiles();
-				System.out.println("Unplaced tiles: " + getTiles().size());
+				log("Unplaced tiles: " + getTiles().size());
 			}
 			
 			// next rows
 			for (int j = 1; j < placedTiles.length; j++) {
-				System.out.println("Row " + (j + 1));
+				log("Row " + (j + 1));
 				for (int i = 0; i < placedTiles[j].length; i++) {
 					current = placedTiles[j-1][i];
 					final Optional<Tile> bottom = TileMatcher.findBottomSideMatch(current, getTiles());
 					assert bottom.isPresent();
 					placeTile(bottom.get(), j, i);
 					printPlacedTiles();
-					System.out.println("Unplaced tiles: " + getTiles().size());
+					log("Unplaced tiles: " + getTiles().size());
 				}
 			}
 		}
@@ -561,7 +573,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		public void print() {
 			for (final String row : this.grid) {
-				System.out.println(row);
+				log(row);
 			}
 		}
 
@@ -576,27 +588,27 @@ public class AoC2020_20 extends AoCBase {
 				}
 				for (int i = 0; i < tile.getRows().size(); i++ ) {
 					final int row = i;
-					System.out.println(Arrays.stream(tiles).map(t -> {
+					log(Arrays.stream(tiles).map(t -> {
 						if (t == null) {
 							return "          ";
 						}
 						return t.getRow(row);
 					}).collect(joining(" ")));
 				}
-				System.out.println("");
+				log("");
 			}
 			for (final Tile[] tiles : placedTiles) {
 				final Tile tile = ObjectUtils.firstNonNull(tiles);
 				if (tile == null) {
 					continue;
 				}
-				System.out.println(Arrays.stream(tiles).map(t -> {
+				log(Arrays.stream(tiles).map(t -> {
 					if (t == null) {
 						return "    ";
 					}
 					return String.valueOf(t.getId());
 				}).collect(joining("  ")));
-				System.out.println("");
+				log("");
 			}
 		}
 	}
@@ -631,7 +643,6 @@ public class AoC2020_20 extends AoCBase {
 						final Matcher m2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#")
 								.matcher(grid.get(i + 1).substring(tail));
 						if (m2.find()) {
-							System.out.println(String.format("Found 1 Nessie at (%d, %d)!", i, tail));
 							nessies.add(Pair.of(i, tail));
 						}
 					}
@@ -734,5 +745,9 @@ public class AoC2020_20 extends AoCBase {
 	        final Iterable<T> iterable = () -> sourceIterator;
 	        return StreamSupport.stream(iterable.spliterator(), false);
 	    }
+	}
+	
+	private interface Logger {
+		void log(Object object);
 	}
 }
