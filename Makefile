@@ -20,9 +20,10 @@ SORT := sort
 SED := sed
 CLITEST := clitest
 PYTHON_CMD := python -O
-UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
+PYTHON_UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := java -ea
 JAVAC_CMD := javac -encoding cp1252
+JAVA_UNITTEST_CMD := org.junit.runner.JUnitCore
 RM := rm -Rf
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
@@ -59,12 +60,21 @@ java:
 	@$(JAVA_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) $(call day,$(ARGS),"")
 
 #: Build Java
-build_java:
+build.java:
 	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS) -d $(JAVA_DST) $(JAVA_SRCS)
 
-#: Run unit tests
-unittest:
-	@$(PYTHON_PATH) $(PYTHON_CMD) $(UNITTEST_CMD)
+#: Run Python unit tests
+unittest.py:
+	@$(call msg,"Running Python	unit tests...")
+	@$(PYTHON_PATH) $(PYTHON_CMD) $(PYTHON_UNITTEST_CMD)
+
+#: Run Java unit tests
+unittest.java:
+	@$(call msg,"Running Java unit tests...")
+	@$(JAVA_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) $(JAVA_UNITTEST_CMD) AllTests
+
+#: Run all unit tests
+unittest: unittest.py unittest.java
 
 #: Run command line integration tests
 clitest:
@@ -134,5 +144,5 @@ help:
 		| column -t -s '###' \
 		| $(SORT)
 
-.PHONY: flake vulture bandit fixme todo list help py java unittest clitest \
-	build_java clean
+.PHONY: flake vulture bandit fixme todo list help py java unittest.py clitest \
+	build.java clean unittest.java
