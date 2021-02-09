@@ -13,7 +13,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 
+import lombok.extern.java.Log;
+
+@Log
 public class RunServer {
 	
 	public static final int OK = 0;
@@ -34,22 +38,23 @@ public class RunServer {
 	public RunServer(int port, RequestHandler requestHandler) {
 		this.port = port;
 		this.requestHandler = requestHandler;
+		log.setLevel(Level.WARNING);
 	}
 	
 	public int start() {
 		try {
 			this.server = new ServerSocket(port);
-			System.out.println("Server started");
-			System.out.println("Waiting for a client ...");
+			log.info("Server started");
+			log.info("Waiting for a client ...");
 			while (!server.isClosed()) {
 				try (final Socket socket = server.accept()) {
-					System.out.println("Client accepted");
+					log.info("Client accepted");
 					handleClientConnection(socket);
 				}
 			}
 		} catch (final IOException e) {
 			if (!server.isClosed()) {
-				System.err.println(e);
+				log.log(Level.SEVERE, e.getMessage(), e);
 				return ERROR;
 			}
 		}
@@ -83,7 +88,8 @@ public class RunServer {
 				response = requestHandler.handle(request);
 			} catch (final Exception e) {
 				response = "ERROR: " + e;
-				e.printStackTrace(System.err);
+				log.log(Level.SEVERE, e.getMessage(), e);
+//				e.printStackTrace(System.err);
 			}
 		}
 		final BufferedWriter dos = new BufferedWriter(
@@ -95,12 +101,12 @@ public class RunServer {
 	public int stop() {
 		try {
 			if (!this.server.isClosed()) {
-				System.out.println("Server stopping");
+				log.info("Server stopping");
 				this.server.close();
 			}
 			return OK;
 		} catch (final IOException e) {
-			System.err.println(e);
+			log.log(Level.SEVERE, e.getMessage(), e);
 			return ERROR;
 		}
 	}
