@@ -19,8 +19,10 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+import atexit
 import importlib
 import subprocess  # nosec
+import socket
 import pebble
 import itertools
 import time
@@ -232,7 +234,7 @@ def py(year: int, day: int, data: str):
     return day_mod.part_1(inputs), day_mod.part_2(inputs)
 
 
-def java(year: int, day: int, data: str):
+def _java(year: int, day: int, data: str):
     global root
     completed = subprocess.run(  # nosec
         ["java",
@@ -250,6 +252,49 @@ def java(year: int, day: int, data: str):
         return None, None
 
 
+def java(year: int, day: int, data: str):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('localhost', 5555))
+        s.send(f'{year}\r\n'.encode('UTF-8'))
+        s.send(f'{day}\r\n'.encode('UTF-8'))
+        s.send(f'{data}\r\n'.encode('UTF-8'))
+        s.send(b'END\r\n')
+        data = s.recv(1024)
+    results = data.decode('UTF-8').rstrip().splitlines()
+    if results:
+        return tuple(results)
+    else:
+        return None, None
+
+
+def start_java():
+    completed = subprocess.Popen(  # nosec
+        ["java",
+         "-cp",
+         os.environ['CLASSPATH'] + ":" + root + "/target/classes",
+         "com.github.pareronia.aocd.RunServer",
+         ],
+    )
+    if not completed.pid:
+        raise RuntimeError("Could not start Java run server")
+    time.sleep(0.5)
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('localhost', 5555))
+        s.send(('HELLO' + os.linesep).encode('UTF-8'))
+        data = s.recv(1024)
+    results = data.decode('UTF-8').rstrip().splitlines()
+    if results != ["HELLO"]:
+        raise RuntimeError("No response from Java run server")
+
+
+@atexit.register
+def stop_java():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.connect(('localhost', 5555))
+        s.send(b'STOP')
+
+
 if __name__ == '__main__':
+    start_java()
     all_entry_points = [py, java]
     main()
