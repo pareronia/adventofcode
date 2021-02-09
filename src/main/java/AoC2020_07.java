@@ -112,21 +112,29 @@ public class AoC2020_07 extends AoCBase {
 		private final Map<String, Integer> weights = new HashMap<>();
 		
 		public boolean containsPath(String src, String dst) {
-			return paths.computeIfAbsent(
-				src,
-				k -> this.edges.stream()
+			if (!paths.containsKey(src)) {
+				paths.put(
+					src,
+					this.edges.stream()
 						.filter(e -> e.getSrc().equals(src))
 						.map(e -> e.getDst().equals(dst) || containsPath(e.getDst(), dst))
-						.reduce(FALSE, (a, b) -> a || b));
+						.reduce(FALSE, (a, b) -> a || b)
+				);
+			}
+			return paths.get(src);
 		}
-
+		
 		public Integer countWeights(String src) {
-			return weights.computeIfAbsent(
-				src,
-				k -> this.edges.stream()
+			if (!weights.containsKey(src)) {
+				weights.put(
+					src,
+					this.edges.stream()
 						.filter(e -> e.getSrc().equals(src))
 						.map(e -> e.getWeight() * (1 + countWeights(e.getDst())))
-						.reduce(0, (a, b) -> a + b));
+						.reduce(0, (a, b) -> a + b)
+				);
+			}
+			return weights.get(src);
 		}
 	}
 }
