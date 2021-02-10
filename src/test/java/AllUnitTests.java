@@ -5,6 +5,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(DynamicSuite.class)
 @Filter(UnitTestClassFilter.class)
-@Directory("bin-test")
+@Directory
 public class AllUnitTests {
 }
