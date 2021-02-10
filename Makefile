@@ -10,6 +10,7 @@ JAVA_ROOT := $(SRC_ROOT_MAIN)/java
 JAVA_TEST_ROOT := $(SRC_ROOT_TEST)/java
 JAVA_DST_ROOT := target
 JAVA_DST := $(JAVA_DST_ROOT)/classes
+JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
 CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
@@ -31,9 +32,10 @@ NC='\033[0m' # No Color
 # vars
 MAKEFILE = $(realpath $(lastword $(MAKEFILE_LIST)))
 PY_SRCS = $(shell find $(PYTHON_ROOT) $(PYTHON_TEST_ROOT) -name "*.py")
-JAVA_SRCS = $(shell find $(JAVA_ROOT) $(JAVA_TEST_ROOT) -name "*.java")
+JAVA_SRCS = $(shell find $(JAVA_ROOT) -name "*.java")
+JAVA_TEST_SRCS = $(shell find $(JAVA_TEST_ROOT) -name "*.java")
 CLITEST_SRCS = $(shell find $(CLITEST_ROOT) -name "*.md")
-SRCS = $(PY_SRCS) $(JAVA_SRCS) $(CLITEST_SRCS) $(MAKEFILE)
+SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(MAKEFILE)
 JAVA_LIBS = $(shell find $(JAVA_LIB_ROOT) -name "*.jar" -not -name "*-sources.jar")
 JAVA_CP_LIBS = $(call to_path,$(JAVA_LIBS))
 
@@ -62,6 +64,8 @@ java:
 #: Build Java
 build.java:
 	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS) -d $(JAVA_DST) $(JAVA_SRCS)
+	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) \
+		-d $(JAVA_TEST_DST) $(JAVA_TEST_SRCS)
 
 #: Run Python unit tests
 unittest.py:
@@ -71,7 +75,8 @@ unittest.py:
 #: Run Java unit tests
 unittest.java:
 	@$(call msg,"Running Java unit tests...")
-	@$(JAVA_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) $(JAVA_UNITTEST_CMD) AllTests
+	@$(JAVA_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
+		$(JAVA_UNITTEST_CMD) AllUnitTests
 
 #: Run all unit tests
 unittest: unittest.py unittest.java
@@ -120,7 +125,7 @@ dump:
 
 #: Clean up generated files
 clean:
-	$(RM) $(JAVA_DST)
+	$(RM) $(JAVA_DST) $(JAVA_TEST_DST)
 
 # https://stackoverflow.com/a/26339924
 #: Show all targets in this Makefile
