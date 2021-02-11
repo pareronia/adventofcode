@@ -10,16 +10,19 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.github.pareronia.aoc.Grid;
+
 public class NessieFinderTestCase {
 	
-	private List<String> grid;
+	private Grid grid;
 
 	@Before
 	public void setUp() {
-		grid = new ArrayList<>();
-		grid.add(".#.#...#.###...#.##.##..");
-		grid.add("#.#.##.###.#.##.##.#####");
-		grid.add("..##.###.####..#.####.##");
+		final List<String> lines = new ArrayList<>();
+		lines.add(".#.#...#.###...#.##.##..");
+		lines.add("#.#.##.###.#.##.##.#####");
+		lines.add("..##.###.####..#.####.##");
+		grid = Grid.from(lines);
 	}
 	
 	@Test
@@ -33,12 +36,12 @@ public class NessieFinderTestCase {
 	
 	@Test
 	public void markNessies() {
-		AoC2020_20.NessieFinder.markNessies(asList(Pair.of(1, 2)), grid);
+		final Grid result = AoC2020_20.NessieFinder.markNessies(asList(Pair.of(1, 2)), grid);
 		
 		final List<String> expected = new ArrayList<>();
 		expected.add("_~_~___~_~~~___~_~~_\u2592~__");
 		expected.add("~_\u2592_~~_\u2592\u2592~_~_\u2592\u2592_~~_\u2592\u2592\u2592~~");
 		expected.add("__~\u2592_~\u2592~_\u2592~~\u2592__\u2592_~\u2592~~_~~");
-		assertThat(grid, equalTo(expected));
+		assertThat(result.getRowsAsStringList(), equalTo(expected));
 	}
 }

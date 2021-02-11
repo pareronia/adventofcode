@@ -1,5 +1,4 @@
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.union;
 
@@ -10,7 +9,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -20,12 +18,11 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.mutable.MutableLong;
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aocd.Aocd;
 
 public class AoC2020_20 extends AoCBase {
@@ -51,15 +48,15 @@ public class AoC2020_20 extends AoCBase {
 		final Set<Tile> tiles = new HashSet<>();
 		for (final List<String> block : toBlocks(inputs)) {
 			Integer id = null;
-			final List<char[]> grid = new ArrayList<>();
+			final List<String> grid = new ArrayList<>();
 			for (final String line : block) {
 				if (line.startsWith("Tile ")) {
 					id = Integer.valueOf(line.substring("Tile ".length(), line.length() - 1));
 				} else {
-					grid.add(line.toCharArray());
+					grid.add(line);
 				}
 			}
-			tiles.add(new Tile(id, Tile.toGrid(grid)));
+			tiles.add(new Tile(id, grid));
 		}
 		return new Image(tiles, logger);
 	}
@@ -81,14 +78,9 @@ public class AoC2020_20 extends AoCBase {
 		image.print();
 		log("Looking for Nessies...");
 		List<Pair<Integer, Integer>> nessies = null;
-		for (int i = 0; i < 8; i++) {
-			if (i == 4) {
-				image.flipHorizontally();
-				log("Flipping");
-			} else if (i > 0)  {
-				image.rotate();
-				log("Rotating");
-			}
+		final Iterator<Grid> permutations = image.grid.getPermutations();
+		while (permutations.hasNext()) {
+			image.grid = permutations.next();
 			nessies = NessieFinder.findNessies(image.grid);
 			if (nessies.size() > 1) {
 				for (final Pair<Integer, Integer> nessie : nessies) {
@@ -97,11 +89,8 @@ public class AoC2020_20 extends AoCBase {
 				}
 				break;
 			} else if (nessies.size() == 1) {
-				final List<String> grid = image.grid
-						.stream().map(s -> new String(s))
-						.collect(toList());
-				NessieFinder.markNessies(nessies, grid);
-				for (final String row : grid) {
+				final Grid grid = NessieFinder.markNessies(nessies, image.grid);
+				for (final String row : grid.getRowsAsStrings()) {
 					log(row);
 				}
 				log("One is not enough? Looking for more Nessies...");
@@ -109,7 +98,7 @@ public class AoC2020_20 extends AoCBase {
 		}
 		final long octothorps = image.countOctothorps();
 		log("Octothorps: " + octothorps);
-		NessieFinder.markNessies(nessies, image.grid);
+		image.grid = NessieFinder.markNessies(nessies, image.grid);
 		image.print();
 		return octothorps - 15 * nessies.size();
 	}
@@ -234,13 +223,14 @@ public class AoC2020_20 extends AoCBase {
 	
 	static final class Tile {
 		private final Integer id;
-		private final char[][] grid;
+		private final Grid grid;
 		
-		public static char[][] toGrid(List<char[]> strings) {
-			return strings.toArray(new char[strings.size()][]);
+		public Tile(Integer id, List<String> grid) {
+			this.id = id;
+			this.grid = Grid.from(grid);
 		}
 		
-		public Tile(Integer id, char[][] grid) {
+		public Tile(Integer id, Grid grid) {
 			this.id = id;
 			this.grid = grid;
 		}
@@ -249,106 +239,62 @@ public class AoC2020_20 extends AoCBase {
 			return id;
 		}
 
-		public char[][] getGrid() {
+		public Grid getGrid() {
 			return grid;
 		}
 
-		private String getTopEdge() {
-			return getRow(0);
+		private char[] getTopEdge() {
+			return this.grid.getTopEdge();
 		}
 
-		private String getTopEdgeReversed() {
-			return new StringBuilder(getTopEdge()).reverse().toString();
+		private char[] getBottomEdge() {
+			return this.grid.getBottomEdge();
 		}
 
-		private String getBottomEdge() {
-			return getRow(grid.length-1);
+		private char[] getLeftEdge() {
+			return this.grid.getLeftEdge();
+		}
+		
+		private char[] getRightEdge() {
+			return this.grid.getRightEdge();
+		}
+		
+		private char[] getRow(int row)  {
+			return this.grid.getRow(row);
+		}
+		
+		private Integer getHeight() {
+			return this.grid.getHeight();
+		}
+		
+		private Set<char[]> getAllEdges() {
+			return this.grid.getAllEdges();
 		}
 
-		private String getBottomEdgeReversed() {
-			return new StringBuilder(getBottomEdge()).reverse().toString();
-		}
-		
-		private String getLeftEdge() {
-			return getColumn(0);
-		}
-		
-		private String getLeftEdgeReversed() {
-			return new StringBuilder(getLeftEdge()).reverse().toString();
-		}
-		
-		private String getRightEdge() {
-			return getColumn(grid.length-1);
-		}
-		
-		private String getRightEdgeReversed() {
-			return new StringBuilder(getRightEdge()).reverse().toString();
-		}
-		
-		private String getColumn(int col) {
-			final char [] column = new char[grid.length];
-			for (int i = 0; i < grid[0].length; i++) {
-				column[i] = grid[i][col];
-			}
-			return new String(column);
-		}
-		
-		private String getColumnReversed(int col) {
-			return new StringBuilder(getColumn(col)).reverse().toString();
-		}
-		
-		private String getRow(int row)  {
-			return new String(grid[row]);
-		}
-		
-		private List<String> getRows() {
-			return Stream.of(grid).map(String::valueOf).collect(toList());
-		}
-		
-		public Set<String> getAllEdges() {
-			final HashSet<String> set = new HashSet<>();
-			set.add(getTopEdge());
-			set.add(getBottomEdge());
-			set.add(getLeftEdge());
-			set.add(getRightEdge());
-			return set;
-		}
-
-		public Set<String> getAllEdgesReversed() {
-			final HashSet<String> set = new HashSet<>();
-			set.add(getTopEdgeReversed());
-			set.add(getBottomEdgeReversed());
-			set.add(getLeftEdgeReversed());
-			set.add(getRightEdgeReversed());
-			return set;
-		}
-		
-		public Tile getFlippedHorizontally() {
-			final List<char[]> newGrid = new ArrayList<>();
-	        final ListIterator<String> iterator = getRows().listIterator(grid.length);
-	        while (iterator.hasPrevious()) {
-	        	newGrid.add(iterator.previous().toCharArray());
-	        }
-	        return new Tile(id, Tile.toGrid(newGrid));
-		}
-		
-		public Tile getRotated() {
-			final List<char[]> newGrid = new ArrayList<>();
-			for (int i = 0; i < grid.length; i++) {
-				newGrid.add(getColumnReversed(i).toCharArray());
-			}
-			return new Tile(id, Tile.toGrid(newGrid));
+		private Set<char[]> getAllEdgesReversed() {
+			return this.grid.getAllEdgesReversed();
 		}
 		
 		public Tile getWithEdgesRemoved() {
-			final List<char[]> newGrid = new ArrayList<>();
-			for (int i = 1; i < grid.length - 1; i++) {
-				final String row = getRow(i);
-				newGrid.add(row.substring(1, row.length() - 1).toCharArray());
-			}
-			return new Tile(id, Tile.toGrid(newGrid));
+			return new Tile(id, grid.getWithEdgesRemoved());
 		}
 
+		public Iterator<Tile> getAllPermutations() {
+			return new Iterator<Tile>() {
+				final Iterator<Grid> inner = Tile.this.getGrid().getPermutations();
+				
+				@Override
+				public boolean hasNext() {
+					return inner.hasNext();
+				}
+
+				@Override
+				public Tile next() {
+					return new Tile(Tile.this.getId(), inner.next());
+				}
+			};
+		}
+		
 		@Override
 		public String toString() {
 			final StringBuilder sb = new StringBuilder();
@@ -380,14 +326,13 @@ public class AoC2020_20 extends AoCBase {
 	private static final class Image {
 		private final Set<Tile> tiles;
 		private final Tile[][] placedTiles;
-		private final List<String> grid;
 		private final Logger logger;
+		private Grid grid;
 
 		public Image(Set<Tile> tiles, Logger logger) {
 			this.tiles = tiles;
 			this.logger = logger;
 			this.placedTiles = new Tile[Math.sqrt(tiles.size())][Math.sqrt(tiles.size())];
-			this.grid = new ArrayList<>();
 		}
 		
 		public Set<Tile> getTiles() {
@@ -403,7 +348,7 @@ public class AoC2020_20 extends AoCBase {
 			tiles.remove(tile);
 		}
 		
-		private Set<String> getEdgesForMatching(Tile tile) {
+		private Set<char[]> getEdgesForMatching(Tile tile) {
 			if (ArrayUtils.contains(placedTiles, tile)) {
 				return tile.getAllEdges();
 			} else {
@@ -415,7 +360,7 @@ public class AoC2020_20 extends AoCBase {
 			return getEdgesForMatching(tile1).stream()
 				.flatMap(edge1 -> getEdgesForMatching(tile2).stream()
 									.map(edge2 -> Pair.of(edge1, edge2)))
-				.filter(p -> p.getLeft().equals(p.getRight()))
+				.filter(p -> Arrays.equals(p.getLeft(), p.getRight()))
 				.count() == 2;
 		}
 		
@@ -436,7 +381,7 @@ public class AoC2020_20 extends AoCBase {
 			final Tile corner = cornersList.get(0);
 			log("Unplaced tiles: " + getTiles().size());
 			log("Starting with " + corner.getId());
-			final Iterator<Tile> allPermutations = TilePermutator.getAllPermutations(corner);
+			final Iterator<Tile> allPermutations = corner.getAllPermutations();
 			while (allPermutations.hasNext()) {
 				final Tile next = allPermutations.next();
 				placeTile(next, 0, 0);
@@ -487,46 +432,26 @@ public class AoC2020_20 extends AoCBase {
 		}
 		
 		public void createImageGrid() {
+			final List<String> grid = new ArrayList<>();
 			for (int i = 0; i < placedTiles.length; i++) {
 				final Tile[] tiles = placedTiles[i];
-				for (int j = 0; j < tiles[0].grid.length; j++) {
+				for (int j = 0; j < tiles[0].grid.getHeight(); j++) {
 					final StringBuilder row = new StringBuilder();
 					for (final Tile tile : tiles) {
 						row.append(tile.getRow(j));
 					}
-					this.grid.add(row.toString());
+					grid.add(row.toString());
 				}
 			}
-		}
-		
-		public void rotate() {
-			final ArrayList<String> newGrid = new ArrayList<>();
-			for (int i = 0; i < this.grid.get(0).length(); i++) {
-				final StringBuilder row = new StringBuilder();
-				for (int j = this.grid.size() - 1; j >= 0; j--) {
-					row.append(this.grid.get(j).charAt(i));
-				}
-				newGrid.add(row.toString());
-			}
-			this.grid.clear();
-			this.grid.addAll(newGrid);
+			this.grid = Grid.from(grid);
 		}
 		
 		public long countOctothorps() {
-			return this.grid.stream().flatMapToInt(s -> s.chars()).filter(c -> c == '#').count();
-		}
-		
-		public void flipHorizontally() {
-			final ArrayList<String> newGrid = new ArrayList<>();
-			for (int j = this.grid.size() - 1; j >= 0; j--) {
-				newGrid.add(this.grid.get(j));
-			}
-			this.grid.clear();
-			this.grid.addAll(newGrid);
+			return this.grid.countAllEqualTo('#');
 		}
 		
 		public void print() {
-			for (final String row : this.grid) {
+			for (final String row : this.grid.getRowsAsStrings()) {
 				log(row);
 			}
 		}
@@ -540,13 +465,13 @@ public class AoC2020_20 extends AoCBase {
 				if (tile == null) {
 					continue;
 				}
-				for (int i = 0; i < tile.getRows().size(); i++ ) {
+				for (int i = 0; i < tile.getHeight(); i++ ) {
 					final int row = i;
 					log(Arrays.stream(tiles).map(t -> {
 						if (t == null) {
 							return "          ";
 						}
-						return t.getRow(row);
+						return new String(t.getRow(row));
 					}).collect(joining(" ")));
 				}
 				log("");
@@ -570,12 +495,7 @@ public class AoC2020_20 extends AoCBase {
 	private static final class Math {
 		
 		public static long prod(Collection<Integer> numbers) {
-			if (CollectionUtils.isEmpty(numbers)) {
-				return 0L;
-			}
-			final MutableLong result = new MutableLong(1L);
-			numbers.forEach(n -> result.setValue(result.longValue() * n));
-			return result.longValue();
+			return numbers.stream().map(Long::new).reduce(1L, (a, b) -> a * b);
 		}
 		
 		public static int sqrt(int number) {
@@ -587,15 +507,15 @@ public class AoC2020_20 extends AoCBase {
 		
 		private static final char NESSIE_CHAR = '\u2592';
 
-		public static List<Pair<Integer,Integer>> findNessies(List<String> grid) {
+		public static List<Pair<Integer,Integer>> findNessies(Grid grid) {
 			final List<Pair<Integer, Integer>> nessies = new ArrayList<>();
-			for (int i = 1; i < grid.size(); i++) {
-				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.get(i));
+			for (int i = 1; i < grid.getHeight(); i++) {
+				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.getRowAsString(i));
 				while (m1.find()) {
 					final int tail = m1.start(0);
-					if ("#".equals(grid.get(i - 1).substring(tail + 18, tail + 19))) {
+					if ("#".equals(grid.getRowAsString(i - 1).substring(tail + 18, tail + 19))) {
 						final Matcher m2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#")
-								.matcher(grid.get(i + 1).substring(tail));
+								.matcher(grid.getRowAsString(i + 1).substring(tail));
 						if (m2.find()) {
 							nessies.add(Pair.of(i, tail));
 						}
@@ -605,7 +525,8 @@ public class AoC2020_20 extends AoCBase {
 			return nessies;
 		}
 		
-		public static void markNessies(List<Pair<Integer, Integer>> nessies, List<String> grid) {
+		public static Grid markNessies(List<Pair<Integer, Integer>> nessies, Grid gridIn) {
+			final List<String> grid = gridIn.getRowsAsStringList();
 			for (final Pair<Integer, Integer> nessie : nessies) {
 				final int idx = nessie.getRight();
 				final char[] chars0 = grid.get(nessie.getLeft() - 1).toCharArray();
@@ -641,43 +562,18 @@ public class AoC2020_20 extends AoCBase {
 				}
 				grid.set(j, new String(chars));
 			}
-		}
-	}
-	
-	static final class TilePermutator {
-		
-		public static Iterator<Tile> getAllPermutations(Tile in) {
-			return new Iterator<Tile>() {
-				int i = 0;
-				Tile tile = in;
-				
-				@Override
-				public boolean hasNext() {
-					return i < 8;
-				}
-
-				@Override
-				public Tile next() {
-					if (i == 4) {
-						tile = tile.getFlippedHorizontally();
-					} else if (i > 0)  {
-						tile = tile.getRotated();
-					}
-					i++;
-					return tile;
-				}
-			};
+			return Grid.from(grid);
 		}
 	}
 	
 	static final class TileMatcher {
 		
 		private static Predicate<AoC2020_20.Tile> rightSide(Tile tile) {
-			return t -> tile.getRightEdge().equals(t.getLeftEdge());
+			return t -> Arrays.equals(tile.getRightEdge(), t.getLeftEdge());
 		}
 		
 		private static Predicate<AoC2020_20.Tile> bottomSide(Tile tile) {
-			return t -> tile.getBottomEdge().equals(t.getTopEdge());
+			return t -> Arrays.equals(tile.getBottomEdge(), t.getTopEdge());
 		}
 		
 		public static Optional<Tile> findRightSideMatch(Tile tile, Set<Tile> tiles) {
@@ -690,7 +586,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		private static Optional<Tile> findMatch(Tile tile, Set<Tile> tiles, Predicate<AoC2020_20.Tile> matcher) {
 			return tiles.stream()
-				.flatMap(t -> asStream(TilePermutator.getAllPermutations(t)))
+				.flatMap(t -> asStream(t.getAllPermutations()))
 				.filter(matcher)
 				.findAny();
 		}
