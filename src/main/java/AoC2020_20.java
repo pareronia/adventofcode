@@ -27,13 +27,13 @@ import com.github.pareronia.aocd.Aocd;
 
 public class AoC2020_20 extends AoCBase {
 	
-	private final List<String> inputs;
+	private final TileSet tileSet;
 	private final Logger logger;
 	
 	private AoC2020_20(List<String> input, boolean debug) {
 		super(debug);
-		this.inputs = input;
 		this.logger = obj -> log(() -> obj);
+		this.tileSet = parse(input);
 	}
 
 	public static final AoC2020_20 create(List<String> input) {
@@ -44,44 +44,43 @@ public class AoC2020_20 extends AoCBase {
 		return new AoC2020_20(input, true);
 	}
 	
-	public Image parse(List<String> inputs) {
-		final Set<Tile> tiles = new HashSet<>();
-		for (final List<String> block : toBlocks(inputs)) {
-			Integer id = null;
-			final List<String> grid = new ArrayList<>();
-			for (final String line : block) {
-				if (line.startsWith("Tile ")) {
-					id = Integer.valueOf(line.substring("Tile ".length(), line.length() - 1));
-				} else {
-					grid.add(line);
-				}
-			}
-			tiles.add(new Tile(id, grid));
-		}
-		return new Image(tiles, logger);
+	private TileSet parse(List<String> inputs) {
+		final Set<Tile> tiles = toBlocks(inputs).stream()
+				.map(block -> {
+					Integer id = null;
+					final List<String> grid = new ArrayList<>();
+					for (final String line : block) {
+						if (line.startsWith("Tile ")) {
+							id = Integer.valueOf(line.substring("Tile ".length(), line.length() - 1));
+						} else {
+							grid.add(line);
+						}
+					}
+					return new Tile(id, grid);
+				})
+				.collect(toSet());
+		return new TileSet(tiles, logger);
 	}
 	
 	@Override
 	public long solvePart1() {
-		final Image image = parse(inputs);
-		image.getTiles().forEach(this::log);
-		return Math.prod(image.findCorners().stream().map(Tile::getId).collect(toSet()));
+		this.tileSet.getTiles().forEach(this::log);
+		return Math.prod(this.tileSet.findCorners().stream().map(Tile::getId).collect(toSet()));
 	}
 	
 	@Override
 	public long solvePart2() {
-		final Image image = parse(inputs);
-		image.puzzle();
-		image.removeTileEdges();
-		image.printPlacedTiles();
-		image.createImageGrid();
-		image.print();
+		this.tileSet.puzzle();
+		this.tileSet.removeTileEdges();
+		this.tileSet.printPlacedTiles();
+		Grid image = Grid.from(this.tileSet.createImageGrid());
+		print(image);
 		log("Looking for Nessies...");
 		List<Pair<Integer, Integer>> nessies = null;
-		final Iterator<Grid> permutations = image.grid.getPermutations();
+		final Iterator<Grid> permutations = image.getPermutations();
 		while (permutations.hasNext()) {
-			image.grid = permutations.next();
-			nessies = NessieFinder.findNessies(image.grid);
+			image = permutations.next();
+			nessies = NessieFinder.findNessies(image);
 			if (nessies.size() > 1) {
 				for (final Pair<Integer, Integer> nessie : nessies) {
 					log(String.format("Found 1 Nessie at (%d, %d)!",
@@ -89,18 +88,20 @@ public class AoC2020_20 extends AoCBase {
 				}
 				break;
 			} else if (nessies.size() == 1) {
-				final Grid grid = NessieFinder.markNessies(nessies, image.grid);
-				for (final String row : grid.getRowsAsStrings()) {
-					log(row);
-				}
+				final Grid grid = NessieFinder.markNessies(nessies, image);
+				print(grid);
 				log("One is not enough? Looking for more Nessies...");
 			}
 		}
-		final long octothorps = image.countOctothorps();
+		final long octothorps = image.countAllEqualTo('#');
 		log("Octothorps: " + octothorps);
-		image.grid = NessieFinder.markNessies(nessies, image.grid);
-		image.print();
+		image = NessieFinder.markNessies(nessies, image);
+		print(image);
 		return octothorps - 15 * nessies.size();
+	}
+
+	private void print(Grid image) {
+		image.getRowsAsStrings().forEach(this::log);
 	}
 	
 	public static void main(String[] args) throws Exception {
@@ -323,18 +324,17 @@ public class AoC2020_20 extends AoCBase {
 		}
 	}
 	
-	private static final class Image {
+	private static final class TileSet {
 		private final Set<Tile> tiles;
 		private final Tile[][] placedTiles;
 		private final Logger logger;
-		private Grid grid;
-
-		public Image(Set<Tile> tiles, Logger logger) {
+	
+		public TileSet(Set<Tile> tiles, Logger logger) {
 			this.tiles = tiles;
 			this.logger = logger;
 			this.placedTiles = new Tile[Math.sqrt(tiles.size())][Math.sqrt(tiles.size())];
 		}
-		
+
 		public Set<Tile> getTiles() {
 			return this.tiles;
 		}
@@ -346,6 +346,41 @@ public class AoC2020_20 extends AoCBase {
 		private void placeTile(Tile tile, int row, int col) {
 			placedTiles[row][col] = tile;
 			tiles.remove(tile);
+		}
+		
+		public void printPlacedTiles() {
+			if (placedTiles.length > 3) {
+				return;
+			}
+			for (final Tile[] tiles : placedTiles) {
+				final Tile tile = ObjectUtils.firstNonNull(tiles);
+				if (tile == null) {
+					continue;
+				}
+				for (int i = 0; i < tile.getHeight(); i++ ) {
+					final int row = i;
+					log(Arrays.stream(tiles).map(t -> {
+						if (t == null) {
+							return "          ";
+						}
+						return new String(t.getRow(row));
+					}).collect(joining(" ")));
+				}
+				log("");
+			}
+			for (final Tile[] tiles : placedTiles) {
+				final Tile tile = ObjectUtils.firstNonNull(tiles);
+				if (tile == null) {
+					continue;
+				}
+				log(Arrays.stream(tiles).map(t -> {
+					if (t == null) {
+						return "    ";
+					}
+					return String.valueOf(t.getId());
+				}).collect(joining("  ")));
+				log("");
+			}
 		}
 		
 		private Set<char[]> getEdgesForMatching(Tile tile) {
@@ -372,7 +407,7 @@ public class AoC2020_20 extends AoCBase {
 						.count() == 2)
 				.collect(toSet());
 		}
-		
+
 		public void puzzle() {
 			final Set<Tile> corners = findCorners();
 			// Pick a corner, any corner...
@@ -431,7 +466,7 @@ public class AoC2020_20 extends AoCBase {
 			}
 		}
 		
-		public void createImageGrid() {
+		public List<String> createImageGrid() {
 			final List<String> grid = new ArrayList<>();
 			for (int i = 0; i < placedTiles.length; i++) {
 				final Tile[] tiles = placedTiles[i];
@@ -443,52 +478,7 @@ public class AoC2020_20 extends AoCBase {
 					grid.add(row.toString());
 				}
 			}
-			this.grid = Grid.from(grid);
-		}
-		
-		public long countOctothorps() {
-			return this.grid.countAllEqualTo('#');
-		}
-		
-		public void print() {
-			for (final String row : this.grid.getRowsAsStrings()) {
-				log(row);
-			}
-		}
-
-		public void printPlacedTiles() {
-			if (placedTiles.length > 3) {
-				return;
-			}
-			for (final Tile[] tiles : placedTiles) {
-				final Tile tile = ObjectUtils.firstNonNull(tiles);
-				if (tile == null) {
-					continue;
-				}
-				for (int i = 0; i < tile.getHeight(); i++ ) {
-					final int row = i;
-					log(Arrays.stream(tiles).map(t -> {
-						if (t == null) {
-							return "          ";
-						}
-						return new String(t.getRow(row));
-					}).collect(joining(" ")));
-				}
-				log("");
-			}
-			for (final Tile[] tiles : placedTiles) {
-				final Tile tile = ObjectUtils.firstNonNull(tiles);
-				if (tile == null) {
-					continue;
-				}
-				log(Arrays.stream(tiles).map(t -> {
-					if (t == null) {
-						return "    ";
-					}
-					return String.valueOf(t.getId());
-				}).collect(joining("  ")));
-				log("");
-			}
+			return grid;
 		}
 	}
 	

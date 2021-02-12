@@ -21,12 +21,16 @@ public class Grid {
 		this.cells = cells;
 	}
 	
-	public static Grid from(List<String> strings) {
+	public Grid(List<String> strings) {
 		final char[][] cells = new char[strings.size()][strings.get(0).length()];
 		for (int i = 0; i < strings.size(); i++) {
 			cells[i] = strings.get(i).toCharArray();
 		}
-		return new Grid(cells);
+		this.cells = cells;
+	}
+	
+	public static Grid from(List<String> strings) {
+		return new Grid(strings);
 	}
 	
 	public char[][] getCells() {
