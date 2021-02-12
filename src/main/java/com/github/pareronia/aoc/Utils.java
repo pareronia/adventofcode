@@ -3,6 +3,7 @@ package com.github.pareronia.aoc;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -33,5 +34,13 @@ public class Utils {
 		return Objects.requireNonNull(stream)
 				.min(Comparator.<T> naturalOrder())
 				.orElseThrow(() -> new RuntimeException(message));
+	}
+	
+	public static Collector<Character, StringBuilder, String> toAString() {
+		return Collector.of(
+				StringBuilder::new,
+				StringBuilder::append,
+				StringBuilder::append,
+				StringBuilder::toString);
 	}
 }

@@ -12,6 +12,8 @@ import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
 
+import org.apache.commons.lang3.StringUtils;
+
 import lombok.Value;
 
 public class Grid {
@@ -31,6 +33,14 @@ public class Grid {
 	
 	public static Grid from(List<String> strings) {
 		return new Grid(strings);
+	}
+	
+	public static Grid from(String string, int width) {
+		return Grid.from(
+				Stream.iterate(0, i -> i + width)
+					.limit(string.length() / width)
+					.map(i -> string.substring(i, i + width))
+					.collect(toList()));
 	}
 	
 	public char[][] getCells() {
@@ -181,6 +191,32 @@ public class Grid {
 		return getAllEqualTo(ch).count();
 	}
 	
+	public Grid replace(char ch1, char ch2) {
+		final char[][] cells = new char[getHeight()][getWidth()];
+		for (int row = 0; row < getHeight(); row++) {
+			for (int col = 0; col < getWidth(); col++) {
+				cells[row][col] = this.cells[row][col] == ch1 ? ch2 : this.cells[row][col];
+			}
+		}
+		return new Grid(cells);
+	}
+	
+	public Grid subGrid(Cell from, Cell to) {
+		Objects.requireNonNull(from);
+		Objects.requireNonNull(to);
+		if (from.row > to.row || from.col > to.col) {
+			throw new IllegalArgumentException("Invalid coordinates");
+		}
+		
+		final char[][] cells = new char[to.row - from.row][to.col - from.col];
+		for (int row = from.row, i = 0; row < to.row && i < cells.length; row++, i++) {
+			for (int col = from.col, j = 0; col < to.col && j < cells[0].length; col++, j++) {
+				cells[i][j] = this.cells[row][col];
+			}
+		}
+		return new Grid(cells);
+	}
+	
 	public Grid getWithEdgesRemoved() {
 		final char[][] cells = new char[getHeight() - 2][];
 		for (int row = 1; row < getMaxRowIndex(); row++) {
@@ -236,7 +272,37 @@ public class Grid {
 				return grid;
 			}
 		};
+	}
 
+	@Override
+	public String toString() {
+		return StringUtils.join(getRowsAsStrings(), System.lineSeparator());
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.deepHashCode(cells);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		final Grid other = (Grid) obj;
+		if (!Arrays.deepEquals(cells, other.cells)) {
+			return false;
+		}
+		return true;
 	}
 
 	private void validateRowIndex(Integer row) {

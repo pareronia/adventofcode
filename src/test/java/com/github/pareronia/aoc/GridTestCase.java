@@ -3,6 +3,7 @@ package com.github.pareronia.aoc;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.is;
@@ -221,5 +222,40 @@ public class GridTestCase {
 		assertThat(grid.countAllEqualTo('X'), is(5L));
 		assertThat(grid.countAllEqualTo('O'), is(4L));
 		assertThat(grid.countAllEqualTo('.'), is(0L));
+	}
+	
+	@Test
+	public void replace() {
+		final Grid grid = Grid.from(asList(	"XOX", "OXO", "XOX"));
+		
+		final Grid result = grid.replace('X', 'Y');
+		
+		assertThat(asStringList(result), is(asList("YOY", "OYO", "YOY")));
+	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void subGrid_invalidCoordinates() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+		
+		grid.subGrid(Cell.at(3, 3), Cell.at(1, 1));
+	}
+	
+	@Test
+	public void subGrid() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+		
+		final Grid result1 = grid.subGrid(Cell.at(1, 1), Cell.at(4, 4));
+		final Grid result2 = grid.subGrid(Cell.at(0, 0), Cell.at(0, 0));
+
+		assertThat(asStringList(result1), is(asList("FGH", "JKL", "NOP")));
+		assertThat(asStringList(result2), is(emptyList()));
 	}
 }
