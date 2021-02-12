@@ -1,4 +1,5 @@
 advent-of-code-data==0.9.4
+advent-of-code-ocr==0.2.0
 bandit==1.6.2
 beautifulsoup4==4.9.3
 certifi==2020.11.8
@@ -9,7 +10,7 @@ gitdb==4.0.5
 GitPython==3.1.11
 idna==2.10
 mccabe==0.6.1
-numpy==1.19.5
+numpy==1.19.4
 pbr==5.5.1
 Pebble==4.5.3
 prettyprinter==0.18.0
