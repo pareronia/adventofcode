@@ -28,7 +28,7 @@ public class AoC2020_06 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		return toBlocks(this.inputs).stream()
 				.map(b -> String.join("", b))
 				.collect(toList()).stream()
@@ -38,7 +38,7 @@ public class AoC2020_06 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		return toBlocks(this.inputs).stream()
 				.map(bl -> bl.stream()
 						.map(s -> asCharacterStream(s).collect(toSet()))

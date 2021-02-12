@@ -62,19 +62,19 @@ public class AoC2015_07 extends AoCBase {
 		return Circuit.of(gates);
 	}
 	
-	long part1(String wire) {
+	int part1(String wire) {
 		final Circuit circuit = parse();
 		log(circuit);
 		return circuit.getValue(wire);
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		return part1("a");
 	}
 	
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		final long a = part1("a");
 		final Circuit circuit = parse();
 		circuit.setGate("b", Gate.set("b", String.valueOf(a)));

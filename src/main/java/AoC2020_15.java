@@ -43,12 +43,12 @@ public class AoC2020_15 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		return play(2020);
 	}
 	
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		return play(30_000_000);
 	}
 

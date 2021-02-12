@@ -41,7 +41,7 @@ public class AoC2020_09 extends AoCBase {
 		return false;
 	}
 	
-	private long findInvalidNumber(Integer windowSize) {
+	private Long findInvalidNumber(Integer windowSize) {
 		final Range<Integer> range = Range.between(windowSize, this.numbers.size());
 		for (int i = range.getMinimum(); i < range.getMaximum(); i++) {
 			final Long number = this.numbers.get(i);
@@ -54,7 +54,7 @@ public class AoC2020_09 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		return findInvalidNumber(25);
 	}
 	
@@ -72,7 +72,7 @@ public class AoC2020_09 extends AoCBase {
 		return sublists;
 	}
 	
-	private long findWeakness(Integer windowSize) {
+	private Long findWeakness(Integer windowSize) {
 		final long target = findInvalidNumber(windowSize);
 		final List<List<Long>> sublists
 				= collectAllSublistsBeforeTargetWithMinimumSize2(this.numbers.indexOf(target));
@@ -88,7 +88,7 @@ public class AoC2020_09 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		return findWeakness(25);
 	}
 

@@ -53,19 +53,20 @@ public class AoC2020_03 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		return doRun(Steps.of(1, 3));
 	}
 
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		return Stream.of(	Steps.of(1, 1),
 							Steps.of(1, 3),
 							Steps.of(1, 5),
 							Steps.of(1, 7),
 							Steps.of(2, 1))
 				.map(this::doRun)
-				.reduce(1, (a, b) -> a * b);
+				.map(Integer::longValue)
+				.reduce(1L, (a, b) -> a * b);
 	}
 
 	public static void main(String[] args) throws Exception {

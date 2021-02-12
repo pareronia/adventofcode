@@ -58,12 +58,12 @@ public class AoC2020_04 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		return countValid(Passport::isValid1);
 	}
 
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		return countValid(Passport::isValid2);
 	}
 

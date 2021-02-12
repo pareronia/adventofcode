@@ -20,20 +20,20 @@ public class AoC2020_01 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		final Set<Integer> seen = new HashSet<>();
 		for (final Integer n1 : this.numbers) {
 			seen.add(n1);
 			final Integer n2 = 2020 - n1;
 			if (seen.contains(n2)) {
-				return n1 * n2;
+				return (long) (n1 * n2);
 			}
 		}
 		return 0L;
 	}
 
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		final Set<Integer> seen = new HashSet<>();
 		for (int i = 0; i < this.numbers.size(); i++) {
 			final Integer n1 = this.numbers.get(i);
@@ -42,7 +42,7 @@ public class AoC2020_01 extends AoCBase {
 				final Integer n2 = this.numbers.get(j);
 				final Integer n3 = 2020 - n1 - n2;
 				if (seen.contains(n3)) {
-					return n1 * n2 * n3;
+					return (long) (n1 * n2 * n3);
 				}
 			}
 		}

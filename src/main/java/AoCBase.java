@@ -60,11 +60,11 @@ public abstract class AoCBase {
 		this.debug = debug;
 	}
 	
-	public long solvePart1() {
+	public Object solvePart1() {
 		return 0L;
 	}
 	
-	public long solvePart2() {
+	public Object solvePart2() {
 		return 0L;
 	}
 	

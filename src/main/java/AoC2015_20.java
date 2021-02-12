@@ -60,7 +60,7 @@ public class AoC2015_20 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		assert inputs.size() == 1;
 		final int numberOfGifts = Integer.valueOf(inputs.get(0)) / 10;
 		int houseNumber = 1;
@@ -71,7 +71,7 @@ public class AoC2015_20 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		assert inputs.size() == 1;
 		final int numberOfGifts = Double.valueOf(Math.ceil(Integer.valueOf(inputs.get(0)) / 11.0)).intValue();
 		int houseNumber = 1;

@@ -27,12 +27,12 @@ public class AoC2020_02 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		return countValid(PasswordAndPolicy::isValid1);
 	}
 
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		return countValid(PasswordAndPolicy::isValid2);
 	}
 

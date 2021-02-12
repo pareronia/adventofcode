@@ -152,13 +152,13 @@ public class AoC2015_22 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		final Fight fight = setUpFight(this.spells, this.player, this.boss);
 		return fight.run();
 	}
 
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		final Fight fight = setUpFight(this.spells, this.player, this.boss);
 		fight.setDifficultyHard(true);
 		return fight.run();

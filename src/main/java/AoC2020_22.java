@@ -117,7 +117,7 @@ public class AoC2020_22 extends AoCBase {
 		log(() ->String.format("The winner of game %d is player %d!", game, winner));
 	}
 	
-	private long getScore(Players players) {
+	private int getScore(Players players) {
 		log("");
 		log("");
 		log("== Post-game results ==");
@@ -134,14 +134,14 @@ public class AoC2020_22 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		final Players players = parse();
 		playRegularCombat(players);
 		return getScore(players);
 	}
 	
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		final Players players = parse();
 		playRecursiveCombat(players);
 		return getScore(players);

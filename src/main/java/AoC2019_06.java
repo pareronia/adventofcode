@@ -46,7 +46,7 @@ public class AoC2019_06 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		return this.graph.getEdges().stream()
 				.map(Edge::getDst)
 				.map(dst -> this.graph.countStepsUp(dst, CENTER_OF_MASS))
@@ -54,7 +54,7 @@ public class AoC2019_06 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		return this.graph.edges.stream()
 			.map(Edge::getDst)
 			.filter(dst -> !asList(YOU, SANTA).contains(dst))

@@ -82,7 +82,7 @@ public class AoC2020_23 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		final Map<Integer, Cup> cups = prepareCups();
 		final int size = this.labels.size();
 		final Integer min = min(this.labels.stream());
@@ -101,7 +101,7 @@ public class AoC2020_23 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		final Integer min = min(this.labels.stream());
 		final Integer max = max(this.labels.stream());
 		Stream.iterate(max + 1, i -> i + 1).limit(1_000_000 - this.labels.size())

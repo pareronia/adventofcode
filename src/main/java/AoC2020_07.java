@@ -52,7 +52,7 @@ public class AoC2020_07 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		return this.graph.getEdges().stream()
 				.map(Edge::getSrc)
 				.filter(src -> !src.equals(SHINY_GOLD))
@@ -62,7 +62,7 @@ public class AoC2020_07 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		return this.graph.countWeights(SHINY_GOLD);
 	}
 

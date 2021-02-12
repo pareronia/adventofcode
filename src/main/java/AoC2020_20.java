@@ -63,13 +63,13 @@ public class AoC2020_20 extends AoCBase {
 	}
 	
 	@Override
-	public long solvePart1() {
+	public Long solvePart1() {
 		this.tileSet.getTiles().forEach(this::log);
 		return Math.prod(this.tileSet.findCorners().stream().map(Tile::getId).collect(toSet()));
 	}
 	
 	@Override
-	public long solvePart2() {
+	public Long solvePart2() {
 		this.tileSet.puzzle();
 		this.tileSet.removeTileEdges();
 		this.tileSet.printPlacedTiles();
@@ -485,7 +485,7 @@ public class AoC2020_20 extends AoCBase {
 	private static final class Math {
 		
 		public static long prod(Collection<Integer> numbers) {
-			return numbers.stream().map(Long::new).reduce(1L, (a, b) -> a * b);
+			return numbers.stream().map(Integer::longValue).reduce(1L, (a, b) -> a * b);
 		}
 		
 		public static int sqrt(int number) {

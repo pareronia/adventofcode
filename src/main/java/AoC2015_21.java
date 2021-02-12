@@ -103,13 +103,13 @@ public class AoC2015_21 extends AoCBase {
 	}
 
 	@Override
-	public long solvePart1() {
+	public Integer solvePart1() {
 		return solve(	comparing(PlayerConfig::getTotalCost),
 						winsFromBoss());
 	}
 
 	@Override
-	public long solvePart2() {
+	public Integer solvePart2() {
 		return solve(	comparing(PlayerConfig::getTotalCost).reversed(),
 						winsFromBoss().negate());
 	}
