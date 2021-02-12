@@ -32,7 +32,7 @@ public class OCR {
 													"#..#",
 													".##."));
 	
-	private static final Grid V6 = Grid.from(asList("#..#",
+	private static final Grid U6 = Grid.from(asList("#..#",
 													"#..#",
 													"#..#",
 													"#..#",
@@ -51,7 +51,7 @@ public class OCR {
 		put(F6, 'F');
 		put(G6, 'G');
 		put(J6, 'J');
-		put(V6, 'V');
+		put(U6, 'U');
 		put(Z6, 'Z');
 	}};
 	
