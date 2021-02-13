@@ -1,10 +1,8 @@
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.intersection;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 
 import org.eclipse.collections.api.tuple.Pair;
@@ -87,14 +85,14 @@ public class AoC2019_03 extends AoCBase {
 
     @Override
     public Integer solvePart1() {
-        return intersection(wire1.asSet(), wire2.asSet()).stream()
+        return intersection(wire1.getCoordinates(), wire2.getCoordinates()).stream()
                 .map(c -> c.manhattanDistance(ORIGIN))
                 .reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
     }
 
     @Override
     public Integer solvePart2() {
-        return intersection(wire1.asSet(), wire2.asSet()).stream()
+        return intersection(wire1.getCoordinates(), wire2.getCoordinates()).stream()
                 .map(c -> wire1.steps(c) + wire2.steps(c))
                 .reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
     }
@@ -142,10 +140,6 @@ public class AoC2019_03 extends AoCBase {
     @Value
     private static final class Wire {
        private final List<Coordinate> coordinates;
-       
-       public Set<Coordinate> asSet() {
-           return this.coordinates.stream().collect(toSet());
-       }
        
        public Integer steps(Coordinate coord) {
            return this.getCoordinates().indexOf(coord) + 1;
