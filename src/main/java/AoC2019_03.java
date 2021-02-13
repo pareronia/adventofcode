@@ -1,4 +1,3 @@
-import static com.github.pareronia.aoc.Utils.min;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.CollectionUtils.intersection;
@@ -88,14 +87,16 @@ public class AoC2019_03 extends AoCBase {
 
     @Override
     public Integer solvePart1() {
-        return min(intersection(wire1.asSet(), wire2.asSet()).stream()
-                    .map(c -> c.manhattanDistance(ORIGIN)));
+        return intersection(wire1.asSet(), wire2.asSet()).stream()
+                .map(c -> c.manhattanDistance(ORIGIN))
+                .reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
     }
 
     @Override
     public Integer solvePart2() {
-        return min(intersection(wire1.asSet(), wire2.asSet()).stream()
-                    .map(c -> wire1.steps(c) + wire2.steps(c)));
+        return intersection(wire1.asSet(), wire2.asSet()).stream()
+                .map(c -> wire1.steps(c) + wire2.steps(c))
+                .reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
     }
 
     public static void main(String[] args) throws Exception {
