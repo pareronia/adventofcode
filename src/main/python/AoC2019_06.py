@@ -4,10 +4,9 @@
 #
 
 
-from functools import reduce, cache
+from functools import cache
 from typing import NamedTuple
 from aoc import my_aocd
-# from aoc.common import log
 
 
 class Edge(NamedTuple):
@@ -17,6 +16,7 @@ class Edge(NamedTuple):
 
 Graph = frozenset[Edge]
 graph: Graph
+ROOT = "COM"
 
 
 def _parse(inputs: tuple[str]) -> Graph:
@@ -24,46 +24,45 @@ def _parse(inputs: tuple[str]) -> Graph:
     graph = Graph({Edge(*tuple(line.split(")"))) for line in inputs})
 
 
-@cache
-def count_steps_up(fröm: str, to: str) -> int:
+def _get_edge_with_dst(dst: str) -> Edge:
     global graph
-    return list(
-        map(lambda e: 1 if e.src == to else 1 + count_steps_up(e.src, to),
-            filter(lambda e: e.dst == fröm, graph))
-    )[0]
+    edges = [e for e in graph if e.dst == dst]
+    assert len(edges) == 1
+    return edges[0]
 
 
 @cache
-def contains_path(fröm: str, to: str) -> bool:
-    global graph
-    return reduce(lambda a, b: a or b,
-                  map(lambda e: e.dst == to or contains_path(e.dst, to),
-                      filter(lambda e: e.src == fröm, graph)),
-                  False)
+def count_steps_to_root(fröm: str) -> int:
+    edge = _get_edge_with_dst(fröm)
+    if edge.src == ROOT:
+        return 1
+    else:
+        return 1 + count_steps_to_root(edge.src)
+
+
+def path_to_root(fröm: str) -> list[str]:
+    edge = _get_edge_with_dst(fröm)
+    path = [fröm]
+    if edge.src == ROOT:
+        path.append(ROOT)
+    else:
+        path.extend(path_to_root(edge.src))
+    return path
 
 
 def part_1(inputs: tuple[str]) -> int:
     global graph
     _parse(inputs)
-    return reduce(lambda a, b: a + b,
-                  map(lambda dst: count_steps_up(dst, "COM"),
-                      map(lambda e: e.dst, graph)))
+    return sum(map(lambda dst: count_steps_to_root(dst),
+                   map(lambda e: e.dst, graph)))
 
 
 def part_2(inputs: tuple[str]) -> int:
     global graph
     _parse(inputs)
-    return min(
-        map(lambda dst:
-            count_steps_up("YOU", dst) + count_steps_up("SAN", dst) - 2,
-            filter(lambda dst:
-                   dst not in {"YOU", "SAN"}
-                   and contains_path(dst, "YOU")
-                   and contains_path(dst, "SAN"),
-                   map(lambda e: e.dst, graph)
-                   )
-            )
-    )
+    p1 = path_to_root("YOU")
+    p2 = path_to_root("SAN")
+    return len((set(p1) - {"YOU"}) ^ (set(p2) - {"SAN"}))
 
 
 TEST1 = """\
