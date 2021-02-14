@@ -1,7 +1,9 @@
-import static java.lang.Boolean.FALSE;
-import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.summingInt;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.CollectionUtils.disjunction;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,21 +51,15 @@ public class AoC2019_06 extends AoCBase {
 	public Integer solvePart1() {
 		return this.graph.getEdges().stream()
 				.map(Edge::getDst)
-				.map(dst -> this.graph.countStepsUp(dst, CENTER_OF_MASS))
-				.reduce(0, (a, b) -> a + b);
+				.map(dst -> this.graph.pathToRoot(dst).size() - 1)
+				.collect(summingInt(Integer::intValue));
 	}
 
 	@Override
 	public Integer solvePart2() {
-		return this.graph.edges.stream()
-			.map(Edge::getDst)
-			.filter(dst -> !asList(YOU, SANTA).contains(dst))
-			.filter(dst -> this.graph.containsPath(dst, YOU))
-			.filter(dst -> this.graph.containsPath(dst, SANTA))
-			.map(dst -> this.graph.countStepsUp(YOU, dst)
-						+ this.graph.countStepsUp(SANTA, dst)
-						- 2)
-			.reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
+	    return disjunction(this.graph.pathToRoot(YOU),
+	                       this.graph.pathToRoot(SANTA))
+	            .size() - 2;
 	}
 
 	public static void main(String[] args) throws Exception {
@@ -114,41 +110,30 @@ public class AoC2019_06 extends AoCBase {
 	@Getter
 	private static final class Graph {
 		private final Set<Edge> edges;
-		private final Map<String, Boolean> paths = new HashMap<>();
-		private final Map<String, Integer> stepsUp = new HashMap<>();
+		private final String root = CENTER_OF_MASS;
+		private final Map<String, List<String>> paths = new HashMap<>();
 		
-		public Integer countStepsUp(String from, String to) {
-			final String key = from + to;
-			if (!stepsUp.containsKey(key)) {
-				stepsUp.put(
-						key,
-						this.edges.stream()
-							.filter(e -> e.getDst().equals(from))
-							.map(e -> {
-								if (e.getSrc().equals(to)) {
-									return 1;
-								} else {
-									return 1 + countStepsUp(e.getSrc(), to);
-								}
-							})
-							.findFirst().orElseThrow(() -> new RuntimeException())
-				);
-			}
-			return stepsUp.get(key);
+		public List<String> pathToRoot(String from) {
+		    if (!paths.containsKey(from)) {
+                final Edge edge = findEdgeWithDst(from);
+                final List<String> path = new ArrayList<>();
+                path.add(from);
+                if (edge.getSrc().equals(root)) {
+                    path.add(root);
+                } else {
+                    path.addAll(pathToRoot(edge.getSrc()));
+                }
+                paths.put(from, path);
+		    }
+		    return paths.get(from);
 		}
 		
-		public boolean containsPath(String src, String dst) {
-			final String key = src + dst;
-			if (!paths.containsKey(key)) {
-				paths.put(
-					key,
-					this.edges.stream()
-						.filter(e -> e.getSrc().equals(src))
-						.map(e -> e.getDst().equals(dst) || containsPath(e.getDst(), dst))
-						.reduce(FALSE, (a, b) -> a || b)
-				);
-			}
-			return paths.get(key);
+		private Edge findEdgeWithDst(String dst) {
+		    final List<Edge> found = this.edges.stream()
+		        .filter(e -> e.getDst().equals(dst))
+		        .collect(toList());
+		    assert found.size() == 1;
+		    return found.get(0);
 		}
 	}
 }
