@@ -21,7 +21,7 @@ public class IntCode {
             case EXIT:
                 return program.get(0);
             default:
-                throw new IllegalStateException("Invalid op");
+                throw new IllegalStateException("Invalid op: "+ op);
             }
         }
         throw new IllegalStateException("Intcode program did not exit normally");
