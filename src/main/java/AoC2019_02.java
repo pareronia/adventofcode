@@ -27,7 +27,8 @@ public class AoC2019_02 extends AoCBase {
         return new AoC2019_02(input, true);
     }
     
-    private Integer runProgram(List<Integer> program, Integer noun, Integer verb) {
+    private Integer runProgram(Integer noun, Integer verb) {
+        final List<Integer> program = new ArrayList<>(this.program);
         program.set(1, noun);
         program.set(2, verb);
         return new IntCode().run(program);
@@ -35,14 +36,14 @@ public class AoC2019_02 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        return runProgram(this.program, 12, 2);
+        return runProgram(12, 2);
     }
     
     public Integer solvePart2_slower() {
         return Stream.iterate(0, noun -> noun + 1).limit(100)
             .flatMap(noun -> Stream.iterate(0, verb -> verb + 1).limit(100)
                                 .map(verb -> Tuples.pair(noun, verb)))
-            .filter(pair -> runProgram(new ArrayList<>(this.program), pair.getOne(), pair.getTwo()) == 19690720)
+            .filter(pair -> runProgram(pair.getOne(), pair.getTwo()) == 19690720)
             .findFirst()
             .map(pair -> 100 * pair.getOne() + pair.getTwo())
             .orElseThrow(() -> new RuntimeException("Unsolved"));
@@ -52,7 +53,7 @@ public class AoC2019_02 extends AoCBase {
     public Integer solvePart2() {
         for (int noun = 0; noun < 100; noun++) {
             for (int verb = 0; verb < 100; verb ++) {
-                if (runProgram(new ArrayList<>(this.program), noun, verb) == 19690720) {
+                if (runProgram(noun, verb) == 19690720) {
                     return 100 * noun + verb;
                 }
             }
