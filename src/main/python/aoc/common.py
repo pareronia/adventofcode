@@ -13,6 +13,8 @@ def log(msg) -> None:
 
 
 def spinner(num: int, period: int = 1000):
+    if not __debug__:
+        return
     val = num % period
     level = period // 4
     if val == 0:

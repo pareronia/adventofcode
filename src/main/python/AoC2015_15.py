@@ -9,6 +9,7 @@ import math
 import itertools
 from dataclasses import dataclass
 from aoc import my_aocd
+from aoc.common import log
 
 
 REGEXP = r'([A-Za-z]+): capacity ([-0-9]+), durability ([-0-9]+), flavor ([-0-9]+), texture ([-0-9]+), calories ([-0-9]+)'  # noqa
@@ -81,7 +82,7 @@ def _find_max_score(ingredients: list[Ingredient],
         score = _caclulate_score(ingredients, measure, calories_target)
         if score > max_score:
             max_score = score
-            print(max_score, end="\r", flush=True)
+            log(max_score)
     return max_score
 
 
