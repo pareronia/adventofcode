@@ -1,7 +1,7 @@
 from __future__ import annotations
 from enum import Enum
 from copy import deepcopy
-from aoc.geometry import Position, Vector
+from aoc.geometry import Position, Vector, Rectangle
 from dataclasses import dataclass
 
 
@@ -49,10 +49,12 @@ class Waypoint(Vector):
 
 class Navigation:
     position: Position
+    bounds: Rectangle
     visited_positions: list[Position]
 
-    def __init__(self, position: Position):
+    def __init__(self, position: Position, bounds: Rectangle):
         self.position = position
+        self.bounds = bounds
         self.visited_positions = list[Position]()
         self._remember_visited_position(position)
 
@@ -70,8 +72,11 @@ class Navigation:
 class NavigationWithHeading(Navigation):
     heading: Heading
 
-    def __init__(self, position: Position, heading: Heading):
-        super().__init__(position)
+    def __init__(self,
+                 position: Position,
+                 heading: Heading,
+                 bounds: Rectangle = None):
+        super().__init__(position, bounds)
         self.heading = heading
 
     def __repr__(self) -> str:
@@ -88,18 +93,23 @@ class NavigationWithHeading(Navigation):
 
     def forward(self, amount: int) -> None:
         self.position.translate(vector=self.heading, amplitude=amount)
+        self.position.bounded(self.bounds)
         self._remember_visited_position(self.position)
 
     def drift(self, heading: Heading, amount: int) -> None:
         self.position.translate(vector=heading, amplitude=amount)
+        self.position.bounded(self.bounds)
         self._remember_visited_position(self.position)
 
 
 class NavigationWithWaypoint(Navigation):
     waypoint: Waypoint
 
-    def __init__(self, position: Position, waypoint: Waypoint):
-        super().__init__(position)
+    def __init__(self,
+                 position: Position,
+                 waypoint: Waypoint,
+                 bounds: Rectangle = None):
+        super().__init__(position, bounds)
         self.waypoint = waypoint
 
     def __repr__(self) -> str:
@@ -115,6 +125,7 @@ class NavigationWithWaypoint(Navigation):
 
     def forward(self, amount: int) -> None:
         self.position.translate(vector=self.waypoint, amplitude=amount)
+        self.position.bounded(self.bounds)
         self._remember_visited_position(self.position)
 
     def update_waypoint(self, heading: Heading, amount: int) -> None:
