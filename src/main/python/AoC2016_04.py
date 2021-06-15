@@ -10,6 +10,7 @@ from aoc import my_aocd
 
 
 REGEXP = r'([-a-z]+)-([0-9]+)\[([a-z]{5})\]$'
+MATCH = r'[a-z]{9}-[a-z]{6}-[a-z]{7}$'
 
 
 class Room(NamedTuple):
@@ -28,6 +29,12 @@ class Room(NamedTuple):
         items.sort(key=lambda x: x[1]*-100 + ord(x[0]))
         return "".join([x for x, y in items][:5]) == self.checksum
 
+    def decrypt(self) -> str:
+        shift = self.sector_id % 26
+        return "".join([chr((ord(c) + shift - 97) % 26 + 97)
+                        if c != '-' else ' '
+                        for c in self.name])
+
 
 def parse(inputs: tuple[str]) -> tuple[Room]:
     return (Room.of(*re.search(REGEXP, input_).groups())
@@ -36,12 +43,16 @@ def parse(inputs: tuple[str]) -> tuple[Room]:
 
 def part_1(inputs: tuple[str]) -> int:
     return sum(room.sector_id
-               for room in 
+               for room in
                parse(inputs) if room.is_real())
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    matches = [room.sector_id for room in parse(inputs)
+               if re.match(MATCH, room.name) is not None
+               and room.decrypt() == 'northpole object storage']
+    assert len(matches) == 1
+    return matches[0]
 
 
 TEST = '''\
