@@ -3,28 +3,28 @@
 # Advent of Code 2015 Day 6
 #
 
-from collections import defaultdict
+from collections import Counter
 from aoc import my_aocd
 
 
-def _get_hists(inputs: tuple[str]) -> list[defaultdict]:
-    hists = list()
+def _get_counters(inputs: tuple[str]) -> list[Counter]:
+    counters = list()
     for i in range(len(inputs[0])):
-        hists.append(defaultdict(lambda: 0))
+        counters.append(Counter())
     for input_ in inputs:
         for i in range(len(input_)):
-            hists[i][input_[i]] = hists[i][input_[i]] + 1
-    return hists
+            counters[i].update(input_[i])
+    return counters
 
 
 def part_1(inputs: tuple[str]) -> str:
-    return "".join([max(hist, key=hist.get)
-                    for hist in _get_hists(inputs)])
+    return "".join([counter.most_common()[0][0]
+                    for counter in _get_counters(inputs)])
 
 
 def part_2(inputs: tuple[str]) -> str:
-    return "".join([min(hist, key=hist.get)
-                    for hist in _get_hists(inputs)])
+    return "".join([counter.most_common()[-1][0]
+                    for counter in _get_counters(inputs)])
 
 
 TEST = '''\
