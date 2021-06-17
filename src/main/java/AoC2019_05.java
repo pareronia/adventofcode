@@ -28,7 +28,7 @@ public class AoC2019_05 extends AoCBase {
     @Override
     public Integer solvePart1() {
         final List<Integer> program = new ArrayList<>(this.program);
-        final IntCode intCode = new IntCode();
+        final IntCode intCode = new IntCode(this.debug);
         intCode.run(program, 1);
         return intCode.getOutput();
     }
@@ -36,7 +36,7 @@ public class AoC2019_05 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final List<Integer> program = new ArrayList<>(this.program);
-        final IntCode intCode = new IntCode();
+        final IntCode intCode = new IntCode(this.debug);
         intCode.run(program, 5);
         return intCode.getOutput();
     }

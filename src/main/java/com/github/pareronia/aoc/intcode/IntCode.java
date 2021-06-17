@@ -13,15 +13,21 @@ public class IntCode {
     private static final int LT = 7;
     private static final int EQ = 8;
     private static final int EXIT = 99;
+
+	private final boolean debug;
     
     private Integer output;
+
+    public IntCode(boolean debug) {
+        this.debug = debug;
+    }
 
     public void run(List<Integer> program) {
        run(program, null);
     }
     
     public void run(List<Integer> program, Integer input) {
-        System.out.println(program.size());
+        log(program.size());
         for (int i = 0; i < program.size(); ) {
             final Integer op = program.get(i);
             final Integer opcode = op % 100;
@@ -48,7 +54,7 @@ public class IntCode {
                 break;
             case OUTPUT:
                 this.output = getParam1(program, mode1, i);
-                System.out.println(i + ": " + this.output + "(" + mode1 + ")");
+                log(i + ": " + this.output + "(" + mode1 + ")");
                 i += 2;
                 break;
             case JIT:
@@ -84,7 +90,7 @@ public class IntCode {
                 i += 4;
                 break;
             case EXIT:
-                System.out.println(i + ": EXIT");
+                log(i + ": EXIT");
                 return;
             default:
                 throw new IllegalStateException("Invalid opcode: "+ opcode);
@@ -118,4 +124,12 @@ public class IntCode {
             throw new IllegalStateException("Invalid mode: " + mode);
         }
     }
+
+	private void log(Object obj) {
+		if (!debug) {
+			return;
+		}
+		System.out.println(obj);
+	}
+
 }
