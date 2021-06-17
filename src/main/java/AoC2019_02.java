@@ -31,7 +31,8 @@ public class AoC2019_02 extends AoCBase {
         final List<Integer> program = new ArrayList<>(this.program);
         program.set(1, noun);
         program.set(2, verb);
-        return new IntCode().run(program);
+        new IntCode().run(program);
+        return program.get(0);
     }
     
     @Override
