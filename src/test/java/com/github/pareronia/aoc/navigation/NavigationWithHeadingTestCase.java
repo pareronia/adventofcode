@@ -31,4 +31,29 @@ public class NavigationWithHeadingTestCase {
                                 Position.of(-1, 1),
                                 Position.of(0, 1)));
     }
+    
+    @Test
+    public void testInBounds() {
+        final NavigationWithHeading nav = new NavigationWithHeading(
+                Position.of(0, 0),
+                Headings.NORTH.get(),
+                pos -> pos.getX() <= 4 && pos.getY() <= 4)
+            .drift(Headings.NORTH.get(), 1)
+            .left(90)
+            .forward(1)
+            .right(180)
+            .forward(10);
+        
+        System.out.println(nav.getVisitedPositions(true));
+        assertThat(nav.getPosition(), is(Position.of(4, 1)));
+        assertThat(nav.getVisitedPositions(true),
+                    contains(   Position.of(0, 0),
+                                Position.of(0, 1),
+                                Position.of(-1, 1),
+                                Position.of(4, 1)));
+        assertThat(nav.getVisitedPositions(),
+                    contains(   Position.of(0, 1),
+                                Position.of(-1, 1),
+                                Position.of(4, 1)));
+    }
 }

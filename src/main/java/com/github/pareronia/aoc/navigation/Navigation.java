@@ -2,6 +2,7 @@ package com.github.pareronia.aoc.navigation;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.geometry.Position;
 
@@ -12,11 +13,22 @@ public class Navigation {
 
     protected Position position;
     private final List<Position> visitedPositions = new ArrayList<>();
+    private final Predicate<Position> inBoundsPredicate;
     
     public Navigation(Position position) {
         this.position = position;
         rememberVisitedPosition(position);
-        
+        inBoundsPredicate = pos -> true;
+    }
+    
+    public Navigation(Position position, Predicate<Position> inBounds) {
+        this.position = position;
+        rememberVisitedPosition(position);
+        inBoundsPredicate = inBounds;
+    }
+    
+    protected boolean inBounds(Position position) {
+        return inBoundsPredicate.test(position);
     }
     
     protected final void rememberVisitedPosition(Position position) {
