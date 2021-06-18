@@ -1,8 +1,12 @@
 package com.github.pareronia.aoc.geometry;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
 import lombok.Value;
 
 @Value
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = true)
 public class Position extends Point {
     
     private Position(Integer x, Integer y) {

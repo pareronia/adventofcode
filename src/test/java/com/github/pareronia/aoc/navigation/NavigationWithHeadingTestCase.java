@@ -17,18 +17,18 @@ public class NavigationWithHeadingTestCase {
             .drift(Headings.NORTH.get(), 1)
             .left(90)
             .forward(1)
-            .right(90)
+            .right(180)
             .forward(1);
         
-        assertThat(nav.getPosition(), is(Position.of(1, 1)));
+        assertThat(nav.getPosition(), is(Position.of(0, 1)));
         assertThat(nav.getVisitedPositions(true),
                     contains(   Position.of(0, 0),
                                 Position.of(0, 1),
                                 Position.of(-1, 1),
-                                Position.of(1, 1)));
+                                Position.of(0, 1)));
         assertThat(nav.getVisitedPositions(),
                     contains(   Position.of(0, 1),
                                 Position.of(-1, 1),
-                                Position.of(1, 1)));
+                                Position.of(0, 1)));
     }
 }
