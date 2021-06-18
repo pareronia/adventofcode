@@ -4,16 +4,17 @@
 import unittest
 from aoc.navigation import NavigationWithWaypoint, NavigationWithHeading,\
         Waypoint, Headings
-from aoc.geometry import Position, Rectangle
+from aoc.geometry import Position
 
 
 class TestNavigation(unittest.TestCase):
 
     def test_navigation_with_waypoint(self):
-        navigation = NavigationWithWaypoint(Position(0, 0),
-                                            Waypoint(0, 0),
-                                            Rectangle.of(Position.of(-4, -4),
-                                                         Position.of(4, 4)))
+        navigation = NavigationWithWaypoint(
+            Position(0, 0),
+            Waypoint(0, 0),
+            lambda pos: pos.x <= 4 and pos.y <= 4
+        )
         navigation.update_waypoint(Headings["N"].value, 1)
         navigation.forward(1)
         navigation.left(90)
@@ -33,10 +34,11 @@ class TestNavigation(unittest.TestCase):
                                              Position(4, 1)])
 
     def test_navigation_with_heading(self):
-        navigation = NavigationWithHeading(Position(0, 0),
-                                           Headings["N"].value,
-                                           Rectangle.of(Position.of(-4, -4),
-                                                        Position.of(4, 4)))
+        navigation = NavigationWithHeading(
+            Position(0, 0),
+            Headings["N"].value,
+            lambda pos: pos.x <= 4 and pos.y <= 4
+        )
         navigation.drift(Headings["N"].value, 1)
         navigation.left(90)
         navigation.forward(1)

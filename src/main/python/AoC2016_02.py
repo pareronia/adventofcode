@@ -5,18 +5,42 @@
 
 from aoc import my_aocd
 from aoc.navigation import NavigationWithHeading, Headings
-from aoc.geometry import Position, Rectangle
+from aoc.geometry import Position
 from aoc.common import log
 
 
-KEYPAD = (('7', '8', '9'), ('4', '5', '6'), ('1', '2', '3'))
+KEYPAD_1 = {
+    (-1, 1): '1',
+    (0, 1): '2',
+    (1, 1): '3',
+    (-1, 0): '4',
+    (0, 0): '5',
+    (1, 0): '6',
+    (-1, -1): '7',
+    (0, -1): '8',
+    (1, -1): '9',
+}
+KEYPAD_2 = {
+    (2, 2): '1',
+    (1, 1): '2',
+    (2, 1): '3',
+    (3, 1): '4',
+    (0, 0): '5',
+    (1, 0): '6',
+    (2, 0): '7',
+    (3, 0): '8',
+    (4, 0): '9',
+    (1, -1): 'A',
+    (2, -1): 'B',
+    (3, -1): 'C',
+    (2, -2): 'D',
+}
 
 
-def _navigate(ins: str, start: Position) -> NavigationWithHeading:
+def _navigate(ins: str, start: Position, in_bounds) -> NavigationWithHeading:
     navigation = NavigationWithHeading(start,
                                        Headings["N"].value,
-                                       Rectangle.of(Position.of(0, 0),
-                                                    Position.of(2, 2)))
+                                       in_bounds)
     for i in range(len(ins)):
         step = ins[i]
         if step == 'R':
@@ -32,21 +56,33 @@ def _navigate(ins: str, start: Position) -> NavigationWithHeading:
     return navigation
 
 
-def part_1(inputs: tuple[str]) -> int:
+def _solve(inputs: tuple[str], in_bounds, get) -> str:
     code = str()
-    start = Position.of(1, 1)
+    start = Position.of(0, 0)
     for ins in inputs:
-        navigation = _navigate(ins, start)
-        last = navigation.get_visited_positions(False)[-1]
+        navigation = _navigate(ins, start, in_bounds)
+        last = navigation.get_visited_positions()[-1]
         log(last)
-        code += KEYPAD[last.y][last.x]
+        code += get(last)
         log(code)
         start = last
-    return int(code)
+    return code
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return 0
+def part_1(inputs: tuple[str]) -> str:
+    return _solve(
+        inputs,
+        lambda pos: (pos.x, pos.y) in KEYPAD_1,
+        lambda pos: KEYPAD_1[(pos.x, pos.y)]
+    )
+
+
+def part_2(inputs: tuple[str]) -> str:
+    return _solve(
+        inputs,
+        lambda pos: (pos.x, pos.y) in KEYPAD_2,
+        lambda pos: KEYPAD_2[(pos.x, pos.y)]
+    )
 
 
 TEST = '''\
@@ -60,7 +96,8 @@ UUUUD
 def main() -> None:
     my_aocd.print_header(2016, 2)
 
-    assert part_1(TEST) == 1985
+    assert part_1(TEST) == "1985"
+    assert part_2(TEST) == "5DB3"
 
     inputs = my_aocd.get_input(2016, 2, 5)
     result1 = part_1(inputs)

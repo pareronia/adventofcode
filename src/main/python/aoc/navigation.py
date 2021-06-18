@@ -1,7 +1,8 @@
 from __future__ import annotations
+from collections.abc import Callable
 from enum import Enum
 from copy import deepcopy
-from aoc.geometry import Position, Vector, Rectangle
+from aoc.geometry import Position, Vector
 from dataclasses import dataclass
 
 
@@ -49,14 +50,30 @@ class Waypoint(Vector):
 
 class Navigation:
     position: Position
-    bounds: Rectangle
+    bounds: Callable[[Position], bool]
     visited_positions: list[Position]
 
-    def __init__(self, position: Position, bounds: Rectangle):
+    def __init__(self,
+                 position: Position,
+                 bounds: Callable[[Position], bool]):
         self.position = position
         self.bounds = bounds
         self.visited_positions = list[Position]()
         self._remember_visited_position(position)
+
+    def _in_bounds(self, position: Position) -> bool:
+        if self.bounds is None:
+            return True
+        else:
+            return self.bounds(position)
+
+    def _translate(self, vector: Vector, amount: int) -> None:
+        new_position = Position.copy(self.position)
+        for i in range(amount):
+            new_position.translate(vector=vector, amplitude=1)
+            if self._in_bounds(new_position):
+                self.position = Position.copy(new_position)
+        self._remember_visited_position(self.position)
 
     def _remember_visited_position(self, position: Position) -> None:
         self.visited_positions.append(deepcopy(position))
@@ -75,7 +92,7 @@ class NavigationWithHeading(Navigation):
     def __init__(self,
                  position: Position,
                  heading: Heading,
-                 bounds: Rectangle = None):
+                 bounds: Callable[[Position], bool] = None):
         super().__init__(position, bounds)
         self.heading = heading
 
@@ -92,14 +109,10 @@ class NavigationWithHeading(Navigation):
         self.heading = Heading.rotate(self.heading, -degrees)
 
     def forward(self, amount: int) -> None:
-        self.position.translate(vector=self.heading, amplitude=amount)
-        self.position.bounded(self.bounds)
-        self._remember_visited_position(self.position)
+        self._translate(vector=self.heading, amount=amount)
 
     def drift(self, heading: Heading, amount: int) -> None:
-        self.position.translate(vector=heading, amplitude=amount)
-        self.position.bounded(self.bounds)
-        self._remember_visited_position(self.position)
+        self._translate(vector=heading, amount=amount)
 
 
 class NavigationWithWaypoint(Navigation):
@@ -108,7 +121,7 @@ class NavigationWithWaypoint(Navigation):
     def __init__(self,
                  position: Position,
                  waypoint: Waypoint,
-                 bounds: Rectangle = None):
+                 bounds: Callable[[Position], bool] = None):
         super().__init__(position, bounds)
         self.waypoint = waypoint
 
@@ -124,9 +137,7 @@ class NavigationWithWaypoint(Navigation):
         self.waypoint.rotate(-degrees)
 
     def forward(self, amount: int) -> None:
-        self.position.translate(vector=self.waypoint, amplitude=amount)
-        self.position.bounded(self.bounds)
-        self._remember_visited_position(self.position)
+        self._translate(vector=self.waypoint, amount=amount)
 
     def update_waypoint(self, heading: Heading, amount: int) -> None:
         self.waypoint.add(heading, amplitude=amount)
