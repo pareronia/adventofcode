@@ -11,6 +11,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.Test;
 
@@ -108,6 +109,39 @@ public class GridTestCase {
 		assertThat(asStringList(result), is(asList(	"FG",
 													"JK",
 													"NO")));
+	}
+	
+	@Test
+	public void rollColumn() {
+		final Grid grid = Grid.from(asList(	"###....",
+											"###....",
+											"......."));
+		final Grid result = grid.rollColumn(1, 1);
+
+		assertThat(asStringList(result), is(asList(	"#.#....",
+													"###....",
+													".#.....")));
+	}
+	
+	@Test
+	public void rollRow() {
+		final Grid grid = Grid.from(asList(	"#.#....",
+											"###....",
+											".#....."));
+		final Grid result = grid.rollRow(0, 4);
+
+		assertThat(asStringList(result), is(asList(	"....#.#",
+													"###....",
+													".#.....")));
+	}
+	
+	@Test
+	public void rollRow1() {
+	    final Grid grid = Grid.from(asList(	"#.#...."));
+	    
+	    final Grid result = grid.rollRow(0, 1);
+	    
+	    assertThat(asStringList(result), is(asList( ".#.#...")));
 	}
 	
 	@Test
@@ -232,6 +266,15 @@ public class GridTestCase {
 		
 		assertThat(asStringList(result), is(asList("YOY", "OYO", "YOY")));
 	}
+	
+	@Test
+    public void update() {
+        final Grid grid = Grid.from(asList( "XOX", "OXO", "XOX"));
+        
+        final Grid result = grid.update(Set.of(Cell.at(0, 0), Cell.at(2, 2)), '-');
+        
+        assertThat(asStringList(result), is(asList("-OX", "OXO", "XO-")));
+    }
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void subGrid_invalidCoordinates() {

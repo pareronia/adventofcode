@@ -122,7 +122,7 @@ public class Grid {
 	}
 	
 	public Iterable<String> getRowsAsStrings() {
-		return () -> new Iterator<String>() {
+		return () -> new Iterator<>() {
 			int i = 0;
 			
 			@Override
@@ -201,6 +201,20 @@ public class Grid {
 		return new Grid(cells);
 	}
 	
+	public Grid update(Set<Cell> toUpdate, char ch) {
+		final char[][] cells = new char[getHeight()][getWidth()];
+		for (int row = 0; row < getHeight(); row++) {
+			for (int col = 0; col < getWidth(); col++) {
+			    if (toUpdate.contains(Cell.at(row, col))) {
+			        cells[row][col] = ch;
+			    } else {
+			        cells[row][col] = this.cells[row][col];
+			    }
+			}
+		}
+		return new Grid(cells);
+	}
+	
 	public Grid subGrid(Cell from, Cell to) {
 		Objects.requireNonNull(from);
 		Objects.requireNonNull(to);
@@ -221,6 +235,44 @@ public class Grid {
 		final char[][] cells = new char[getHeight() - 2][];
 		for (int row = 1; row < getMaxRowIndex(); row++) {
 			cells[row - 1] = Arrays.copyOfRange(this.cells[row], 1, getWidth() - 1);
+		}
+		return new Grid(cells);
+	}
+	
+	private char[] rollCharArray(char[] oldChars, Integer amount) {
+	    final char[] newChars = new char[oldChars.length];
+	    for (int col = 0; col < oldChars.length; col++) {
+	        newChars[col] = oldChars[Math.floorMod(col - amount, oldChars.length)];
+	    }
+	    return newChars;
+	}
+	
+	public Grid rollColumn(Integer colIndex, Integer amount) {
+	    validateColumnIndex(colIndex);
+	    final char[] newCol = rollCharArray(getColumn(colIndex), amount);
+		final char[][] cells = new char[getHeight()][getWidth()];
+		for (int row = 0; row < getHeight(); row++) {
+			for (int col = 0; col < getWidth(); col++) {
+			    if (col == colIndex) {
+			        cells[row][col] = newCol[row];
+			    } else {
+			        cells[row][col] = this.cells[row][col];
+			    }
+			}
+		}
+		return new Grid(cells);
+	}
+	
+	public Grid rollRow(Integer rowIndex, Integer amount) {
+	    validateRowIndex(rowIndex);
+		final char[][] cells = new char[getHeight()][];
+		for (int row = 0; row < getHeight(); row++) {
+		    final char[] oldRow = this.cells[row];
+			if (row != rowIndex) {
+			    cells[row] = oldRow;
+			} else {
+			    cells[row] = rollCharArray(oldRow, amount);
+			}
 		}
 		return new Grid(cells);
 	}
@@ -252,7 +304,7 @@ public class Grid {
 		if (!this.isSquare()) {
 			throw new UnsupportedOperationException("Grid should be square.");
 		}
-		return new Iterator<Grid>() {
+		return new Iterator<>() {
 			int i = 0;
 			Grid grid = Grid.this;
 			
