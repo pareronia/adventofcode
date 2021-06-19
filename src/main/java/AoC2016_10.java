@@ -1,7 +1,11 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 import org.eclipse.collections.api.tuple.Pair;
@@ -16,12 +20,14 @@ public class AoC2016_10 extends AoCBase {
 
 	private final Set<Bot> bots;
 	private final List<Input> inputs;
+	private final Map<Integer, Integer> outputs;
 	
 	private AoC2016_10(List<String> inputs, boolean debug) {
 		super(debug);
 		final Pair<Set<Bot>, List<Input>> pair = parse(inputs);
 		this.bots = pair.getOne();
 		this.inputs = pair.getTwo();
+		this.outputs = new HashMap<>();
 	}
 	
 	private Pair<Set<Bot>, List<Input>> parse(List<String> strings) {
@@ -69,10 +75,19 @@ public class AoC2016_10 extends AoCBase {
 	            .orElseThrow();
 	}
 	
-	private Integer solvePart1(Integer first, Integer second) {
-	    for (final Input input : this.inputs) {
-            findBot(input.getToBot()).receive(input.getValue(), this::findBot);
+	private void output(Integer number, Integer value) {
+	    outputs.put(number, value);
+	}
+	
+    private void run() {
+        for (final Input input : this.inputs) {
+            findBot(input.getToBot())
+                    .receive(input.getValue(), this::findBot, this::output);
         }
+    }
+
+	private Integer solvePart1(Integer first, Integer second) {
+	    run();
 	    return bots.stream()
 	            .filter(b -> b.getCompares().contains(Set.of(first, second)))
 	            .findFirst()
@@ -87,11 +102,16 @@ public class AoC2016_10 extends AoCBase {
 	
 	@Override
 	public Integer solvePart2() {
-		return 0;
+	    run();
+		return outputs.entrySet().stream()
+		        .filter(e -> Set.of(0, 1, 2).contains(e.getKey()))
+		        .map(Entry::getValue)
+		        .reduce(1, (a, b) -> a * b);
 	}
 
 	public static void main(String[] args) throws Exception {
 		assert AoC2016_10.createDebug(TEST).solvePart1(2, 5) == 2;
+		assert AoC2016_10.createDebug(TEST).solvePart2() == 30;
 		
 		final List<String> input = Aocd.getData(2016, 10);
 		lap("Part 1", () -> AoC2016_10.create(input).solvePart1());
@@ -115,17 +135,25 @@ public class AoC2016_10 extends AoCBase {
 	    private List<Integer> values = new ArrayList<>();
 	    private Set<Set<Integer>> compares = new HashSet<>();
 	    
-	    public void receive(Integer value, Function<Integer, Bot> botLookup) {
+	    public void receive(
+	            Integer value,
+	            Function<Integer, Bot> botLookup,
+	            BiConsumer<Integer, Integer> output
+	    ) {
 	       this.values.add(value);
 	       if (this.values.size() == 2) {
 	           this.values.sort(null);
 	           final Integer lowValue = this.values.get(0);
 	           final Integer highValue = this.values.get(1);
 	           if (this.lowTo < 1000) {
-	               botLookup.apply(this.lowTo).receive(lowValue, botLookup);
+	               botLookup.apply(this.lowTo).receive(lowValue, botLookup, output);
+	           } else {
+	               output.accept(this.lowTo - 1000, lowValue);
 	           }
 	           if (this.highTo < 1000) {
-	               botLookup.apply(this.highTo).receive(highValue, botLookup);
+	               botLookup.apply(this.highTo).receive(highValue, botLookup, output);
+	           } else {
+	               output.accept(this.highTo - 1000, highValue);
 	           }
 	           this.compares.add(Set.of(lowValue, highValue));
 	           this.values.clear();
