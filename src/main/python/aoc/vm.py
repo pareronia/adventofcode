@@ -1,5 +1,4 @@
 from __future__ import annotations
-import math
 from collections import defaultdict
 from collections.abc import Callable
 from aoc.common import log
@@ -77,10 +76,11 @@ class Program:
     _instruction_pointer: int
     _inf_loop_treshold: int
     _error_on_jump_beyond_zero: bool
+    _cycles: int
 
     def __init__(self,
                  instructions: list[Instruction],
-                 inf_loop_treshold: int = math.inf,
+                 inf_loop_treshold: int = None,
                  error_on_jump_beyond_zero: bool = True
                  ) -> None:
         self._instructions = instructions
@@ -89,6 +89,7 @@ class Program:
         self._memory = dict[int, object]()
         self._registers = dict[str, object]()
         self._instruction_pointer = 0
+        self._cycles = 0
 
     @property
     def instructions(self) -> list[Instruction]:
@@ -113,6 +114,10 @@ class Program:
     @property
     def registers(self) -> dict[str, object]:
         return self._registers
+
+    @property
+    def cycles(self) -> int:
+        return self._cycles
 
     def null_operation(self) -> None:
         pass
@@ -238,15 +243,18 @@ class VirtualMachine:
         seen = defaultdict(int)
         while 0 <= program.instruction_pointer < len(program.instructions):
             instruction = program.instructions[program.instruction_pointer]
-            seen[program.instruction_pointer] += 1
+            if program.inf_loop_treshold is not None:
+                seen[program.instruction_pointer] += 1
             if instruction.opcode not in self._instruction_set:
                 raise ValueError("Unsupported instruction: "
                                  + instruction.opcode)
             self._instruction_set[instruction.opcode](program, instruction)
+            program._cycles += 1
             if program.instruction_pointer < 0 \
                and program.error_on_jump_beyond_zero:
                 raise ValueError("Invalid instruction argument")
-            if program.instruction_pointer in seen:
+            if program.inf_loop_treshold is not None \
+               and program.instruction_pointer in seen:
                 instruction_count = seen[program.instruction_pointer]
                 if instruction_count >= program.inf_loop_treshold:
                     raise RuntimeError("Infinite loop!")
