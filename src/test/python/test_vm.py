@@ -26,6 +26,10 @@ class TestVM(unittest.TestCase):
             Instruction.NOP(),
             Instruction.DIV("A", 2),
             Instruction.MUL("A", 3),
+            Instruction.CPY("A", "C"),
+            Instruction.JN0("B", 3),
+            Instruction.SET("A", 100),
+            Instruction.SET("B", 200),
         ])
 
         vm.run_program(prog)
@@ -35,7 +39,8 @@ class TestVM(unittest.TestCase):
         self.assertEqual(prog.memory[3], 300)
         self.assertEqual(prog.registers["A"], 18)
         self.assertEqual(prog.registers["B"], 1)
-        self.assertEqual(prog.instruction_pointer, 16)
+        self.assertEqual(prog.registers["C"], 18)
+        self.assertEqual(prog.instruction_pointer, 20)
 
     def test_error_on_infinite_loop(self):
         vm = VirtualMachine()

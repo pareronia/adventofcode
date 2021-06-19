@@ -34,8 +34,16 @@ class Instruction:
         return Instruction("JI1", (register, value))
 
     @classmethod
+    def JN0(cls, register: str, value: int) -> Instruction:
+        return Instruction("JN0", (register, value))
+
+    @classmethod
     def SET(cls, register: str, value: int) -> Instruction:
         return Instruction("SET", (register, value))
+
+    @classmethod
+    def CPY(cls, from_register: str, to_register: str) -> Instruction:
+        return Instruction("CPY", (from_register, to_register))
 
     @classmethod
     def ADD(cls, register: str, value: int) -> Instruction:
@@ -129,7 +137,9 @@ class VirtualMachine:
             "JMP": self._jmp,
             "JIE": self._jie,
             "JI1": self._ji1,
+            "JN0": self._jn0,
             "SET": self._set,
+            "CPY": self._cpy,
             "ADD": self._add,
             "MUL": self._mul,
             "DIV": self._div,
@@ -166,9 +176,27 @@ class VirtualMachine:
             program.move_instruction_pointer(1)
         log(program.registers)
 
+    def _jn0(self, program: Program, instruction: Instruction):
+        log(instruction.opcode + str(instruction.operands))
+        (register, count) = instruction.operands
+        if register in program.registers \
+                and program.registers[register] != 0:
+            program.move_instruction_pointer(count)
+        else:
+            program.move_instruction_pointer(1)
+        log(program.registers)
+
     def _set(self, program: Program, instruction: Instruction):
         (register, value) = instruction.operands
         program.set_register_value(register, value)
+        program.move_instruction_pointer(1)
+
+    def _cpy(self, program: Program, instruction: Instruction):
+        (from_register, to_register) = instruction.operands
+        if from_register in program.registers:
+            program.set_register_value(
+                to_register,
+                program.registers[from_register])
         program.move_instruction_pointer(1)
 
     def _add(self, program: Program, instruction: Instruction):
