@@ -12,6 +12,7 @@ public class Program {
     private final Map<Integer, Object> memory = new HashMap<>();
     private final Map<String, Long> registers = new HashMap<>();
     private Integer instructionPointer = 0;
+    private long cycles = 0L;
 
     public void nullOperation() {
         return;
@@ -28,5 +29,9 @@ public class Program {
     public Integer moveIntructionPointer(Integer amount) {
         this.instructionPointer += amount;
         return this.instructionPointer;
+    }
+    
+    public void incrementCycles() {
+        this.cycles++;
     }
 }

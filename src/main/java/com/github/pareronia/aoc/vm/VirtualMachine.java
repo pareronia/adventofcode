@@ -12,8 +12,10 @@ public class VirtualMachine {
         this.instructionSet = new HashMap<>();
         this.instructionSet.put(Opcode.NOP, this::nop);
         this.instructionSet.put(Opcode.SET, this::set);
+        this.instructionSet.put(Opcode.CPY, this::cpy);
         this.instructionSet.put(Opcode.ADD, this::add);
         this.instructionSet.put(Opcode.MUL, this::mul);
+        this.instructionSet.put(Opcode.JN0, this::jn0);
     }
     
     private void nop(Program program, Instruction instruction) {
@@ -37,6 +39,14 @@ public class VirtualMachine {
         program.getRegisters().put(register, newValue);
         program.moveIntructionPointer(1);
     }
+    
+    private void cpy(Program program, Instruction instruction) {
+        final String fromRegister = (String) instruction.getOperands().get(0);
+        final String toRegister = (String) instruction.getOperands().get(1);
+        Optional.ofNullable(program.getRegisters().get(fromRegister))
+                .map(v -> program.getRegisters().put(toRegister, v));
+        program.moveIntructionPointer(1);
+    }
 
     private void mul(Program program, Instruction instruction) {
         final String register = (String) instruction.getOperands().get(0);
@@ -48,6 +58,17 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
     
+    private void jn0(Program program, Instruction instruction) {
+        final String register = (String) instruction.getOperands().get(0);
+        final Integer count = (Integer) instruction.getOperands().get(1);
+        Optional.ofNullable(program.getRegisters().get(register))
+                .filter(v -> !v.equals(0L))
+                .ifPresentOrElse(
+                        v -> program.moveIntructionPointer(count),
+                        () -> program.moveIntructionPointer(1));
+        
+    }
+    
     public void runProgram(Program program) {
         while (0 <= program.getInstructionPointer()
                 && program.getInstructionPointer() < program.getInstructions().size()) {
@@ -55,6 +76,7 @@ public class VirtualMachine {
                     .get(program.getInstructionPointer());
             this.instructionSet.get(instruction.getOpcode())
                     .execute(program, instruction);
+            program.incrementCycles();
         }
     }
     

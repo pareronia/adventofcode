@@ -22,14 +22,19 @@ public class VirtualMachineTestCase {
             Instruction.NOP(),
             Instruction.ADD("A", 6L),
             Instruction.SET("B", 1L),
-            Instruction.MUL("A", 3L)
+            Instruction.MUL("A", 3L),
+            Instruction.CPY("B", "C"),
+            Instruction.ADD("B", -1L),
+            Instruction.JN0("C", -3),
+            Instruction.JN0("D", 1)
         ));
         
         vm.runProgram(program);
         
         assertThat(program.getMemory().size(), is(0));
-        assertThat(program.getRegisters().get("A"), is(18L));
-        assertThat(program.getRegisters().get("B"), is(1L));
-        assertThat(program.getInstructionPointer(), is(4));
+        assertThat(program.getRegisters().get("A"), is(54L));
+        assertThat(program.getRegisters().get("B"), is(-1L));
+        assertThat(program.getRegisters().get("C"), is(0L));
+        assertThat(program.getInstructionPointer(), is(8));
     }
 }

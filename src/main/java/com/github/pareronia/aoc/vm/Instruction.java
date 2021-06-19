@@ -20,11 +20,19 @@ public class Instruction {
         return new Instruction(Opcode.SET, asList(register, value));
     }
 
+    public static Instruction CPY(String fromRegister, String toRegister) {
+        return new Instruction(Opcode.CPY, asList(fromRegister, toRegister));
+    }
+
     public static Instruction ADD(String register, Long value) {
         return new Instruction(Opcode.ADD, asList(register, value));
     }
 
     public static Instruction MUL(String register, Long value) {
         return new Instruction(Opcode.MUL, asList(register, value));
+    }
+
+    public static Instruction JN0(String register, Integer count) {
+        return new Instruction(Opcode.JN0, asList(register, count));
     }
 }
