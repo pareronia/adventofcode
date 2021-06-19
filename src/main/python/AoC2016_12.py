@@ -56,18 +56,65 @@ def _build_program(lines: list[Instruction_]) -> Program:
     return Program(instructions)
 
 
-def part_1(inputs: tuple[str]) -> int:
+# from u/blockingthesky @reddit
+def _solve(inp: tuple[str], reg: dict) -> int:
+    ind = 0
+    while ind < len(inp):
+        ins = inp[ind].split(' ')
+        if ins[0] == 'cpy':
+            if ins[1][0] in 'abcd':
+                reg[ins[2]] = reg[ins[1]]
+            else:
+                j = int(ins[1])
+                reg[ins[2]] = j
+        elif ins[0] == 'inc':
+            reg[ins[1]] += 1
+        elif ins[0] == 'dec':
+            reg[ins[1]] -= 1
+        if ins[0] == 'jnz':
+            if ins[1] in 'abcd':
+                if reg[ins[1]] != 0:
+                    ind += int(ins[2])
+                else:
+                    ind += 1
+            else:
+                if int(ins[1]) != 0:
+                    ind += int(ins[2])
+                else:
+                    ind += 1
+        else:
+            ind += 1
+    return reg['a']
+
+
+def _part_1_vm(inputs: tuple[str]) -> int:
     inss = _parse(inputs)
     program = _build_program(inss)
     VirtualMachine().run_program(program)
     return program.registers["a"]
 
 
-def part_2(inputs: tuple[str]) -> int:
+def _part_1(inputs: tuple[str]) -> int:
+    return _solve(inputs, {'a': 0, 'b': 0, 'c': 0, 'd': 0})
+
+
+def part_1(inputs: tuple[str]) -> int:
+    return _part_1(inputs)
+
+
+def _part_2_vm(inputs: tuple[str]) -> int:
     program = _build_program(_parse(inputs))
     program.instructions.insert(0, Instruction.SET("c", 1))
     VirtualMachine().run_program(program)
     return program.registers["a"]
+
+
+def _part_2(inputs: tuple[str]) -> int:
+    return _solve(inputs, {'a': 0, 'b': 0, 'c': 1, 'd': 0})
+
+
+def part_2(inputs: tuple[str]) -> int:
+    return _part_2(inputs)
 
 
 TEST = '''\
