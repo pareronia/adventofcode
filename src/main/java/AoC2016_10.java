@@ -16,13 +16,9 @@ public class AoC2016_10 extends AoCBase {
 
 	private final Set<Bot> bots;
 	private final List<Input> inputs;
-	private final Integer first;
-	private final Integer second;
 	
-	private AoC2016_10(List<String> inputs, Integer first, Integer second, boolean debug) {
+	private AoC2016_10(List<String> inputs, boolean debug) {
 		super(debug);
-		this.first = first;
-		this.second = second;
 		final Pair<Set<Bot>, List<Input>> pair = parse(inputs);
 		this.bots = pair.getOne();
 		this.inputs = pair.getTwo();
@@ -58,12 +54,12 @@ public class AoC2016_10 extends AoCBase {
 	    return Tuples.pair(bots, inputs);
 	}
 	
-	public static final AoC2016_10 create(List<String> input, Integer first, Integer second) {
-		return new AoC2016_10(input, first, second, false);
+	public static final AoC2016_10 create(List<String> input) {
+		return new AoC2016_10(input, false);
 	}
 
-	public static final AoC2016_10 createDebug(List<String> input, Integer first, Integer second) {
-		return new AoC2016_10(input, first, second, true);
+	public static final AoC2016_10 createDebug(List<String> input) {
+		return new AoC2016_10(input, true);
 	}
 	
 	private Bot findBot(Integer number) {
@@ -73,20 +69,20 @@ public class AoC2016_10 extends AoCBase {
 	            .orElseThrow();
 	}
 	
-	private Integer findCompare(Integer first, Integer second) {
+	private Integer solvePart1(Integer first, Integer second) {
+	    for (final Input input : this.inputs) {
+            findBot(input.getToBot()).receive(input.getValue(), this::findBot);
+        }
 	    return bots.stream()
 	            .filter(b -> b.getCompares().contains(Set.of(first, second)))
 	            .findFirst()
 	            .map(Bot::getNumber)
 	            .orElseThrow();
-	}
+    }
 
 	@Override
 	public Integer solvePart1() {
-	    for (final Input input : this.inputs) {
-            findBot(input.getToBot()).receive(input.getValue(), this::findBot);
-        }
-	    return findCompare(this.first, this.second);
+	    return solvePart1(17, 61);
 	}
 	
 	@Override
@@ -95,11 +91,11 @@ public class AoC2016_10 extends AoCBase {
 	}
 
 	public static void main(String[] args) throws Exception {
-		assert AoC2016_10.createDebug(TEST, 2, 5).solvePart1() == 2;
+		assert AoC2016_10.createDebug(TEST).solvePart1(2, 5) == 2;
 		
 		final List<String> input = Aocd.getData(2016, 10);
-		lap("Part 1", () -> AoC2016_10.create(input, 17, 61).solvePart1());
-		lap("Part 2", () -> AoC2016_10.create(input, null, null).solvePart2());
+		lap("Part 1", () -> AoC2016_10.create(input).solvePart1());
+		lap("Part 2", () -> AoC2016_10.create(input).solvePart2());
 	}
 
 	private static final List<String> TEST = splitLines(
