@@ -44,7 +44,7 @@ public class AoC2016_16 extends AoCBase {
 	    }
 	}
 	
-	private String solve1(Integer size) {
+	private String solve(Integer size) {
 	    String data = this.initialState;
 	    while (data.length() < size) {
 	        data = dragonCurve(data);
@@ -54,16 +54,16 @@ public class AoC2016_16 extends AoCBase {
 
 	@Override
 	public String solvePart1() {
-	    return solve1(272);
+	    return solve(272);
 	}
 	
 	@Override
 	public String solvePart2() {
-	    return "";
+	    return solve(35651584);
 	}
 	
 	public static void main(String[] args) throws Exception {
-		assert AoC2016_16.createDebug(TEST).solve1(20).equals("01100");
+		assert AoC2016_16.createDebug(TEST).solve(20).equals("01100");
 
 		final List<String> input = Aocd.getData(2016, 16);
 		lap("Part 1", () -> AoC2016_16.create(input).solvePart1());
