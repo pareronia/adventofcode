@@ -1,25 +1,27 @@
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
+
+import lombok.Value;
 
 public class AoC2020_13 extends AoCBase {
 	
     private final Integer target;
-	private final List<Integer> buses;
+	private final List<Bus> buses;
 	
 	private AoC2020_13(List<String> input, boolean debug) {
 		super(debug);
 		assert input.size() == 2;
 		this.target = Integer.valueOf(input.get(0));
-		this.buses = Stream.of(input.get(1).split(","))
-		        .map(s -> s.equals("x") ? -1 : Integer.valueOf(s))
-		        .collect(toList());
+		this.buses = new ArrayList<>();
+		final String[] splits = input.get(1).split(",");
+		for (int i = 0; i < splits.length; i++) {
+		    final String s = splits[i];
+		    if (!s.equals("x")) {
+		        buses.add(new Bus(Integer.valueOf(s), i));
+		    }
+		}
 	}
 	
 	public static AoC2020_13 create(List<String> input) {
@@ -35,9 +37,9 @@ public class AoC2020_13 extends AoCBase {
 	    int cnt = 0;
 	    while (true) {
 	        final int t = this.target + cnt;
-	        for (final Integer b : this.buses) {
-	            if (b != -1 && t % b == 0) {
-	                return b * cnt;
+	        for (final Bus b : this.buses) {
+	            if (t % b.getPeriod() == 0) {
+	                return b.getPeriod() * cnt;
 	            }
             }
 	        cnt++;
@@ -46,20 +48,15 @@ public class AoC2020_13 extends AoCBase {
 	
 	@Override
 	public Long solvePart2() {
-	    final Map<Integer, Integer> bs = this.buses.stream()
-	            .filter(b -> b != -1)
-	            .collect(toMap(b -> this.buses.indexOf(b), b -> b));
-	    final List<Integer> idxs = new ArrayList<>(bs.keySet());
 	    long r = 0;
 	    long lcm = 1;
-	    for (int i = 0; i < idxs.size() - 1; i++) {
-	        final Integer cur = idxs.get(i);
-	        final Integer nxt = idxs.get(i + 1);
-	        lcm = lcm * bs.get(cur);
-	        final long offset = nxt;
+	    for (int i = 0; i < this.buses.size() - 1; i++) {
+	        final Bus cur = this.buses.get(i);
+	        final Bus nxt = this.buses.get(i + 1);
+	        lcm = lcm * cur.getPeriod();
 	        while (true) {
 	            r += lcm;
-	            if ((r + offset) % bs.get(nxt) == 0)  {
+	            if ((r + (long) nxt.getOffset()) % nxt.getPeriod() == 0)  {
 	                break;
 	            }
 	        }
@@ -109,4 +106,10 @@ public class AoC2020_13 extends AoCBase {
 	        "999\r\n" +
 	        "1789,37,47,1889"
 	);
+	
+	@Value
+	private static final class Bus {
+	    private final Integer period;
+	    private final Integer offset;
+	}
 }
