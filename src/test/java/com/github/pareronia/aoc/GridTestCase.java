@@ -301,4 +301,20 @@ public class GridTestCase {
 		assertThat(asStringList(result1), is(asList("FGH", "JKL", "NOP")));
 		assertThat(asStringList(result2), is(emptyList()));
 	}
+	
+	@Test(expected = IllegalArgumentException.class)
+	public void addRowInvalid() {
+	    final Grid grid = Grid.from(asList("ABCD"));
+	    
+	    grid.addRow("ABC");
+	}
+
+	@Test
+	public void addRow() {
+	    final Grid grid = Grid.from(asList("ABCD"));
+	    
+	    final Grid result = grid.addRow("EFGH");
+
+		assertThat(asStringList(result), is(asList("ABCD", "EFGH")));
+	}
 }

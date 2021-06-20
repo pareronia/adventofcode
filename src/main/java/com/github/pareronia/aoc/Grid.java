@@ -2,6 +2,7 @@ package com.github.pareronia.aoc;
 
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -41,6 +42,15 @@ public class Grid {
 					.limit(string.length() / width)
 					.map(i -> string.substring(i, i + width))
 					.collect(toList()));
+	}
+	
+	public Grid addRow(String string ) {
+	    if (string.length() != getWidth()) {
+			throw new IllegalArgumentException("Invalid row length.");
+	    }
+	    final List<String> list = new ArrayList<>(getRowsAsStringList());
+	    list.add(string);
+	    return Grid.from(list);
 	}
 	
 	public char[][] getCells() {
