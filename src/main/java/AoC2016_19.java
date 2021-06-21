@@ -2,9 +2,6 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.github.pareronia.aocd.Aocd;
 
 public class AoC2016_19 extends AoCBase {
@@ -42,7 +39,8 @@ public class AoC2016_19 extends AoCBase {
 		return j;
 	}
 	
-	private Integer solve(NextLoserFinder nextLoserFinder) {
+	@Override
+	public Integer solvePart1() {
 	    final boolean[] a = new boolean[this.numberOfElves];
 	    int count = this.numberOfElves;
         Arrays.fill(a , true);
@@ -51,7 +49,7 @@ public class AoC2016_19 extends AoCBase {
         while (count > 1) {
             int j = nextIndex(i, AoC2016_19.this.numberOfElves);
             if (a[i]) {
-            	j = nextLoserFinder.find(a, j, count);
+            	j = findNextWithPresents(a, j);
                 a[j] = false;
                 count--;
                 lasti = i;
@@ -63,68 +61,43 @@ public class AoC2016_19 extends AoCBase {
 	}
 	
 	@Override
-	public Integer solvePart1() {
-		return solve((a, j, count) -> {
-			return findNextWithPresents(a, j);
-		});
-	}
-	
-	private void logArray(int[] a) {
-		if (!debug) {
-			return;
-		}
-		log(StringUtils.join(a, ','));
-	}
-	
-	@Override
 	public Integer solvePart2() {
-	    int[] a = new int[this.numberOfElves];
-	    for (int x = 0; x < a.length; x++) {
-	    	a[x] = x + 1;
-	    }
-	    logArray(a);
-        int i = 0;
-        int lastWinner = 0;
-        while (a.length > 1) {
-        	log("i: " + i);
-        	int l = (i + a.length / 2) % a.length;
-        	int winner = a[i];
-        	log("winner:" + winner);
-        	log("loser:" + a[l]);
-        	a = ArrayUtils.remove(a, l);
-        	logArray(a);
-        	i = Arrays.binarySearch(a, winner);
-        	lastWinner = a[i];
-        	i = nextIndex(i, a.length);
-        	if (a.length % 1000 == 0) {
-        		System.out.println("count: " + a.length);
-        	}
-        }
-        log(lastWinner);
-        return lastWinner;
+	    return 0;
 	}
-	
+	 
 	private Integer solve2() {
-		final LinkedList<Integer> a = new LinkedList<>(); 
+		final LinkedList<Integer> a = new LinkedList<>();
 	    for (int x = 0; x < this.numberOfElves; x++) {
 	    	a.add(x + 1);
 	    }
 	    a.listIterator();
-        int i = a.getFirst();
-	    while (a.size() > 1) {
-        	log("i: " + i);
-        	int l = (i + a.size() / 2) % a.size();
-        	int winner = i;	    	
-        	log("winner:" + winner);
-        	log("loser:" + a.get(l));
-        	a.remove(l);
+        int i = 0;
+        int winner = 0;
+        int count = this.numberOfElves;
+	    while (count > 1) {
+//	        log(a);
+//        	log("i: " + i);
+        	final int l = (i + count / 2) % count;
+        	winner = a.get(i);
+        	final int loser = a.remove(l);
+        	count--;
+//        	log("winner:" + winner);
+//        	log("loser:" + loser);
+        	if (i == a.size()) {
+        	    i = 0;
+        	} else {
+        	    i = nextIndex(a.listIterator(i).nextIndex(), count);
+        	}
+        	if (count % 1000 == 0) {
+        		System.out.println("count: " + count);
+        	}
 	    }
-	    return 0; // FIXME
+	    return winner;
 	}
 	
 	public static void main(String[] args) throws Exception {
 		assert AoC2016_19.createDebug(TEST).solvePart1() == 3;
-		assert AoC2016_19.createDebug(TEST).solvePart2() == 2;
+		assert AoC2016_19.createDebug(TEST).solve2() == 2;
 
 		final List<String> input = Aocd.getData(2016, 19);
 		lap("Part 1", () -> AoC2016_19.create(input).solvePart1());
