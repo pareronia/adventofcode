@@ -16,8 +16,8 @@ public class StringOpsTestCase {
 
     @Test
     public void getDigits() {
-        assertThat(StringOps.getDigits("a b 1 c 2", 2), is(asList(1, 2)));
-        assertThat(StringOps.getDigits("abc ", 0), is(empty()));
+        assertThat(asList(StringOps.getDigits("a b 1 c 2", 2)), is(asList(1, 2)));
+        assertThat(asList(StringOps.getDigits("abc ", 0)), is(empty()));
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -47,5 +47,15 @@ public class StringOpsTestCase {
     public void rotateRight() {
         assertThat(StringOps.rotateRight("bcdea".toCharArray(), 1), is("abcde".toCharArray()));
         assertThat(StringOps.rotateRight("ecabd".toCharArray(), 6), is("decab".toCharArray()));
+    }
+    
+    @Test
+    public void swapChars() {
+        assertThat(StringOps.swap("ebcda".toCharArray(), 'd', 'b'), is("edcba".toCharArray()));
+    }
+
+    @Test
+    public void swapPositions() {
+        assertThat(StringOps.swap("abcde".toCharArray(), 4, 0), is("ebcda".toCharArray()));
     }
 }

@@ -3,18 +3,19 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.addAll;
 import static org.apache.commons.lang3.ArrayUtils.subarray;
 
-import java.util.List;
+import org.apache.commons.lang3.ArrayUtils;
 
 public class StringOps {
     
-    public static List<Integer> getDigits(String s, int expected) {
-        final List<Integer> digits = Utils.asCharacterStream(s)
+    public static Integer[] getDigits(String s, int expected) {
+        final Integer[] digits = Utils.asCharacterStream(s)
                 .filter(Character::isDigit)
                 .map(c -> Integer.valueOf(Character.digit(c, 10)))
-                .collect(toList());
-        if (digits.size() != expected) {
+                .collect(toList())
+                .toArray(Integer[]::new);
+        if (digits.length != expected) {
             throw new IllegalArgumentException(
-                String.format("Expected %d, got %d", expected, digits.size()));
+                String.format("Expected %d, got %d", expected, digits.length));
         }
         return digits;
     }
@@ -47,5 +48,21 @@ public class StringOps {
         amount = amount % ch.length;
         return addAll(subarray(ch, ch.length - amount, ch.length),
                       subarray(ch, 0, ch.length - amount));
+    }
+    
+    public static char[] swap(char[] ch, char first, char second) {
+        final int i1 = ArrayUtils.indexOf(ch, first);
+        final int i2 = ArrayUtils.indexOf(ch, second);
+        final char temp = ch[i1];
+        ch[i1] = ch[i2];
+        ch[i2] = temp;
+        return ch;
+    }
+    
+    public static char[] swap(char[] ch, int first, int second) {
+        final char temp = ch[first];
+        ch[first] = ch[second];
+        ch[second] = temp;
+        return ch;
     }
 }
