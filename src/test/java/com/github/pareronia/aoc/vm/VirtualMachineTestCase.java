@@ -20,6 +20,9 @@ public class VirtualMachineTestCase {
     public void test() {
         final Program program = new Program(asList(
             Instruction.NOP(),
+            Instruction.JMP(2),
+            Instruction.NOP(),
+            Instruction.NOP(),
             Instruction.ADD("A", 6L),
             Instruction.SET("B", 1L),
             Instruction.MUL("A", 3L),
@@ -35,6 +38,6 @@ public class VirtualMachineTestCase {
         assertThat(program.getRegisters().get("A"), is(54L));
         assertThat(program.getRegisters().get("B"), is(-1L));
         assertThat(program.getRegisters().get("C"), is(0L));
-        assertThat(program.getInstructionPointer(), is(8));
+        assertThat(program.getInstructionPointer(), is(11));
     }
 }

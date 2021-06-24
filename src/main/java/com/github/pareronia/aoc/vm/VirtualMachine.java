@@ -15,6 +15,7 @@ public class VirtualMachine {
         this.instructionSet.put(Opcode.CPY, this::cpy);
         this.instructionSet.put(Opcode.ADD, this::add);
         this.instructionSet.put(Opcode.MUL, this::mul);
+        this.instructionSet.put(Opcode.JMP, this::jmp);
         this.instructionSet.put(Opcode.JN0, this::jn0);
     }
     
@@ -58,6 +59,11 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
     
+    private void jmp(Program program, Instruction instruction) {
+        final Integer count = (Integer) instruction.getOperands().get(0);
+        program.moveIntructionPointer(count);
+    }
+    
     private void jn0(Program program, Instruction instruction) {
         final String register = (String) instruction.getOperands().get(0);
         final Integer count = (Integer) instruction.getOperands().get(1);
@@ -70,18 +76,33 @@ public class VirtualMachine {
     }
     
     public void runProgram(Program program) {
+        final Map<Integer, Integer> seen = new HashMap<>();
         while (0 <= program.getInstructionPointer()
                 && program.getInstructionPointer() < program.getInstructions().size()) {
             final Instruction instruction = program.getInstructions()
                     .get(program.getInstructionPointer());
+            if (program.getInfiniteLoopTreshold() != null) {
+                seen.merge(program.getInstructionPointer(), 1, (a, b) -> a + b);
+            }
             this.instructionSet.get(instruction.getOpcode())
                     .execute(program, instruction);
             program.incrementCycles();
+            if (program.getInfiniteLoopTreshold() != null
+                    && seen.containsKey(program.getInstructionPointer())) {
+                final Integer instructionCount = seen.get(program.getInstructionPointer());
+                if (instructionCount >= program.getInfiniteLoopTreshold()) {
+                    throw new InfiniteLoopException();
+                }
+            }
         }
     }
     
     @FunctionalInterface
     interface Execution {
         void execute(Program program, Instruction instruction);
+    }
+    
+    public static final class InfiniteLoopException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
     }
 }

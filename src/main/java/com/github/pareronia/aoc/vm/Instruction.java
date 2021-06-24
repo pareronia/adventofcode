@@ -32,6 +32,10 @@ public class Instruction {
         return new Instruction(Opcode.MUL, asList(register, value));
     }
 
+    public static Instruction JMP(Integer count) {
+        return new Instruction(Opcode.JMP, List.of(count));
+    }
+
     public static Instruction JN0(String register, Integer count) {
         return new Instruction(Opcode.JN0, asList(register, count));
     }
