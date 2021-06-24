@@ -1,10 +1,15 @@
+import static com.github.pareronia.aoc.Utils.asCharacterStream;
+import static com.github.pareronia.aoc.Utils.toAString;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
+import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.indexOf;
 import static org.apache.commons.lang3.ArrayUtils.reverse;
 
 import java.util.Arrays;
 import java.util.List;
+
+import org.apache.commons.collections4.iterators.PermutationIterator;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aocd.Aocd;
@@ -90,6 +95,18 @@ public class AoC2016_21 extends AoCBase {
         return StringOps.rotateRight(ch, amount);
     }
     
+    private String bruteForceSolve2(String start) {
+        final List<Character> chars = asCharacterStream(start).collect(toList());
+        final PermutationIterator<Character> perms = new PermutationIterator<>(chars);
+        while (perms.hasNext()) {
+            final String s = perms.next().stream().collect(toAString());
+            if (solve(s, TRUE).equals(start)) {
+                return s;
+            }
+        }
+        throw new IllegalStateException("Unsolvable");
+    }
+    
     @Override
     public String solvePart1() {
         return solve("abcdefgh", TRUE);
@@ -107,6 +124,7 @@ public class AoC2016_21 extends AoCBase {
         final List<String> input = Aocd.getData(2016, 21);
         lap("Part 1", () -> AoC2016_21.create(input).solvePart1());
         lap("Part 2", () -> AoC2016_21.create(input).solvePart2());
+        assert AoC2016_21.create(input).bruteForceSolve2("fbgdceah").equals("fdhgacbe");
     }
     
     private static final List<String> TEST = splitLines(
