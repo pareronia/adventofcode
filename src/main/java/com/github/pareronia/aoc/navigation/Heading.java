@@ -2,6 +2,11 @@ package com.github.pareronia.aoc.navigation;
 
 import com.github.pareronia.aoc.geometry.Vector;
 
+import lombok.EqualsAndHashCode;
+import lombok.Value;
+
+@Value
+@EqualsAndHashCode(callSuper = true)
 public class Heading extends Vector {
 
     public Heading(Integer x, Integer y) {

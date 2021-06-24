@@ -6,12 +6,11 @@ import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.geometry.Position;
 
-import lombok.Data;
+import lombok.Getter;
 
-@Data
 public class Navigation {
 
-    protected Position position;
+    @Getter protected Position position;
     private final List<Position> visitedPositions = new ArrayList<>();
     private final Predicate<Position> inBoundsPredicate;
     

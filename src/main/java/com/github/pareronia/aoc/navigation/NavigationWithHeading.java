@@ -4,9 +4,6 @@ import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.geometry.Position;
 
-import lombok.Data;
-
-@Data
 public class NavigationWithHeading extends Navigation {
     
     private Heading heading;

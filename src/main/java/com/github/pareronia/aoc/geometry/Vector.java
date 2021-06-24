@@ -1,9 +1,11 @@
 package com.github.pareronia.aoc.geometry;
 
+import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
 
 @Value
+@EqualsAndHashCode(callSuper = true)
 @NonFinal
 public class Vector extends Point {
 
