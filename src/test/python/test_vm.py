@@ -54,18 +54,6 @@ class TestVM(unittest.TestCase):
                           prog)
         self.assertEqual(prog.instruction_pointer, 0)
 
-    def test_error_on_jump_beyond_zero(self):
-        vm = VirtualMachine()
-        prog = Program([
-            Instruction.NOP(),
-            Instruction.JMP(-2),
-        ], error_on_jump_beyond_zero=True)
-
-        self.assertRaises(ValueError,
-                          vm.run_program,
-                          prog)
-        self.assertEqual(prog.instruction_pointer, -1)
-
     def test_invalidInstruction(self):
         vm = VirtualMachine()
         prog = Program([

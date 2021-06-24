@@ -75,17 +75,14 @@ class Program:
     _registers: dict[str, object]
     _instruction_pointer: int
     _inf_loop_treshold: int
-    _error_on_jump_beyond_zero: bool
     _cycles: int
 
     def __init__(self,
                  instructions: list[Instruction],
                  inf_loop_treshold: int = None,
-                 error_on_jump_beyond_zero: bool = True
                  ) -> None:
         self._instructions = instructions
         self._inf_loop_treshold = inf_loop_treshold
-        self._error_on_jump_beyond_zero = error_on_jump_beyond_zero
         self._memory = dict[int, object]()
         self._registers = dict[str, object]()
         self._instruction_pointer = 0
@@ -98,10 +95,6 @@ class Program:
     @property
     def inf_loop_treshold(self) -> int:
         return self._inf_loop_treshold
-
-    @property
-    def error_on_jump_beyond_zero(self) -> bool:
-        return self._error_on_jump_beyond_zero
 
     @property
     def instruction_pointer(self) -> int:
@@ -250,9 +243,6 @@ class VirtualMachine:
                                  + instruction.opcode)
             self._instruction_set[instruction.opcode](program, instruction)
             program._cycles += 1
-            if program.instruction_pointer < 0 \
-               and program.error_on_jump_beyond_zero:
-                raise ValueError("Invalid instruction argument")
             if program.inf_loop_treshold is not None \
                and program.instruction_pointer in seen:
                 instruction_count = seen[program.instruction_pointer]

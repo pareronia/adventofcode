@@ -2,14 +2,13 @@
 #
 # Advent of Code 2020 Day 8
 #
-from dataclasses import dataclass
+from typing import NamedTuple
 from aoc import my_aocd
 from aoc.common import log
 from aoc.vm import VirtualMachine, Instruction, Program
 
 
-@dataclass(frozen=True)
-class Instruction_:
+class Instruction_(NamedTuple):
     operation: str
     argument: int
 
@@ -37,8 +36,7 @@ def _build_program(lines: list[Instruction_]) -> Program:
             instructions.append(Instruction.ADD("ACC", line.argument))
         elif line.operation == "jmp":
             instructions.append(Instruction.JMP(line.argument))
-    return Program(instructions, inf_loop_treshold=1,
-                   error_on_jump_beyond_zero=False)
+    return Program(instructions, inf_loop_treshold=1)
 
 
 def _try_program_run_with_replaced_operation(instructions: list[Instruction_],
@@ -47,7 +45,7 @@ def _try_program_run_with_replaced_operation(instructions: list[Instruction_],
     orig_instruction = instructions[index]
     instructions[index] = Instruction_(new_operation,
                                        orig_instruction.argument)
-    log("{original_instruction.operation} -> {new_operation}")
+    log(f"{orig_instruction.operation} -> {new_operation}")
     try:
         program = _build_program(instructions)
         VirtualMachine().run_program(program)
@@ -71,10 +69,7 @@ def part_1(inputs: tuple[str]) -> int:
 def part_2(inputs: tuple[str]) -> int:
     log(inputs)
     instructions = _parse(inputs)
-    for i in range(len(instructions)):
-        instruction = instructions[i]
-        log(instruction)
-        instruction.check_valid_operation()
+    for i, instruction in enumerate(instructions):
         if instruction.operation == "nop":
             result = _try_program_run_with_replaced_operation(
                           instructions, i, "jmp")
