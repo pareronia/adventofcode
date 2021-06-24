@@ -3,8 +3,8 @@
 # Advent of Code 2016 Day 21
 #
 
+import itertools
 from aoc import my_aocd
-from aoc.common import log
 
 
 def _get_digits(s: str, expected: int) -> tuple[int]:
@@ -42,7 +42,6 @@ def _solve(operations: tuple[str], start: str, encrypt: bool) -> str:
     for i in range(len(operations)):
         idx = i if encrypt else len(operations) - 1 - i
         op = operations[idx]
-        log(op)
         if op.startswith("swap position "):
             params = _get_digits(op, 2)
             first = params[0] if encrypt else params[1]
@@ -89,8 +88,14 @@ def _solve(operations: tuple[str], start: str, encrypt: bool) -> str:
                 ch = ch1
         else:
             raise ValueError("Invalid input")
-        log(ch)
     return ch
+
+
+def _solve_2_brute_force(operations: tuple[str], start: str) -> str:
+    for s in map(lambda x: "".join(x), itertools.permutations(list(start), 8)):
+        if _solve(operations, s, True) == start:
+            return s
+    raise RuntimeError("Unsolvable")
 
 
 def part_1(inputs: tuple[str]) -> str:
@@ -124,6 +129,7 @@ def main() -> None:
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    assert _solve_2_brute_force(inputs, "fbgdceah") == "fdhgacbe"
 
 
 if __name__ == '__main__':
