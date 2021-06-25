@@ -15,6 +15,10 @@ CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
 VULTURE := vulture --min-confidence 80
+PMD := pmd pmd -R rulesets/java/quickstart.xml
+PMD_CACHE_DIR := .cache/pmd
+PMD_HTML_DIR := htmlpmd
+PMD_HTML := $(PMD_HTML_DIR)/pmd.html
 GREP := grep
 GAWK := awk
 SORT := sort
@@ -25,7 +29,9 @@ PYTHON_UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := java -ea
 JAVAC_CMD := javac -encoding cp1252
 JAVA_UNITTEST_CMD := org.junit.runner.JUnitCore
+WSLPATH := wslpath
 RM := rm -Rf
+MKDIR := mkdir
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
@@ -49,6 +55,13 @@ day = $(shell echo $1 | $(GAWK) --field-separator=, \
 		'{print "AoC"$$1"_"$$2""$2""}')
 
 to_path = $(shell echo $1 | $(GAWK) '{printf $$1; for (i = 2; i <= NF; i++) { if ($$i != "") { printf ":"$$i }; }}')
+
+open-in-browser = \
+	$(if $(findstring true,$(IS_WSL)),\
+	$(shell "$(CHROME)" --new-window --start-maximized \
+		$$($(WSLPATH) -aw "$1") > /dev/null 2>&1 &),\
+	$(shell $(BROWSER) "$1" > /dev/null 2>&1 &)\
+)
 
 #: Default target - pre-push
 .DEFAULT_GOAL := pre-push
@@ -104,6 +117,25 @@ bandit:
 	@$(call msg,"Running bandit against Python source files...")
 	@$(BANDIT) $(PY_SRCS)
 
+#: Run PMD - Java static source code analyzer
+pmd: $(PMD_CACHE_DIR)
+	@$(PMD) -cache $(PMD_CACHE_DIR)/cache -dir $(JAVA_ROOT) -format textcolor
+
+#: Run PMD - Java static source code analyzer (HTML report)
+pmd.html: $(PMD_CACHE_DIR) $(PMD_HTML_DIR)
+	-@$(PMD) -cache $(PMD_CACHE_DIR)/cache -dir $(JAVA_ROOT) -format xslt \
+		-reportfile $(PMD_HTML)
+
+#: Open PMD html report
+pmd.html.open: pmd.html
+	$(call open-in-browser,$(PMD_HTML))
+
+$(PMD_CACHE_DIR):
+	@$(MKDIR) --parents $(PMD_CACHE_DIR)
+
+$(PMD_HTML_DIR):
+	@$(MKDIR) --parents $(PMD_HTML_DIR)
+
 #: Run all linters (Flake8, Vulture, Bandit)
 lint: flake vulture bandit
 
@@ -125,7 +157,7 @@ dump:
 
 #: Clean up generated files
 clean:
-	$(RM) $(JAVA_DST) $(JAVA_TEST_DST)
+	$(RM) $(JAVA_DST) $(JAVA_TEST_DST) $(PMD_CACHE_DIR) $(PMD_HTML_DIR)
 
 # https://stackoverflow.com/a/26339924
 #: Show all targets in this Makefile
@@ -150,4 +182,4 @@ help:
 		| $(SORT)
 
 .PHONY: flake vulture bandit fixme todo list help py java unittest.py clitest \
-	build.java clean unittest.java
+	build.java clean unittest.java pmd pmd.html pmd.html.open

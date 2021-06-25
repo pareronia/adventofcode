@@ -180,3 +180,5 @@ bin-test/
 ##
 *.class
 *.jar
+.cache/pmd
+htmlpmd/
