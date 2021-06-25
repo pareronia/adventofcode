@@ -1,11 +1,14 @@
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
 
@@ -18,17 +21,13 @@ public class AoC2016_06 extends AoCBase {
 		this.inputs = input;
 	}
 	
-	private List<Map<Character, Integer>> getCounters() {
-		final List<Map<Character, Integer>> counters = new ArrayList<>();
-		for (int i = 0; i < inputs.get(0).length(); i ++) {
-			counters.add(new HashMap<>());
-		}
-		for (String input : inputs) {
-			for (int i = 0; i < input.length(); i ++) {
-				counters.get(i).merge(input.charAt(i), 1, Integer::sum);
-			}
-		}
-		return counters;
+	private List<Map<Character, Long>> getCounters() {
+		return Stream.iterate(0, i -> i + 1)
+		        .takeWhile(i -> i < inputs.get(0).length())
+		        .map(i -> inputs.stream()
+		                .map(input -> input.charAt(i))
+		                .collect(groupingBy(c -> c, HashMap::new, counting())))
+		        .collect(toList());
 	}
 	
 	public static final AoC2016_06 create(List<String> input) {
