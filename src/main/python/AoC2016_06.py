@@ -8,13 +8,12 @@ from aoc import my_aocd
 
 
 def _get_counters(inputs: tuple[str]) -> list[Counter]:
-    counters = list()
-    for i in range(len(inputs[0])):
-        counters.append(Counter())
-    for input_ in inputs:
-        for i in range(len(input_)):
-            counters[i].update(input_[i])
-    return counters
+    def count(i: int) -> Counter:
+        cnt = Counter()
+        for input_ in inputs:
+            cnt[input_[i]] += 1
+        return cnt
+    return [count(i) for i in range(len(inputs[0]))]
 
 
 def part_1(inputs: tuple[str]) -> str:
