@@ -5,12 +5,17 @@ import java.util.List;
 import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Vector;
 
 import lombok.Getter;
+import lombok.ToString;
 
+@ToString(onlyExplicitlyIncluded = true)
 public class Navigation {
 
-    @Getter protected Position position;
+    @Getter
+    @ToString.Include
+    protected Position position;
     private final List<Position> visitedPositions = new ArrayList<>();
     private final Predicate<Position> inBoundsPredicate;
     
@@ -34,6 +39,16 @@ public class Navigation {
         this.visitedPositions.add(position);
     }
     
+    protected void translate(Vector heading, Integer amount) {
+        Position newPosition = this.position;
+        for (int i = 0; i < amount; i++) {
+            newPosition = newPosition.translate(heading, 1);
+            if (inBounds(newPosition))  {
+                this.position = newPosition;
+            }
+        }
+        rememberVisitedPosition(this.position);
+    }
     
     public List<Position> getVisitedPositions() {
         return getVisitedPositions(false);

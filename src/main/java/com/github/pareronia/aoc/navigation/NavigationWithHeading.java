@@ -4,8 +4,12 @@ import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.geometry.Position;
 
+import lombok.ToString;
+
+@ToString(callSuper = true, onlyExplicitlyIncluded = true)
 public class NavigationWithHeading extends Navigation {
     
+    @ToString.Include
     private Heading heading;
 
     public NavigationWithHeading(Position position, Heading heading) {
@@ -33,22 +37,12 @@ public class NavigationWithHeading extends Navigation {
     }
     
     public NavigationWithHeading forward(Integer amount) {
-        return translate(this.heading, amount);
+        translate(this.heading, amount);
+        return this;
     }
     
     public NavigationWithHeading drift(Heading heading, Integer amount) {
-        return translate(heading, amount);
-    }
-
-    private NavigationWithHeading translate(Heading heading, Integer amount) {
-        Position newPosition = this.position;
-        for (int i = 0; i < amount; i++) {
-            newPosition = newPosition.translate(heading, 1);
-            if (inBounds(newPosition))  {
-                this.position = newPosition;
-            }
-        }
-        rememberVisitedPosition(this.position);
+        translate(heading, amount);
         return this;
     }
 }

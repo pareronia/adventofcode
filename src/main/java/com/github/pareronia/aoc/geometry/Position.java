@@ -1,11 +1,9 @@
 package com.github.pareronia.aoc.geometry;
 
 import lombok.EqualsAndHashCode;
-import lombok.ToString;
 import lombok.Value;
 
 @Value
-@ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = true)
 public class Position extends Point {
     
@@ -29,5 +27,22 @@ public class Position extends Point {
 
     public Position translate(Vector vector) {
         return translate(vector, 1);
+    }
+    
+    public Integer manhattanDistance() {
+        return manhattanDistance(Position.of(0, 0));
+    }
+    
+    public Integer manhattanDistance(Position from) {
+        return Math.abs(this.getX() - from.getX())
+                + Math.abs(this.getY() - from.getY());
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Position(x=").append(getX()).append(", y=")
+                .append(getY()).append(")");
+        return builder.toString();
     }
 }

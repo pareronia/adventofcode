@@ -39,4 +39,11 @@ public class Vector extends Point {
         }
         return result;
     }
+    
+    public Vector add(Vector vector, Integer amplitude) {
+        final Point point = this
+                .withX(this.getX() + vector.getX() * amplitude)
+                .withY(this.getY() + vector.getY() * amplitude);
+        return Vector.from(point);
+    }
 }
