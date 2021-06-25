@@ -3,8 +3,7 @@
 # Advent of Code 2020 Day 12
 #
 
-from __future__ import annotations
-from dataclasses import dataclass
+from typing import NamedTuple
 from aoc import my_aocd
 from aoc.common import log
 from aoc.geometry import Position
@@ -21,8 +20,7 @@ LEFT = "L"
 FORWARD = "F"
 
 
-@dataclass
-class NavigationInstruction:
+class NavigationInstruction(NamedTuple):
     action: str
     value: int
 
@@ -78,6 +76,7 @@ def part_2(inputs: tuple[str]) -> int:
     navs = _parse(inputs)
     start = Waypoint(10, 1)
     navigation = NavigationWithWaypoint(Position(0, 0), start)
+    log(navigation)
     for nav in navs:
         _navigate_with_waypoint(navigation, nav)
         log(navigation)
