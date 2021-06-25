@@ -2,51 +2,37 @@
 #
 # Advent of Code 2020 Day 10
 #
-from collections import defaultdict
+from collections import defaultdict, Counter
 from aoc import my_aocd
 from aoc.common import log
 
 
 def _parse(inputs: tuple[str]) -> tuple[int]:
     sorted_ = [int(_) for _ in inputs]
+    sorted_.append(0)
+    sorted_.append(max(sorted_) + 3)
     sorted_.sort()
     return tuple(sorted_)
-
-
-def _find_jumps(inputs: tuple[int]):
-    jumps_1 = []
-    jumps_3 = []
-    for i in range(1, len(inputs)):
-        if inputs[i]-inputs[i-1] != 1:
-            jumps_3.append(i)
-        else:
-            jumps_1.append(i)
-    return jumps_1, jumps_3
 
 
 def part_1(inputs: tuple[str]) -> int:
     inputs = _parse(inputs)
     log(inputs)
-    jumps_1, jumps_3 = _find_jumps(inputs)
-    log((jumps_1, jumps_3))
-    return (len(jumps_1)+1)*(len(jumps_3)+1)
+    cnt = Counter((inputs[i] - inputs[i-1]
+                   for i in range(1, len(inputs))))
+    return cnt[1] * cnt[3]
 
 
 def part_2(inputs: tuple[str]) -> int:
     inputs = _parse(inputs)
     log(inputs)
-    seen = defaultdict(int)
+    seen = defaultdict(lambda: 0)
     seen[0] = 1
-    seen[inputs[0]] = 1
-    log(seen)
     for i in inputs[1:]:
-        for j in range(inputs.index(i)-1, -2, -1):
-            if j == -1:
-                j_ = 0
-            else:
-                j_ = inputs[j]
-            if i - j_ <= 3:
-                seen[i] = seen[i] + seen[j_]
+        for j in (inputs[k]
+                  for k in range(inputs.index(i) - 1, -1, -1)
+                  if i - inputs[k] <= 3):
+            seen[i] += seen[j]
         log(seen)
     log(seen[inputs[-1]])
     return seen[inputs[-1]]
