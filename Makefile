@@ -174,7 +174,7 @@ list:
 # https://stackoverflow.com/a/59087509
 #: Show all targets in this Makefile with help text
 help:
-	@$(GREP) --before-context=1 --extended-regexp "^[a-zA-Z0-9_-]+\:" \
+	@$(GREP) --before-context=1 --extended-regexp "^[.a-zA-Z0-9_-]+\:" \
 			$(MAKEFILE) | $(GREP) --invert-match -- -- \
 		| $(SED) 'N;s/\n/###/' \
 		| $(SED) --quiet 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
