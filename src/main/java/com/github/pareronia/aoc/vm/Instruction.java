@@ -16,12 +16,8 @@ public class Instruction {
         return new Instruction(Opcode.NOP, Collections.emptyList());
     }
 
-    public static Instruction SET(String register, Long value) {
+    public static Instruction SET(String register, String value) {
         return new Instruction(Opcode.SET, asList(register, value));
-    }
-
-    public static Instruction CPY(String fromRegister, String toRegister) {
-        return new Instruction(Opcode.CPY, asList(fromRegister, toRegister));
     }
 
     public static Instruction ADD(String register, Long value) {
@@ -36,7 +32,11 @@ public class Instruction {
         return new Instruction(Opcode.JMP, List.of(count));
     }
 
-    public static Instruction JN0(String register, Integer count) {
+    public static Instruction JN0(String register, String count) {
         return new Instruction(Opcode.JN0, asList(register, count));
+    }
+    
+    public static Instruction TGL(String register) {
+        return new Instruction(Opcode.TGL, List.of(register));
     }
 }

@@ -31,8 +31,12 @@ public class Program {
         return Collections.unmodifiableList(this.instructions);
     }
     
+    public void replaceInstruction(int index, Instruction instruction) {
+        this.instructions.set(index, instruction);
+    }
+    
     public void nullOperation() {
-        return;
+        // nop
     }
     
     public void setRegisterValue(String register, Long value) {

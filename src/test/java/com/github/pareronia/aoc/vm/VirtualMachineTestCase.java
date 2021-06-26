@@ -2,6 +2,7 @@ package com.github.pareronia.aoc.vm;
 
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
+import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.junit.Before;
@@ -24,12 +25,15 @@ public class VirtualMachineTestCase {
             Instruction.NOP(),
             Instruction.NOP(),
             Instruction.ADD("A", 6L),
-            Instruction.SET("B", 1L),
+            Instruction.SET("B", "1"),
             Instruction.MUL("A", 3L),
-            Instruction.CPY("B", "C"),
+            Instruction.SET("C", "*B"),
             Instruction.ADD("B", -1L),
-            Instruction.JN0("C", -3),
-            Instruction.JN0("D", 1)
+            Instruction.JN0("*C", "-3"),
+            Instruction.SET("E", "2"),
+            Instruction.JN0("*D", "1"),
+            Instruction.JN0("*B", "*E"),
+            Instruction.SET("A", "99")
         ));
         
         vm.runProgram(program);
@@ -38,6 +42,8 @@ public class VirtualMachineTestCase {
         assertThat(program.getRegisters().get("A"), is(54L));
         assertThat(program.getRegisters().get("B"), is(-1L));
         assertThat(program.getRegisters().get("C"), is(0L));
-        assertThat(program.getInstructionPointer(), is(11));
+        assertThat(program.getRegisters().get("D"), is(nullValue()));
+        assertThat(program.getRegisters().get("E"), is(2L));
+        assertThat(program.getInstructionPointer(), is(14));
     }
 }
