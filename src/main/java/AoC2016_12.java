@@ -79,23 +79,23 @@ public class AoC2016_12 extends AoCBase {
 	    return new Program(instructions);
 	}
 	
-	@Override
-	public Integer solvePart1() {
+	private Integer solve() {
 	    final Program program = buildProgram();
 	    log(program.getInstructions());
-        new VirtualMachine().runProgram(program);
-        log(program.getCycles());
+	    new VirtualMachine().runProgram(program);
+	    log(program.getCycles());
 	    return program.getRegisters().get("a").intValue();
 	}
 	
 	@Override
+	public Integer solvePart1() {
+	    return solve();
+	}
+	
+	@Override
 	public Integer solvePart2() {
-	    final Program program = buildProgram();
-	    program.getInstructions().add(0, Instruction.SET("c", 1L));
-	    log(program.getInstructions());
-        new VirtualMachine().runProgram(program);
-        log(program.getCycles());
-	    return program.getRegisters().get("a").intValue();
+	    this.instructions.add(0, new Instruction_("cpy", asList("1", "c")));
+	    return solve();
 	}
 
 	public static void main(String[] args) throws Exception {
