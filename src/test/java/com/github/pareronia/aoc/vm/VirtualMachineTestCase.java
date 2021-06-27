@@ -5,6 +5,9 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.nullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,13 +22,16 @@ public class VirtualMachineTestCase {
 
     @Test
     public void test() {
+        final List<Long> output = new ArrayList<>();
         final Program program = new Program(asList(
             Instruction.NOP(),
             Instruction.JMP(2),
             Instruction.NOP(),
             Instruction.NOP(),
             Instruction.ADD("A", 6L),
+            Instruction.OUT("*A"),
             Instruction.SET("B", "1"),
+            Instruction.OUT("7"),
             Instruction.MUL("A", 3L),
             Instruction.SET("C", "*B"),
             Instruction.ADD("B", -1L),
@@ -34,7 +40,8 @@ public class VirtualMachineTestCase {
             Instruction.JN0("*D", "1"),
             Instruction.JN0("*B", "*E"),
             Instruction.SET("A", "99")
-        ));
+        ),
+        output::add);
         
         vm.runProgram(program);
         
@@ -44,6 +51,7 @@ public class VirtualMachineTestCase {
         assertThat(program.getRegisters().get("C"), is(0L));
         assertThat(program.getRegisters().get("D"), is(nullValue()));
         assertThat(program.getRegisters().get("E"), is(2L));
-        assertThat(program.getInstructionPointer(), is(14));
+        assertThat(program.getInstructionPointer(), is(16));
+        assertThat(output, is(List.of(6L, 7L)));
     }
 }

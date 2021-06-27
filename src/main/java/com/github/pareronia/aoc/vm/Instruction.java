@@ -16,27 +16,31 @@ public class Instruction {
         return new Instruction(Opcode.NOP, Collections.emptyList());
     }
 
-    public static Instruction SET(String register, String value) {
+    public static Instruction SET(final String register, final String value) {
         return new Instruction(Opcode.SET, asList(register, value));
     }
 
-    public static Instruction ADD(String register, Long value) {
+    public static Instruction ADD(final String register, final Long value) {
         return new Instruction(Opcode.ADD, asList(register, value));
     }
 
-    public static Instruction MUL(String register, Long value) {
+    public static Instruction MUL(final String register, final Long value) {
         return new Instruction(Opcode.MUL, asList(register, value));
     }
 
-    public static Instruction JMP(Integer count) {
+    public static Instruction JMP(final Integer count) {
         return new Instruction(Opcode.JMP, List.of(count));
     }
 
-    public static Instruction JN0(String register, String count) {
+    public static Instruction JN0(final String register, final String count) {
         return new Instruction(Opcode.JN0, asList(register, count));
     }
     
-    public static Instruction TGL(String register) {
+    public static Instruction TGL(final String register) {
         return new Instruction(Opcode.TGL, List.of(register));
+    }
+    
+    public static Instruction OUT(final String operand) {
+        return new Instruction(Opcode.OUT, List.of(operand));
     }
 }

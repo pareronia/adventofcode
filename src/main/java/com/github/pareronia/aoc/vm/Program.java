@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -18,20 +19,32 @@ public class Program {
     private final Map<String, Long> registers = new HashMap<>();
     @Getter(value = AccessLevel.PACKAGE)
     private final Integer infiniteLoopTreshold;
+    @Getter(value = AccessLevel.PACKAGE)
+    private final Consumer<Long> outputConsumer;
     @Getter
     private Integer instructionPointer = 0;
     @Getter
     private long cycles = 0L;
 
-    public Program(List<Instruction> instructions) {
-        this(instructions, null);
+    public Program(final List<Instruction> instructions) {
+        this(instructions, null, null);
+    }
+    
+    public Program(final List<Instruction> instructions,
+                   final Integer infiniteLoopTreshold) {
+        this(instructions, infiniteLoopTreshold, null);
+    }
+    
+    public Program(final List<Instruction> instructions,
+                   final Consumer<Long> outputConsumer) {
+        this(instructions, null, outputConsumer);
     }
 
     public List<Instruction> getInstructions() {
         return Collections.unmodifiableList(this.instructions);
     }
     
-    public void replaceInstruction(int index, Instruction instruction) {
+    public void replaceInstruction(final int index, final Instruction instruction) {
         this.instructions.set(index, instruction);
     }
     
@@ -39,15 +52,15 @@ public class Program {
         // nop
     }
     
-    public void setRegisterValue(String register, Long value) {
+    public void setRegisterValue(final String register, final Long value) {
         this.registers.put(register, value);
     }
     
-    public void setMemoryValue(Integer address, Object value) {
+    public void setMemoryValue(final Integer address, final Object value) {
         this.memory.put(address, value);
     }
     
-    public Integer moveIntructionPointer(Integer amount) {
+    public Integer moveIntructionPointer(final Integer amount) {
         this.instructionPointer += amount;
         return this.instructionPointer;
     }

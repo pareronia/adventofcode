@@ -19,14 +19,15 @@ public class VirtualMachine {
         this.instructionSet.put(Opcode.JMP, this::jmp);
         this.instructionSet.put(Opcode.JN0, this::jn0);
         this.instructionSet.put(Opcode.TGL, this::tgl);
+        this.instructionSet.put(Opcode.OUT, this::out);
     }
     
-    private void nop(Program program, Instruction instruction, Integer ip) {
+    private void nop(final Program program, final Instruction instruction, final Integer ip) {
         program.nullOperation();
         program.moveIntructionPointer(1);
     }
     
-    private void set(Program program, Instruction instruction, Integer ip) {
+    private void set(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
         final Optional<Long> value;
@@ -39,7 +40,7 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
 
-    private void add(Program program, Instruction instruction, Integer ip) {
+    private void add(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final Long value = (Long) instruction.getOperands().get(1);
         final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -49,7 +50,7 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
     
-    private void mul(Program program, Instruction instruction, Integer ip) {
+    private void mul(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final Long value = (Long) instruction.getOperands().get(1);
         final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -59,12 +60,12 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
     
-    private void jmp(Program program, Instruction instruction, Integer ip) {
+    private void jmp(final Program program, final Instruction instruction, final Integer ip) {
         final Integer count = (Integer) instruction.getOperands().get(0);
         program.moveIntructionPointer(count);
     }
     
-    private void jn0(Program program, Instruction instruction, Integer ip) {
+    private void jn0(final Program program, final Instruction instruction, final Integer ip) {
         final String op1 = (String) instruction.getOperands().get(0);
         final Optional<Long> test;
         if (op1.startsWith("*")) {
@@ -86,7 +87,7 @@ public class VirtualMachine {
         
     }
     
-    private void tgl(Program program, Instruction instruction, Integer ip) {
+    private void tgl(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         Optional.ofNullable(program.getRegisters().get(register))
                 .map(v -> v.intValue())
@@ -101,7 +102,7 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
     
-    private Instruction toggleInstruction(Instruction instruction) {
+    private Instruction toggleInstruction(final Instruction instruction) {
         if (instruction.getOpcode() == Opcode.ADD
                 && instruction.getOperands().get(1).equals(1L)) {
             final String register = (String) instruction.getOperands().get(0);
@@ -127,7 +128,21 @@ public class VirtualMachine {
         throw new IllegalStateException("Cannot toggle instruction " + instruction);
     }
     
-    public void runProgram(Program program) {
+    private void out(final Program program, final Instruction instruction, final Integer ip) {
+        final String op1 = (String) instruction.getOperands().get(0);
+        final Optional<Long> value;
+        if (op1.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op1.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op1));
+        }
+        if (program.getOutputConsumer() != null) {
+            value.ifPresent(v -> program.getOutputConsumer().accept(v));
+        }
+        program.moveIntructionPointer(1);
+    }
+    
+    public void runProgram(final Program program) {
         final Map<Integer, Integer> seen = new HashMap<>();
         while (0 <= program.getInstructionPointer()
                 && program.getInstructionPointer() < program.getInstructions().size()) {

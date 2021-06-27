@@ -34,15 +34,9 @@ public class Assembunny {
         final List<Instruction> instructions = new ArrayList<>();
         for (final AssembunnyInstruction line : lines) {
             if (line.operator.equals("cpy")) {
-                final String value = line.operands.get(0);
+                final String value = getOperand(line, 0);
                 final String register = line.operands.get(1);
-                if (REGISTERS.contains(value)) {
-                    instructions.add(Instruction.SET(register, "*" + value));
-                } else if (isNumeric(value)) {
-                    instructions.add(Instruction.SET(register, value));
-                } else {
-                    throw new IllegalArgumentException("Invalid operands for jnz");
-                }
+                instructions.add(Instruction.SET(register, value));
             } else if (line.operator.equals("inc")) {
                 final String register = line.operands.get(0);
                 instructions.add(Instruction.ADD(register, 1L));
@@ -50,33 +44,33 @@ public class Assembunny {
                 final String register = line.operands.get(0);
                 instructions.add(Instruction.ADD(register, -1L));
             } else if (line.operator.equals("jnz")) {
-                final String test_ = line.operands.get(0);
-                final String test;
-                if (REGISTERS.contains(test_)) {
-                    test = "*" + test_;
-                } else if (isNumeric(test_)) {
-                    test = test_;
-                } else {
-                    throw new IllegalArgumentException("Invalid operands for jnz");
-                }
-                final String value;
-                final String value_ = line.operands.get(1);
-                if (REGISTERS.contains(value_)) {
-                    value = "*" + value_;
-                } else if (isNumeric(value_)) {
-                    value = value_;
-                } else {
-                    throw new IllegalArgumentException("Invalid operands for jnz");
-                }
+                final String test = getOperand(line, 0);
+                final String value = getOperand(line, 1);
                 instructions.add(Instruction.JN0(test, value));
             } else if (line.operator.equals("tgl")) {
                 final String register = line.operands.get(0);
                 instructions.add(Instruction.TGL(register));
+            } else if (line.operator.equals("out")) {
+                final String operand = getOperand(line, 0);
+                instructions.add(Instruction.OUT(operand));
             } else {
                 throw new IllegalArgumentException("Invalid input: " + line);
             }
         }
         return instructions;
+    }
+
+    private static String getOperand(final AssembunnyInstruction line, final int idx) {
+        final String operand_ = line.operands.get(idx);
+        final String operand;
+        if (REGISTERS.contains(operand_)) {
+            operand = "*" + operand_;
+        } else if (isNumeric(operand_)) {
+            operand = operand_;
+        } else {
+            throw new IllegalArgumentException("Invalid operands for " + line.operator);
+        }
+        return operand;
     }
 
     private static boolean isNumeric(final String s) {
