@@ -60,6 +60,10 @@ class Instruction:
     def MEM(cls, address: int, value: object) -> Instruction:
         return Instruction("MEM", (address, value))
 
+    @classmethod
+    def OUT(cls, operand: str) -> Instruction:
+        return Instruction("OUT", (operand, ))
+
     @property
     def opcode(self) -> str:
         return self._opcode
@@ -75,17 +79,20 @@ class Program:
     _registers: dict[str, object]
     _instruction_pointer: int
     _inf_loop_treshold: int
+    _output_consumer: Callable
     _cycles: int
 
     def __init__(self,
                  instructions: list[Instruction],
                  inf_loop_treshold: int = None,
+                 output_consumer: Callable = None,
                  ) -> None:
         self._instructions = instructions
         self._inf_loop_treshold = inf_loop_treshold
         self._memory = dict[int, object]()
         self._registers = dict[str, object]()
         self._instruction_pointer = 0
+        self._output_consumer = output_consumer
         self._cycles = 0
 
     @property
@@ -111,6 +118,10 @@ class Program:
     @property
     def cycles(self) -> int:
         return self._cycles
+
+    @property
+    def output_consumer(self) -> Callable:
+        return self._output_consumer
 
     def null_operation(self) -> None:
         pass
@@ -148,6 +159,7 @@ class VirtualMachine:
             "MUL": self._mul,
             "DIV": self._div,
             "MEM": self._mem,
+            "OUT": self._out,
         }
 
     def _nop(self, program: Program, instruction: Instruction, ip: int):
@@ -279,6 +291,18 @@ class VirtualMachine:
     def _mem(self, program: Program, instruction: Instruction, ip: int):
         (address, value) = instruction.operands
         program.set_memory_value(address, value)
+        program.move_instruction_pointer(1)
+
+    def _out(self, program: Program, instruction: Instruction, ip: int):
+        operand, = instruction.operands
+        if operand.startswith("*"):
+            operand = operand[1:]
+            if operand in program.registers:
+                operand = program.registers[operand]
+        else:
+            operand = int(operand)
+        if operand is not None and program.output_consumer is not None:
+            program.output_consumer(operand)
         program.move_instruction_pointer(1)
 
     def run_program(self, program: Program):

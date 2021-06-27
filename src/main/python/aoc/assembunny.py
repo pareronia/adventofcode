@@ -12,7 +12,7 @@ class AssembunnyInstruction(NamedTuple):
         return AssembunnyInstruction(in_[0], (in_[1:]))
 
     def check_valid_operation(self) -> None:
-        if self.operation not in ("cpy", "inc", "dec", "jnz", "tgl"):
+        if self.operation not in ("cpy", "inc", "dec", "jnz", "tgl", "out"):
             raise ValueError("Invalid instruction operation")
         for operand in self.operands:
             if not (operand.strip('-').isnumeric() or operand in "abcd"):
@@ -59,4 +59,11 @@ class Assembunny:
             elif line.operation == "tgl":
                 register, = line.operands
                 instructions.append(Instruction.TGL(register))
+            elif line.operation == "out":
+                value, = line.operands
+                if value in ("abcd"):
+                    value = "*" + value
+                elif not value.strip('-').isnumeric():
+                    raise ValueError("Invalid operands for out")
+                instructions.append(Instruction.OUT(value))
         return instructions
