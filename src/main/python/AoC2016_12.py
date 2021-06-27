@@ -6,11 +6,12 @@
 from aoc import my_aocd
 from aoc.vm import Program, VirtualMachine
 from aoc.assembunny import Assembunny
+from aoc.math import Fibonacci
 from aoc.common import log
 
 
 # from u/blockingthesky @reddit
-def _solve(inp: tuple[str], init_c: int) -> int:
+def _solve_reddit(inp: tuple[str], init_c: int) -> int:
     reg = {'a': 0, 'b': 0, 'c': init_c, 'd': 0}
     ind = 0
     while ind < len(inp):
@@ -41,7 +42,7 @@ def _solve(inp: tuple[str], init_c: int) -> int:
     return reg['a']
 
 
-def _solve_vm(inputs: tuple[str], init_c) -> int:
+def _solve_vm(inputs: tuple[str], init_c: int) -> int:
     inss = Assembunny.parse(inputs)
     program = Program(Assembunny.translate(inss))
     program.set_register_value("c", init_c)
@@ -50,31 +51,26 @@ def _solve_vm(inputs: tuple[str], init_c) -> int:
     return program.registers["a"]
 
 
-def _part_1_vm(inputs: tuple[str]) -> int:
-    return _solve_vm(inputs, 0)
-
-
-def _part_1(inputs: tuple[str]) -> int:
-    return _solve(inputs, 0)
+def _solve(inputs: tuple[str], init_c: int) -> int:
+    values = list(map(lambda i: int(i),
+                      filter(lambda i: i.isnumeric(),
+                             map(lambda i: i.operands[0],
+                                 filter(lambda i: i.operation == "cpy",
+                                        Assembunny.parse(inputs))))))
+    n = values[0] + values[1] + values[2]
+    n += 0 if init_c == 0 else 7
+    return Fibonacci.binet(n) + values[4] * values[5]
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _part_1_vm(inputs)
-
-
-def _part_2_vm(inputs: tuple[str]) -> int:
-    return _solve_vm(inputs, 1)
-
-
-def _part_2(inputs: tuple[str]) -> int:
-    return _solve(inputs, 1)
+    return _solve(inputs, 0)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return _part_2(inputs)
+    return _solve(inputs, 1)
 
 
-TEST = '''\
+TEST1 = '''\
 cpy 41 a
 inc a
 inc a
@@ -82,12 +78,41 @@ dec a
 jnz a 2
 dec a
 '''.splitlines()
+TEST2 = '''\
+cpy 1 a
+cpy 1 b
+cpy 26 d
+jnz c 2
+jnz 1 5
+cpy 7 c
+inc d
+dec c
+jnz c -2
+cpy a c
+inc a
+dec b
+jnz b -2
+cpy c b
+dec d
+jnz d -6
+cpy 16 c
+cpy 12 d
+inc a
+dec d
+jnz d -2
+dec c
+jnz c -5
+'''.splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2016, 12)
 
-    assert part_1(TEST) == 42
+    assert _solve(TEST2, 0) == 318_003
+    assert _solve(TEST2, 1) == 9_227_657
+    assert _solve_reddit(TEST1, 0) == 42
+    assert _solve_reddit(TEST2, 0) == 318_003
+    assert _solve_reddit(TEST2, 1) == 9_227_657
 
     inputs = my_aocd.get_input(2016, 12, 23)
     result1 = part_1(inputs)
