@@ -14,18 +14,23 @@ import com.github.pareronia.aoc.vm.Instruction;
 
 import lombok.Value;
 
+/**
+ * 'Assembunny' util class.
+ *
+ * @see <a href="https://adventofcode.com/2016/day/12">https://adventofcode.com/2016/day/12</a>
+ */
 public class Assembunny {
 
     private static final Set<String> REGISTERS = Set.of("a", "b", "c", "d");
     
-	public static List<AssembunnyInstruction> parse(List<String> inputs) {
-	    return inputs.stream()
-	            .map(input -> input.split(" "))
-	            .map(s -> new AssembunnyInstruction(s[0], asList(subarray(s, 1, s.length))))
-	            .collect(toList());
-	}
-	
-    public static List<Instruction> translate(List<AssembunnyInstruction> lines) {
+    public static List<AssembunnyInstruction> parse(final List<String> inputs) {
+        return inputs.stream()
+                .map(input -> input.split(" "))
+                .map(s -> new AssembunnyInstruction(s[0], asList(subarray(s, 1, s.length))))
+                .collect(toList());
+    }
+    
+    public static List<Instruction> translate(final List<AssembunnyInstruction> lines) {
         final List<Instruction> instructions = new ArrayList<>();
         for (final AssembunnyInstruction line : lines) {
             if (line.operator.equals("cpy")) {
@@ -74,7 +79,7 @@ public class Assembunny {
         return instructions;
     }
 
-    private static boolean isNumeric(String s) {
+    private static boolean isNumeric(final String s) {
         return StringUtils.isNumeric(s.replace("-", ""));
     }
 
