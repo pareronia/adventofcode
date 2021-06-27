@@ -37,12 +37,12 @@ class Instruction:
         return Instruction("JN0", (register, value))
 
     @classmethod
-    def SET(cls, register: str, value: int) -> Instruction:
+    def SET(cls, register: str, value: str) -> Instruction:
         return Instruction("SET", (register, value))
 
     @classmethod
-    def CPY(cls, from_register: str, to_register: str) -> Instruction:
-        return Instruction("CPY", (from_register, to_register))
+    def TGL(cls, register: str) -> Instruction:
+        return Instruction("TGL", (register, ))
 
     @classmethod
     def ADD(cls, register: str, value: int) -> Instruction:
@@ -125,6 +125,12 @@ class Program:
     def set_memory_value(self, address: int, value: object) -> None:
         self._memory[address] = value
 
+    def replace_instruction(self, idx: int, new_ins: Instruction) -> None:
+        log(self.instructions)
+        log(f"replacing {self.instructions[idx]} with {new_ins}")
+        self._instructions[idx] = new_ins
+        log(self.instructions)
+
 
 class VirtualMachine:
     _instruction_set: dict[str, Callable[[Program, Instruction], None]]
@@ -137,24 +143,24 @@ class VirtualMachine:
             "JI1": self._ji1,
             "JN0": self._jn0,
             "SET": self._set,
-            "CPY": self._cpy,
+            "TGL": self._tgl,
             "ADD": self._add,
             "MUL": self._mul,
             "DIV": self._div,
             "MEM": self._mem,
         }
 
-    def _nop(self, program: Program, instruction: Instruction):
+    def _nop(self, program: Program, instruction: Instruction, ip: int):
         program.null_operation()
         program.move_instruction_pointer(1)
 
-    def _jmp(self, program: Program, instruction: Instruction):
+    def _jmp(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (count, *_) = instruction.operands
         program.move_instruction_pointer(count)
         log(program.registers)
 
-    def _jie(self, program: Program, instruction: Instruction):
+    def _jie(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (register, count) = instruction.operands
         if register not in program.registers \
@@ -164,7 +170,7 @@ class VirtualMachine:
             program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _ji1(self, program: Program, instruction: Instruction):
+    def _ji1(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (register, count) = instruction.operands
         if register in program.registers \
@@ -174,30 +180,73 @@ class VirtualMachine:
             program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _jn0(self, program: Program, instruction: Instruction):
+    def _jn0(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
-        (register, count) = instruction.operands
-        if register in program.registers \
-                and program.registers[register] != 0:
-            program.move_instruction_pointer(count)
+        (test, count) = instruction.operands
+        if test.startswith("*"):
+            if test[1:] in program.registers:
+                test = program.registers[test[1:]]
+            else:
+                test = 0
+        else:
+            test = int(test)
+        if count.startswith("*"):
+            if count[1:] in program.registers:
+                count = program.registers[count[1:]]
+            else:
+                count = 0
+        else:
+            count = int(count)
+        if test != 0:
+            program.move_instruction_pointer(int(count))
         else:
             program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _set(self, program: Program, instruction: Instruction):
+    def _set(self, program: Program, instruction: Instruction, ip: int):
+        log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
-        program.set_register_value(register, value)
+        if str(value).startswith("*"):
+            value = value[1:]
+            if value in program.registers:
+                program.set_register_value(
+                    register,
+                    int(program.registers[value]))
+        else:
+            program.set_register_value(register, int(value))
+        program.move_instruction_pointer(1)
+        log(program.registers)
+
+    def _tgl(self, program: Program, instruction: Instruction, ip: int):
+        log(instruction.opcode + str(instruction.operands))
+        register, = instruction.operands
+        if register in program.registers:
+            idx = ip + int(program.registers[register])
+            if 0 <= idx < len(program.instructions):
+                new_ins = self._toggle_instruction(program.instructions[idx])
+                program.replace_instruction(idx, new_ins)
         program.move_instruction_pointer(1)
 
-    def _cpy(self, program: Program, instruction: Instruction):
-        (from_register, to_register) = instruction.operands
-        if from_register in program.registers:
-            program.set_register_value(
-                to_register,
-                program.registers[from_register])
-        program.move_instruction_pointer(1)
+    def _toggle_instruction(self, instruction: Instruction) -> Instruction:
+        if instruction.opcode == "ADD" and instruction.operands[1] == 1:
+            return Instruction.ADD(instruction.operands[0], -1)
+        elif instruction.opcode == "ADD" and instruction.operands[1] == -1 \
+                or instruction.opcode == "TGL":
+            return Instruction.ADD(instruction.operands[0], 1)
+        elif instruction.opcode == "JN0":
+            op2 = str(instruction.operands[1])
+            return Instruction.SET(
+                op2[1:] if op2.startswith("*") else op2,
+                str(instruction.operands[0]))
+        elif instruction.opcode == "SET":
+            op1 = str(instruction.operands[0])
+            return Instruction.JN0(
+                str(instruction.operands[1]),
+                op1 if op1.isnumeric() else "*" + op1)
+        else:
+            raise RuntimeError("Cannot toggle instruction: " + instruction)
 
-    def _add(self, program: Program, instruction: Instruction):
+    def _add(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         new_value = value \
@@ -207,7 +256,7 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _div(self, program: Program, instruction: Instruction):
+    def _div(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         new_value = 0 \
@@ -217,7 +266,7 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _mul(self, program: Program, instruction: Instruction):
+    def _mul(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         new_value = value \
@@ -227,7 +276,7 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _mem(self, program: Program, instruction: Instruction):
+    def _mem(self, program: Program, instruction: Instruction, ip: int):
         (address, value) = instruction.operands
         program.set_memory_value(address, value)
         program.move_instruction_pointer(1)
@@ -241,7 +290,10 @@ class VirtualMachine:
             if instruction.opcode not in self._instruction_set:
                 raise ValueError("Unsupported instruction: "
                                  + instruction.opcode)
-            self._instruction_set[instruction.opcode](program, instruction)
+            self._instruction_set[instruction.opcode](
+                program,
+                instruction,
+                program.instruction_pointer)
             program._cycles += 1
             if program.inf_loop_treshold is not None \
                and program.instruction_pointer in seen:
