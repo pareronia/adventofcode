@@ -3,13 +3,14 @@
 # Advent of Code 2015 Day 23
 #
 
+import math
 from aoc import my_aocd
 from aoc.vm import Program, VirtualMachine
 from aoc.assembunny import Assembunny
 from aoc.common import log
 
 
-def _solve(inputs: tuple[str], init_a) -> int:
+def _solve_vm(inputs: tuple[str], init_a) -> int:
     inss = Assembunny.parse(inputs)
     program = Program(Assembunny.translate(inss))
     log(program.instructions)
@@ -17,6 +18,16 @@ def _solve(inputs: tuple[str], init_a) -> int:
     VirtualMachine().run_program(program)
     log(program.registers["a"])
     return program.registers["a"]
+
+
+def _solve(inputs: tuple[str], init_a) -> int:
+    ops = {"cpy", "jnz"}
+    values = list(map(lambda i: int(i),
+                      filter(lambda i: i.isnumeric(),
+                             map(lambda i: i.operands[0],
+                                 filter(lambda i: i.operation in ops,
+                                        Assembunny.parse(inputs))))))
+    return values[2] * values[3] + math.factorial(init_a)
 
 
 def part_1(inputs: tuple[str]) -> int:
@@ -27,7 +38,7 @@ def part_2(inputs: tuple[str]) -> int:
     return _solve(inputs, 12)
 
 
-TEST = '''\
+TEST1 = '''\
 cpy 2 a
 tgl a
 tgl a
@@ -36,12 +47,42 @@ cpy 1 a
 dec a
 dec a
 '''.splitlines()
+TEST2 = '''\
+cpy a b
+dec b
+cpy a d
+cpy 0 a
+cpy b c
+inc a
+dec c
+jnz c -2
+dec d
+jnz d -5
+dec b
+cpy b c
+cpy c d
+dec d
+inc c
+jnz d -2
+tgl c
+cpy -16 c
+jnz 1 c
+cpy 90 c
+jnz 73 d
+inc a
+inc d
+jnz d -2
+inc c
+jnz c -5
+'''.splitlines()
 
 
 def main() -> None:
     my_aocd.print_header(2016, 23)
 
-    assert part_1(TEST) == 3
+    assert _solve(TEST2, 7) == 11_610
+    assert _solve(TEST2, 12) == 479_008_170
+    assert _solve_vm(TEST1, 7) == 3
 
     inputs = my_aocd.get_input(2016, 23, 26)
     result1 = part_1(inputs)
