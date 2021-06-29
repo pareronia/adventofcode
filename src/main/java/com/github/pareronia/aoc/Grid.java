@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
@@ -20,11 +21,11 @@ import lombok.Value;
 public class Grid {
 	private final char[][] cells;
 	
-	public Grid(char[][] cells) {
+	public Grid(final char[][] cells) {
 		this.cells = cells;
 	}
 	
-	public Grid(List<String> strings) {
+	public Grid(final List<String> strings) {
 		final char[][] cells = new char[strings.size()][strings.get(0).length()];
 		for (int i = 0; i < strings.size(); i++) {
 			cells[i] = strings.get(i).toCharArray();
@@ -32,11 +33,11 @@ public class Grid {
 		this.cells = cells;
 	}
 	
-	public static Grid from(List<String> strings) {
+	public static Grid from(final List<String> strings) {
 		return new Grid(strings);
 	}
 	
-	public static Grid from(String string, int width) {
+	public static Grid from(final String string, final int width) {
 		return Grid.from(
 				Stream.iterate(0, i -> i + width)
 					.limit(string.length() / width)
@@ -44,7 +45,7 @@ public class Grid {
 					.collect(toList()));
 	}
 	
-	public Grid addRow(String string ) {
+	public Grid addRow(final String string ) {
 	    if (string.length() != getWidth()) {
 			throw new IllegalArgumentException("Invalid row length.");
 	    }
@@ -77,12 +78,12 @@ public class Grid {
 		return getWidth() - 1;
 	}
 	
-	public char[] getRow(Integer row) {
+	public char[] getRow(final Integer row) {
 		validateRowIndex(row);
 		return Arrays.copyOf(this.cells[row], getWidth());
 	}
 
-	public char[] getRowReversed(Integer row) {
+	public char[] getRowReversed(final Integer row) {
 		validateRowIndex(row);
 		final char[] column = new char[getWidth()];
 		for (int col = getMaxColIndex(); col >= 0; col--) {
@@ -91,7 +92,7 @@ public class Grid {
 		return column;
 	}
 	
-	public char[] getColumn(Integer col) {
+	public char[] getColumn(final Integer col) {
 		validateColumnIndex(col);
 		final char[] column = new char[getHeight()];
 		for (int row = 0; row < getHeight(); row++) {
@@ -100,7 +101,7 @@ public class Grid {
 		return column;
 	}
 	
-	public char[] getColumnReversed(Integer col) {
+	public char[] getColumnReversed(final Integer col) {
 		validateColumnIndex(col);
 		final char[] column = new char[getHeight()];
 		for (int row = getMaxRowIndex(); row >= 0; row--) {
@@ -127,7 +128,7 @@ public class Grid {
 		return set;
 	}
 	
-	public String getRowAsString(Integer row) {
+	public String getRowAsString(final Integer row) {
 		return new String(getRow(row));
 	}
 	
@@ -184,24 +185,28 @@ public class Grid {
 		return getColumnReversed(getMaxColIndex());
 	}
 	
-	public Stream<Cell> getAllEqualTo(char ch) {
+	public Stream<Cell> findAllMatching(final Predicate<Character> test) {
 		final Builder<Cell> builder = Stream.builder();
 		for (int row = 0; row < getHeight(); row++) {
 			final char[] cs = cells[row];
 			for (int col = 0; col < getWidth(); col++) {
-				if (cs[col] == ch) {
+				if (test.test(cs[col])) {
 					builder.add(Cell.at(row, col));
 				}
 			}
 		}
 		return builder.build();
 	}
+    
+    public Stream<Cell> getAllEqualTo(final char ch) {
+        return findAllMatching(c -> c == ch);
+    }
 	
-	public long countAllEqualTo(char ch) {
+	public long countAllEqualTo(final char ch) {
 		return getAllEqualTo(ch).count();
 	}
 	
-	public Grid replace(char ch1, char ch2) {
+	public Grid replace(final char ch1, final char ch2) {
 		final char[][] cells = new char[getHeight()][getWidth()];
 		for (int row = 0; row < getHeight(); row++) {
 			for (int col = 0; col < getWidth(); col++) {
@@ -211,7 +216,7 @@ public class Grid {
 		return new Grid(cells);
 	}
 	
-	public Grid update(Set<Cell> toUpdate, char ch) {
+	public Grid update(final Set<Cell> toUpdate, final char ch) {
 		final char[][] cells = new char[getHeight()][getWidth()];
 		for (int row = 0; row < getHeight(); row++) {
 			for (int col = 0; col < getWidth(); col++) {
@@ -225,7 +230,11 @@ public class Grid {
 		return new Grid(cells);
 	}
 	
-	public Grid subGrid(Cell from, Cell to) {
+	public char getValueAt(final Cell cell) {
+	    return this.cells[cell.getRow()][cell.getCol()];
+	}
+	
+	public Grid subGrid(final Cell from, final Cell to) {
 		Objects.requireNonNull(from);
 		Objects.requireNonNull(to);
 		if (from.row > to.row || from.col > to.col) {
@@ -249,7 +258,7 @@ public class Grid {
 		return new Grid(cells);
 	}
 	
-	private char[] rollCharArray(char[] oldChars, Integer amount) {
+	private char[] rollCharArray(final char[] oldChars, final Integer amount) {
 	    final char[] newChars = new char[oldChars.length];
 	    for (int col = 0; col < oldChars.length; col++) {
 	        newChars[col] = oldChars[Math.floorMod(col - amount, oldChars.length)];
@@ -257,7 +266,7 @@ public class Grid {
 	    return newChars;
 	}
 	
-	public Grid rollColumn(Integer colIndex, Integer amount) {
+	public Grid rollColumn(final Integer colIndex, final Integer amount) {
 	    validateColumnIndex(colIndex);
 	    final char[] newCol = rollCharArray(getColumn(colIndex), amount);
 		final char[][] cells = new char[getHeight()][getWidth()];
@@ -273,7 +282,7 @@ public class Grid {
 		return new Grid(cells);
 	}
 	
-	public Grid rollRow(Integer rowIndex, Integer amount) {
+	public Grid rollRow(final Integer rowIndex, final Integer amount) {
 	    validateRowIndex(rowIndex);
 		final char[][] cells = new char[getHeight()][];
 		for (int row = 0; row < getHeight(); row++) {
@@ -350,7 +359,7 @@ public class Grid {
 	}
 
 	@Override
-	public boolean equals(Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -367,14 +376,14 @@ public class Grid {
 		return true;
 	}
 
-	private void validateRowIndex(Integer row) {
+	private void validateRowIndex(final Integer row) {
 		Objects.requireNonNull(row);
 		if (row < 0 || row > getMaxRowIndex()) {
 			throw new IllegalArgumentException("Invalid row index.");
 		}
 	}
 
-	private void validateColumnIndex(Integer col) {
+	private void validateColumnIndex(final Integer col) {
 		Objects.requireNonNull(col);
 		if (col < 0 || col > getMaxColIndex()) {
 			throw new IllegalArgumentException("Invalid column index.");
@@ -386,7 +395,7 @@ public class Grid {
 		private final Integer row;
 		private final Integer col;
 		
-		public static Cell at(Integer row, Integer col) {
+		public static Cell at(final Integer row, final Integer col) {
 			return new Cell(row, col);
 		}
 	}
