@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -68,29 +67,14 @@ public final class AoC2016_13 extends AoCBase {
         return new Grid(grid);
     }
     
-    private boolean isValid(final Position position, final ElementSet set) {
-        return position.getX() >= 0 && position.getY() >= 0
-                && isOpenSpace(position) && !set.contains(position);
-    }
-    
     private Iterator<Position> neighbours(final Position pos) {
-        final Iterator<Position> iterator
-                = Set.of(Position.of(pos.getX() + 1, pos.getY()),
-                        Position.of(pos.getX() - 1, pos.getY()),
-                        Position.of(pos.getX(), pos.getY() + 1),
-                        Position.of(pos.getX(), pos.getY() - 1))
-                    .iterator();
-        return new Iterator<>() {
-            @Override
-            public Position next() {
-                return iterator.next();
-            }
-            
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-        };
+        return Set.of(Position.of(pos.getX() + 1, pos.getY()),
+                Position.of(pos.getX() - 1, pos.getY()),
+                Position.of(pos.getX(), pos.getY() + 1),
+                Position.of(pos.getX(), pos.getY() - 1)).stream()
+            .filter(p -> p.getX() >= 0 && p.getY() >= 0)
+            .filter(this::isOpenSpace)
+            .iterator();
     }
 
     private ElementSet getDistance(final Position source, final Position destination) {
@@ -102,9 +86,9 @@ public final class AoC2016_13 extends AoCBase {
             if (next.getPosition().equals(source)) {
                 break;
             }
-            neighbours(next.getPosition()).forEachRemaining(pos -> {
-                if (isValid(pos, set)) {
-                    set.add(pos, next.cost + 1);
+            neighbours(next.getPosition()).forEachRemaining(position -> {
+                if (!set.contains(position)) {
+                    set.add(position, next.cost + 1);
                     size.setValue(set.size());
                 }
             });
@@ -187,10 +171,6 @@ public final class AoC2016_13 extends AoCBase {
         
         public Element get(final int index) {
             return this.elements.get(index);
-        }
-        
-        public List<Element> getElements() {
-            return Collections.unmodifiableList(this.elements);
         }
     }
 }
