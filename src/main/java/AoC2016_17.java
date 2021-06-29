@@ -1,34 +1,26 @@
-import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.Comparator.comparing;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
+import java.util.function.Function;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 
+import com.github.pareronia.aoc.geometry.Point;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 public final class AoC2016_17 extends AoCBase {
 
     private static final Position START = Position.of(0, 0);
     private static final Position DESTINATION = Position.of(3, 3);
-    private static final List<Character> OPEN_CHARS = List.of('b', 'c', 'd', 'e', 'f');
-    private static final char UP = 'U';
-    private static final char DOWN = 'D';
-    private static final char LEFT = 'L';
-    private static final char RIGHT = 'R';
-    private static final char[] DOORS = { UP, DOWN, LEFT, RIGHT };
     
     private final transient String input;
 
@@ -46,53 +38,41 @@ public final class AoC2016_17 extends AoCBase {
         return new AoC2016_17(input, true);
     }
     
-    private void findPaths(final List<Path> paths, final Deque<Character> steps) {
-        final String _path = steps.stream().collect(toAString());
-        final Path path = new Path(_path);
-        if (path.isAtDestination()) {
-            paths.add(path);
-            return;
-        }
-        for (final Character door : path.findNextOpenDoors(this.input)) {
-            final Path newPath = new Path(path.getPath() + door);
-            if (newPath.isInBounds()) {
-                steps.add(door);
-                findPaths(paths, steps);
-                steps.removeLast();
-            }
-        }
-    }
-    
     @Override
     public String solvePart1() {
-        final PriorityQueue<Path> paths
-                = new PriorityQueue<>(comparing(Path::length));
-        Path path = new Path("");
-        paths.add(path);
-        while (!path.isAtDestination()) {
-            path = paths.poll();
-            for (final Character door : path.findNextOpenDoors(this.input)) {
-                final Path newPath = new Path(path.getPath() + door);
-                if (newPath.isInBounds()) {
-                    paths.add(newPath);
-                }
+        final List<Path> paths = new ArrayList<>();
+        new PathFinder(START, DESTINATION, this.input).findPaths(path -> {
+            if (path.isAt(DESTINATION)) {
+                paths.add(path);
+                return true;
             }
-        }
-        log(() -> Path.cacheStats());
-        return path.getPath();
+            return false;
+        });
+        return paths.stream()
+                .findFirst()
+                .map(Path::getPath)
+                .orElseThrow();
     }
     
     @Override
     public Integer solvePart2() {
         final List<Path> paths = new ArrayList<>();
-        findPaths(paths, new ArrayDeque<Character>());
-        log(() -> Path.cacheStats());
+        new PathFinder(START, DESTINATION, this.input).findPaths(path -> {
+            if (path.isAt(DESTINATION)) {
+                paths.add(path);
+            }
+            return false;
+        });
         return paths.stream()
-                .max(comparing(Path::length))
-                .map(Path::length).orElseThrow();
+                .map(Path::length)
+                .max(comparing(Integer::intValue))
+                .orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
+        assert AoC2016_17.createDebug(splitLines("ihgpwlah")).solvePart1().equals("DDRRRD");
+        assert AoC2016_17.createDebug(splitLines("kglvqrro")).solvePart1().equals("DDUDRLRRUDRD");
+        assert AoC2016_17.createDebug(splitLines("ulqzkmiv")).solvePart1().equals("DRURDRUDDLLDLUURRDULRLDUUDDDRR");
         assert AoC2016_17.createDebug(splitLines("ihgpwlah")).solvePart2() == 370;
         assert AoC2016_17.createDebug(splitLines("kglvqrro")).solvePart2() == 492;
         assert AoC2016_17.createDebug(splitLines("ulqzkmiv")).solvePart2() == 830;
@@ -104,81 +84,79 @@ public final class AoC2016_17 extends AoCBase {
     
     @RequiredArgsConstructor
     @EqualsAndHashCode
+    @ToString
     private static final class Path {
-        private static final Map<String, Position> POSITIONCACHE = new HashMap<>();
-        private static int hits;
-        private static int misses;
-        
         @Getter
         private final String path;
-        
-        private static Position findPosition(final String steps) {
-            if (!POSITIONCACHE.containsKey(steps)) {
-                misses++;
-                final Position position;
-                if (StringUtils.isEmpty(steps)) {
-                    position = START;
-                } else {
-                    final CharSequence prevStep = steps.subSequence(0, steps.length() - 1);
-                    final Position prevPos = findPosition(prevStep.toString());
-                    final char thisStep
-                            = steps.subSequence(steps.length() - 1,
-                                                steps.length()).charAt(0);
-                    if (thisStep == UP) {
-                        position = Position.of(prevPos.getX(), prevPos.getY() - 1);
-                    } else if (thisStep == DOWN) {
-                        position = Position.of(prevPos.getX(), prevPos.getY() + 1);
-                    } else if (thisStep == LEFT) {
-                        position = Position.of(prevPos.getX() - 1, prevPos.getY());
-                    } else if (thisStep == RIGHT) {
-                        position = Position.of(prevPos.getX() + 1, prevPos.getY());
-                    } else {
-                        throw new IllegalStateException("Invalid: " + thisStep);
-                    }
-                }
-                POSITIONCACHE.put(steps, position);
-            } else {
-                hits++;
-            }
-            return POSITIONCACHE.get(steps);
-        }
-        
-        public static String cacheStats() {
-            return String.format("Size: %d, hits: %d, misses: %d",
-                                 POSITIONCACHE.size(), hits, misses);
-        }
+        @Getter
+        private final Position position;
         
         public int length() {
             return this.path.length();
         }
         
-        public Position getPosition() {
-            return findPosition(this.path);
+        public boolean isAt(final Position position) {
+            return this.position.equals(position);
         }
+    }
 
-        public boolean isAtDestination() {
-            return getPosition().equals(DESTINATION);
-        }
-        
-        public boolean isInBounds() {
-            final Position position = getPosition();
-            return position.getX() >= START.getX()
-                    && position.getX() <= DESTINATION.getY()
-                    && position.getY() >= START.getY()
-                    && position.getY() <= DESTINATION.getY();
-        }
-        
-        public List<Character> findNextOpenDoors(final String input) {
-            final String data
-                    = new StringBuilder().append(input).append(path).toString();
-            final String md5Hex = DigestUtils.md5Hex(data);
-            final List<Character> doors = new ArrayList<>();
-            for (int i = 0; i < DOORS.length; i++) {
-                if (OPEN_CHARS.contains(md5Hex.charAt(i))) {
-                    doors.add(DOORS[i]);
+    @RequiredArgsConstructor
+    private static final class PathFinder {
+        private static final List<Character> OPEN_CHARS = List.of('b', 'c', 'd', 'e', 'f');
+        private static final int UP = 0;
+        private static final int DOWN = 1;
+        private static final int LEFT = 2;
+        private static final int RIGHT = 3;
+        private static final int[] DIRECTIONS = { UP, DOWN, LEFT, RIGHT };
+        private static final char[] DOORS = { 'U', 'D', 'L', 'R' };
+        private static final int[] DX = { 0, 0, -1, 1 };
+        private static final int[] DY = { -1, 1, 0, 0 };
+
+        private final Position start;
+        private final Position destination;
+        private final String salt;
+    
+        public void findPaths(final Function<Path, Boolean> stop) {
+            final Deque<Path> paths = new ArrayDeque<>();
+            Path path = new Path("", this.start);
+            paths.add(path);
+            while (!stop.apply(path) && !paths.isEmpty()) {
+                path = paths.removeFirst();
+                if (path.isAt(this.destination)) {
+                    continue;
+                }
+                final boolean[] doors = areDoorsOpen(path);
+                for (final int d : DIRECTIONS) {
+                    final Path newPath = buidNewPath(path, d);
+                    if (doors[d] && isInBounds(newPath.getPosition())) {
+                        paths.add(newPath);
+                    }
                 }
             }
+        }
+        
+        private boolean[] areDoorsOpen(final Path path) {
+            final String data = new StringBuilder().append(this.salt)
+                    .append(path.getPath()).toString();
+            final String md5Hex = DigestUtils.md5Hex(data);
+            final boolean[] doors = new boolean[DOORS.length];
+            for (int d = 0; d < DIRECTIONS.length; d++) {
+                doors[d] = OPEN_CHARS.contains(md5Hex.charAt(d));
+            }
             return doors;
+        }
+    
+        private Path buidNewPath(final Path path, final int direction) {
+            return new Path(path.getPath() + DOORS[direction],
+                            Position.of(path.getPosition().getX() + DX[direction],
+                                        path.getPosition().getY() + DY[direction]));
+        }
+    
+        private boolean isInBounds(final Point position) {
+            return position.getX() >= this.start.getX()
+                    && position.getY() >= this.start.getY()
+                    && position.getX() <= this.destination.getX()
+                    && position.getY() <= this.destination.getY();
         }
     }
 }
