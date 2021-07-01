@@ -1,8 +1,10 @@
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.ListUtils.intersection;
+import static org.eclipse.collections.impl.tuple.Tuples.pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,18 +13,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
 
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import lombok.Value;
@@ -59,8 +60,7 @@ public final class AoC2016_11 extends AoCBase {
                 }
              }
         }
-        final Integer elevator = 1;
-        return new State(elevator, chips, generators);
+        return new State(1, chips, generators);
     }
 
     public static AoC2016_11 create(final List<String> input) {
@@ -81,8 +81,8 @@ public final class AoC2016_11 extends AoCBase {
         Integer numberOfSteps = 0;
         final PriorityQueue<Pair<Integer, State>> steps
                 = new PriorityQueue<>(comparing(this::scoreStep));
-        steps.add(Tuples.pair(0, initialState));
-        final Set<Pair<Integer, Map<Integer, Map<String, Integer>>>> seen = new HashSet<>();
+        steps.add(pair(0, initialState));
+        final Set<Integer> seen = new HashSet<>();
         seen.add(initialState.equivalentState());
         int cnt = 0;
         while (!steps.isEmpty()) {
@@ -97,7 +97,7 @@ public final class AoC2016_11 extends AoCBase {
                     .filter(m -> !seen.contains(m.equivalentState()))
                     .forEach(m -> {
                         seen.add(m.equivalentState());
-                        steps.add(Tuples.pair(step.getOne() + 1, m));
+                        steps.add(pair(step.getOne() + 1, m));
                     });
         }
         log(cnt);
@@ -131,8 +131,8 @@ public final class AoC2016_11 extends AoCBase {
         assert AoC2016_11.createDebug(TEST).solvePart1() == 11;
 
         final List<String> input = Aocd.getData(2016, 11);
-        lap("Part 1", () -> AoC2016_11.createDebug(input).solvePart1());
-        lap("Part 2", () -> AoC2016_11.createDebug(input).solvePart2());
+        lap("Part 1", () -> AoC2016_11.create(input).solvePart1());
+        lap("Part 2", () -> AoC2016_11.create(input).solvePart2());
     }
     
     private static final List<String> TEST = splitLines(
@@ -144,22 +144,30 @@ public final class AoC2016_11 extends AoCBase {
     
     @Value
     static final class State {
-        @Getter(value = AccessLevel.PRIVATE)
-        @With
+        private static final Set<Integer> FLOORS = Set.of(1, 2, 3, 4);
+        private static final int TOP = FLOORS.stream().max(naturalOrder()).orElseThrow();
+        private static final int BOTTOM = FLOORS.stream().min(naturalOrder()).orElseThrow();
+        private static final int MAX_ITEMS_PER_MOVE = 2;
+        
+        @Getter(AccessLevel.PRIVATE)
+        @With(AccessLevel.PRIVATE)
         private final Integer elevator;
-        @Getter(value = AccessLevel.PRIVATE)
-        @With
+        @Getter(AccessLevel.PRIVATE)
+        @With(AccessLevel.PRIVATE)
         private final Map<String, Integer> chips;
-        @Getter(value = AccessLevel.PRIVATE)
-        @With
+        @Getter(AccessLevel.PRIVATE)
+        @With(AccessLevel.PRIVATE)
         private final Map<String, Integer> gennys;
-        @With
+        @With(AccessLevel.PRIVATE)
+        @EqualsAndHashCode.Exclude
         private final Integer diff;
-        @Getter(value = AccessLevel.PRIVATE)
+        @Getter(AccessLevel.PRIVATE)
         @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private final Map<Integer, List<String>> chipsPerFloor;
-        @Getter(value = AccessLevel.PRIVATE)
+        @Getter(AccessLevel.PRIVATE)
         @ToString.Exclude
+        @EqualsAndHashCode.Exclude
         private final Map<Integer, List<String>> gennysPerFloor;
 
         private State(
@@ -170,7 +178,6 @@ public final class AoC2016_11 extends AoCBase {
                 final Map<Integer, List<String>> chipsPerFloor,
                 final Map<Integer, List<String>> gennysPerFloor
                 ) {
-            super();
             this.elevator = elevator;
             this.chips = chips;
             this.gennys = gennys;
@@ -179,7 +186,7 @@ public final class AoC2016_11 extends AoCBase {
             this.gennysPerFloor = gennys.keySet().stream().collect(groupingBy(gennys::get));
         }
         
-        public State(
+        private State(
                 final Integer elevator,
                 final Map<String, Integer> chips,
                 final Map<String, Integer> gennys,
@@ -198,29 +205,6 @@ public final class AoC2016_11 extends AoCBase {
                 ) {
             this(elevator, chips, gennys, 0);
         }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final State other = (State) obj;
-            final boolean same = Objects.equals(elevator, other.elevator)
-                                    && Objects.equals(chips, other.chips)
-                                    && Objects.equals(gennys, other.gennys);
-            return same;
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(chips, elevator, gennys);
-        }
         
         @ToString.Include
         boolean isSafe() {
@@ -236,9 +220,20 @@ public final class AoC2016_11 extends AoCBase {
         }
         
         public boolean isDestination() {
-            return this.elevator == 4
-                    && this.chips.values().stream().allMatch(c -> c == 4)
-                    && this.gennys.values().stream().allMatch(g -> g == 4);
+            return this.elevator == TOP
+                    && this.chips.values().stream().allMatch(c -> c == TOP)
+                    && this.gennys.values().stream().allMatch(g -> g == TOP);
+        }
+        
+        public Integer equivalentState() {
+            assert this.isSafe();
+            final StringBuilder eq = new StringBuilder();
+            eq.append(this.elevator);
+            for (int f = 1; f <= FLOORS.size(); f++) {
+                eq.append(this.chipsPerFloor.getOrDefault(f, emptyList()).size());
+                eq.append(this.gennysPerFloor.getOrDefault(f, emptyList()).size());
+            }
+            return Integer.valueOf(eq.toString());
         }
         
         public List<State> moves() {
@@ -246,100 +241,141 @@ public final class AoC2016_11 extends AoCBase {
             final Integer floor = this.elevator;
             final List<String> chipsOnFloor
                     = this.chipsPerFloor.getOrDefault(floor, emptyList());
-            if (chipsOnFloor.size() >= 2) {
-                CombinatoricsUtils.combinationsIterator(chipsOnFloor.size(), 2)
+            final List<String> gennysOnFloor
+                    = this.gennysPerFloor.getOrDefault(floor, emptyList());
+            states.addAll(moveMultipleChips(floor, chipsOnFloor));
+            states.addAll(moveSingleChips(floor, chipsOnFloor));
+            states.addAll(moveMultipleGennys(floor, gennysOnFloor));
+            states.addAll(moveSingleGennys(floor, gennysOnFloor));
+            states.addAll(moveChipAndGennyPairs(floor, chipsOnFloor, gennysOnFloor));
+            return states.stream()
+                    .filter(s -> FLOORS.contains(s.elevator))
+                    .filter(State::isSafe)
+                    .collect(toList());
+        }
+
+        private List<State> moveMultipleChips(
+                final Integer floor,
+                final List<String> chipsOnFloor) {
+            final List<State> states = new ArrayList<>();
+            if (chipsOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
+                CombinatoricsUtils.combinationsIterator(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE)
                     .forEachRemaining(c -> {
                         final List<String> chipsToMove
                             = List.of(chipsOnFloor.get(c[0]),
                                       chipsOnFloor.get(c[1]));
-                        states.add(withChipsTo(chipsToMove, floor + 1)
-                                    .withDiff(2));
+                        states.add(moveUpWithChips(chipsToMove));
                         if (!floorsBelowEmpty(floor)) {
-                            states.add(withChipsTo(chipsToMove, floor - 1)
-                                    .withDiff(-2));
+                            states.add(moveDownWithChips(chipsToMove));
                         }
                     });
             }
+            return states;
+        }
+
+        private List<State> moveSingleChips(
+                final Integer floor,
+                final List<String> chipsOnFloor) {
+            final List<State> states = new ArrayList<>();
             for (final String chip : chipsOnFloor) {
-                states.add(withChipsTo(List.of(chip), floor + 1)
-                            .withDiff(1));
+                states.add(moveUpWithChips(List.of(chip)));
                 if (!floorsBelowEmpty(floor)) {
-                    states.add(withChipsTo(List.of(chip), floor - 1)
-                            .withDiff(-1));
+                    states.add(moveDownWithChips(List.of(chip)));
                 }
             }
-            final List<String> gennysOnFloor
-                    = this.gennysPerFloor.getOrDefault(floor, emptyList());
-            if (gennysOnFloor.size() >= 2) {
-                CombinatoricsUtils.combinationsIterator(gennysOnFloor.size(), 2)
+            return states;
+        }
+
+        private List<State> moveMultipleGennys(
+                final Integer floor,
+                final List<String> gennysOnFloor) {
+            final List<State> states = new ArrayList<>();
+            if (gennysOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
+                CombinatoricsUtils.combinationsIterator(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE)
                     .forEachRemaining(c -> {
                         final List<String> gennysToMove
                             = List.of(gennysOnFloor.get(c[0]),
                                       gennysOnFloor.get(c[1]));
-                        states.add(withGeneratorsTo(gennysToMove, floor + 1)
-                                    .withDiff(2));
+                        states.add(moveUpWitGennys(gennysToMove));
                         if (!floorsBelowEmpty(floor)) {
-                            states.add(withGeneratorsTo(gennysToMove, floor - 1)
-                                    .withDiff(-2));
+                            states.add(moveDownWithGennys(gennysToMove));
                         }
                     });
             }
+            return states;
+        }
+
+        private List<State> moveSingleGennys(
+                final Integer floor,
+                final List<String> gennysOnFloor) {
+            final List<State> states = new ArrayList<>();
             for (final String genny : gennysOnFloor) {
-                states.add(withGeneratorsTo(List.of(genny), floor + 1)
-                            .withDiff(1));
+                states.add(moveUpWitGennys(List.of(genny)));
                 if (!floorsBelowEmpty(floor)) {
-                    states.add(withGeneratorsTo(List.of(genny), floor - 1)
-                            .withDiff(-1));
+                    states.add(moveDownWithGennys(List.of(genny)));
                 }
             }
+            return states;
+        }
+
+        private List<State> moveChipAndGennyPairs(
+                final Integer floor,
+                final List<String> chipsOnFloor,
+                final List<String> gennysOnFloor) {
+            final List<State> states = new ArrayList<>();
             for (final String match : intersection(chipsOnFloor, gennysOnFloor)) {
                 states.add(withChipsTo(List.of(match), floor + 1)
-                        .withGeneratorsTo(List.of(match), floor + 1)
+                        .withGennysTo(List.of(match), floor + 1)
+                        .withElevator(floor + 1)
                         .withDiff(2));
                 if (!floorsBelowEmpty(floor)) {
                     states.add(withChipsTo(List.of(match), floor - 1)
-                            .withGeneratorsTo(List.of(match), floor - 1)
+                            .withGennysTo(List.of(match), floor - 1)
+                            .withElevator(floor - 1)
                             .withDiff(-2));
                 }
             }
-            return states.stream()
-                    .filter(s -> Set.of(1, 2, 3, 4).contains(s.elevator))
-                    .filter(State::isSafe)
-                    .collect(toList());
+            return states;
         }
         
-        public Pair<Integer, Map<Integer, Map<String, Integer>>> equivalentState() {
-            assert this.isSafe();
-            return Tuples.pair(this.elevator, countOfType());
+        private State moveUpWithChips(final List<String> chips) {
+            return withChipsTo(chips, this.elevator + 1)
+                    .withElevator(this.elevator + 1)
+                    .withDiff(chips.size());
         }
         
-        private Map<Integer, Map<String, Integer>> countOfType() {
-            final Map<Integer, Map<String, Integer>> counts = new HashMap<>();
-            for (final String chip : this.chips.keySet()) {
-                counts.computeIfAbsent(this.chips.get(chip), HashMap::new)
-                        .merge("chip", 1, Integer::sum);
-            }
-            for (final String genny : this.gennys.keySet()) {
-                counts.computeIfAbsent(this.gennys.get(genny), HashMap::new)
-                        .merge("genny", 1, Integer::sum);
-            }
-            return counts;
+        private State moveUpWitGennys(final List<String> gennys) {
+            return withGennysTo(gennys, this.elevator + 1)
+                    .withElevator(this.elevator + 1)
+                    .withDiff(gennys.size());
+        }
+        
+        private State moveDownWithChips(final List<String> chips) {
+            return withChipsTo(chips, this.elevator - 1)
+                    .withElevator(this.elevator - 1)
+                    .withDiff(-chips.size());
+        }
+        
+        private State moveDownWithGennys(final List<String> gennys) {
+            return withGennysTo(gennys, this.elevator - 1)
+                    .withElevator(this.elevator - 1)
+                    .withDiff(-gennys.size());
         }
         
         private State withChipsTo(final List<String> chips, final Integer floor) {
             final Map<String, Integer> newChips = new HashMap<>(this.chips);
             chips.forEach(c -> newChips.put(c, floor));
-            return this.withChips(newChips).withElevator(floor);
+            return this.withChips(newChips);
         }
         
-        private State withGeneratorsTo(final List<String> generators, final Integer floor) {
+        private State withGennysTo(final List<String> generators, final Integer floor) {
             final Map<String, Integer> newGenerators = new HashMap<>(this.gennys);
             generators.forEach(g -> newGenerators.put(g, floor));
-            return this.withGennys(newGenerators).withElevator(floor);
+            return this.withGennys(newGenerators);
         }
         
         private boolean floorsBelowEmpty(final Integer floor) {
-            for (int f = floor; f > 1; f--) {
+            for (int f = floor; f > BOTTOM; f--) {
                 if (this.chipsPerFloor.get(f - 1) != null) {
                     return false;
                 }

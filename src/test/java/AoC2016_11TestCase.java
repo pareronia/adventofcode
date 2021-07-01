@@ -46,11 +46,9 @@ public class AoC2016_11TestCase {
     @Test
     public void countOfType() {
         final AoC2016_11.State state1 = new AoC2016_11.State(2, Map.of("A", 1, "B", 2), Map.of("A", 1, "B", 2));
-        final AoC2016_11.State state2 = new AoC2016_11.State(2, Map.of("A", 1, "B", 3), Map.of("A", 1, "B", 2));
+        final AoC2016_11.State state2 = new AoC2016_11.State(3, Map.of("A", 1, "B", 3), Map.of("A", 1, "B", 2));
         
-        assertThat(state1.equivalentState().getTwo(),
-                is(Map.of(1, Map.of("chip", 1, "genny", 1), 2, Map.of("chip", 1, "genny", 1))));
-        assertThat(state2.equivalentState().getTwo(),
-                is(Map.of(1, Map.of("chip", 1, "genny", 1), 2, Map.of("genny", 1), 3, Map.of("chip", 1))));
+        assertThat(state1.equivalentState(), is(211110000));
+        assertThat(state2.equivalentState(), is(311011000));
     }
 }
