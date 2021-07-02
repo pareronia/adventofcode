@@ -23,6 +23,8 @@ import org.eclipse.collections.impl.tuple.Tuples;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.navigation.Heading;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.EqualsAndHashCode;
@@ -35,13 +37,9 @@ public final class AoC2016_24 extends AoCBase {
     private static final char OPEN = '.';
     private static final char START = '0';
     private static final int MAX_POIS = 10;  // ?
-    private static final int UP = 0;
-    private static final int DOWN = 1;
-    private static final int LEFT = 2;
-    private static final int RIGHT = 3;
-    private static final int[] DIRECTIONS = { UP, DOWN, LEFT, RIGHT };
-    private static final int[] DR = { -1, 1, 0, 0 };
-    private static final int[] DC = { 0, 0, -1, 1 };
+        private static final List<Heading> DIRECTIONS = List.of(
+                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
+                .stream().map(Headings::get).collect(toList());
 
     private final transient Grid grid;
     private final transient Map<Character, Cell> pois;
@@ -69,9 +67,10 @@ public final class AoC2016_24 extends AoCBase {
     
     private List<Path> neighbours(final Path path) {
         final List<Path> paths = new ArrayList<>();
-        for (final int d : DIRECTIONS) {
-            final Cell newPos = Cell.at(path.getPosition().getRow() + DR[d],
-                                        path.getPosition().getCol() + DC[d]);
+        for (final Heading direction : DIRECTIONS) {
+            final Cell newPos
+                    = Cell.at(path.getPosition().getRow() + direction.getX(),
+                              path.getPosition().getCol() + direction.getY());
             if (newPos.getRow() >= 0 && newPos.getCol() >= 0
                     && newPos.getRow() < this.grid.getHeight()
                     && newPos.getCol() < this.grid.getWidth()

@@ -1,4 +1,5 @@
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -10,6 +11,8 @@ import org.apache.commons.codec.digest.DigestUtils;
 
 import com.github.pareronia.aoc.geometry.Point;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.navigation.Heading;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.EqualsAndHashCode;
@@ -103,14 +106,10 @@ public final class AoC2016_17 extends AoCBase {
     @RequiredArgsConstructor
     private static final class PathFinder {
         private static final List<Character> OPEN_CHARS = List.of('b', 'c', 'd', 'e', 'f');
-        private static final int UP = 0;
-        private static final int DOWN = 1;
-        private static final int LEFT = 2;
-        private static final int RIGHT = 3;
-        private static final int[] DIRECTIONS = { UP, DOWN, LEFT, RIGHT };
+        private static final List<Heading> DIRECTIONS = List.of(
+                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
+                .stream().map(Headings::get).collect(toList());
         private static final char[] DOORS = { 'U', 'D', 'L', 'R' };
-        private static final int[] DX = { 0, 0, -1, 1 };
-        private static final int[] DY = { -1, 1, 0, 0 };
 
         private final Position start;
         private final Position destination;
@@ -126,9 +125,10 @@ public final class AoC2016_17 extends AoCBase {
                     continue;
                 }
                 final boolean[] doors = areDoorsOpen(path);
-                for (final int d : DIRECTIONS) {
-                    final Path newPath = buidNewPath(path, d);
-                    if (doors[d] && isInBounds(newPath.getPosition())) {
+                for (final Heading direction : DIRECTIONS) {
+                    final Path newPath = buildNewPath(path, direction);
+                    if (doors[DIRECTIONS.indexOf(direction)]
+                            && isInBounds(newPath.getPosition())) {
                         paths.add(newPath);
                     }
                 }
@@ -140,16 +140,16 @@ public final class AoC2016_17 extends AoCBase {
                     .append(path.getPath()).toString();
             final String md5Hex = DigestUtils.md5Hex(data);
             final boolean[] doors = new boolean[DOORS.length];
-            for (int d = 0; d < DIRECTIONS.length; d++) {
+            for (int d = 0; d < DIRECTIONS.size(); d++) {
                 doors[d] = OPEN_CHARS.contains(md5Hex.charAt(d));
             }
             return doors;
         }
     
-        private Path buidNewPath(final Path path, final int direction) {
-            return new Path(path.getPath() + DOORS[direction],
-                            Position.of(path.getPosition().getX() + DX[direction],
-                                        path.getPosition().getY() + DY[direction]));
+        private Path buildNewPath(final Path path, final Heading direction) {
+            return new Path(path.getPath() + DOORS[DIRECTIONS.indexOf(direction)],
+                    Position.of(path.getPosition().getX() + direction.getX(),
+                                path.getPosition().getY() + direction.getY()));
         }
     
         private boolean isInBounds(final Point position) {

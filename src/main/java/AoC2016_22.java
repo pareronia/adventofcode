@@ -16,6 +16,8 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.geometry.Point;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.navigation.Heading;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.AllArgsConstructor;
@@ -259,13 +261,9 @@ public class AoC2016_22 extends AoCBase {
     
     @RequiredArgsConstructor
     private static final class PathFinder {
-        private static final int UP = 0;
-        private static final int DOWN = 1;
-        private static final int LEFT = 2;
-        private static final int RIGHT = 3;
-        private static final int[] DIRECTIONS = { UP, DOWN, LEFT, RIGHT };
-        private static final int[] DX = { 0, 0, -1, 1 };
-        private static final int[] DY = { -1, 1, 0, 0 };
+        private static final List<Heading> DIRECTIONS = List.of(
+                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
+                .stream().map(Headings::get).collect(toList());
 
         private final Position start;
         private final Position destination;
@@ -282,8 +280,8 @@ public class AoC2016_22 extends AoCBase {
                 if (path.isAt(this.destination)) {
                     continue;
                 }
-                for (final int d : DIRECTIONS) {
-                    final Path newPath = buidNewPath(path, d);
+                for (final Heading direction : DIRECTIONS) {
+                    final Path newPath = buildNewPath(path, direction);
                     if (isInBounds(newPath.getPosition())
                             && isUsable(newPath.getPosition())
                             && !seen.contains(newPath.getPosition())) {
@@ -294,10 +292,10 @@ public class AoC2016_22 extends AoCBase {
             }
         }
         
-        private Path buidNewPath(final Path path, final int direction) {
+        private Path buildNewPath(final Path path, final Heading direction) {
             return new Path(path.getLength() + 1,
-                            Position.of(path.getPosition().getX() + DX[direction],
-                                        path.getPosition().getY() + DY[direction]));
+                    Position.of(path.getPosition().getX() + direction.getX(),
+                                path.getPosition().getY() + direction.getY()));
         }
         
         private boolean isInBounds(final Position position) {
