@@ -36,7 +36,7 @@ from collections import OrderedDict
 from datetime import datetime
 from termcolor import colored
 from dateutil.tz import gettz
-from aocd.models import AOCD_DIR
+from aocd.models import AOCD_CONFIG_DIR
 from aocd.models import Puzzle
 from aocd.models import default_user
 
@@ -52,7 +52,7 @@ def main():
     plugins = OrderedDict([(ep.__name__, ep) for ep in all_entry_points])
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
-    path = os.path.join(AOCD_DIR, "tokens.json")
+    path = os.path.join(AOCD_CONFIG_DIR, "tokens.json")
     try:
         with open(path) as f:
             users = json.load(f)
