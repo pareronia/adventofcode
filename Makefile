@@ -150,7 +150,7 @@ pre-push: tasks lint unittest
 
 #: Show values of some selected make variables
 dump:
-	@echo "JAVA_LIBS: "$(JAVA_LIBS)""
+	@echo "JAVA_CP_LIBS: "$(JAVA_CP_LIBS)""
 	@echo "JAVA_SRCS: "$(JAVA_SRCS)""
 	@echo "PY_SRCS: "$(PY_SRCS)""
 	@echo "SRCS: "$(SRCS)""
