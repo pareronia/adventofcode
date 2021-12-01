@@ -6,11 +6,16 @@
 from aoc import my_aocd
 
 
+def _parse(inputs: tuple[str]) -> tuple[int]:
+    return tuple(int(_) for _ in inputs)
+
+
 def part_1(inputs: tuple[str]) -> int:
+    depths = _parse(inputs)
     count = 0
-    prev = int(inputs[0])
-    for i in range(1, len(inputs)):
-        curr = int(inputs[i])
+    prev = depths[0]
+    for i in range(1, len(depths)):
+        curr = depths[i]
         if curr > prev:
             count += 1
         prev = curr
@@ -18,10 +23,11 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def part_2(inputs: tuple[str]) -> int:
+    depths = _parse(inputs)
     count = 0
-    prev = [int(inputs[0]), int(inputs[1]), int(inputs[2])]
-    for i in range(1, len(inputs) - 2):
-        curr = [int(inputs[i]), int(inputs[i + 1]), int(inputs[i + 2])]
+    prev = depths[0:3]
+    for i in range(1, len(depths) - 2):
+        curr = depths[i:i+3]
         if sum(curr) > sum(prev):
             count += 1
         prev = curr
