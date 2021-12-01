@@ -18,7 +18,14 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    count = 0
+    prev = [int(inputs[0]), int(inputs[1]), int(inputs[2])]
+    for i in range(1, len(inputs) - 2):
+        curr = [int(inputs[i]), int(inputs[i + 1]), int(inputs[i + 2])]
+        if sum(curr) > sum(prev):
+            count += 1
+        prev = curr
+    return count
 
 
 TEST = """\
@@ -39,7 +46,7 @@ def main() -> None:
     my_aocd.print_header(2021, 1)
 
     assert part_1(TEST) == 7
-    assert part_2(TEST) == 0
+    assert part_2(TEST) == 5
 
     inputs = my_aocd.get_input(2021, 1, 2000)
     result1 = part_1(inputs)
