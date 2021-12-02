@@ -23,7 +23,21 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return 0
+    hor = 0
+    ver = 0
+    aim = 0
+    for input in inputs:
+        dir, amount = input.split()
+        if dir == "forward":
+            hor += int(amount)
+            ver += aim * int(amount)
+        elif dir == "down":
+            aim += int(amount)
+        elif dir == "up":
+            aim -= int(amount)
+        else:
+            raise ValueError
+    return hor * ver
 
 
 TEST = """\
@@ -40,7 +54,7 @@ def main() -> None:
     my_aocd.print_header(2021, 2)
 
     assert part_1(TEST) == 150
-    assert part_2(TEST) == 0
+    assert part_2(TEST) == 900
 
     inputs = my_aocd.get_input(2021, 2, 1000)
     result1 = part_1(inputs)
