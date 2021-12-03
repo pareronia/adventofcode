@@ -29,10 +29,12 @@ public class User {
 	
 	private final String token;
 	private final Path memoDir;
+	private final String id;
 
-	private User(String token, Path memoDir) {
+	private User(final SystemUtils systemUtils, final String token) {
 		this.token = token;
-		this.memoDir = memoDir;
+		this.id = systemUtils.getUserIds().get(token);
+		this.memoDir = systemUtils.getAocdDir().resolve(this.id);
 	}
 
 	public String getToken() {
@@ -42,15 +44,18 @@ public class User {
 	public Path getMemoDir() {
 		return memoDir;
 	}
-
-	public static User create(String token, Path memoDir) {
-		return new User(token, memoDir);
-	}
 	
+	public String getId() {
+	    return id;
+	}
+
+	public static User create(final SystemUtils systemUtils, final String token) {
+		return new User(systemUtils, token);
+	}
+
 	public static User getDefaultUser() {
 		final SystemUtils systemUtils = new SystemUtils();
 		final String token = systemUtils.getToken();
-		final Path memoDir = systemUtils.getAocdDir().resolve(token);
-		return new User(token, memoDir);
+		return new User(systemUtils, token);
 	}
 }

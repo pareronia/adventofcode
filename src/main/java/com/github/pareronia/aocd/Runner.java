@@ -14,7 +14,7 @@ import com.github.pareronia.aocd.RunServer.RequestHandler;
 
 public class Runner {
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		final Response result = Runner.create().run(args);
 		System.out.println(result.toString());
 	}
@@ -31,21 +31,21 @@ public class Runner {
 						  className -> Class.forName(className));
 	}
 	
-	static Runner create(Supplier<LocalDate> dateSupplier,
-								ClassFactory classFactory) {
+	static Runner create(final Supplier<LocalDate> dateSupplier,
+								final ClassFactory classFactory) {
 		return new Runner(dateSupplier, classFactory);
 	}
 	
 	private final Supplier<LocalDate> dateSupplier;
 	private final ClassFactory classFactory;
 	
-	private Runner(Supplier<LocalDate> dateSupplier,
-				   ClassFactory classFactory) {
+	private Runner(final Supplier<LocalDate> dateSupplier,
+				   final ClassFactory classFactory) {
 		this.dateSupplier = dateSupplier;
 		this.classFactory = classFactory;
 	}
 
-	Response run(String args[]) throws Exception {
+	Response run(final String args[]) throws Exception {
 		final Request request = new Request(this.dateSupplier, args);
 		final Class<?> klass;
 		try {
@@ -68,7 +68,7 @@ public class Runner {
 		private final Integer day;
 		private final List<String> inputs;
 		
-		public Request(Supplier<LocalDate> dateSupplier, String args[]) {
+		public Request(final Supplier<LocalDate> dateSupplier, final String args[]) {
 			if (args == null || args.length < 3) {
 				throw new IllegalArgumentException("Missing args: year, day, input");
 			}
@@ -79,7 +79,7 @@ public class Runner {
 			}
 			this.year = year;
 			final Integer day = Integer.valueOf(args[1]);
-			if ((now.getMonth() == Month.DECEMBER && day > now.getDayOfMonth())
+			if ((year == now.getYear() && now.getMonth() == Month.DECEMBER && day > now.getDayOfMonth())
 					|| day < 1 || day > 25) {
 				throw new IllegalArgumentException("Invalid day");
 			}
@@ -97,7 +97,7 @@ public class Runner {
 		private final Object part1;
 		private final Object part2;
 		
-		public Response(Object part1, Object part2) {
+		public Response(final Object part1, final Object part2) {
 			this.part1 = part1;
 			this.part2 = part2;
 		}

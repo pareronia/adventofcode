@@ -10,28 +10,17 @@ def _parse(inputs: tuple[str]) -> tuple[int]:
     return tuple(int(_) for _ in inputs)
 
 
+def _solve(depths: tuple[int], window: int) -> int:
+    return sum([depths[i] > depths[i-window]
+                for i in range(window, len(depths))])
+
+
 def part_1(inputs: tuple[str]) -> int:
-    depths = _parse(inputs)
-    count = 0
-    prev = depths[0]
-    for i in range(1, len(depths)):
-        curr = depths[i]
-        if curr > prev:
-            count += 1
-        prev = curr
-    return count
+    return _solve(_parse(inputs), 1)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    depths = _parse(inputs)
-    count = 0
-    prev = depths[0:3]
-    for i in range(1, len(depths) - 2):
-        curr = depths[i:i+3]
-        if sum(curr) > sum(prev):
-            count += 1
-        prev = curr
-    return count
+    return _solve(_parse(inputs), 3)
 
 
 TEST = """\

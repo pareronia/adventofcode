@@ -24,16 +24,20 @@ SOFTWARE.
 package com.github.pareronia.aocd;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.google.gson.Gson;
 
 public class SystemUtils {
 
@@ -60,19 +64,28 @@ public class SystemUtils {
 				.findFirst()
 				.orElseThrow(() -> new AocdException("Missing session ID"));
 	}
+	
+	@SuppressWarnings("unchecked")
+    public Map<String, String> getUserIds() {
+	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("token2id.json"))) {
+	        return new Gson().fromJson(reader, Map.class);
+        } catch (final IOException e) {
+			throw new AocdException(e);
+        }
+	}
 
-	public List<String> readAllLinesIfExists(Path path) {
+	public List<String> readAllLinesIfExists(final Path path) {
  		if (Files.notExists(Objects.requireNonNull(path))) {
 			return Collections.emptyList();
 		}
 		return readAlLines(path);
 	}
 	
-	public Optional<String> readFirstLineIfExists(Path path) {
+	public Optional<String> readFirstLineIfExists(final Path path) {
 		return readAllLinesIfExists(path).stream().findFirst();
 	}
 	
-	private List<String> readAlLines(Path path) {
+	private List<String> readAlLines(final Path path) {
 		try {
 			return Collections.unmodifiableList(
 					Files.readAllLines(Objects.requireNonNull(path),

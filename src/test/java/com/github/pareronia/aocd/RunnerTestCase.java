@@ -46,7 +46,7 @@ public class RunnerTestCase {
 		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.DECEMBER, 7);
 		Runner.create(dateSupplier, null).run(new String[] {"2021", "8", ""});
 	}
-
+	
 	@Test(expected = IllegalArgumentException.class)
 	public void requestedDayLowerThan1() throws Exception {
 		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
@@ -74,13 +74,13 @@ public class RunnerTestCase {
 
 	@Test
 	public void happy() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
+		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.DECEMBER, 7);
 		final ClassFactory classFactory = className -> Stub.class;
 		
 		final Response response = Runner.create(dateSupplier, classFactory)
 				.run(new String[] {
 						"2020",
-						"1",
+						"8",
 						"line1" + System.lineSeparator() + "line2", "line3"});
 		
 		assertThat(response.toString(), is("a" + System.lineSeparator() + "b"));
@@ -88,12 +88,12 @@ public class RunnerTestCase {
 	
 	private static final class Stub {
 		
-		public Stub(List<String> input) {
+		public Stub(final List<String> input) {
 			assertThat(input, is(asList("line1", "line2", "line3")));
 		}
 
 		@SuppressWarnings("unused")
-		public static Stub create(List<String> input) {
+		public static Stub create(final List<String> input) {
 			return new Stub(input);
 		}
 		

@@ -1,7 +1,7 @@
-import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.github.pareronia.aocd.Aocd;
 
@@ -22,30 +22,20 @@ public class AoC2021_01 extends AoCBase {
 		return new AoC2021_01(input, true);
 	}
 	
-	@Override
-    public Integer solvePart1() {
-	    int cnt = 0;
-	    for (int i = 1; i < this.depths.size(); i++) {
-	        if (this.depths.get(i) > this.depths.get(i - 1)) {
-	            cnt++;
-	        }
-	    }
-		return cnt;
+	private long countIncreases(final int window) {
+	    return IntStream.range(window, this.depths.size())
+	            .filter(i -> this.depths.get(i) > this.depths.get(i - window))
+	            .count();
 	}
 	
 	@Override
-	public Integer solvePart2() {
-	    int cnt = 0;
-	    for (int i = 1; i < this.depths.size() - 2; i++) {
-            if (sum(this.depths.subList(i, i + 3)) > sum(this.depths.subList(i - 1, i + 2))) {
-	            cnt++;
-	        }
-	    }
-		return cnt;
+    public Long solvePart1() {
+	    return countIncreases(1);
 	}
 	
-	private int sum(final List<Integer> list) {
-	    return list.stream().collect(summingInt(Integer::intValue));
+	@Override
+	public Long solvePart2() {
+	    return countIncreases(3);
 	}
 	
 	public static void main(final String[] args) throws Exception {

@@ -136,10 +136,10 @@ def get_score(user, year: int):
             stars = "**"
             f = "{day:3d} {title} :  " \
                 + "{time_first}  {rank_first:6d}"\
-                + " / {first:6d} = {pct_first:2.2f}"\
+                + " / {first:6d} = {pct_first:5.2f}"\
                 + "  |  "\
                 + "{time_both}  {rank_both:6d}"\
-                + " / {both:6d} = {pct_both:2.2f}"\
+                + " / {both:6d} = {pct_both:5.2f}"\
                 + "  |  "\
                 + "{stars}"
         else:
@@ -149,7 +149,7 @@ def get_score(user, year: int):
             stars = "*"
             f = "{day:3d} {title} :  " \
                 + "{time_first}  {rank_first:6d}"\
-                + " / {first:6d} = {pct_first:2.2f}"\
+                + " / {first:6d} = {pct_first:5.2f}"\
                 + "  |  "\
                 + "{time_both}  {rank_both}"\
                 + " / {both:6d} = {pct_both}"\
