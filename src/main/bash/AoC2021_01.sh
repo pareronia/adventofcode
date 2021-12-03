@@ -5,25 +5,18 @@
 
 mapfile -t depths
 size="${#depths[@]}"
-count1=0
-count2=0
 
-for ((i = 1; i < size; i++))
-do
-    if (("${depths[i]}" > "${depths[i-1]}")); then
-        count1=$((count1+1))
-    fi
-done
+countIncreases() {
+    window="$1"
+    count=0
+    for ((i = "$window"; i < size; i++))
+    do
+        if (("${depths[i]}" > "${depths[i-window]}")); then
+            count=$((count + 1))
+        fi
+    done
+    echo "$count"
+}
 
-for ((i = 1; i < ((size - 2)); i++))
-do
-    sum1=$(("${depths[i]}" + "${depths[i+1]}" + "${depths[i+2]}"))
-    sum2=$(("${depths[i-1]}" + "${depths[i]}" + "${depths[i+1]}"))
-    if (("$sum1" > "$sum2")); then
-        count2=$((count2+1))
-    fi
-done
-
-echo "Part 1: $count1"
-echo "Part 2: $count2"
-
+echo "Part 1: $(countIncreases 1)"
+echo "Part 2: $(countIncreases 3)"
