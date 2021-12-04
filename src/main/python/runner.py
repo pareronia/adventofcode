@@ -261,6 +261,7 @@ def java(year: int, day: int, data: str):
         s.send(b'END\r\n')
         data = s.recv(1024)
     results = data.decode('UTF-8').rstrip().splitlines()
+    log.info(f"Results: {results}")
     if results:
         return tuple(results)
     else:
