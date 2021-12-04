@@ -26,7 +26,6 @@ public class AoC2021_04 extends AoCBase {
 		this.boards = blocks.subList(1, blocks.size()).stream()
 		        .map(b -> new Board(b))
 		        .collect(toList());
-//		printBoards();
 	}
 	
 	public static final AoC2021_04 create(final List<String> input) {
@@ -54,12 +53,25 @@ public class AoC2021_04 extends AoCBase {
 	
 	@Override
 	public Integer solvePart2() {
-	    return 0;
+	    for (final Integer draw : this.draws) {
+	        log("Draw: " + draw);
+	        this.boards.forEach(b -> b.mark(draw));
+	        final List<Board> winners = this.boards.stream()
+	                .filter(Board::win)
+	                .collect(toList());
+	        if (this.boards.size() == 1 && winners.size() == 1) {
+	            printGrid(winners.get(0).getNumbers());
+	            return draw * winners.get(0).value();
+	        } else {
+	            winners.forEach(this.boards::remove);
+	        }
+        }
+	    throw new IllegalStateException("Unsolvable");
 	}
 	
 	public static void main(final String[] args) throws Exception {
 		assert AoC2021_04.createDebug(TEST).solvePart1() == 4512;
-		assert AoC2021_04.createDebug(TEST).solvePart2() == 0;
+		assert AoC2021_04.createDebug(TEST).solvePart2() == 1924;
 		
 		final List<String> input = Aocd.getData(2021, 4);
 		lap("Part 1", () -> AoC2021_04.create(input).solvePart1());
@@ -96,14 +108,6 @@ public class AoC2021_04 extends AoCBase {
                         .collect(joining(" "))));
     }
 
-    @SuppressWarnings("unused")
-    private void printBoards() {
-        this.boards.stream().map(Board::getNumbers).forEach(t -> {
-            printGrid(t);
-            log("");
-        });
-    }
-    
     @Getter
 	private static class Board {
 	    private final int[][] numbers;
