@@ -1,9 +1,10 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Function;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -11,6 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 public class AoC2021_04 extends AoCBase {
     
@@ -21,10 +23,11 @@ public class AoC2021_04 extends AoCBase {
 		super(debug);
 		final List<List<String>> blocks = toBlocks(input);
 		this.draws = Arrays.stream(blocks.get(0).get(0).split(","))
-		        .map(Integer::valueOf).collect(toList());
+		        .map(Integer::valueOf)
+		        .collect(toList());
 		log(this.draws);
 		this.boards = blocks.subList(1, blocks.size()).stream()
-		        .map(b -> new Board(b))
+		        .map(Board::new)
 		        .collect(toList());
 	}
 	
@@ -36,42 +39,47 @@ public class AoC2021_04 extends AoCBase {
 		return new AoC2021_04(input, true);
 	}
 	
-	@Override
-    public Integer solvePart1() {
+	private void play(final Function<Bingo, Boolean> stop) {
 	    for (final Integer draw : this.draws) {
 	        this.boards.forEach(b -> b.mark(draw));
-	        final Optional<Board> winner = this.boards.stream()
+	        final List<Board> winners = this.boards.stream()
+	                .filter(b -> !b.isComplete())
 	                .filter(Board::win)
-	                .findFirst();
-	        if (winner.isPresent()) {
-	            printGrid(winner.get().getNumbers());
-	            return draw * winner.get().value();
-	        }
-        }
-	    throw new IllegalStateException("Unsolvable");
+	                .collect(toList());
+	        for (final Board winner : winners) {
+                printGrid(winner.getNumbers());
+                log("");
+                winner.complete();
+                if (stop.apply(new Bingo(draw, winner))) {
+                    return;
+                }
+            }
+	    }
+	}
+	
+	private int solve(final int stopCount) {
+	    final List<Bingo> bingoes = new ArrayList<>();
+        play(bingo -> {
+            bingoes.add(bingo);
+            return bingoes.size() == stopCount;
+        });
+        final Bingo lastBingo = bingoes.get(bingoes.size() - 1);
+        return lastBingo.getDraw() * lastBingo.getBoard().value();
+	}
+	
+	@Override
+    public Integer solvePart1() {
+	    return solve(1);
 	}
 	
 	@Override
 	public Integer solvePart2() {
-	    for (final Integer draw : this.draws) {
-	        log("Draw: " + draw);
-	        this.boards.forEach(b -> b.mark(draw));
-	        final List<Board> winners = this.boards.stream()
-	                .filter(Board::win)
-	                .collect(toList());
-	        if (this.boards.size() == 1 && winners.size() == 1) {
-	            printGrid(winners.get(0).getNumbers());
-	            return draw * winners.get(0).value();
-	        } else {
-	            winners.forEach(this.boards::remove);
-	        }
-        }
-	    throw new IllegalStateException("Unsolvable");
+	    return solve(this.boards.size());
 	}
 	
 	public static void main(final String[] args) throws Exception {
-		assert AoC2021_04.createDebug(TEST).solvePart1() == 4512;
-		assert AoC2021_04.createDebug(TEST).solvePart2() == 1924;
+		assert AoC2021_04.create(TEST).solvePart1() == 4512;
+		assert AoC2021_04.create(TEST).solvePart2() == 1924;
 		
 		final List<String> input = Aocd.getData(2021, 4);
 		lap("Part 1", () -> AoC2021_04.create(input).solvePart1());
@@ -107,13 +115,23 @@ public class AoC2021_04 extends AoCBase {
                         .map(String::valueOf)
                         .collect(joining(" "))));
     }
+    
+    @RequiredArgsConstructor
+    @Getter
+    private static final class Bingo {
+        private final int draw;
+        private final Board board;
+    }
 
     @Getter
 	private static class Board {
+        private static final int MARKED = -1;
+        
 	    private final int[][] numbers;
+	    private boolean complete = false;
 	    
 	    public Board(final List<String> numbers) {
-	        final int[][] cells = new int[5][5];
+	        final int[][] cells = new int[numbers.size()][numbers.get(0).length()];
 	        for (int i = 0; i < numbers.size(); i++) {
 	            final List<Integer> ints = Arrays.stream(numbers.get(i).split("\\s+"))
 	                    .filter(StringUtils::isNotBlank)
@@ -129,7 +147,7 @@ public class AoC2021_04 extends AoCBase {
 	            final int[] cs = numbers[row];
 	            for (int col = 0; col < getWidth(); col++) {
 	                if (cs[col] == number) {
-	                    cs[col] = -1;
+	                    cs[col] = MARKED;
 	                }
 	            }
 	        }
@@ -149,12 +167,16 @@ public class AoC2021_04 extends AoCBase {
 	        return false;
 	    }
 	    
+	    public void complete() {
+	        this.complete = true;
+	    }
+	    
 	    public int value() {
 	        int value = 0;
 	        for (int row = 0; row < getHeight(); row++) {
 	            final int[] cs = numbers[row];
 	            for (int col = 0; col < getWidth(); col++) {
-	                if (cs[col] != -1) {
+	                if (cs[col] != MARKED) {
 	                    value += cs[col];
 	                }
 	            }
@@ -163,7 +185,7 @@ public class AoC2021_04 extends AoCBase {
 	    }
 	    
 	    private boolean allMarked(final int[] rc) {
-	        return Arrays.stream(rc).filter(n -> n != -1).count() == 0;
+	        return Arrays.stream(rc).allMatch(n -> n == MARKED);
 	    }
 	    
 	    private int[] getColumn(final int col) {
@@ -175,11 +197,11 @@ public class AoC2021_04 extends AoCBase {
 	    }
 	    
 	    private int getWidth() {
-	        return 5;
+	        return this.numbers[0].length;
 	    }
 
 	    private int getHeight() {
-	        return 5;
+	        return this.numbers.length;
 	    }
 	}
 }
