@@ -2,8 +2,8 @@
 
 ## 2021
 
-![](https://img.shields.io/badge/stars%20⭐-50-yellow)
-![](https://img.shields.io/badge/days%20completed-25-red)
+![](https://img.shields.io/badge/stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/days%20completed-4-red)
 
 ## 2020
 
