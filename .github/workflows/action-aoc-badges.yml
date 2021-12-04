@@ -1,4 +1,4 @@
-name: Update AoC Badges 2020
+name: Update AoC Badges
 on:
   workflow_dispatch:                             # allow to manually start the workflow 
 jobs:
