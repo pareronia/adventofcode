@@ -15,7 +15,7 @@
 ## 2019
 
 ![](https://img.shields.io/badge/2019%20stars%20⭐-13-yellow)
-![](https://img.shields.io/badge/2019%20days%20completed-4-red)
+![](https://img.shields.io/badge/2019%20days%20completed-6-red)
 
 ## 2018
 
