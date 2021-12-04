@@ -12,36 +12,48 @@ jobs:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
           year: 2020
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2020%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2020%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.          
           
       - uses: joblo2213/aoc-badges-action@v3
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
           year: 2019
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2019%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2019%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.          
           
       - uses: joblo2213/aoc-badges-action@v3
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
           year: 2018
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2018%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2018%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.          
           
       - uses: joblo2213/aoc-badges-action@v3
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
           year: 2017
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2017%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2017%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.          
           
       - uses: joblo2213/aoc-badges-action@v3
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
           year: 2016
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2016%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2016%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.          
           
       - uses: joblo2213/aoc-badges-action@v3
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
           year: 2015
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2015%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2015%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.          
           
       - uses: stefanzweifel/git-auto-commit-action@v4     # Step that pushes these local changes back to your github repo
         with:
