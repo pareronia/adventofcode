@@ -7,8 +7,35 @@
 
 ## 2020
 
+![](https://img.shields.io/badge/2020%20stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/2020%20days%20completed-4-red)
+
 ![2020 Calendar](https://github.com/pareronia/adventofcode/blob/main/doc/aoc2020.jpg "2020 Calendar")
 
+## 2019
+
+![](https://img.shields.io/badge/2019%20stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/20219%20days%20completed-4-red)
+
+## 2018
+
+![](https://img.shields.io/badge/2018%20stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/2018%20days%20completed-4-red)
+
+## 2017
+
+![](https://img.shields.io/badge/2017%20stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/2017%20days%20completed-4-red)
+
+
+## 2016
+
+![](https://img.shields.io/badge/2016%20stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/2016%20days%20completed-4-red)
+
 ## 2015
+
+![](https://img.shields.io/badge/2015%20stars%20⭐-8-yellow)
+![](https://img.shields.io/badge/2015%20days%20completed-4-red)
 
 ![2015 Calendar](https://github.com/pareronia/adventofcode/blob/main/doc/aoc2015.jpg "2015 Calendar")
