@@ -1,0 +1,49 @@
+name: Update AoC Badges 2020
+on:
+  workflow_dispatch:                             # allow to manually start the workflow 
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2                # clones your repo
+          
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2020
+          
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2019
+          
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2018
+          
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2017
+          
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2016
+          
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2015
+          
+      - uses: stefanzweifel/git-auto-commit-action@v4     # Step that pushes these local changes back to your github repo
+        with:
+          commit_message: Update badges
+          file_pattern: README.md
