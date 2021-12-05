@@ -1,6 +1,5 @@
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -9,6 +8,9 @@ import java.util.Map;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 
+/**
+ * TODO Extract some geometry lib stuff from this
+ */
 public class AoC2021_05 extends AoCBase {
     
     private final List<String> inputs;
@@ -25,62 +27,21 @@ public class AoC2021_05 extends AoCBase {
                     .flatMap(q -> Arrays.stream(q.split(",")))
                     .map(Integer::valueOf)
                     .collect(toList());
-            int x1 = p.get(0);
-            int y1 = p.get(1);
-            int x2 = p.get(2);
-            int y2 = p.get(3);
-            if (x1 == x2) {
-                if (y1 > y2) {
-                    final int temp = y2;
-                    y2 = y1;
-                    y1 = temp;
-                }
-                for (int y = y1; y <= y2; y++) {
-                    final Cell cell = Cell.at(x1, y);
-                    final Integer value = map.getOrDefault(cell, 0);
-                    map.put(cell, value + 1);
-                }
-            } else if (y1 == y2) {
-                if (x1 > x2) {
-                    final int temp = x2;
-                    x2 = x1;
-                    x1 = temp;
-                }
-                for (int x = x1; x <= x2; x++) {
-                    final Cell cell = Cell.at(x, y1);
-                    final Integer value = map.getOrDefault(cell, 0);
-                    map.put(cell, value + 1);
-                }
-            } else {
-                if (!diag) {
-                    continue;
-                }
-                final List<Integer> xs = new ArrayList<>();
-                if (x1 <= x2) {
-                    for (int x = x1; x <= x2; x++) {
-                        xs.add(x);
-                    }
-                } else {
-                    for (int x = x1; x >= x2; x--) {
-                        xs.add(x);
-                    }
-                }
-                final List<Integer> ys = new ArrayList<>();
-                if (y1 <= y2) {
-                    for (int y = y1; y <= y2; y++) {
-                        ys.add(y);
-                    }
-                } else {
-                    for (int y = y1; y >= y2; y--) {
-                        ys.add(y);
-                    }
-                }
-                assert xs.size() == ys.size();
-                for (int i = 0; i < xs.size(); i++) {
-                    final Cell cell = Cell.at(xs.get(i), ys.get(i));
-                    final Integer value = map.getOrDefault(cell, 0);
-                    map.put(cell, value + 1);
-                }
+            assert p.size() == 4;
+            assert p.stream().allMatch(pp -> pp >= 0);
+            final int x1 = p.get(0);
+            final int y1 = p.get(1);
+            final int x2 = p.get(2);
+            final int y2 = p.get(3);
+            final int mx = x1 == x2 ? 0 : (x1 < x2 ? 1 : -1);
+            final int my = y1 == y2 ? 0 : (y1 < y2 ? 1 : -1);
+            if (!diag && mx != 0 && my != 0) {
+                continue;
+            }
+            final int len = Math.max(Math.abs(x1 - x2), Math.abs(y1 - y2));
+            for (int i = 0; i <= len; i++) {
+                final Cell cell = Cell.at(x1 + mx * i, y1 + my * i);
+                map.put(cell, map.getOrDefault(cell, 0) + 1);
             }
         }
         return map;
@@ -94,14 +55,8 @@ public class AoC2021_05 extends AoCBase {
         return new AoC2021_05(input, true);
     }
     
-    private Integer ans(final Map<Cell, Integer> map) {
-        int count = 0;
-        for (final Integer value : map.values()) {
-            if (value >= 2) {
-                count++;
-            }
-        }
-        return count;
+    private int ans(final Map<Cell, Integer> map) {
+        return (int) map.values().stream().filter(v -> v > 1).count();
     }
 
     @Override
