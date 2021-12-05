@@ -1,5 +1,6 @@
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -10,10 +11,15 @@ import com.github.pareronia.aocd.Aocd;
 
 public class AoC2021_05 extends AoCBase {
     
-    private final Map<Cell, Integer> map = new HashMap<>();
+    private final List<String> inputs;
 
     private AoC2021_05(final List<String> input, final boolean debug) {
         super(debug);
+        this.inputs = input;
+    }
+
+    private Map<Cell, Integer> parseMap(final List<String> input, final boolean diag) {
+        final Map<Cell, Integer> map = new HashMap<>();
         for (final String s : input) {
             final List<Integer> p = Arrays.stream(s.split(" -> "))
                     .flatMap(q -> Arrays.stream(q.split(",")))
@@ -46,10 +52,38 @@ public class AoC2021_05 extends AoCBase {
                     map.put(cell, value + 1);
                 }
             } else {
-                continue;
+                if (!diag) {
+                    continue;
+                }
+                final List<Integer> xs = new ArrayList<>();
+                if (x1 <= x2) {
+                    for (int x = x1; x <= x2; x++) {
+                        xs.add(x);
+                    }
+                } else {
+                    for (int x = x1; x >= x2; x--) {
+                        xs.add(x);
+                    }
+                }
+                final List<Integer> ys = new ArrayList<>();
+                if (y1 <= y2) {
+                    for (int y = y1; y <= y2; y++) {
+                        ys.add(y);
+                    }
+                } else {
+                    for (int y = y1; y >= y2; y--) {
+                        ys.add(y);
+                    }
+                }
+                assert xs.size() == ys.size();
+                for (int i = 0; i < xs.size(); i++) {
+                    final Cell cell = Cell.at(xs.get(i), ys.get(i));
+                    final Integer value = map.getOrDefault(cell, 0);
+                    map.put(cell, value + 1);
+                }
             }
         }
-        log(map);
+        return map;
     }
 
     public static final AoC2021_05 create(final List<String> input) {
@@ -59,9 +93,8 @@ public class AoC2021_05 extends AoCBase {
     public static final AoC2021_05 createDebug(final List<String> input) {
         return new AoC2021_05(input, true);
     }
-
-    @Override
-    public Integer solvePart1() {
+    
+    private Integer ans(final Map<Cell, Integer> map) {
         int count = 0;
         for (final Integer value : map.values()) {
             if (value >= 2) {
@@ -72,13 +105,22 @@ public class AoC2021_05 extends AoCBase {
     }
 
     @Override
+    public Integer solvePart1() {
+        final Map<Cell, Integer> map = parseMap(this.inputs, false);
+        log(map);
+        return ans(map);
+    }
+
+    @Override
     public Integer solvePart2() {
-        return 0;
+        final Map<Cell, Integer> map = parseMap(this.inputs, true);
+        log(map);
+        return ans(map);
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_05.createDebug(TEST).solvePart1() == 5;
-        assert AoC2021_05.createDebug(TEST).solvePart2() == 0;
+        assert AoC2021_05.create(TEST).solvePart1() == 5;
+        assert AoC2021_05.create(TEST).solvePart2() == 12;
 
         final List<String> input = Aocd.getData(2021, 5);
         lap("Part 1", () -> AoC2021_05.create(input).solvePart1());
