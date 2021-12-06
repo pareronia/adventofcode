@@ -44,7 +44,7 @@ public abstract class AoCBase {
 	    String unit;
 	    if (timeSpent < 1000) {
 	        time = timeSpent;
-	        unit = "µs";
+	        unit = "Âµs";
 	    } else if (timeSpent < 1_000_000) {
 	        time = timeSpent / 1000.0;
 	        unit = "ms";
