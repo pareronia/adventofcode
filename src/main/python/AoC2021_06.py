@@ -9,7 +9,7 @@ from aoc import my_aocd
 
 def _solve(inputs: tuple[str], days: int) -> int:
     assert len(inputs) == 1
-    fishies = deque([0] * 8)
+    fishies = deque([0] * 9)
     for n in inputs[0].split(','):
         fishies[int(n)] += 1
     for i in range(days):
