@@ -3,29 +3,20 @@
 # Advent of Code 2021 Day 6
 #
 
-from collections import Counter
+from collections import deque
 from aoc import my_aocd
-from aoc.common import log
 
 
 def _solve(inputs: tuple[str], days: int) -> int:
     assert len(inputs) == 1
-    fishies = Counter([int(_) for _ in inputs[0].split(',')])
-    log(fishies)
+    fishies = deque([0] * 8)
+    for n in inputs[0].split(','):
+        fishies[int(n)] += 1
     for i in range(days):
-        new = Counter()
-        new[0] = fishies[1]
-        new[1] = fishies[2]
-        new[2] = fishies[3]
-        new[3] = fishies[4]
-        new[4] = fishies[5]
-        new[5] = fishies[6]
-        new[6] = fishies[7] + fishies[0]
-        new[7] = fishies[8]
-        new[8] = fishies[0]
-        fishies = new
-        log(f"({i + 1}) {sum(new.values())}: {new}")
-    return sum(fishies.values())
+        zeroes = fishies[0]
+        fishies.rotate(-1)
+        fishies[6] += zeroes
+    return sum(fishies)
 
 
 def part_1(inputs: tuple[str]) -> int:
