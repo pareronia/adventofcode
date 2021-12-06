@@ -1,8 +1,10 @@
+import static java.util.stream.Collectors.summingLong;
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.github.pareronia.aocd.Aocd;
 
@@ -26,32 +28,47 @@ public class AoC2021_06 extends AoCBase {
         return new AoC2021_06(input, true);
     }
     
-    @Override
-    public Integer solvePart1() {
-        final List<Integer> list = new ArrayList<>(this.initial);
-        for (int i = 0; i < 80; i++) {
-            final List<Integer> add = new ArrayList<>();
-            for (int j = 0; j < list.size(); j++) {
-                if (list.get(j) == 0) {
-                    add.add(8);
-                    list.set(j, 6);
-                } else {
-                    list.set(j, list.get(j) - 1);
-                }
-            }
-            list.addAll(add);
+    private Long sumValues(final Map<Integer, Long> map) {
+        return map.values().stream().collect(summingLong(Long::valueOf));
+    }
+
+    private long solve(final int days) {
+        Map<Integer, Long> map = new HashMap<>();
+        for (final Integer i : this.initial) {
+            map.put(i, map.getOrDefault(i, 0L) + 1);
         }
-        return list.size();
+        log("(Initial) " + sumValues(map) + ": " + map);
+        for (int i = 0; i < days; i++) {
+            final Map<Integer, Long> newMap = new HashMap<>();
+            newMap.put(0, map.getOrDefault(1, 0L));
+            newMap.put(1, map.getOrDefault(2, 0L));
+            newMap.put(2, map.getOrDefault(3, 0L));
+            newMap.put(3, map.getOrDefault(4, 0L));
+            newMap.put(4, map.getOrDefault(5, 0L));
+            newMap.put(5, map.getOrDefault(6, 0L));
+            newMap.put(6, map.getOrDefault(7, 0L) + map.getOrDefault(0, 0L));
+            newMap.put(7, map.getOrDefault(8, 0L));
+            newMap.put(8, map.getOrDefault(0, 0L));
+            final int day = i + 1;
+            log(() -> "(" + day + ") " + sumValues(newMap) + ": " + newMap);
+            map = newMap;
+        }
+        return sumValues(map);
+    }
+    
+    @Override
+    public Long solvePart1() {
+        return solve(80);
     }
 
     @Override
-    public Integer solvePart2() {
-        return 0;
+    public Long solvePart2() {
+        return solve(256);
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_06.create(TEST).solvePart1() == 5934;
-        assert AoC2021_06.create(TEST).solvePart2() == 0;
+        assert AoC2021_06.create(TEST).solvePart1() == 5_934;
+        assert AoC2021_06.create(TEST).solvePart2() == 26_984_457_539L;
 
         final List<String> input = Aocd.getData(2021, 6);
         lap("Part 1", () -> AoC2021_06.create(input).solvePart1());
