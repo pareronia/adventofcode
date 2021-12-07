@@ -10,7 +10,7 @@ def _solve(inputs: tuple[str], calc) -> int:
     assert len(inputs) == 1
     positions = [int(_) for _ in inputs[0].split(',')]
     return min(sum(calc(a, b) for b in positions)
-               for a in range(max(positions) + 1))
+               for a in range(min(positions), max(positions) + 1))
 
 
 def part_1(inputs: tuple[str]) -> int:
