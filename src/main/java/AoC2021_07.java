@@ -1,8 +1,9 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.stream.IntStream;
 
 import com.github.pareronia.aocd.Aocd;
 
@@ -25,33 +26,29 @@ public class AoC2021_07 extends AoCBase {
         return new AoC2021_07(input, true);
     }
     
+    private int solve(final BiFunction<Integer, Integer, Integer> calc) {
+        final int max = this.positions.stream()
+                .mapToInt(Integer::valueOf)
+                .max().orElseThrow();
+        return IntStream.rangeClosed(0, max)
+                .map(a -> this.positions.stream()
+                            .mapToInt(Integer::valueOf)
+                            .map(b -> calc.apply(a, b))
+                            .sum())
+                .min().orElseThrow();
+    }
+    
     @Override
     public Integer solvePart1() {
-        final int max = this.positions.stream().max(Comparator.naturalOrder()).orElseThrow();
-        int min = Integer.MAX_VALUE;
-        for (int p = 0; p <= max; p++) {
-            int sum = 0;
-            for (final int q : this.positions) {
-                sum += Math.abs(p - q);
-            }
-            min = Math.min(min, sum);
-        }
-        return min;
+        return solve((a, b) -> Math.abs(a - b));
     }
 
     @Override
     public Integer solvePart2() {
-        final int max = this.positions.stream().max(Comparator.naturalOrder()).orElseThrow();
-        int min = Integer.MAX_VALUE;
-        for (int p = 0; p <= max; p++) {
-            int sum = 0;
-            for (final int q : this.positions) {
-                final int diff = Math.abs(p - q);
-                sum += (diff * (diff + 1)) / 2;
-            }
-            min = Math.min(min, sum);
-        }
-        return min;
+        return solve((a, b) -> {
+            final int diff = Math.abs(a - b);
+            return (diff * (diff + 1)) / 2;
+        });
     }
 
     public static void main(final String[] args) throws Exception {
