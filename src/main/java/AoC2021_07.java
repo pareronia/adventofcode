@@ -41,12 +41,22 @@ public class AoC2021_07 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        return 0;
+        final int max = this.positions.stream().max(Comparator.naturalOrder()).orElseThrow();
+        int min = Integer.MAX_VALUE;
+        for (int p = 0; p <= max; p++) {
+            int sum = 0;
+            for (final int q : this.positions) {
+                final int diff = Math.abs(p - q);
+                sum += (diff * (diff + 1)) / 2;
+            }
+            min = Math.min(min, sum);
+        }
+        return min;
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_07.create(TEST).solvePart1() == 37;
-        assert AoC2021_07.create(TEST).solvePart2() == 0;
+        assert AoC2021_07.create(TEST).solvePart2() == 168;
 
         final List<String> input = Aocd.getData(2021, 7);
         lap("Part 1", () -> AoC2021_07.create(input).solvePart1());
