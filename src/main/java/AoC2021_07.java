@@ -1,6 +1,8 @@
+import static java.util.stream.Collectors.summarizingInt;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.stream.IntStream;
@@ -27,10 +29,9 @@ public class AoC2021_07 extends AoCBase {
     }
     
     private int solve(final BiFunction<Integer, Integer, Integer> calc) {
-        final int max = this.positions.stream()
-                .mapToInt(Integer::valueOf)
-                .max().orElseThrow();
-        return IntStream.rangeClosed(0, max)
+        final IntSummaryStatistics summary = this.positions.stream()
+                .collect(summarizingInt(Integer::intValue));
+        return IntStream.rangeClosed(summary.getMin(), summary.getMax())
                 .map(a -> this.positions.stream()
                             .mapToInt(Integer::valueOf)
                             .map(b -> calc.apply(a, b))
