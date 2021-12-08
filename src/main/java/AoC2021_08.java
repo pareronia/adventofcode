@@ -49,7 +49,7 @@ public class AoC2021_08 extends AoCBase {
     @Override
     public Integer solvePart1() {
         return (int) this.outputs.stream()
-            .flatMap(s -> s.stream())
+            .flatMap(List<String>::stream)
             .filter(s -> Set.of(2, 4, 3, 7).contains(s.length()))
             .count();
     }
@@ -69,89 +69,82 @@ public class AoC2021_08 extends AoCBase {
                 .sum();
     }
     
+    private Set<String> find(final Stream<String> input, final int numberOfSegments, final int expected) {
+        final Set<String> ans = input
+                .filter(s -> s.length() == numberOfSegments)
+                .collect(toSet());
+        assert ans.size() == expected;
+        return ans;
+    }
+    
+    private String getSingle(final Set<String> set) {
+        assert set.size() == 1;
+        return set.iterator().next();
+    }
+
+    private boolean sharesAllSegmentsWith(final String container, final String contained) {
+        final Set<Character> cd = asCharSet(contained);
+        return SetUtils.intersection(cd, asCharSet(container)).toSet().equals(cd);
+    }
+    
     private Integer solve(final int i) {
         final Map<String, Character> digits = new HashMap<>();
-        final Map<Integer, String> patterns = new HashMap<>();
-        all(i).forEach(s -> {
-            if (s.length() == 2) {
-                digits.put(s, '1');
-                patterns.put(1,  s);
-            }
-            if (s.length() == 3) {
-                digits.put(s, '7');
-                patterns.put(7, s);
-            }
-            if (s.length() == 4) {
-                digits.put(s, '4');
-                patterns.put(4, s);
-            }
-            if (s.length() == 7) {
-                digits.put(s, '8');
-                patterns.put(8, s);
-            }
-        });
+        // 1
+        final Set<String> twos = find(all(i), 2, 1);
+        digits.put(getSingle(twos), '1');
+        final String one = getSingle(twos);
+        // 7
+        final Set<String> threes = find(all(i), 3, 1);
+        digits.put(getSingle(threes), '7');
+        // 4
+        final Set<String> fours = find(all(i), 4, 1);
+        final String four = getSingle(fours);
+        digits.put(four, '4');
+        // 8
+        final Set<String> sevens = find(all(i), 7, 1);
+        digits.put(getSingle(sevens), '8');
         // 9
-        final Set<String> sixes = all(i).filter(s -> s.length() == 6).collect(toSet());
-        assert sixes.size() == 3;
-        final Set<Character> four = asCharSet(patterns.get(4));
+        final Set<String> sixes = find(all(i), 6, 3);
         final Set<String> possible_nines = sixes.stream()
-            .filter(six -> SetUtils.intersection(asCharSet(six), four).toSet().equals(four))
+            .filter(six -> sharesAllSegmentsWith(six, four))
             .collect(toSet());
-        log("possible_nines: " + possible_nines);
-        assert possible_nines.size() == 1;
-        final String nine = possible_nines.iterator().next();
+        final String nine = getSingle(possible_nines);
         digits.put(nine, '9');
-        patterns.put(9, nine);
         // 0
-        final Set<Character> one = asCharSet(patterns.get(1));
         final Set<String> possible_zeroes = sixes.stream()
             .filter(six -> !six.equals(nine))
-            .filter(six -> SetUtils.intersection(asCharSet(six), one).toSet().equals(one))
+            .filter(six -> sharesAllSegmentsWith(six, one))
             .collect(toSet());
-        assert possible_zeroes.size() == 1;
-        final String zero = possible_zeroes.iterator().next();
+        final String zero = getSingle(possible_zeroes);
         digits.put(zero, '0');
-        patterns.put(0, zero);
         // 6
         final Set<String> possible_sixes = sixes.stream()
             .filter(six -> !six.equals(nine) && !six.equals(zero))
             .collect(toSet());
-        assert possible_sixes.size() == 1;
-        final String six = possible_sixes.iterator().next();
-        digits.put(six, '6');
-        patterns.put(6, six);
-        final Set<String> fives = all(i).filter(s -> s.length() == 5).collect(toSet());
-        assert fives.size() == 3;
+        digits.put(getSingle(possible_sixes), '6');
         // 3
+        final Set<String> fives = find(all(i), 5, 3);
         final Set<String> possible_threes = fives.stream()
-            .filter(five -> SetUtils.intersection(asCharSet(five), one).toSet().equals(one))
+            .filter(five -> sharesAllSegmentsWith(five, one))
             .collect(toSet());
-        assert possible_threes.size() == 1;
-        final String three = possible_threes.iterator().next();
+        final String three = getSingle(possible_threes);
         digits.put(three, '3');
-        patterns.put(3, three);
         // 5
         final Set<String> possible_fives = fives.stream()
             .filter(five -> !five.equals(three))
-            .filter(five -> SetUtils.intersection(asCharSet(five), asCharSet(nine)).toSet().equals(asCharSet(five)))
+            .filter(five -> sharesAllSegmentsWith(nine, five))
             .collect(toSet());
-        assert possible_fives.size() == 1;
-        final String five = possible_fives.iterator().next();
+        final String five = getSingle(possible_fives);
         digits.put(five, '5');
-        patterns.put(5, five);
+        // 2
         final Set<String> possible_twos = fives.stream()
             .filter(f -> !f.equals(five) && !f.equals(three))
             .collect(toSet());
-        assert possible_twos.size() == 1;
-        final String two = possible_twos.iterator().next();
-        digits.put(two, '2');
-        patterns.put(2, two);
+        digits.put(getSingle(possible_twos), '2');
         
         log(digits);
-        log(patterns);
-        
         final Integer number = Integer.valueOf(this.outputs.get(i).stream()
-            .map(o -> digits.get(o))
+            .map(digits::get)
             .collect(toAString()));
         log(number);
         return number;
@@ -159,7 +152,7 @@ public class AoC2021_08 extends AoCBase {
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_08.create(TEST).solvePart1() == 26;
-        assert AoC2021_08.createDebug(TEST).solvePart2() == 61229;
+        assert AoC2021_08.create(TEST).solvePart2() == 61229;
 
         final List<String> input = Aocd.getData(2021, 8);
         lap("Part 1", () -> AoC2021_08.create(input).solvePart1());
