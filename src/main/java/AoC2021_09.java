@@ -1,21 +1,27 @@
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.summingInt;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 public class AoC2021_09 extends AoCBase {
     
-    private static final Pair<Integer, Integer> N = Pair.of(-1, 0);
-    private static final Pair<Integer, Integer> E = Pair.of(0, 1);
-    private static final Pair<Integer, Integer> S = Pair.of(1, 0);
-    private static final Pair<Integer, Integer> W = Pair.of(0, -1);
-    private static final Set<Pair<Integer, Integer>> NESW = Set.of(N, E, S, W);
+    private static final Pair N = Pair.of(-1, 0);
+    private static final Pair E = Pair.of(0, 1);
+    private static final Pair S = Pair.of(1, 0);
+    private static final Pair W = Pair.of(0, -1);
+    private static final Set<Pair> NESW = Set.of(N, E, S, W);
 
     private final int[][] heights;
     
@@ -53,40 +59,84 @@ public class AoC2021_09 extends AoCBase {
         return (r >= 0 && r < this.heights.length && c >= 0 && c < this.heights[0].length);
     }
     
-    @Override
-    public Integer solvePart1() {
-        int ans = 0;
+    private List<Pair> findNeighbours(final int r, final int c) {
+        final List<Pair> neighbours = new ArrayList<>();
+        for (final Pair d : NESW) {
+            final int nr = r + d.getOne();
+            final int nc = c + d.getTwo();
+            if (!inBounds(nr, nc)) {
+                continue;
+            }
+            neighbours.add(Pair.of(nr,  nc));
+        }
+        return neighbours;
+    }
+
+    private List<Pair> findLows() {
+        final List<Pair> lows = new ArrayList<>();
         for (int r = 0; r < this.heights.length; r++) {
             for (int c = 0; c < this.heights[r].length; c++) {
                 final int height = this.heights[r][c];
                 boolean min = true;
-                for (final Pair<Integer, Integer> d : NESW) {
-                    final int nr = r + d.getOne();
-                    final int nc = c + d.getTwo();
-                    if (!inBounds(nr, nc)) {
-                        continue;
-                    }
-                    if (this.heights[nr][nc] <= height) {
+                for (final Pair n : findNeighbours(r, c)) {
+                    if (this.heights[n.getOne()][n.getTwo()] <= height) {
                         min = false;
                     }
                 }
                 if (min) {
+                    lows.add(Pair.of(r, c));
                     log(String.format("%d: (%d,%d)", height, r, c));
-                    ans += height + 1;
                 }
             }
         }
-        return ans;
+        return lows;
+    }
+    
+    @Override
+    public Integer solvePart1() {
+        return findLows().stream()
+            .map(p -> this.heights[p.getOne()][p.getTwo()] + 1)
+            .collect(summingInt(Integer::intValue));
     }
 
     @Override
     public Integer solvePart2() {
-        return null;
+        final List<Pair> lows = findLows();
+        final List<Set<Pair>> basins = new ArrayList<>();
+        for (final Pair low : lows) {
+            final Set<Pair> basin = new HashSet<>();
+            basin.add(low);
+            while (true) {
+                final Set<Pair> add = new HashSet<>();
+                for (final Pair p : basin) {
+                    for (final Pair n : findNeighbours(p.getOne(), p.getTwo())) {
+                        if (basin.contains(n)) {
+                            continue;
+                        }
+                        if (heights[n.getOne()][n.getTwo()] == 9) {
+                            continue;
+                        }
+                        add.add(n);
+                    }
+                }
+                if (add.isEmpty()) {
+                    break;
+                }
+                basin.addAll(add);
+            }
+            basins.add(basin);
+            log(basin);
+        }
+        return basins.stream()
+                .map(b -> b.size())
+                .sorted(Comparator.reverseOrder())
+                .limit(3)
+                .reduce(1, (a, b) -> a * b);
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_09.create(TEST).solvePart1() == 15;
-        assert AoC2021_09.create(TEST).solvePart2() == null;
+        assert AoC2021_09.createDebug(TEST).solvePart2() == 1134;
 
         final List<String> input = Aocd.getData(2021, 9);
         lap("Part 1", () -> AoC2021_09.create(input).solvePart1());
@@ -103,8 +153,29 @@ public class AoC2021_09 extends AoCBase {
     
     @RequiredArgsConstructor(staticName = "of")
     @Getter
-    private static final class Pair<L, R> {
-        private final L one;
-        private final R two;
+    @ToString
+    private static final class Pair {
+        private final int one;
+        private final int two;
+        
+        @Override
+        public int hashCode() {
+            return Objects.hash(one, two);
+        }
+        
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Pair other = (Pair) obj;
+            return one == other.one && two == other.two;
+        }
     }
 }
