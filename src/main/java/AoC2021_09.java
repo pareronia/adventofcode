@@ -1,13 +1,16 @@
 import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayDeque;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
+
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aocd.Aocd;
@@ -67,22 +70,24 @@ public class AoC2021_09 extends AoCBase {
             .map(v -> v + 1)
             .collect(summingInt(Integer::intValue));
     }
-
+    
     private int sizeOfBasinAroundLow(final Cell low) {
-        final Set<Cell> basin = new HashSet<>();
-        basin.add(low);
-        while (true) {
-            final Set<Cell> add = basin.stream()
-                .flatMap(this::findNeighbours)
-                .filter(n -> !basin.contains(n))
+        final MutableInt cnt = new MutableInt(0);
+        final Set<Cell> seen = new HashSet<>();
+        final Deque<Cell> q = new ArrayDeque<>();
+        q.add(low);
+        while (!q.isEmpty()) {
+            final Cell cell = q.poll();
+            findNeighbours(cell)
+                .filter(n -> !seen.contains(n))
                 .filter(n -> this.grid.getValue(n) != 9)
-                .collect(toSet());
-            if (add.isEmpty()) {
-                break;
-            }
-            basin.addAll(add);
+                .forEach(n -> {
+                    q.add(n);
+                    seen.add(n);
+                    cnt.increment();
+                });
         }
-        return basin.size();
+        return cnt.intValue();
     }
 
     @Override
