@@ -1,42 +1,40 @@
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.summingInt;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
+import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aocd.Aocd;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 public class AoC2021_09 extends AoCBase {
     
-    private static final Pair N = Pair.of(-1, 0);
-    private static final Pair E = Pair.of(0, 1);
-    private static final Pair S = Pair.of(1, 0);
-    private static final Pair W = Pair.of(0, -1);
-    private static final Set<Pair> NESW = Set.of(N, E, S, W);
+    private static final Cell N = Cell.at(-1, 0);
+    private static final Cell E = Cell.at(0, 1);
+    private static final Cell S = Cell.at(1, 0);
+    private static final Cell W = Cell.at(0, -1);
+    private static final Set<Cell> NESW = Set.of(N, E, S, W);
 
-    private final int[][] heights;
+    private final Grid grid;
     
     private AoC2021_09(final List<String> input, final boolean debug) {
         super(debug);
-        this.heights = new int[input.size()][input.get(0).length()];
-		for (int i = 0; i < input.size(); i++) {
-		    final String string = input.get(i);
-            final int[] row = new int[string.length()];
-		    for (int j = 0; j < string.length(); j++) {
-		        row[j] = Integer.parseInt(String.valueOf(string.charAt(j)));
-		    }
-		    this.heights[i] = row;
-		}
-		printGrid(this.heights);
+        final int[][] heights = new int[input.size()][input.get(0).length()];
+        input.stream()
+            .map(s -> StringOps.getDigitsPrimitive(s, s.length()))
+            .collect(toList())
+            .toArray(heights);
+        this.grid = new Grid(heights);
     }
     
     public static final AoC2021_09 create(final List<String> input) {
@@ -47,96 +45,58 @@ public class AoC2021_09 extends AoCBase {
         return new AoC2021_09(input, true);
     }
     
-    private void printGrid(final int[][] grid) {
-        Arrays.stream(grid).forEach(r ->
-                log(Arrays.stream(r)
-                        .mapToObj(Integer::valueOf)
-                        .map(String::valueOf)
-                        .collect(joining(" "))));
-    }
-    
-    private boolean inBounds(final int r, final int c) {
-        return (r >= 0 && r < this.heights.length && c >= 0 && c < this.heights[0].length);
-    }
-    
-    private List<Pair> findNeighbours(final int r, final int c) {
-        final List<Pair> neighbours = new ArrayList<>();
-        for (final Pair d : NESW) {
-            final int nr = r + d.getOne();
-            final int nc = c + d.getTwo();
-            if (!inBounds(nr, nc)) {
-                continue;
-            }
-            neighbours.add(Pair.of(nr,  nc));
-        }
-        return neighbours;
+    private Stream<Cell> findNeighbours(final Cell c) {
+        return NESW.stream()
+            .filter(n -> c.getRow() + n.getRow() >= 0)
+            .filter(n -> c.getRow() + n.getRow() < this.grid.getHeight())
+            .filter(n -> c.getCol() + n.getCol() >= 0)
+            .filter(n -> c.getCol() + n.getCol() < this.grid.getWidth())
+            .map(n -> Cell.at(c.getRow() + n.getRow(), c.getCol() + n.getCol()));
     }
 
-    private List<Pair> findLows() {
-        final List<Pair> lows = new ArrayList<>();
-        for (int r = 0; r < this.heights.length; r++) {
-            for (int c = 0; c < this.heights[r].length; c++) {
-                final int height = this.heights[r][c];
-                boolean min = true;
-                for (final Pair n : findNeighbours(r, c)) {
-                    if (this.heights[n.getOne()][n.getTwo()] <= height) {
-                        min = false;
-                    }
-                }
-                if (min) {
-                    lows.add(Pair.of(r, c));
-                    log(String.format("%d: (%d,%d)", height, r, c));
-                }
-            }
-        }
-        return lows;
+    private Stream<Cell> findLows() {
+        return this.grid.getCells()
+            .filter(c -> findNeighbours(c).allMatch(
+                        n -> this.grid.getValue(n) > this.grid.getValue(c)));
     }
     
     @Override
     public Integer solvePart1() {
-        return findLows().stream()
-            .map(p -> this.heights[p.getOne()][p.getTwo()] + 1)
+        return findLows()
+            .map(this.grid::getValue)
+            .map(v -> v + 1)
             .collect(summingInt(Integer::intValue));
+    }
+
+    private int sizeOfBasinAroundLow(final Cell low) {
+        final Set<Cell> basin = new HashSet<>();
+        basin.add(low);
+        while (true) {
+            final Set<Cell> add = basin.stream()
+                .flatMap(this::findNeighbours)
+                .filter(n -> !basin.contains(n))
+                .filter(n -> this.grid.getValue(n) != 9)
+                .collect(toSet());
+            if (add.isEmpty()) {
+                break;
+            }
+            basin.addAll(add);
+        }
+        return basin.size();
     }
 
     @Override
     public Integer solvePart2() {
-        final List<Pair> lows = findLows();
-        final List<Set<Pair>> basins = new ArrayList<>();
-        for (final Pair low : lows) {
-            final Set<Pair> basin = new HashSet<>();
-            basin.add(low);
-            while (true) {
-                final Set<Pair> add = new HashSet<>();
-                for (final Pair p : basin) {
-                    for (final Pair n : findNeighbours(p.getOne(), p.getTwo())) {
-                        if (basin.contains(n)) {
-                            continue;
-                        }
-                        if (heights[n.getOne()][n.getTwo()] == 9) {
-                            continue;
-                        }
-                        add.add(n);
-                    }
-                }
-                if (add.isEmpty()) {
-                    break;
-                }
-                basin.addAll(add);
-            }
-            basins.add(basin);
-            log(basin);
-        }
-        return basins.stream()
-                .map(b -> b.size())
-                .sorted(Comparator.reverseOrder())
-                .limit(3)
-                .reduce(1, (a, b) -> a * b);
+        return findLows()
+            .map(this::sizeOfBasinAroundLow)
+            .sorted(Comparator.reverseOrder())
+            .limit(3)
+            .reduce(1, (a, b) -> a * b);
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_09.create(TEST).solvePart1() == 15;
-        assert AoC2021_09.createDebug(TEST).solvePart2() == 1134;
+        assert AoC2021_09.create(TEST).solvePart2() == 1134;
 
         final List<String> input = Aocd.getData(2021, 9);
         lap("Part 1", () -> AoC2021_09.create(input).solvePart1());
@@ -151,31 +111,40 @@ public class AoC2021_09 extends AoCBase {
         "9899965678"
     );
     
-    @RequiredArgsConstructor(staticName = "of")
+    @RequiredArgsConstructor(staticName = "at")
     @Getter
+    @EqualsAndHashCode
     @ToString
-    private static final class Pair {
-        private final int one;
-        private final int two;
+    private static final class Cell {
+        private final int row;
+        private final int col;
+    }
+    
+    @RequiredArgsConstructor
+    private static final class Grid {
+        private final int[][] heights;
         
-        @Override
-        public int hashCode() {
-            return Objects.hash(one, two);
+        public int getWidth() {
+            assert this.heights.length > 0;
+            return this.heights[0].length;
         }
         
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
+        public int getHeight() {
+            return this.heights.length;
+        }
+        
+        public int getValue(final Cell c) {
+            return this.heights[c.getRow()][c.getCol()];
+        }
+        
+        public Stream<Cell> getCells() {
+            final Builder<Cell> builder = Stream.builder();
+            for (int r = 0; r < this.getHeight(); r++) {
+                for (int c = 0; c < getWidth(); c++) {
+                    builder.add(Cell.at(r, c));
+                }
             }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final Pair other = (Pair) obj;
-            return one == other.one && two == other.two;
+            return builder.build();
         }
     }
 }

@@ -7,7 +7,7 @@ import org.apache.commons.lang3.ArrayUtils;
 
 public class StringOps {
     
-    public static Integer[] getDigits(String s, int expected) {
+    public static Integer[] getDigits(final String s, final int expected) {
         final Integer[] digits = Utils.asCharacterStream(s)
                 .filter(Character::isDigit)
                 .map(c -> Integer.valueOf(Character.digit(c, 10)))
@@ -20,7 +20,20 @@ public class StringOps {
         return digits;
     }
     
-    public static char[] move(char[] ch, int from, int to) {
+    public static int[] getDigitsPrimitive(final String s, final int expected) {
+        final int[] digits = Utils.asCharacterStream(s)
+                .filter(Character::isDigit)
+                .map(c -> Integer.valueOf(Character.digit(c, 10)))
+                .mapToInt(Integer::intValue)
+                .toArray();
+        if (digits.length != expected) {
+            throw new IllegalArgumentException(
+                    String.format("Expected %d, got %d", expected, digits.length));
+        }
+        return digits;
+    }
+    
+    public static char[] move(final char[] ch, final int from, final int to) {
         if (from == to) {
             throw new IllegalArgumentException("Expected from and to to be different");
         }
@@ -39,18 +52,18 @@ public class StringOps {
         }
     }
     
-    public static char[] rotateLeft(char[] ch, int amount) {
+    public static char[] rotateLeft(final char[] ch, int amount) {
         amount = amount % ch.length;
         return addAll(subarray(ch, amount, ch.length), subarray(ch, 0, amount));
     }
     
-    public static char[] rotateRight(char[] ch, int amount) {
+    public static char[] rotateRight(final char[] ch, int amount) {
         amount = amount % ch.length;
         return addAll(subarray(ch, ch.length - amount, ch.length),
                       subarray(ch, 0, ch.length - amount));
     }
     
-    public static char[] swap(char[] ch, char first, char second) {
+    public static char[] swap(final char[] ch, final char first, final char second) {
         final int i1 = ArrayUtils.indexOf(ch, first);
         final int i2 = ArrayUtils.indexOf(ch, second);
         final char temp = ch[i1];
@@ -59,7 +72,7 @@ public class StringOps {
         return ch;
     }
     
-    public static char[] swap(char[] ch, int first, int second) {
+    public static char[] swap(final char[] ch, final int first, final int second) {
         final char temp = ch[first];
         ch[first] = ch[second];
         ch[second] = temp;
