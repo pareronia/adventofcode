@@ -3,7 +3,9 @@
 # Advent of Code 2021 Day 9
 #
 
+from math import prod
 from typing import NamedTuple
+from collections import deque
 from aoc import my_aocd
 from aoc.common import log
 
@@ -60,8 +62,28 @@ def part_1(inputs: tuple[str]) -> int:
                 for c in _find_lows(grid)])
 
 
+def _size_of_basin_around_low(grid: Grid, c: Cell) -> int:
+    cnt = 0
+    seen = set[Cell]()
+    q = deque[Cell]()
+    q.append(c)
+    while len(q) > 0:
+        cell = q.popleft()
+        for n in _find_neighbours(grid, cell):
+            if n not in seen and grid.get_value(n) != 9:
+                q.append(n)
+                seen.add(n)
+                cnt += 1
+    log(seen)
+    log(len(seen))
+    return cnt
+
+
 def part_2(inputs: tuple[str]) -> int:
-    return None
+    grid = _parse(inputs)
+    return prod(sorted(_size_of_basin_around_low(grid, low)
+                       for low in _find_lows(grid))
+                [-3:])
 
 
 TEST = """\
