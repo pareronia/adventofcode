@@ -9,6 +9,7 @@ from collections import deque
 from functools import reduce
 from aoc import my_aocd
 from aoc.common import log
+import aocd
 
 
 PAREN_OPEN = '('
@@ -102,16 +103,18 @@ TEST = """\
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 10)
+    puzzle = aocd.models.Puzzle(2021, 10)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 26_397
     assert part_2(TEST) == 288_957
 
-    inputs = my_aocd.get_input(2021, 10, 94)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 94)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
