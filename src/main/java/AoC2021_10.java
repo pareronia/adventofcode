@@ -1,10 +1,14 @@
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import com.github.pareronia.aocd.Aocd;
+
+import lombok.Getter;
 
 public class AoC2021_10 extends AoCBase {
     
@@ -29,14 +33,39 @@ public class AoC2021_10 extends AoCBase {
         '{', '}',
         '<', '>'
     );
-    private static final Map<Character, Integer> SCORES = Map.of(
+    private static final Map<Character, Integer> CORRUPTION_SCORES = Map.of(
         ')', 3,
         ']', 57,
         '}', 1_197,
         '>', 25_137
     );
+    private static final Map<Character, Long> INCOMPLETE_SCORES = Map.of(
+        '(', 1L,
+        '[', 2L,
+        '{', 3L,
+        '<', 4L
+    );
     
-    private int score(final String line) {
+    @Getter
+    private static final class Score {
+        private final Character corrupt;
+        private final Character[] incomplete;
+
+        private Score(final Character corrupt, final Character[] incomplete) {
+            this.corrupt = corrupt;
+            this.incomplete = incomplete;
+        }
+        
+        public static Score corrupt(final Character c) {
+            return new Score(c, null);
+        }
+        
+        public static Score incomplete(final Deque<Character> stack) {
+            return new Score(null, stack.toArray(new Character[stack.size()]));
+        }
+    }
+    
+    private Score score(final String line) {
         final Deque<Character> stack = new ArrayDeque<>();
         for (final char c : line.toCharArray()) {
             if (MAP.keySet().contains(c)) {
@@ -48,30 +77,46 @@ public class AoC2021_10 extends AoCBase {
                     .map(Entry::getKey)
                     .findFirst().orElseThrow();
                 if (e != a) {
-                    return SCORES.get(c);
+                    return Score.corrupt(c);
                 }
             }
         }
-        return 0;
+        return Score.incomplete(stack);
     }
     
     @Override
     public Integer solvePart1() {
         return this.lines.stream()
             .map(this::score)
-            .peek(this::log)
+            .map(Score::getCorrupt)
+            .filter(Objects::nonNull)
+            .map(CORRUPTION_SCORES::get)
             .mapToInt(Integer::intValue)
             .sum();
     }
     
     @Override
-    public Integer solvePart2() {
-        return null;
+    public Long solvePart2() {
+        final long[] scores = this.lines.stream()
+            .map(this::score)
+            .map(Score::getIncomplete)
+            .filter(Objects::nonNull)
+            .map(Arrays::asList)
+            .peek(this::log)
+            .map(x -> x.stream()
+                        .map(INCOMPLETE_SCORES::get)
+                        .reduce((a, b) -> 5 * a + b).orElseThrow())
+            .mapToLong(Long::longValue)
+            .peek(this::log)
+            .sorted()
+            .toArray();
+        assert scores.length % 2 == 1;
+        return scores[scores.length / 2];
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_10.createDebug(TEST).solvePart1() == 26_397;
-        assert AoC2021_10.create(TEST).solvePart2() == null;
+        assert AoC2021_10.create(TEST).solvePart1() == 26_397;
+        assert AoC2021_10.create(TEST).solvePart2() == 288_957;
 
         final List<String> input = Aocd.getData(2021, 10);
         lap("Part 1", () -> AoC2021_10.create(input).solvePart1());
