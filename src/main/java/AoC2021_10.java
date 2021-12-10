@@ -8,9 +8,30 @@ import java.util.Objects;
 
 import com.github.pareronia.aocd.Aocd;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 public class AoC2021_10 extends AoCBase {
+    
+    private static final Map<Character, Character> MAP = Map.of(
+        '(', ')',
+        '[', ']',
+        '{', '}',
+        '<', '>'
+    );
+    private static final Map<Character, Long> CORRUPTION_SCORES = Map.of(
+        ')', 3L,
+        ']', 57L,
+        '}', 1_197L,
+        '>', 25_137L
+    );
+    private static final Map<Character, Long> INCOMPLETE_SCORES = Map.of(
+        '(', 1L,
+        '[', 2L,
+        '{', 3L,
+        '<', 4L
+    );
     
     private final List<String> lines;
     
@@ -27,45 +48,7 @@ public class AoC2021_10 extends AoCBase {
         return new AoC2021_10(input, true);
     }
     
-    private static final Map<Character, Character> MAP = Map.of(
-        '(', ')',
-        '[', ']',
-        '{', '}',
-        '<', '>'
-    );
-    private static final Map<Character, Integer> CORRUPTION_SCORES = Map.of(
-        ')', 3,
-        ']', 57,
-        '}', 1_197,
-        '>', 25_137
-    );
-    private static final Map<Character, Long> INCOMPLETE_SCORES = Map.of(
-        '(', 1L,
-        '[', 2L,
-        '{', 3L,
-        '<', 4L
-    );
-    
-    @Getter
-    private static final class Score {
-        private final Character corrupt;
-        private final Character[] incomplete;
-
-        private Score(final Character corrupt, final Character[] incomplete) {
-            this.corrupt = corrupt;
-            this.incomplete = incomplete;
-        }
-        
-        public static Score corrupt(final Character c) {
-            return new Score(c, null);
-        }
-        
-        public static Score incomplete(final Deque<Character> stack) {
-            return new Score(null, stack.toArray(new Character[stack.size()]));
-        }
-    }
-    
-    private Score score(final String line) {
+    private Result check(final String line) {
         final Deque<Character> stack = new ArrayDeque<>();
         for (final char c : line.toCharArray()) {
             if (MAP.keySet().contains(c)) {
@@ -77,37 +60,35 @@ public class AoC2021_10 extends AoCBase {
                     .map(Entry::getKey)
                     .findFirst().orElseThrow();
                 if (e != a) {
-                    return Score.corrupt(c);
+                    return Result.corrupt(c);
                 }
             }
         }
-        return Score.incomplete(stack);
+        return Result.incomplete(stack);
     }
     
     @Override
-    public Integer solvePart1() {
+    public Long solvePart1() {
         return this.lines.stream()
-            .map(this::score)
-            .map(Score::getCorrupt)
+            .map(this::check)
+            .map(Result::getCorrupt)
             .filter(Objects::nonNull)
             .map(CORRUPTION_SCORES::get)
-            .mapToInt(Integer::intValue)
+            .mapToLong(Long::longValue)
             .sum();
     }
     
     @Override
     public Long solvePart2() {
         final long[] scores = this.lines.stream()
-            .map(this::score)
-            .map(Score::getIncomplete)
+            .map(this::check)
+            .map(Result::getIncomplete)
             .filter(Objects::nonNull)
             .map(Arrays::asList)
-            .peek(this::log)
             .map(x -> x.stream()
                         .map(INCOMPLETE_SCORES::get)
-                        .reduce((a, b) -> 5 * a + b).orElseThrow())
+                        .reduce((total, score) -> 5 * total + score).orElseThrow())
             .mapToLong(Long::longValue)
-            .peek(this::log)
             .sorted()
             .toArray();
         assert scores.length % 2 == 1;
@@ -135,4 +116,19 @@ public class AoC2021_10 extends AoCBase {
         "<{([([[(<>()){}]>(<<{{\r\n" +
         "<{([{{}}[<[[[<>{}]]]>[]]"
     );
+    
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    @Getter
+    private static final class Result {
+        private final Character corrupt;
+        private final Character[] incomplete;
+
+        public static Result corrupt(final Character c) {
+            return new Result(c, null);
+        }
+        
+        public static Result incomplete(final Deque<Character> stack) {
+            return new Result(null, stack.toArray(new Character[stack.size()]));
+        }
+    }
 }
