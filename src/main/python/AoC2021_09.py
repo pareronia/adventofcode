@@ -5,9 +5,11 @@
 
 from math import prod
 from typing import NamedTuple
+from collections.abc import Generator
 from collections import deque
 from aoc import my_aocd
 from aoc.common import log
+import aocd
 
 
 class Cell(NamedTuple):
@@ -28,7 +30,7 @@ class Grid(NamedTuple):
     def get_value(self, c: Cell) -> int:
         return self.heights[c.row][c.col]
 
-    def get_cells(self):
+    def get_cells(self) -> Generator[Cell]:
         return (Cell(r, c)
                 for r in range(self.get_height())
                 for c in range(self.get_width()))
@@ -38,7 +40,7 @@ def _parse(inputs: tuple[str]) -> Grid:
     return Grid([[int(_) for _ in list(r)] for r in inputs])
 
 
-def _find_neighbours(grid: Grid, c: Cell):
+def _find_neighbours(grid: Grid, c: Cell) -> Generator[Cell]:
     return (Cell(c.row + dr, c.col + dc)
             for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
             if c.row + dr >= 0
@@ -47,7 +49,7 @@ def _find_neighbours(grid: Grid, c: Cell):
             and c.col + dc < grid.get_width())
 
 
-def _find_lows(grid: Grid):
+def _find_lows(grid: Grid) -> Generator[Cell]:
     for low in (c for c in grid.get_cells()
                 if (all(grid.get_value(c) < grid.get_value(n)
                         for n in _find_neighbours(grid, c)))):
@@ -63,20 +65,18 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def _size_of_basin_around_low(grid: Grid, c: Cell) -> int:
-    cnt = 0
-    seen = set[Cell]()
+    basin = set[Cell]()
     q = deque[Cell]()
     q.append(c)
     while len(q) > 0:
         cell = q.popleft()
+        basin.add(cell)
         for n in _find_neighbours(grid, cell):
-            if n not in seen and grid.get_value(n) != 9:
+            if n not in basin and grid.get_value(n) != 9:
                 q.append(n)
-                seen.add(n)
-                cnt += 1
-    log(seen)
-    log(len(seen))
-    return cnt
+    log(basin)
+    log(len(basin))
+    return len(basin)
 
 
 def part_2(inputs: tuple[str]) -> int:
@@ -96,16 +96,18 @@ TEST = """\
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 9)
+    puzzle = aocd.models.Puzzle(2021, 9)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 15
     assert part_2(TEST) == 1134
 
-    inputs = my_aocd.get_input(2021, 9, 100)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 100)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
