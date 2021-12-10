@@ -3,8 +3,8 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Set;
 
 import com.github.pareronia.aocd.Aocd;
 
@@ -14,23 +14,36 @@ import lombok.RequiredArgsConstructor;
 
 public class AoC2021_10 extends AoCBase {
     
+    private static final char PAREN_OPEN = '(';
+    private static final char PAREN_CLOSE = ')';
+    private static final char SQUARE_OPEN = '[';
+    private static final char SQUARE_CLOSE = ']';
+    private static final char CURLY_OPEN = '{';
+    private static final char CURLY_CLOSE = '}';
+    private static final char ANGLE_OPEN = '<';
+    private static final char ANGLE_CLOSE = '>';
+    private static final Set<Character> OPEN = Set.of(PAREN_OPEN, SQUARE_OPEN, CURLY_OPEN, ANGLE_OPEN);
     private static final Map<Character, Character> MAP = Map.of(
-        '(', ')',
-        '[', ']',
-        '{', '}',
-        '<', '>'
+        PAREN_OPEN, PAREN_CLOSE,
+        SQUARE_OPEN, SQUARE_CLOSE,
+        CURLY_OPEN, CURLY_CLOSE,
+        ANGLE_OPEN, ANGLE_CLOSE,
+        PAREN_CLOSE, PAREN_OPEN,
+        SQUARE_CLOSE, SQUARE_OPEN,
+        CURLY_CLOSE, CURLY_OPEN,
+        ANGLE_CLOSE, ANGLE_OPEN
     );
     private static final Map<Character, Long> CORRUPTION_SCORES = Map.of(
-        ')', 3L,
-        ']', 57L,
-        '}', 1_197L,
-        '>', 25_137L
+        PAREN_CLOSE, 3L,
+        SQUARE_CLOSE, 57L,
+        CURLY_CLOSE, 1_197L,
+        ANGLE_CLOSE, 25_137L
     );
     private static final Map<Character, Long> INCOMPLETE_SCORES = Map.of(
-        '(', 1L,
-        '[', 2L,
-        '{', 3L,
-        '<', 4L
+        PAREN_OPEN, 1L,
+        SQUARE_OPEN, 2L,
+        CURLY_OPEN, 3L,
+        ANGLE_OPEN, 4L
     );
     
     private final List<String> lines;
@@ -51,15 +64,10 @@ public class AoC2021_10 extends AoCBase {
     private Result check(final String line) {
         final Deque<Character> stack = new ArrayDeque<>();
         for (final char c : line.toCharArray()) {
-            if (MAP.keySet().contains(c)) {
+            if (OPEN.contains(c)) {
                 stack.addFirst(c);
             } else {
-                final Character a = stack.pop();
-                final Character e = MAP.entrySet().stream()
-                    .filter(x -> x.getValue() == c)
-                    .map(Entry::getKey)
-                    .findFirst().orElseThrow();
-                if (e != a) {
+                if (MAP.get(c) != stack.pop()) {
                     return Result.corrupt(c);
                 }
             }
