@@ -101,13 +101,24 @@ public class AoC2021_11 extends AoCBase {
     }
 
     @Override
-    public Object solvePart2() {
-        return null;
+    public Integer solvePart2() {
+        int cycle = 1;
+        while (true) {
+            final int flashes = cycle();
+            if (flashes == this.grid.size()) {
+                log("(" + cycle + ")");
+                printGrid();
+                log("flashes: " + flashes);
+                break;
+            }
+            cycle++;
+        }
+        return cycle;
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_11.create(TEST).solvePart1() == 1656;
-        assert AoC2021_11.create(TEST).solvePart2() == null;
+        assert AoC2021_11.create(TEST).solvePart2() == 195;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 11);
         puzzle.check(
@@ -149,6 +160,10 @@ public class AoC2021_11 extends AoCBase {
         
         public int getHeight() {
             return this.values.length;
+        }
+        
+        public int size() {
+            return this.getHeight() * this.getWidth();
         }
         
         public int getValue(final Cell c) {
