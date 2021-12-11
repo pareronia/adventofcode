@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import numpy as np
 from aoc import my_aocd
 from aoc.geometry import Position
+import aocd
 
 
 class Action(Enum):
@@ -73,7 +74,7 @@ def _process_instructions_1(lights, inss: list[Instruction]):
 
 def part_1(inputs: tuple[str]) -> int:
     inss = _parse(inputs)
-    lights = np.zeros((1000, 1000), np.int)
+    lights = np.zeros((1000, 1000), int)
     _process_instructions_1(lights, inss)
     return np.sum(lights)
 
@@ -95,7 +96,7 @@ def _process_instructions_2(lights, inss: list[Instruction]):
 
 def part_2(inputs: tuple[str]) -> int:
     inss = _parse(inputs)
-    lights = np.zeros((1000, 1000), np.int)
+    lights = np.zeros((1000, 1000), int)
     _process_instructions_2(lights, inss)
     return np.sum(lights)
 
@@ -108,7 +109,8 @@ TEST5 = "toggle 0,0 through 999,999".splitlines()
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 6)
+    puzzle = aocd.models.Puzzle(2015, 6)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST1) == 1_000_000
     assert part_1(TEST2) == 1000
@@ -116,11 +118,12 @@ def main() -> None:
     assert part_2(TEST4) == 1
     assert part_2(TEST5) == 2_000_000
 
-    inputs = my_aocd.get_input(2015, 6, 300)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 300)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
