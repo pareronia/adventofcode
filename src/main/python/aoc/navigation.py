@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections.abc import Callable
-from enum import Enum
+from enum import Enum, unique
 from copy import deepcopy
 from aoc.geometry import Position, Vector
 from dataclasses import dataclass
@@ -31,16 +31,44 @@ class Heading(Vector):
 
 
 NORTH = "N"
+NORTHEAST = "NE"
 EAST = "E"
+SOUTHEAST = "SE"
 SOUTH = "S"
+SOUTHWEST = "SW"
 WEST = "W"
+NORTHWEST = "NW"
 
 
+@unique
 class Headings(Enum):
     N = Heading(0, 1, NORTH)
+    NE = Heading(1, 1, NORTHEAST)
     E = Heading(1, 0, EAST)
+    SE = Heading(1, -1, SOUTHEAST)
     S = Heading(0, -1, SOUTH)
+    SW = Heading(-1, -1, SOUTHWEST)
     W = Heading(-1, 0, WEST)
+    NW = Heading(-1, 1, NORTHWEST)
+
+    @classmethod
+    def OCTANTS(cls) -> list[Headings]:
+        return [Headings.N,
+                Headings.NE,
+                Headings.E,
+                Headings.SE,
+                Headings.S,
+                Headings.SW,
+                Headings.W,
+                Headings.NW]
+
+    @property
+    def x(self) -> int:
+        return self.value.x
+
+    @property
+    def y(self) -> int:
+        return self.value.y
 
 
 @dataclass
