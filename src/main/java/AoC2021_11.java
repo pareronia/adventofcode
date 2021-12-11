@@ -1,10 +1,8 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -62,24 +60,25 @@ public class AoC2021_11 extends AoCBase {
             .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
     }
     
-    private int cycle() {
-        final MutableInt flashes = new MutableInt(0);
-        this.grid.getCells().forEach(this.grid::increment);
-        while (true) {
-            final Set<Cell> toFlash = this.grid.getCells()
-                    .filter(c -> this.grid.getValue(c) > 9)
-                    .collect(toSet());
-            if (toFlash.size() == 0) {
-                break;
-            }
-            toFlash.stream().forEach(f -> {
-                findNeighbours(f)
-                    .filter(n -> this.grid.getValue(n) != 0)
-                    .forEach(this.grid::increment);
-                this.grid.setValue(f, 0);
-                flashes.increment();
+    private void flash(final Cell c, final MutableInt flashes) {
+        this.grid.setValue(c, 0);
+        flashes.increment();
+        findNeighbours(c)
+            .filter(n -> this.grid.getValue(n) != 0)
+            .forEach(n -> {
+                this.grid.increment(n);
+                if (this.grid.getValue(n) > 9) {
+                    flash(n, flashes);
+                }
             });
-        }
+    }
+    
+    private int cycle() {
+        this.grid.getCells().forEach(this.grid::increment);
+        final MutableInt flashes = new MutableInt(0);
+        this.grid.getCells()
+            .filter(c -> this.grid.getValue(c) > 9)
+            .forEach(c -> flash(c, flashes));
         return flashes.intValue();
     }
     
