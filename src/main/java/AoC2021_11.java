@@ -1,42 +1,31 @@
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
-import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.IntGrid;
+import com.github.pareronia.aoc.IntGrid.Cell;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_11 extends AoCBase {
     
-    private final Grid grid;
+    private final IntGrid grid;
     
     private AoC2021_11(final List<String> input, final boolean debug) {
         super(debug);
-        final int[][] levels = new int[input.size()][input.get(0).length()];
-        input.stream()
-            .map(s -> StringOps.getDigitsPrimitive(s, s.length()))
-            .collect(toList())
-            .toArray(levels);
-        this.grid = new Grid(levels);
+        this.grid = IntGrid.from(input);
     }
     
     private void printGrid() {
         if (!this.debug) {
             return;
         }
-        Arrays.stream(this.grid.values).forEach(r ->
+        Arrays.stream(this.grid.getValues()).forEach(r ->
                 log(Arrays.stream(r)
                         .mapToObj(Integer::valueOf)
                         .map(String::valueOf)
@@ -138,53 +127,4 @@ public class AoC2021_11 extends AoCBase {
         "4846848554\r\n" +
         "5283751526"
     );
-    
-    @RequiredArgsConstructor(staticName = "at")
-    @Getter
-    @EqualsAndHashCode
-    @ToString
-    private static final class Cell {
-        private final int row;
-        private final int col;
-    }
-    
-    @RequiredArgsConstructor
-    private static final class Grid {
-        private final int[][] values;
-        
-        public int getWidth() {
-            assert this.values.length > 0;
-            return this.values[0].length;
-        }
-        
-        public int getHeight() {
-            return this.values.length;
-        }
-        
-        public int size() {
-            return this.getHeight() * this.getWidth();
-        }
-        
-        public int getValue(final Cell c) {
-            return this.values[c.getRow()][c.getCol()];
-        }
-        
-        public void setValue(final Cell c, final int value) {
-            this.values[c.getRow()][c.getCol()] = value;
-        }
-        
-        public void increment(final Cell c) {
-            this.values[c.getRow()][c.getCol()]++;
-        }
-        
-        public Stream<Cell> getCells() {
-            final Builder<Cell> builder = Stream.builder();
-            for (int r = 0; r < this.getHeight(); r++) {
-                for (int c = 0; c < getWidth(); c++) {
-                    builder.add(Cell.at(r, c));
-                }
-            }
-            return builder.build();
-        }
-    }
 }
