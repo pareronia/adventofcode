@@ -1,10 +1,14 @@
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
@@ -52,48 +56,72 @@ public class AoC2021_12 extends AoCBase {
         return new AoC2021_12(input, true);
     }
     
-    private void dfs(final Cave start, final Cave end, final Set<Cave> seen,
-                     final List<Cave> path, final Consumer<List<Cave>> onPath) {
+    private void dfs(final Cave start, final Cave end,
+                     final List<Cave> path, final Consumer<List<Cave>> onEnd,
+                     final BiFunction<List<Cave>, Cave, Boolean> proceed) {
         if (start.equals(end)) {
-            onPath.accept(path);
+            onEnd.accept(path);
             return;
-        }
-        if (start.isSmall()) {
-            seen.add(start);
         }
         for (final Tunnel tunnel : system.getTunnelsFrom(start)) {
             final Cave to = tunnel.getTo();
-            if (!seen.contains(to)) {
+            if (proceed.apply(path, to)) {
                 path.add(to);
-                dfs(to, end, seen, path, onPath);
-                path.remove(to);
+                dfs(to, end, path, onEnd, proceed);
+                path.remove(path.size() - 1);
             }
         }
-        seen.remove(start);
+    }
+
+    private Integer solve(final BiFunction<List<Cave>, Cave, Boolean> proceed) {
+        final List<Cave> path = new ArrayList<>(List.of(this.system.getStart()));
+        final MutableInt count = new MutableInt();
+        dfs(this.system.getStart(),
+            this.system.getEnd(),
+            path,
+            p -> {
+                count.increment();
+                log(p.stream().map(Cave::getName).collect(joining(",")));},
+            proceed);
+        log(count.intValue());
+        return count.intValue();
     }
     
     @Override
     public Integer solvePart1() {
-        final Set<Cave> seen = new HashSet<>();
-        final List<Cave> path = new ArrayList<>(List.of(this.system.getStart()));
-        final MutableInt count = new MutableInt();
-        dfs(this.system.getStart(), this.system.getEnd(), seen, path, p -> {
-            count.increment();
-            log(p.stream().map(Cave::getName).collect(joining(",")));
-        });
-        return count.intValue();
+        return solve((p, cave) -> !(cave.isSmall() && p.contains(cave)));
     }
 
     @Override
     public Integer solvePart2() {
-        return 0;
+        return solve((p, cave) -> {
+            if (!cave.isSmall()) {
+                return true;
+            }
+            final Map<Cave, Long> counters = p.stream()
+                .filter(Cave::isSmall)
+                .collect(groupingBy(pp -> pp, counting()));
+            if (cave.equals(this.system.getStart()) || cave.equals(this.system.getEnd())) {
+                return !counters.containsKey(cave);
+            }
+            final long twices = counters.values().stream().filter(v -> v > 1).count();
+            if (twices == 0) {
+                return counters.getOrDefault(cave, 0L) <= 1;
+            }
+            if (counters.getOrDefault(cave, 0L) >= 1) {
+                return false;
+            }
+            return true;
+        });
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_12.create(TEST1).solvePart1() == 10;
         assert AoC2021_12.create(TEST2).solvePart1() == 19;
         assert AoC2021_12.create(TEST3).solvePart1() == 226;
-        assert AoC2021_12.create(TEST1).solvePart2() == 0;
+        assert AoC2021_12.create(TEST1).solvePart2() == 36;
+        assert AoC2021_12.create(TEST2).solvePart2() == 103;
+        assert AoC2021_12.create(TEST3).solvePart2() == 3509;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 12);
         puzzle.check(
