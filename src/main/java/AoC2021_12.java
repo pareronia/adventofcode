@@ -1,15 +1,11 @@
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
@@ -34,14 +30,12 @@ public class AoC2021_12 extends AoCBase {
            final Cave from = new Cave(split[0]);
            final Cave to = new Cave(split[1]);
            tunnels.add(new Tunnel(from, to));
-           if (!(from.isStart() || to.isEnd())) {
-               tunnels.add(new Tunnel(to, from));
-           }
            if (from.isStart()) {
                start = from;
-           }
-           if (to.isEnd()) {
+           } else if (to.isEnd()) {
                end = to;
+           } else {
+               tunnels.add(new Tunnel(to, from));
            }
         }
         system = new System(tunnels, start, end);
@@ -56,63 +50,53 @@ public class AoC2021_12 extends AoCBase {
         return new AoC2021_12(input, true);
     }
     
-    private void dfs(final Cave start, final Cave end,
-                     final List<Cave> path, final Consumer<List<Cave>> onEnd,
-                     final BiFunction<List<Cave>, Cave, Boolean> proceed) {
+    private void dfs(final Cave start, final Cave end, final State state,
+                     final BiFunction<Tunnel, State, Boolean> proceed,
+                     final Runnable onPath) {
         if (start.equals(end)) {
-            onEnd.accept(path);
+            onPath.run();
             return;
         }
         for (final Tunnel tunnel : system.getTunnelsFrom(start)) {
-            final Cave to = tunnel.getTo();
-            if (proceed.apply(path, to)) {
-                path.add(to);
-                dfs(to, end, path, onEnd, proceed);
-                path.remove(path.size() - 1);
+            if (proceed.apply(tunnel, state)) {
+                final State newState = State.copyOf(state);
+                final Cave to = tunnel.getTo();
+                if (to.isSmall()) {
+                    if (newState.smallCavesSeen.contains(to)) {
+                        newState.smallCavesSeenTwice.add(to);
+                    }
+                    newState.smallCavesSeen.add(to);
+                }
+                dfs(to, end, newState, proceed, onPath);
             }
         }
     }
-
-    private Integer solve(final BiFunction<List<Cave>, Cave, Boolean> proceed) {
-        final List<Cave> path = new ArrayList<>(List.of(this.system.getStart()));
+    
+    private int solve(final BiFunction<Tunnel, State, Boolean> proceed) {
+        final Cave start = this.system.getStart();
+        final State state = new State(new HashSet<>(Set.of(start)), new HashSet<>());
         final MutableInt count = new MutableInt();
-        dfs(this.system.getStart(),
-            this.system.getEnd(),
-            path,
-            p -> {
-                count.increment();
-                log(p.stream().map(Cave::getName).collect(joining(",")));},
-            proceed);
-        log(count.intValue());
+        
+        dfs(start, this.system.getEnd(), state, proceed, () -> count.increment());
+        
         return count.intValue();
     }
     
     @Override
     public Integer solvePart1() {
-        return solve((p, cave) -> !(cave.isSmall() && p.contains(cave)));
+        return solve((tunnel, state)
+                        -> !tunnel.getTo().isSmall()
+                               || !state.smallCavesSeen.contains(tunnel.getTo()));
     }
 
     @Override
     public Integer solvePart2() {
-        return solve((p, cave) -> {
-            if (!cave.isSmall()) {
-                return true;
-            }
-            final Map<Cave, Long> counters = p.stream()
-                .filter(Cave::isSmall)
-                .collect(groupingBy(pp -> pp, counting()));
-            if (cave.equals(this.system.getStart()) || cave.equals(this.system.getEnd())) {
-                return !counters.containsKey(cave);
-            }
-            final long twices = counters.values().stream().filter(v -> v > 1).count();
-            if (twices == 0) {
-                return counters.getOrDefault(cave, 0L) <= 1;
-            }
-            if (counters.getOrDefault(cave, 0L) >= 1) {
-                return false;
-            }
-            return true;
-        });
+        return solve((tunnel, state)
+                        -> !tunnel.getTo().isSmall()
+                                || !state.smallCavesSeen.contains(tunnel.getTo())
+                                || (!tunnel.getTo().isStart()
+                                        && !tunnel.getTo().isEnd()
+                                        && state.smallCavesSeenTwice.isEmpty()));
     }
 
     public static void main(final String[] args) throws Exception {
@@ -173,6 +157,17 @@ public class AoC2021_12 extends AoCBase {
     );
     
     @RequiredArgsConstructor
+    private static final class State {
+        private final Set<Cave> smallCavesSeen;
+        private final Set<Cave> smallCavesSeenTwice;
+        
+        public static State copyOf(final State state) {
+            return new State(new HashSet<>(Set.copyOf(state.smallCavesSeen)),
+                             new HashSet<>(Set.copyOf(state.smallCavesSeenTwice)));
+        }
+    }
+    
+    @RequiredArgsConstructor
     @Getter
     @EqualsAndHashCode
     @ToString
@@ -208,11 +203,18 @@ public class AoC2021_12 extends AoCBase {
         private final Set<Tunnel> tunnels;
         private final Cave start;
         private final Cave end;
+        @ToString.Exclude
+        private final Map<Cave, Set<Tunnel>> from = new HashMap<>();
         
         public Set<Tunnel> getTunnelsFrom(final Cave from) {
-            return this.tunnels.stream()
+            if (this.from.containsKey(from)) {
+                return this.from.get(from);
+            }
+            final Set<Tunnel> tunnelsFrom = this.tunnels.stream()
                     .filter(t -> t.getFrom().equals(from))
                     .collect(toSet());
+            this.from.put(from, tunnelsFrom);
+            return tunnelsFrom;
         }
     }
 }
