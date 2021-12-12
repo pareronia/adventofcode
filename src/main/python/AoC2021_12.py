@@ -4,11 +4,10 @@
 #
 
 from __future__ import annotations
-from typing import NamedTuple, Generator, Callable
-from functools import lru_cache
+from typing import NamedTuple, Callable
+from collections import defaultdict
 from aoc import my_aocd
 import aocd
-from aoc.common import log
 
 
 class Cave(NamedTuple):
@@ -24,24 +23,10 @@ class Cave(NamedTuple):
         return self.name == "end"
 
 
-class Tunnel(NamedTuple):
-    from_: Cave
-    to: Cave
-
-
-@lru_cache(maxsize=50)
-def _do_get_tunnels_from(tunnels: tuple[Tunnel], cave: Cave) -> tuple[Tunnel]:
-    return tuple([t for t in tunnels if t.from_ == cave])
-
-
 class System(NamedTuple):
-    tunnels: set[Tunnel]
+    tunnels: dict
     start: Cave
     end: Cave
-
-    def get_tunnels_from(self, cave: Cave) -> Generator[Tunnel]:
-        return (t for t
-                in _do_get_tunnels_from(tuple(self.tunnels), cave))
 
 
 class State(NamedTuple):
@@ -55,16 +40,15 @@ class State(NamedTuple):
 
 
 def _parse(inputs: tuple[str]) -> System:
-    tunnels = set[Tunnel]()
+    tunnels = defaultdict(list)
     for line in inputs:
         from_, to = [Cave(_) for _ in line.split('-')]
-        tunnels.add(Tunnel(from_, to))
+        tunnels[from_].append(to)
         if from_.is_start():
             start = from_
         elif to.is_end():
             end = to
-        else:
-            tunnels.add(Tunnel(to, from_))
+        tunnels[to].append(from_)
     return System(tunnels, start, end)
 
 
@@ -73,14 +57,14 @@ def _dfs(system: System, start: Cave, end: Cave, state: State,
     if start == end:
         on_path()
         return
-    for tunnel in system.get_tunnels_from(start):
-        if proceed(tunnel, state):
+    for to in system.tunnels[start]:
+        if proceed(to, state):
             new_state = State.copy_of(state)
-            if tunnel.to.is_small():
-                if tunnel.to in new_state.small_caves_seen:
-                    new_state.small_caves_seen_twice.add(tunnel.to)
-                new_state.small_caves_seen.add(tunnel.to)
-            _dfs(system, tunnel.to, end, new_state, proceed, on_path)
+            if to.is_small():
+                if to in new_state.small_caves_seen:
+                    new_state.small_caves_seen_twice.add(to)
+                new_state.small_caves_seen.add(to)
+            _dfs(system, to, end, new_state, proceed, on_path)
 
 
 def _solve(system: System, proceed: Callable) -> int:
@@ -93,26 +77,25 @@ def _solve(system: System, proceed: Callable) -> int:
     state = State({system.start}, {})
     _dfs(system, system.start, system.end, state,
          proceed, increment_cnt)
-    log(_do_get_tunnels_from.cache_info())
     return cnt
 
 
 def part_1(inputs: tuple[str]) -> int:
     system = _parse(inputs)
     return _solve(system,
-                  lambda tunnel, state:
-                  not tunnel.to.is_small()
-                  or tunnel.to not in state.small_caves_seen)
+                  lambda to, state:
+                  not to.is_small()
+                  or to not in state.small_caves_seen)
 
 
 def part_2(inputs: tuple[str]) -> int:
     system = _parse(inputs)
     return _solve(system,
-                  lambda tunnel, state:
-                  not tunnel.to.is_small()
-                  or tunnel.to not in state.small_caves_seen
-                  or (not tunnel.to.is_start()
-                      and not tunnel.to.is_end()
+                  lambda to, state:
+                  not to.is_small()
+                  or to not in state.small_caves_seen
+                  or (not to.is_start()
+                      and not to.is_end()
                       and not state.small_caves_seen_twice))
 
 
