@@ -27,6 +27,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class Puzzle {
@@ -109,7 +110,11 @@ public class Puzzle {
 	}
 	
 	public List<String> getInputData() {
-		return systemUtils.readAllLinesIfExists(inputDataFile);
+		final List<String> inputData = systemUtils.readAllLinesIfExists(inputDataFile);
+	    if (CollectionUtils.isEmpty(inputData)) {
+	        System.err.println("!! INPUT DATA MISSING !!");
+	    }
+	    return inputData;
 	}
 	
 	public static final class FailDecider {
