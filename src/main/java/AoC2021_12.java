@@ -1,5 +1,4 @@
-import static java.util.stream.Collectors.toSet;
-
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -23,22 +22,28 @@ public class AoC2021_12 extends AoCBase {
     private final System system;
     private AoC2021_12(final List<String> input, final boolean debug) {
         super(debug);
-        final Set<Tunnel> tunnels = new HashSet<>();
+        final Map<Cave, Set<Cave>> tunnels = new HashMap<>();
         Cave start = null, end = null;
         for (final String string : input) {
            final String[] split = string.split("-");
            final Cave from = new Cave(split[0]);
            final Cave to = new Cave(split[1]);
-           tunnels.add(new Tunnel(from, to));
+           tunnels.merge(from, new HashSet<>(Set.of(to)), (s1, s2) -> {
+               s1.addAll(s2);
+               return s1;
+           });
            if (from.isStart()) {
                start = from;
            } else if (to.isEnd()) {
                end = to;
-           } else {
-               tunnels.add(new Tunnel(to, from));
            }
+           tunnels.merge(to, new HashSet<>(Set.of(from)), (s1, s2) -> {
+               s1.addAll(s2);
+               return s1;
+           });
         }
-        system = new System(tunnels, start, end);
+        system = new System(Collections.unmodifiableMap(tunnels), start, end);
+        log(system.tunnels.size());
         log(system);
     }
     
@@ -51,16 +56,15 @@ public class AoC2021_12 extends AoCBase {
     }
     
     private void dfs(final Cave start, final Cave end, final State state,
-                     final BiFunction<Tunnel, State, Boolean> proceed,
+                     final BiFunction<Cave, State, Boolean> proceed,
                      final Runnable onPath) {
         if (start.equals(end)) {
             onPath.run();
             return;
         }
-        for (final Tunnel tunnel : system.getTunnelsFrom(start)) {
-            if (proceed.apply(tunnel, state)) {
+        for (final Cave to : this.system.getTunnels().get(start)) {
+            if (proceed.apply(to, state)) {
                 final State newState = State.copyOf(state);
-                final Cave to = tunnel.getTo();
                 if (to.isSmall()) {
                     if (newState.smallCavesSeen.contains(to)) {
                         newState.smallCavesSeenTwice.add(to);
@@ -72,7 +76,7 @@ public class AoC2021_12 extends AoCBase {
         }
     }
     
-    private int solve(final BiFunction<Tunnel, State, Boolean> proceed) {
+    private int solve(final BiFunction<Cave, State, Boolean> proceed) {
         final Cave start = this.system.getStart();
         final State state = new State(new HashSet<>(Set.of(start)), new HashSet<>());
         final MutableInt count = new MutableInt();
@@ -84,18 +88,18 @@ public class AoC2021_12 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        return solve((tunnel, state)
-                        -> !tunnel.getTo().isSmall()
-                               || !state.smallCavesSeen.contains(tunnel.getTo()));
+        return solve((to, state)
+                        -> !to.isSmall()
+                               || !state.smallCavesSeen.contains(to));
     }
 
     @Override
     public Integer solvePart2() {
-        return solve((tunnel, state)
-                        -> !tunnel.getTo().isSmall()
-                                || !state.smallCavesSeen.contains(tunnel.getTo())
-                                || (!tunnel.getTo().isStart()
-                                        && !tunnel.getTo().isEnd()
+        return solve((to, state)
+                        -> !to.isSmall()
+                                || !state.smallCavesSeen.contains(to)
+                                || (!to.isStart()
+                                        && !to.isEnd()
                                         && state.smallCavesSeenTwice.isEmpty()));
     }
 
@@ -200,21 +204,8 @@ public class AoC2021_12 extends AoCBase {
     @Getter
     @ToString
     private static final class System {
-        private final Set<Tunnel> tunnels;
+        private final Map<Cave, Set<Cave>> tunnels;
         private final Cave start;
         private final Cave end;
-        @ToString.Exclude
-        private final Map<Cave, Set<Tunnel>> from = new HashMap<>();
-        
-        public Set<Tunnel> getTunnelsFrom(final Cave from) {
-            if (this.from.containsKey(from)) {
-                return this.from.get(from);
-            }
-            final Set<Tunnel> tunnelsFrom = this.tunnels.stream()
-                    .filter(t -> t.getFrom().equals(from))
-                    .collect(toSet());
-            this.from.put(from, tunnelsFrom);
-            return tunnelsFrom;
-        }
     }
 }
