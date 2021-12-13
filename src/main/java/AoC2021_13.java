@@ -105,8 +105,8 @@ public class AoC2021_13 extends AoCBase {
         final Position max = findLargest(positions);
         final List<String> strings = new ArrayList<>();
         for (int y = 0; y <= max.getY(); y++) {
-            final char[] ch = new char[max.getX() + 1];
-            for (int x = 0; x <= max.getX(); x++) {
+            final char[] ch = new char[max.getX() + 2];
+            for (int x = 0; x <= max.getX() + 1; x++) {
                 if (positions.contains(Position.of(x, y))) {
                     ch[x] = fill;
                 } else {
@@ -170,11 +170,11 @@ public class AoC2021_13 extends AoCBase {
         "fold along x=5"
     );
     private static final List<String> RESULT1 = splitLines(
-        "▒▒▒▒▒\r\n" +
-        "▒   ▒\r\n" +
-        "▒   ▒\r\n" +
-        "▒   ▒\r\n" +
-        "▒▒▒▒▒"
+        "▒▒▒▒▒ \r\n" +
+        "▒   ▒ \r\n" +
+        "▒   ▒ \r\n" +
+        "▒   ▒ \r\n" +
+        "▒▒▒▒▒ "
     );
     
     @RequiredArgsConstructor
