@@ -1,13 +1,18 @@
+import static com.github.pareronia.aoc.Utils.toAString;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.navigation.Heading;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -34,7 +39,7 @@ public class AoC2021_13 extends AoCBase {
         this._folds = new ArrayList<>();
         for (final String line : blocks.get(1)) {
             final String[] split = line.substring("fold along ".length()).split("=");
-            _folds.add(new Fold(split[0], Integer.valueOf(split[1])));
+            _folds.add(new Fold("x".equals(split[0]) ? true : false, Integer.valueOf(split[1])));
         }
     }
     
@@ -46,85 +51,34 @@ public class AoC2021_13 extends AoCBase {
         return new AoC2021_13(input, true);
     }
     
-    private Position findLargest(final Set<Position> positions) {
-        Position max = Position.of(Integer.MIN_VALUE, Integer.MIN_VALUE);
-        for (final Position position : positions) {
-            if (position.getX() > max.getX()) {
-                max = Position.of(position.getX(), max.getY());
-            }
-            if (position.getY() > max.getY()) {
-                max = Position.of(max.getX(),  position.getY());
-            }
-        }
-        return max;
-    }
-
-    private Set<Position> foldX(final Set<Position> positions, final int fold) {
-        return positions.stream()
-                .map(p -> {
-                    int x;
-                    if (p.getX() > fold) {
-                        x = p.getX() - 2 * (p.getX() - fold);
-                    } else {
-                        x = p.getX();
-                    }
-                    return Position.of(x, p.getY());
-                })
-                .collect(toSet());
-    }
-    
-    private Set<Position> foldY(final Set<Position> positions, final int fold) {
-        return positions.stream()
-            .map(p -> {
-                int y;
-                if (p.getY() > fold) {
-                    y = p.getY() - 2 * (p.getY() - fold);
-                } else {
-                    y = p.getY();
-                }
-                return Position.of(p.getX(), y);
-            })
-            .collect(toSet());
-    }
-
-    private Set<Position> fold(Set<Position> positions, final List<Fold> folds) {
-        for (final Fold fold : folds) {
-            final Position largest = findLargest(positions);
-            if ("x".equals(fold.getAxis())) {
-                assert largest.getX() / 2 <= fold.getValue();
-                positions = foldX(positions, fold.getValue());
-            } else {
-                assert largest.getY() / 2 <= fold.getValue();
-                positions = foldY(positions, fold.getValue());
-            }
-        }
-        return positions;
+    @Override
+    public Integer solvePart1() {
+        return this._folds.stream()
+                .limit(1)
+                .map(f -> f.applyTo(this._positions))
+                .findFirst().orElseThrow()
+                .size();
     }
     
     private List<String> draw(final Set<Position> positions, final char fill, final char empty) {
-        final Position max = findLargest(positions);
-        final List<String> strings = new ArrayList<>();
-        for (int y = 0; y <= max.getY(); y++) {
-            final char[] ch = new char[max.getX() + 2];
-            for (int x = 0; x <= max.getX() + 1; x++) {
-                if (positions.contains(Position.of(x, y))) {
-                    ch[x] = fill;
-                } else {
-                    ch[x] = empty;
-                }
-            }
-            strings.add(String.valueOf(ch));
+        Position max = Position.of(Integer.MIN_VALUE, Integer.MIN_VALUE);
+        for (final Position position : positions) {
+            max = Position.of(Math.max(max.getX(), position.getX()),
+                              Math.max(max.getY(), position.getY()));
         }
-        return strings;
-    }
-    
-    @Override
-    public Integer solvePart1() {
-        return fold(this._positions, this._folds.subList(0, 1)).size();
+        final int width = max.getX() + 2;
+        return IntStream.rangeClosed(0, max.getY()).mapToObj(
+                y -> IntStream.range(0, width).mapToObj(
+                        x -> positions.contains(Position.of(x, y)) ? fill : empty)
+                        .collect(toAString()))
+                .collect(toList());
     }
     
     private List<String> solve2() {
-        final Set<Position> positions = fold(this._positions, this._folds);
+        Set<Position> positions = this._positions;
+        for (final Fold fold : this._folds) {
+            positions = fold.applyTo(positions);
+        }
         return draw(positions, FILL, EMPTY);
     }
 
@@ -181,7 +135,29 @@ public class AoC2021_13 extends AoCBase {
     @Getter
     @ToString
     private static final class Fold {
-        private final String axis;
+        private final boolean xAxis;
         private final int value;
+        
+        public Set<Position> applyTo(final Set<Position> positions) {
+            if (this.xAxis) {
+                final Heading vector = Headings.WEST.get();
+                return positions.stream()
+                    .map(p -> p.translate(vector, amplitudeX(p)))
+                    .collect(toSet());
+            } else {
+                final Heading vector = Headings.SOUTH.get();
+                return positions.stream()
+                    .map(p -> p.translate(vector, amplitudeY(p)))
+                    .collect(toSet());
+            }
+        }
+        
+        private int amplitudeX(final Position p) {
+            return p.getX() > this.value ? 2 * (p.getX() - this.value) : 0;
+        }
+
+        private int amplitudeY(final Position p) {
+            return p.getY() > this.value ? 2 * (p.getY() - this.value)  : 0;
+        }
     }
 }
