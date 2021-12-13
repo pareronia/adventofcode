@@ -5,6 +5,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -15,21 +17,24 @@ import lombok.ToString;
 
 public class AoC2021_13 extends AoCBase {
     
-    private final Set<Position> positions;
-    private List<Fold> folds = new ArrayList<>();
+    private static final char FILL = '\u2592';
+    private static final char EMPTY = ' ';
+
+    private final Set<Position> _positions;
+    private List<Fold> _folds = new ArrayList<>();
     
     private AoC2021_13(final List<String> input, final boolean debug) {
         super(debug);
         final List<List<String>> blocks = toBlocks(input);
-        positions = new HashSet<>();
+        this._positions = new HashSet<>();
         for (final String line : blocks.get(0)) {
             final String[] split = line.split(",");
-            positions.add(Position.of(Integer.valueOf(split[0]), Integer.valueOf(split[1])));
+            _positions.add(Position.of(Integer.valueOf(split[0]), Integer.valueOf(split[1])));
         }
-        this.folds = new ArrayList<>();
+        this._folds = new ArrayList<>();
         for (final String line : blocks.get(1)) {
             final String[] split = line.substring("fold along ".length()).split("=");
-            folds.add(new Fold(split[0], Integer.valueOf(split[1])));
+            _folds.add(new Fold(split[0], Integer.valueOf(split[1])));
         }
     }
     
@@ -41,9 +46,9 @@ public class AoC2021_13 extends AoCBase {
         return new AoC2021_13(input, true);
     }
     
-    private Position findLargest(final Set<Position> pos) {
+    private Position findLargest(final Set<Position> positions) {
         Position max = Position.of(Integer.MIN_VALUE, Integer.MIN_VALUE);
-        for (final Position position : pos) {
+        for (final Position position : positions) {
             if (position.getX() > max.getX()) {
                 max = Position.of(position.getX(), max.getY());
             }
@@ -54,21 +59,8 @@ public class AoC2021_13 extends AoCBase {
         return max;
     }
 
-    private Position findSmallest(final Set<Position> pos) {
-        Position min = Position.of(Integer.MAX_VALUE, Integer.MAX_VALUE);
-        for (final Position position : pos) {
-            if (position.getX() < min.getX()) {
-                min = Position.of(position.getX(), min.getY());
-            }
-            if (position.getY() < min.getY()) {
-                min = Position.of(min.getX(),  position.getY());
-            }
-        }
-        return min;
-    }
-
-    private Set<Position> foldX(final Set<Position> pos, final int fold) {
-        return pos.stream()
+    private Set<Position> foldX(final Set<Position> positions, final int fold) {
+        return positions.stream()
                 .map(p -> {
                     int x;
                     if (p.getX() > fold) {
@@ -81,8 +73,8 @@ public class AoC2021_13 extends AoCBase {
                 .collect(toSet());
     }
     
-    private Set<Position> foldY(final Set<Position> pos, final int fold) {
-        return pos.stream()
+    private Set<Position> foldY(final Set<Position> positions, final int fold) {
+        return positions.stream()
             .map(p -> {
                 int y;
                 if (p.getY() > fold) {
@@ -94,48 +86,58 @@ public class AoC2021_13 extends AoCBase {
             })
             .collect(toSet());
     }
-    
-    @Override
-    public Integer solvePart1() {
-        // fold along x=655
-        return foldX(this.positions, 655).size();
+
+    private Set<Position> fold(Set<Position> positions, final List<Fold> folds) {
+        for (final Fold fold : folds) {
+            final Position largest = findLargest(positions);
+            if ("x".equals(fold.getAxis())) {
+                assert largest.getX() / 2 <= fold.getValue();
+                positions = foldX(positions, fold.getValue());
+            } else {
+                assert largest.getY() / 2 <= fold.getValue();
+                positions = foldY(positions, fold.getValue());
+            }
+        }
+        return positions;
     }
     
-    private void draw(final Set<Position> pos) {
-        final Position max = findLargest(pos);
+    private List<String> draw(final Set<Position> positions, final char fill, final char empty) {
+        final Position max = findLargest(positions);
+        final List<String> strings = new ArrayList<>();
         for (int y = 0; y <= max.getY(); y++) {
             final char[] ch = new char[max.getX() + 1];
             for (int x = 0; x <= max.getX(); x++) {
-                if (pos.contains(Position.of(x, y))) {
-                    ch[x] = '\u2592';
+                if (positions.contains(Position.of(x, y))) {
+                    ch[x] = fill;
                 } else {
-                    ch[x] = ' ';
+                    ch[x] = empty;
                 }
             }
-            log(String.valueOf(ch));
+            strings.add(String.valueOf(ch));
         }
+        return strings;
+    }
+    
+    @Override
+    public Integer solvePart1() {
+        return fold(this._positions, this._folds.subList(0, 1)).size();
+    }
+    
+    private List<String> solve2() {
+        final Set<Position> positions = fold(this._positions, this._folds);
+        return draw(positions, FILL, EMPTY);
     }
 
     @Override
-    public Integer solvePart2() {
-        Set<Position> pos = this.positions;
-        for (final Fold fold : this.folds) {
-            final Position largest = findLargest(pos);
-            if ("x".equals(fold.getAxis())) {
-                assert largest.getX() / 2 <= fold.getValue();
-                pos = foldX(pos, fold.getValue());
-            } else {
-                assert largest.getY() / 2 <= fold.getValue();
-                pos = foldY(pos, fold.getValue());
-            }
-        }
-        draw(pos);
-        return null;
+    public String solvePart2() {
+        final List<String> drawing = solve2();
+        drawing.forEach(this::log);
+        return OCR.convert6(Grid.from(drawing), FILL, EMPTY);
     }
 
     public static void main(final String[] args) throws Exception {
-//        assert AoC2021_13.createDebug(TEST).foldY(this.positions, 7).size() == 17;
-//        assert AoC2021_13.create(TEST).solvePart2() == null;
+        assert AoC2021_13.create(TEST).solvePart1() == 17;
+        assert AoC2021_13.create(TEST).solve2().equals(RESULT1);
 
         final Puzzle puzzle = Aocd.puzzle(2021, 13);
         puzzle.check(
@@ -166,6 +168,13 @@ public class AoC2021_13 extends AoCBase {
         "\r\n" +
         "fold along y=7\r\n" +
         "fold along x=5"
+    );
+    private static final List<String> RESULT1 = splitLines(
+        "▒▒▒▒▒\r\n" +
+        "▒   ▒\r\n" +
+        "▒   ▒\r\n" +
+        "▒   ▒\r\n" +
+        "▒▒▒▒▒"
     );
     
     @RequiredArgsConstructor
