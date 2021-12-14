@@ -70,12 +70,11 @@ def _parse(inputs: tuple[str]) -> set[Position, tuple[Fold]]:
 
 
 def _draw(positions: set[Position], fill: str, empty: str) -> list[str]:
-    max_ = Position.of(1E-9, 1E-9)
-    for position in positions:
-        max_ = Position.of(max(max_.x, position.x), max(max_.y, position.y))
+    max_x = max(p.x for p in positions)
+    max_y = max(p.y for p in positions)
     return ["".join(fill if Position.of(x, y) in positions else empty
-                    for x in range(max_.x + 2))
-            for y in range(max_.y + 1)]
+                    for x in range(max_x + 2))
+            for y in range(max_y + 1)]
 
 
 def _solve_2(inputs: tuple[str]) -> list[str]:
