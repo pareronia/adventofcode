@@ -5,10 +5,12 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -43,17 +45,16 @@ public class AoC2021_14 extends AoCBase {
     public static final AoC2021_14 createDebug(final List<String> input) {
         return new AoC2021_14(input, true);
     }
-    
-    @Override
-    public Long solvePart1() {
+
+    private Long solve(final int cycles) {
         final Polymer polymer = Polymer.create(this.template.toCharArray());
-        polymer.elements().forEach(this::log);
-        for (int i = 0; i < 10; i++) {
+//        polymer.elements().forEach(this::log);
+        for (int i = 0; i < cycles; i++) {
             polymer.grow(this.rules);
         }
-        final HashMap<Character, Long> counters = polymer.elements()
+        final Map<Character, Long> counters = polymer.elements()
             .collect(groupingBy(e -> e.getName(), HashMap::new, counting()));
-        log(counters);
+//        log(counters);
         final LongSummaryStatistics summary = counters.values().stream()
                 .collect(summarizingLong(Long::valueOf));
         final long ans = summary.getMax() - summary.getMin();
@@ -61,14 +62,57 @@ public class AoC2021_14 extends AoCBase {
         return ans;
     }
     
+    private Long solveBis(final int cycles) {
+        Map<String, Long> pairCounters = new HashMap<>();
+        for (int i = 1; i < this.template.length(); i++) {
+            final String pair = String.valueOf(new char[] {
+                    this.template.toCharArray()[i - 1],
+                    this.template.toCharArray()[i]});
+            pairCounters.merge(pair, 1L, Long::sum);
+        }
+        log(pairCounters);
+        final Map<Character, Long> elemCounters = new HashMap<>();
+        for (int i = 0; i < this.template.length(); i++) {
+            elemCounters.merge(this.template.charAt(i), 1L, Long::sum);
+        }
+        log(elemCounters);
+        for (int i = 0; i < cycles; i++) {
+            final Set<String> keys = new HashSet<>(pairCounters.keySet());
+            final Map<String, Long> pairCounters2 = new HashMap<>();
+            for (final String k : keys) {
+                final String elem = rules.get(k);
+                final Long count = pairCounters.get(k);
+                elemCounters.merge(elem.charAt(0), count, Long::sum);
+                pairCounters2.merge(k.substring(0, 1) + elem, count, Long::sum);
+                pairCounters2.merge(elem + k.substring(1), count, Long::sum);
+            }
+            pairCounters = pairCounters2;
+            log(pairCounters);
+            log(elemCounters);
+        }
+        final LongSummaryStatistics summary = elemCounters.values().stream()
+                .collect(summarizingLong(Long::valueOf));
+        final long ans = summary.getMax() - summary.getMin();
+        log(ans);
+        return ans;
+    }
+    
     @Override
-    public Integer solvePart2() {
-        return 0;
+    public Long solvePart1() {
+        final long ans = solve(10);
+        final long ansBis = solveBis(10);
+        assert ans == ansBis;
+        return ansBis;
+    }
+    
+    @Override
+    public Long solvePart2() {
+        return solveBis(40);
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_14.createDebug(TEST).solvePart1() == 1588;
-        assert AoC2021_14.create(TEST).solvePart2() == 0;
+        assert AoC2021_14.createDebug(TEST).solvePart2() == 2_188_189_693_529L;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 14);
         puzzle.check(
