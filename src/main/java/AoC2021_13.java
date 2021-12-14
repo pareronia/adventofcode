@@ -61,13 +61,10 @@ public class AoC2021_13 extends AoCBase {
     }
     
     private List<String> draw(final Set<Position> positions, final char fill, final char empty) {
-        Position max = Position.of(Integer.MIN_VALUE, Integer.MIN_VALUE);
-        for (final Position position : positions) {
-            max = Position.of(Math.max(max.getX(), position.getX()),
-                              Math.max(max.getY(), position.getY()));
-        }
-        final int width = max.getX() + 2;
-        return IntStream.rangeClosed(0, max.getY()).mapToObj(
+        final int maxX = positions.stream().mapToInt(Position::getX).max().orElseThrow();
+        final int maxY = positions.stream().mapToInt(Position::getY).max().orElseThrow();
+        final int width = maxX + 2;
+        return IntStream.rangeClosed(0, maxY).mapToObj(
                 y -> IntStream.range(0, width).mapToObj(
                         x -> positions.contains(Position.of(x, y)) ? fill : empty)
                         .collect(toAString()))
