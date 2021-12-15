@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.IntGrid;
@@ -21,7 +22,7 @@ public class AoC2021_15 extends AoCBase {
 
     private AoC2021_15(final List<String> input, final boolean debug) {
         super(debug);
-        grid = IntGrid.from(input);
+        this.grid = IntGrid.from(input);
     }
     
     public static final AoC2021_15 create(final List<String> input) {
@@ -32,35 +33,31 @@ public class AoC2021_15 extends AoCBase {
         return new AoC2021_15(input, true);
     }
     
-    private Stream<Cell> findNeighbours(final Cell c) {
-        return Headings.CAPITAL.stream()
-            .filter(n -> c.getRow() + n.getX() >= 0)
-            .filter(n -> c.getRow() + n.getX() < this.grid.getHeight())
-            .filter(n -> c.getCol() + n.getY() >= 0)
-            .filter(n -> c.getCol() + n.getY() < this.grid.getWidth())
-            .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
-    }
-    
-    private int bfs(final Cell start, final Cell end) {
+    private int findLeastRisk(
+            final Cell start,
+            final Cell end,
+            final Function<Cell, Integer> getRisk,
+            final Function<Cell, Stream<Cell>> findNeighbours
+        ) {
         final PriorityQueue<State> q = new PriorityQueue<>();
-        final Set<Cell> seen = new HashSet<>();
-        final Map<Cell, Integer> risks = new HashMap<>();
-        risks.put(start, 0);
-        seen.add(start);
         q.add(new State(start, 0));
+        final Set<Cell> seen = new HashSet<>();
+        seen.add(start);
+        final Map<Cell, Integer> best = new HashMap<>();
+        best.put(start, 0);
         while (!q.isEmpty()) {
             final State state = q.poll();
-            final Cell c = state.getCell();
-            if (c.equals(end)) {
+            if (state.getCell().equals(end)) {
                 return state.getRisk();
             }
-            seen.add(c);
-            findNeighbours(c)
+            seen.add(state.getCell());
+            final int cTotal = best.getOrDefault(state.getCell(), Integer.MAX_VALUE);
+            findNeighbours.apply(state.getCell())
                 .filter(n -> !seen.contains(n))
                 .forEach(n -> {
-                    final int newRisk = state.getRisk() + this.grid.getValue(n);
-                    final int risk = risks.getOrDefault(n, Integer.MAX_VALUE);
-                    if (newRisk < risk) {
+                    final int newRisk = cTotal + getRisk.apply(n);
+                    if (newRisk < best.getOrDefault(n, Integer.MAX_VALUE)) {
+                        best.put(n, newRisk);
                         q.add(new State(n, newRisk));
                     }
             });
@@ -79,20 +76,64 @@ public class AoC2021_15 extends AoCBase {
             return Integer.compare(this.risk, other.risk);
         }
     }
+    
+    private int getRisk1(final Cell cell) {
+        return this.grid.getValue(cell);
+    }
+    
+    private Stream<Cell> findNeighbours1(final Cell c) {
+        return Headings.CAPITAL.stream()
+            .filter(n -> c.getRow() + n.getX() >= 0)
+            .filter(n -> c.getRow() + n.getX() < this.grid.getHeight())
+            .filter(n -> c.getCol() + n.getY() >= 0)
+            .filter(n -> c.getCol() + n.getY() < this.grid.getWidth())
+            .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
+    }
 
     @Override
     public Integer solvePart1() {
-        return bfs(Cell.at(0, 0), Cell.at(this.grid.getHeight() - 1, this.grid.getWidth() - 1));
+        final Cell end = Cell.at(this.grid.getHeight() - 1, this.grid.getWidth() - 1);
+        return findLeastRisk(Cell.at(0, 0), end, this::getRisk1, this::findNeighbours1);
     }
     
+    private int getRisk2(final Cell cell) {
+        final int factorRow = cell.getRow() / this.grid.getHeight();
+        final int factorCol = cell.getCol() / this.grid.getWidth();
+        final int value = this.grid.getValue(
+                Cell.at(cell.getRow() - factorRow * this.grid.getHeight(),
+                        cell.getCol() - factorCol * this.grid.getWidth()));
+        final int newValue = value + factorCol + factorRow;
+        if (newValue > 9) {
+            return newValue - 9;
+        }
+        return newValue;
+    }
+    
+    private Stream<Cell> findNeighbours2(final Cell c) {
+        return Headings.CAPITAL.stream()
+            .filter(n -> c.getRow() + n.getX() >= 0)
+            .filter(n -> c.getRow() + n.getX() < 5 * this.grid.getHeight())
+            .filter(n -> c.getCol() + n.getY() >= 0)
+            .filter(n -> c.getCol() + n.getY() < 5 * this.grid.getWidth())
+            .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
+    }
+
     @Override
-    public Long solvePart2() {
-        return null;
+    public Integer solvePart2() {
+        final Cell end = Cell.at(5 * this.grid.getHeight() - 1, 5 * this.grid.getWidth() - 1);
+        return findLeastRisk(Cell.at(0, 0), end, this::getRisk2, this::findNeighbours2);
     }
 
     public static void main(final String[] args) throws Exception {
+        assert AoC2021_15.create(TEST).getRisk1(Cell.at(1, 1)) == 3;
+        assert AoC2021_15.create(TEST).getRisk2(Cell.at(1, 1)) == 3;
+        assert AoC2021_15.create(TEST).getRisk2(Cell.at(11, 1)) == 4;
+        assert AoC2021_15.create(TEST).getRisk2(Cell.at(1, 2)) == 8;
+        assert AoC2021_15.create(TEST).getRisk2(Cell.at(1, 22)) == 1;
+        assert AoC2021_15.create(TEST).getRisk2(Cell.at(1, 32)) == 2;
+        assert AoC2021_15.create(TEST).getRisk2(Cell.at(11, 1)) == 4;
         assert AoC2021_15.create(TEST).solvePart1() == 40;
-        assert AoC2021_15.create(TEST).solvePart2() == null;
+        assert AoC2021_15.create(TEST).solvePart2() == 315;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 15);
         puzzle.check(
