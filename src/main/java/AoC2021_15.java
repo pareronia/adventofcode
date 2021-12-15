@@ -1,8 +1,14 @@
+import static com.github.pareronia.aoc.Utils.toAString;
+import static java.util.stream.Collectors.toSet;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aoc.IntGrid.Cell;
@@ -30,15 +36,27 @@ public class AoC2021_15 extends AoCBase {
         return new AoC2021_15(input, true);
     }
     
-    private int findLeastRisk(final Cell start, final Cell end, final int tiles) {
+    private Stream<Cell> findLeastRiskPath(final int tiles) {
+        final Cell start = Cell.at(0,0);
+        final Cell end = Cell.at(
+                tiles * this.grid.getHeight() - 1,
+                tiles * this.grid.getWidth() - 1);
         final PriorityQueue<State> q = new PriorityQueue<>();
         q.add(new State(start, 0));
         final Map<Cell, Integer> best = new HashMap<>();
         best.put(start, 0);
+        final Map<Cell, Cell> parent = new HashMap<>();
         while (!q.isEmpty()) {
             final State state = q.poll();
             if (state.getCell().equals(end)) {
-                return state.getRisk();
+                final Builder<Cell> builder = Stream.builder();
+                builder.add(end);
+                Cell curr = end;
+                while (parent.keySet().contains(curr)) {
+                    curr = parent.get(curr);
+                    builder.add(curr);
+                }
+                return builder.build();
             }
             final int cTotal = best.getOrDefault(state.getCell(), Integer.MAX_VALUE);
             findNeighbours(state.getCell(), tiles)
@@ -46,6 +64,7 @@ public class AoC2021_15 extends AoCBase {
                     final int newRisk = cTotal + getRisk(n);
                     if (newRisk < best.getOrDefault(n, Integer.MAX_VALUE)) {
                         best.put(n, newRisk);
+                        parent.put(n, state.getCell());
                         q.add(new State(n, newRisk));
                     }
             });
@@ -87,10 +106,34 @@ public class AoC2021_15 extends AoCBase {
     }
     
     private int solve(final int tiles) {
-        final Cell end = Cell.at(
-                tiles * this.grid.getHeight() - 1,
-                tiles * this.grid.getWidth() - 1);
-        return findLeastRisk(Cell.at(0, 0), end, tiles);
+        return findLeastRiskPath(tiles)
+            .filter(c -> !c.equals(Cell.at(0, 0)))
+            .mapToInt(this::getRisk)
+            .sum();
+    }
+    
+    private void visualize(final int tiles) {
+        final Set<Cell> path = findLeastRiskPath(tiles).collect(toSet());
+        IntStream.range(0, tiles * this.grid.getHeight()).forEach(row -> {
+            final String string = IntStream.range(0, tiles * this.grid.getWidth())
+                .mapToObj(col -> {
+                    if (path.contains(Cell.at(row, col))) {
+                        return '#';
+                    } else {
+                        return '.';
+                    }
+                })
+                .collect(toAString());
+            System.out.println(string);
+        });
+    }
+    
+    public void visualizePart1() {
+        visualize(1);
+    }
+    
+    public void visualizePart2() {
+        visualize(5);
     }
 
     @Override
