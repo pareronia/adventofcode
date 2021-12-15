@@ -3,44 +3,20 @@
 # Advent of Code 2021 Day 9
 #
 
-from math import prod
-from typing import NamedTuple
 from collections.abc import Generator
+from math import prod
 from collections import deque
 from aoc import my_aocd
+from aoc.grid import Cell, IntGrid
 from aoc.common import log
 import aocd
 
 
-class Cell(NamedTuple):
-    row: int
-    col: int
+def _parse(inputs: tuple[str]) -> IntGrid:
+    return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
 
-class Grid(NamedTuple):
-    heights: list[list[int]]
-
-    def get_width(self) -> int:
-        assert len(self.heights) > 0
-        return len(self.heights[0])
-
-    def get_height(self) -> int:
-        return len(self.heights)
-
-    def get_value(self, c: Cell) -> int:
-        return self.heights[c.row][c.col]
-
-    def get_cells(self) -> Generator[Cell]:
-        return (Cell(r, c)
-                for r in range(self.get_height())
-                for c in range(self.get_width()))
-
-
-def _parse(inputs: tuple[str]) -> Grid:
-    return Grid([[int(_) for _ in list(r)] for r in inputs])
-
-
-def _find_neighbours(grid: Grid, c: Cell) -> Generator[Cell]:
+def _find_neighbours(grid: IntGrid, c: Cell) -> Generator[Cell]:
     return (Cell(c.row + dr, c.col + dc)
             for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
             if c.row + dr >= 0
@@ -49,7 +25,7 @@ def _find_neighbours(grid: Grid, c: Cell) -> Generator[Cell]:
             and c.col + dc < grid.get_width())
 
 
-def _find_lows(grid: Grid) -> Generator[Cell]:
+def _find_lows(grid: IntGrid) -> Generator[Cell]:
     for low in (c for c in grid.get_cells()
                 if (all(grid.get_value(c) < grid.get_value(n)
                         for n in _find_neighbours(grid, c)))):
@@ -64,7 +40,7 @@ def part_1(inputs: tuple[str]) -> int:
                 for c in _find_lows(grid)])
 
 
-def _size_of_basin_around_low(grid: Grid, c: Cell) -> int:
+def _size_of_basin_around_low(grid: IntGrid, c: Cell) -> int:
     basin = set[Cell]()
     q = deque[Cell]()
     q.append(c)

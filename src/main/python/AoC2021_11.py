@@ -4,44 +4,10 @@
 #
 
 from collections.abc import Generator
-from typing import NamedTuple
 from aoc import my_aocd
 from aoc.navigation import Headings
+from aoc.grid import Cell, IntGrid
 import aocd
-
-
-class Cell(NamedTuple):
-    row: int
-    col: int
-
-
-# TODO numpy?
-class Grid(NamedTuple):
-    values: list[list[int]]
-
-    def get_width(self) -> int:
-        assert len(self.values) > 0
-        return len(self.values[0])
-
-    def get_height(self) -> int:
-        return len(self.values)
-
-    def size(self) -> int:
-        return self.get_height() * self.get_width()
-
-    def get_value(self, c: Cell) -> int:
-        return self.values[c.row][c.col]
-
-    def set_value(self, c: Cell, value: int) -> None:
-        self.values[c.row][c.col] = value
-
-    def increment(self, c: Cell) -> None:
-        self.values[c.row][c.col] += 1
-
-    def get_cells(self) -> Generator[Cell]:
-        return (Cell(r, c)
-                for r in range(self.get_height())
-                for c in range(self.get_width()))
 
 
 class Flashes():
@@ -57,7 +23,7 @@ class Flashes():
         return self.value
 
 
-def _find_neighbours(grid: Grid, c: Cell) -> Generator[Cell]:
+def _find_neighbours(grid: IntGrid, c: Cell) -> Generator[Cell]:
     return (Cell(c.row + d.x, c.col + d.y)
             for d in Headings.OCTANTS()
             if c.row + d.x >= 0
@@ -66,11 +32,11 @@ def _find_neighbours(grid: Grid, c: Cell) -> Generator[Cell]:
             and c.col + d.y < grid.get_width())
 
 
-def _parse(inputs: tuple[str]) -> Grid:
-    return Grid([[int(_) for _ in list(r)] for r in inputs])
+def _parse(inputs: tuple[str]) -> IntGrid:
+    return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
 
-def _flash(grid: Grid, c: Cell, flashes: Flashes) -> None:
+def _flash(grid: IntGrid, c: Cell, flashes: Flashes) -> None:
     grid.set_value(c, 0)
     flashes.increment()
     for n in _find_neighbours(grid, c):
@@ -81,7 +47,7 @@ def _flash(grid: Grid, c: Cell, flashes: Flashes) -> None:
             _flash(grid, n, flashes)
 
 
-def _cycle(grid: Grid) -> int:
+def _cycle(grid: IntGrid) -> int:
     [grid.increment(c) for c in grid.get_cells()]
     flashes = Flashes()
     [_flash(grid, c, flashes)
