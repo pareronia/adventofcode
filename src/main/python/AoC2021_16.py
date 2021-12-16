@@ -3,6 +3,7 @@
 # Advent of Code 2021 Day 16
 #
 
+from math import prod
 from aoc import my_aocd
 from aoc.common import log
 import aocd
@@ -81,8 +82,6 @@ def _split(bin_data: str, i: int):
 
 def _log_packet(packet):
     log(packet)
-    if packet is None:
-        return
     version, type_id, val, sub_packets = packet
     if type_id == 4:
         log("/".join([str(version), str(type_id), str(val)]))
@@ -92,9 +91,7 @@ def _log_packet(packet):
 
 
 def _sum_versions(packet) -> int:
-    if packet is None:
-        return 0
-    version, type_id, val, sub_packets = packet
+    version, _, _, sub_packets = packet
     return int(version) + sum(_sum_versions(p) for p in sub_packets)
 
 
@@ -109,13 +106,60 @@ def part_1(inputs: tuple[str]) -> int:
     return _sum_versions(packet)
 
 
+def _calc_value(packet) -> int:
+    _, type_id, val, sub_packets = packet
+    if type_id == 0:
+        return sum(int(p[2]) if p[2] is not None else
+                   _calc_value(p) for p in sub_packets)
+    elif type_id == 1:
+        return prod(int(p[2]) if p[2] is not None else
+                    _calc_value(p) for p in sub_packets)
+    elif type_id == 2:
+        return min(int(p[2]) if p[2] is not None else
+                   _calc_value(p) for p in sub_packets)
+    elif type_id == 3:
+        return max(int(p[2]) if p[2] is not None else
+                   _calc_value(p) for p in sub_packets)
+    elif type_id == 5:
+        assert len(sub_packets) == 2
+        values = [int(p[2]) if p[2] is not None else _calc_value(p)
+                  for p in sub_packets]
+        assert len(values) == 2
+        return 1 if values[0] > values[1] else 0
+    elif type_id == 6:
+        assert len(sub_packets) == 2
+        values = [int(p[2]) if p[2] is not None else _calc_value(p)
+                  for p in sub_packets]
+        assert len(values) == 2
+        return 1 if values[0] < values[1] else 0
+    elif type_id == 7:
+        assert len(sub_packets) == 2
+        values = [int(p[2]) if p[2] is not None else _calc_value(p)
+                  for p in sub_packets]
+        assert len(values) == 2
+        return 1 if values[0] == values[1] else 0
+    else:
+        raise ValueError("unexpected type_id")
+
+
 def part_2(inputs: tuple[str]) -> int:
-    return None
+    assert len(inputs) == 1
+    bin_data = _hex2bin(inputs[0])
+    packet, _ = _split(bin_data, 0)
+    return _calc_value(packet)
 
 
 TEST1 = "D2FE28".splitlines()
 TEST2 = "38006F45291200".splitlines()
 TEST3 = "EE00D40C823060".splitlines()
+TEST4 = "C200B40A82".splitlines()
+TEST5 = "04005AC33890".splitlines()
+TEST6 = "880086C3E88112".splitlines()
+TEST7 = "CE00C43D881120".splitlines()
+TEST8 = "D8005AC2A8F0".splitlines()
+TEST9 = "F600BC2D8F".splitlines()
+TEST10 = "9C005AC2F8F0".splitlines()
+TEST11 = "9C0141080250320F1802104A08".splitlines()
 
 
 def main() -> None:
@@ -125,14 +169,21 @@ def main() -> None:
     assert part_1(TEST1) == 6
     assert part_1(TEST2) == 9
     assert part_1(TEST3) == 14
-    assert part_2(TEST1) == 0
+    assert part_2(TEST4) == 3
+    assert part_2(TEST5) == 54
+    assert part_2(TEST6) == 7
+    assert part_2(TEST7) == 9
+    assert part_2(TEST8) == 1
+    assert part_2(TEST9) == 0
+    assert part_2(TEST10) == 0
+    assert part_2(TEST11) == 1
 
     inputs = my_aocd.get_input(puzzle.year, puzzle.day, 1)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    # my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
