@@ -1,5 +1,7 @@
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -61,8 +63,8 @@ public class AoC2021_17 extends AoCBase {
             || position.getY() < this.target_bl.getY();
     }
     
-    private int maxHeight(final List<List<Position>> trajectories) {
-        return trajectories.stream()
+    private int maxHeight(final Map<Vector, List<Position>> trajectories) {
+        return trajectories.values().stream()
                 .flatMap(List::stream)
                 .mapToInt(Position::getY)
                 .max().orElseThrow();
@@ -84,32 +86,37 @@ public class AoC2021_17 extends AoCBase {
             }
         }
     }
-    
-    @Override
-    public Integer solvePart1() {
-        final List<List<Position>> hits = new ArrayList<>();
-        for (int y = 1000; y >= -1000; y--) {
-            for (int x = 1; x <= 1000; x++) {
+
+    private Map<Vector, List<Position>> findHits() {
+        final int max = 200;
+        final Map<Vector, List<Position>> hits = new HashMap<>();
+        for (int y = max; y >= -max; y--) {
+            for (int x = 1; x <= max; x++) {
                 final List<Position> trajectory = new ArrayList<>();
                 final Vector velocity = Vector.of(x, y);
                 if (shoot(velocity, p -> {
                     trajectory.add(p);
                 })) {
-                    hits.add(trajectory);
+                    hits.put(velocity, trajectory);
                 }
             }
         }
-        return maxHeight(hits);
+        return hits;
+    }
+    
+    @Override
+    public Integer solvePart1() {
+        return maxHeight(findHits());
     }
     
     @Override
     public Integer solvePart2() {
-        return null;
+        return findHits().size();
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_17.createDebug(TEST).solvePart1() == 45;
-        assert AoC2021_17.create(TEST).solvePart2() == null;
+        assert AoC2021_17.create(TEST).solvePart1() == 45;
+        assert AoC2021_17.create(TEST).solvePart2() == 112;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 17);
         puzzle.check(
