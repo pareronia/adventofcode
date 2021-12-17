@@ -88,7 +88,7 @@ public class AoC2021_17 extends AoCBase {
     }
 
     private Map<Vector, List<Position>> findHits() {
-        final int max = 200;
+        final int max = 300;
         final Map<Vector, List<Position>> hits = new HashMap<>();
         for (int y = max; y >= -max; y--) {
             for (int x = 1; x <= max; x++) {
