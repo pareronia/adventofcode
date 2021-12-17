@@ -3,85 +3,73 @@
 # Advent of Code 2021 Day 15
 #
 
-from typing import NamedTuple
 from collections import defaultdict
 from collections.abc import Generator
 from queue import PriorityQueue
 from aoc import my_aocd
-from aoc.grid import Cell, IntGrid
+from aoc.grid import IntGrid
 import aocd
-
-
-class State(NamedTuple):
-    cell: Cell
-    risk: int
-
-    def __eq__(self, other) -> bool:
-        return self.risk == other.risk
-
-    def __lt__(self, other) -> bool:
-        return self.risk < other.risk
 
 
 def _parse(inputs: tuple[str]) -> IntGrid:
     return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
 
-def _get_risk(grid: IntGrid, cell: Cell) -> int:
-    value = grid.get_value(Cell(cell.row % grid.get_height(),
-                                cell.col % grid.get_width())) \
-            + cell.row // grid.get_height() \
-            + cell.col // grid.get_width()
+def _get_risk(grid: IntGrid, row: int, col: int) -> int:
+    value = grid.get_value_at(row % grid.get_height(),
+                              col % grid.get_width()) \
+            + row // grid.get_height() \
+            + col // grid.get_width()
     while value > 9:
         value -= 9
     return value
 
 
-def _find_neighbours(grid: IntGrid, c: Cell, tiles: int) -> Generator[Cell]:
-    return (Cell(c.row + dr, c.col + dc)
+def _find_neighbours(grid: IntGrid, row: int, col: int, tiles: int) \
+        -> Generator[tuple[int, int]]:
+    return ((row + dr, col + dc)
             for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
-            if c.row + dr >= 0
-            and c.row + dr < tiles * grid.get_height()
-            and c.col + dc >= 0
-            and c.col + dc < tiles * grid.get_width())
+            if row + dr >= 0
+            and row + dr < tiles * grid.get_height()
+            and col + dc >= 0
+            and col + dc < tiles * grid.get_width())
 
 
-def _find_least_risk_path(grid: IntGrid, tiles: int) -> list[Cell]:
-    start = Cell(0, 0)
-    end = Cell(tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
-    q = PriorityQueue[State]()
-    q.put(State(start, 0))
+def _find_least_risk_path(grid: IntGrid, tiles: int) -> list[tuple[int, int]]:
+    start = (0, 0)
+    end = (tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
+    q = PriorityQueue()
+    q.put((0, start))
     best = defaultdict(lambda: 1E9)
     best[start] = 0
-    seen = set[Cell]()
-    seen.add(start)
+    seen = {start}
     parent = {}
     while not q.empty():
-        state = q.get()
-        if state.cell == end:
+        risk, cell = q.get()
+        if cell == end:
             path = [end]
             curr = end
             while curr in parent:
                 curr = parent[curr]
                 path.append(curr)
             return path
-        seen.add(state.cell)
-        c_total = best[state.cell]
-        for n in _find_neighbours(grid, state.cell, tiles):
+        seen.add(cell)
+        c_total = best[cell]
+        for n in _find_neighbours(grid, *cell, tiles):
             if n in seen:
                 continue
-            new_risk = c_total + _get_risk(grid, n)
+            new_risk = c_total + _get_risk(grid, *n)
             if new_risk < best[n]:
                 best[n] = new_risk
-                parent[n] = state.cell
-                q.put(State(n, new_risk))
+                parent[n] = cell
+                q.put((new_risk, n))
     raise RuntimeError("Unsolvable")
 
 
 def _solve(grid: IntGrid, tiles: int) -> int:
-    return sum(_get_risk(grid, c)
+    return sum(_get_risk(grid, *c)
                for c in _find_least_risk_path(grid, tiles)
-               if c != Cell(0, 0))
+               if c != (0, 0))
 
 
 def part_1(inputs: tuple[str]) -> int:

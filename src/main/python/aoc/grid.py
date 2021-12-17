@@ -24,6 +24,9 @@ class IntGrid(NamedTuple):
     def get_value(self, c: Cell) -> int:
         return self.values[c.row][c.col]
 
+    def get_value_at(self, row: int, col: int) -> int:
+        return self.values[row][col]
+
     def set_value(self, c: Cell, value: int) -> None:
         self.values[c.row][c.col] = value
 
