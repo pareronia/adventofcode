@@ -8,7 +8,7 @@ from typing import Callable, NamedTuple
 from collections import defaultdict
 from aoc import my_aocd
 import aocd
-from aoc.geometry import Position, Vector
+from aoc.geometry import Position
 
 
 class TargetArea(NamedTuple):
@@ -26,33 +26,32 @@ def _parse(inputs: tuple[str]) -> TargetArea:
     return TargetArea(Position.of(x1, y1), Position.of(x2, y2))
 
 
-def _next(position: Position, velocity: Vector) -> Position:
-    next_position = Position.copy(position)
-    next_position.translate(velocity)
-    return next_position
+def _next(position: tuple[int, int], velocity: tuple[int, int]) \
+        -> tuple[int, int]:
+    return (position[0] + velocity[0], position[1] + velocity[1])
 
 
-def _update_velocity(velocity: Vector) -> Vector:
-    assert velocity.x >= 0
-    return Vector.of(max(0, velocity.x - 1), velocity.y - 1)
+def _update_velocity(velocity: tuple[int, int]) -> tuple[int, int]:
+    assert velocity[0] >= 0
+    return (max(0, velocity[0] - 1), velocity[1] - 1)
 
 
-def _in_target_area(position: Position,
+def _in_target_area(position: tuple[int, int],
                     target_area: TargetArea) -> bool:
-    return position.x >= target_area.bottom_left.x \
-            and position.x <= target_area.upper_right.x \
-            and position.y <= target_area.upper_right.y \
-            and position.y >= target_area.bottom_left.y
+    return position[0] >= target_area.bottom_left.x \
+            and position[0] <= target_area.upper_right.x \
+            and position[1] <= target_area.upper_right.y \
+            and position[1] >= target_area.bottom_left.y
 
 
-def _overshot(position: Position, target_area: TargetArea) -> bool:
-    return position.x > target_area.upper_right.x \
-            or position.y < target_area.bottom_left.y
+def _overshot(position: tuple[int, int], target_area: TargetArea) -> bool:
+    return position[0] > target_area.upper_right.x \
+            or position[1] < target_area.bottom_left.y
 
 
-def _shoot(target_area: TargetArea, initial_velocity: Vector,
+def _shoot(target_area: TargetArea, initial_velocity: tuple[int, int],
            trajectory_consumer: Callable) -> bool:
-    position = Position.of(0, 0)
+    position = (0, 0)
     trajectory_consumer(position)
     velocity = initial_velocity
     while True:
@@ -66,24 +65,24 @@ def _shoot(target_area: TargetArea, initial_velocity: Vector,
 
 
 def _find_hits(target_area: TargetArea, shoot_upwards_only: bool) \
-        -> dict[tuple[int, int], list[Position]]:
-    hits = defaultdict[tuple[int, int], list[Position]](list)
+        -> dict[tuple[int, int], list[tuple[int, int]]]:
+    hits = defaultdict[tuple[int, int], list[tuple[int, int]]](list)
     min_y = 0 if shoot_upwards_only else target_area.bottom_left.y
     for y in range(300, min_y - 1, -1):
         for x in range(1, target_area.upper_right.x + 1):
-            trajectory = list[Position]()
-            velocity = Vector.of(x, y)
+            trajectory = list[tuple[int, int]]()
+            velocity = (x, y)
             if _shoot(target_area, velocity, trajectory.append):
-                hits[(velocity.x, velocity.y)] = trajectory
+                hits[velocity] = trajectory
     return hits
 
 
 def part_1(inputs: tuple[str]) -> int:
     target_area = _parse(inputs)
     hits = _find_hits(target_area, True)
-    return max(p.y
+    return max(y
                for trajectory in hits.values()
-               for p in trajectory)
+               for x, y in trajectory)
 
 
 def part_2(inputs: tuple[str]) -> int:
