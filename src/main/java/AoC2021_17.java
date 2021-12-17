@@ -88,10 +88,9 @@ public class AoC2021_17 extends AoCBase {
     }
 
     private Map<Vector, List<Position>> findHits() {
-        final int max = 300;
         final Map<Vector, List<Position>> hits = new HashMap<>();
-        for (int y = max; y >= -max; y--) {
-            for (int x = 1; x <= max; x++) {
+        for (int y = 300; y >= this.target_bl.getY(); y--) {
+            for (int x = 1; x <= this.target_ur.getX(); x++) {
                 final List<Position> trajectory = new ArrayList<>();
                 final Vector velocity = Vector.of(x, y);
                 if (shoot(velocity, p -> {
