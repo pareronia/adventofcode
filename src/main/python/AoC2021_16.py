@@ -18,11 +18,10 @@ def _bin2dec(bin_data: str) -> int:
     return int(bin_data, 2)
 
 
-def _split_literal(bin_data: str, i: int):
+def _split_literal(bin_data: str, i: int) -> tuple[int, int]:
     log("literal")
     val = ""
     while True:
-        # breakpoint()
         proceed = bin_data[i]
         val += bin_data[i+1:i+5]
         i += 5
@@ -32,15 +31,15 @@ def _split_literal(bin_data: str, i: int):
     return val, i
 
 
-def _split_operator(bin_data: str, i):
+def _split_operator(bin_data: str, i) -> tuple[list, int]:
     log("operator")
     length_type_id = bin_data[i]
     i += 1
+    sub_packets = []
     if length_type_id == '0':
         size = _bin2dec(bin_data[i:i+15])
         log(f"size: {size}")
         i += 15
-        sub_packets = []
         cnt = 0
         while True:
             sub_packet, ii = _split(bin_data, i)
@@ -51,19 +50,19 @@ def _split_operator(bin_data: str, i):
                 sub_packets.append(sub_packet)
             if cnt == size:
                 break
-        return (sub_packets, i)
-    else:
+    elif length_type_id == '1':
         cnt = _bin2dec(bin_data[i:i+11])
         log(f"count: {cnt}")
         i += 11
-        sub_packets = []
         for j in range(cnt):
             sub_packet, i = _split(bin_data, i)
             sub_packets.append(sub_packet)
-        return (sub_packets, i)
+    else:
+        raise ValueError("unexpected length_type_id")
+    return (sub_packets, i)
 
 
-def _split(bin_data: str, i: int):
+def _split(bin_data: str, i: int) -> tuple[int, int, int, list]:
     tail = len(bin_data) - i
     if tail < 8:
         return (None, i + tail)
@@ -80,17 +79,16 @@ def _split(bin_data: str, i: int):
         return ((version, type_id, None, operator_packets), i)
 
 
-def _log_packet(packet):
+def _log_packet(packet: tuple[int, int, int, list]) -> None:
     log(packet)
     version, type_id, val, sub_packets = packet
     if type_id == 4:
         log("/".join([str(version), str(type_id), str(val)]))
     else:
-        for sub_packet in sub_packets:
-            _log_packet(sub_packet)
+        [_log_packet(p) for p in sub_packets]
 
 
-def _sum_versions(packet) -> int:
+def _sum_versions(packet: tuple[int, int, int, list]) -> int:
     version, _, _, sub_packets = packet
     return int(version) + sum(_sum_versions(p) for p in sub_packets)
 
@@ -106,38 +104,26 @@ def part_1(inputs: tuple[str]) -> int:
     return _sum_versions(packet)
 
 
-def _calc_value(packet) -> int:
-    _, type_id, val, sub_packets = packet
+def _calc_value(packet: tuple[int, int, int, list]) -> int:
+    _, type_id, _, sub_packets = packet
+    values = [p[2] if p[2] else _calc_value(p) for p in sub_packets]
     if type_id == 0:
-        return sum(int(p[2]) if p[2] is not None else
-                   _calc_value(p) for p in sub_packets)
+        return sum(values)
     elif type_id == 1:
-        return prod(int(p[2]) if p[2] is not None else
-                    _calc_value(p) for p in sub_packets)
+        return prod(values)
     elif type_id == 2:
-        return min(int(p[2]) if p[2] is not None else
-                   _calc_value(p) for p in sub_packets)
+        return min(values)
     elif type_id == 3:
-        return max(int(p[2]) if p[2] is not None else
-                   _calc_value(p) for p in sub_packets)
+        return max(values)
     elif type_id == 5:
-        assert len(sub_packets) == 2
-        values = [int(p[2]) if p[2] is not None else _calc_value(p)
-                  for p in sub_packets]
         assert len(values) == 2
-        return 1 if values[0] > values[1] else 0
+        return values[0] > values[1]
     elif type_id == 6:
-        assert len(sub_packets) == 2
-        values = [int(p[2]) if p[2] is not None else _calc_value(p)
-                  for p in sub_packets]
         assert len(values) == 2
-        return 1 if values[0] < values[1] else 0
+        return values[0] < values[1]
     elif type_id == 7:
-        assert len(sub_packets) == 2
-        values = [int(p[2]) if p[2] is not None else _calc_value(p)
-                  for p in sub_packets]
         assert len(values) == 2
-        return 1 if values[0] == values[1] else 0
+        return values[0] == values[1]
     else:
         raise ValueError("unexpected type_id")
 
@@ -183,7 +169,7 @@ def main() -> None:
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
-    # my_aocd.check_results(puzzle, result1, result2)
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
