@@ -42,13 +42,8 @@ public class AoC2021_17 extends AoCBase {
     }
     
     private Vector updateVelocity(final Vector velocity) {
-        int x = velocity.getX();
-        if (velocity.getX() < 0) {
-            x++;
-        } else if (velocity.getX() > 0) {
-            x--;
-        }
-        return Vector.of(x, velocity.getY() - 1);
+        assert velocity.getX() >= 0;
+        return Vector.of(Math.max(0, velocity.getX() - 1), velocity.getY() - 1);
     }
     
     private boolean inTargetArea(final Position position) {
@@ -61,13 +56,6 @@ public class AoC2021_17 extends AoCBase {
     private boolean overshot(final Position position) {
         return position.getX() > this.target_ur.getX()
             || position.getY() < this.target_bl.getY();
-    }
-    
-    private int maxHeight(final Map<Vector, List<Position>> trajectories) {
-        return trajectories.values().stream()
-                .flatMap(List::stream)
-                .mapToInt(Position::getY)
-                .max().orElseThrow();
     }
     
     private boolean shoot(final Vector initialVelocity, final Consumer<Position> trajectoryConsumer) {
@@ -87,9 +75,10 @@ public class AoC2021_17 extends AoCBase {
         }
     }
 
-    private Map<Vector, List<Position>> findHits() {
+    private Map<Vector, List<Position>> findHits(final boolean shootUpwardsOnly) {
         final Map<Vector, List<Position>> hits = new HashMap<>();
-        for (int y = 300; y >= this.target_bl.getY(); y--) {
+        final Integer minY = shootUpwardsOnly ? 0 : this.target_bl.getY();
+        for (int y = 300; y >= minY; y--) {
             for (int x = 1; x <= this.target_ur.getX(); x++) {
                 final List<Position> trajectory = new ArrayList<>();
                 final Vector velocity = Vector.of(x, y);
@@ -105,12 +94,15 @@ public class AoC2021_17 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        return maxHeight(findHits());
+        return findHits(true).values().stream()
+            .flatMap(List::stream)
+            .mapToInt(Position::getY)
+            .max().orElseThrow();
     }
     
     @Override
     public Integer solvePart2() {
-        return findHits().size();
+        return findHits(false).size();
     }
 
     public static void main(final String[] args) throws Exception {
