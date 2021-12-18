@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -20,9 +21,11 @@ import lombok.RequiredArgsConstructor;
 public class AoC2021_18 extends AoCBase {
     
     private final List<Number> numbers;
+    private final List<String> inputs;
     
     private AoC2021_18(final List<String> input, final boolean debug) {
         super(debug);
+        this.inputs = input;
         Reducer.debug = debug;
         this.numbers = input.stream()
             .map(Parser::parse)
@@ -370,15 +373,18 @@ public class AoC2021_18 extends AoCBase {
             return 3 * magnitude(pair.left) + 2 * magnitude(pair.right);
         }
     }
-    
-    private Number solve1() {
-        Number sum = this.numbers.get(0);
-        for (int i = 1; i< this.numbers.size(); i ++) {
-            sum = Adder.add(List.of(sum, this.numbers.get(i)));
+    private Number solve(final List<Number> numbers) {
+        Number sum = numbers.get(0);
+        for (int i = 1; i< numbers.size(); i++) {
+            sum = Adder.add(List.of(sum, numbers.get(i)));
             log("after addition:" + sum);
             Reducer.reduce(sum);
         }
         return sum;
+    }
+    
+    private Number solve1() {
+        return solve(this.numbers);
     }
     
     @Override
@@ -389,15 +395,31 @@ public class AoC2021_18 extends AoCBase {
     }
     
     @Override
-    public Integer solvePart2() {
-        return null;
+    public Long solvePart2() {
+        return this.inputs.stream()
+            .flatMap(s1 -> this.inputs.stream()
+                    .filter(s2 -> !s2.equals(s1))
+                    .flatMap(s2 -> {
+                        final Number n1 = Parser.parse(s1);
+                        final Number n2 = Parser.parse(s2);
+                        final Number n3 = Parser.parse(s2);
+                        final Number n4 = Parser.parse(s1);
+                        return Stream.of(List.of(n1, n2), List.of(n3, n4));
+                    }))
+            .peek(this::log)
+            .map(this::solve)
+            .peek(this::log)
+            .map(Magnitude::magnitude)
+            .peek(this::log)
+            .mapToLong(Long::valueOf)
+            .max().orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_18.create(List.of("[1,1]", "[2,2]", "[3,3]", "[4,4]", "[5,5]", "[6,6]")).solve1().toString().equals("[[[[5,0],[7,4]],[5,5]],[6,6]]");
         assert AoC2021_18.create(TEST1).solve1().toString().equals("[[[[8,7],[7,7]],[[8,6],[7,7]]],[[[0,7],[6,6]],[8,7]]]");
         assert AoC2021_18.create(TEST2).solvePart1() == 4_140L;
-//        assert AoC2021_18.create(TEST2).solvePart2() == null;
+        assert AoC2021_18.create(TEST2).solvePart2() == 3_993L;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 18);
         puzzle.check(
