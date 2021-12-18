@@ -24,7 +24,7 @@ public class AoC2021_18_ExploderTestCase {
 
     private String explode(final String string) {
         final AoC2021_18.Number number = AoC2021_18.Parser.parse(string);
-        AoC2021_18.Exploder.explode3(number, 0);
+        AoC2021_18.Exploder.explode(number, 0);
         return number.toString();
     }
 }

@@ -1,14 +1,12 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
@@ -16,7 +14,6 @@ import com.github.pareronia.aocd.Puzzle;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 public class AoC2021_18 extends AoCBase {
     
@@ -69,60 +66,7 @@ public class AoC2021_18 extends AoCBase {
     
     static final class Exploder {
         
-        static final class Leveler {
-            public static Map<Integer, List<Number>> level(final Number number) {
-                final Map<Integer, List<Number>> map = new HashMap<>();
-                final Deque<State> q = new ArrayDeque<>();
-                q.addFirst(new State(number, 0));
-                while (!q.isEmpty()) {
-                    final State s = q.pollFirst();
-                    final Number n = s.number;
-                    if (n instanceof Regular) {
-                        continue;
-                    }
-                    map.merge(s.level, new ArrayList<>(List.of(n)), (l1, l2) -> {
-                        l1.addAll(l2);
-                        return l1;
-                    });
-                    if (n instanceof Pair) {
-                        q.add(new State(((Pair) n).getLeft(), s.level + 1));
-                        q.add(new State(((Pair) n).getRight(), s.level + 1));
-                    }
-                }
-                return map;
-            }
-            
-            @RequiredArgsConstructor
-            private static final class State {
-                private final AoC2021_18.Number number;
-                private final int level;
-            }
-        }
-        
-        static final class PreOrderer {
-        
-            public static List<Number> preOrder(final Number number) {
-               final ArrayList<Number> list = new ArrayList<>();
-               doPreOrder(number, list);
-               return list;
-            }
-            
-            private static void doPreOrder(final Number number, final List<Number> list) {
-                if (!(number instanceof Regular)) {
-                    list.add(number);
-                    doPreOrder(((Pair) number).getLeft(), list);
-                    doPreOrder(((Pair) number).getRight(), list);
-                }
-            }
-        }
-        
-        private static boolean isPairOfRegulars(final Number number) {
-            return number instanceof Pair
-                    && ((Pair) number).left instanceof Regular
-                    && ((Pair) number).right instanceof Regular;
-        }
-        
-        public static boolean explode3(final Number number, final int depth) {
+        public static boolean explode(final Number number, final int depth) {
             if (number instanceof Regular) {
                 return false;
             }
@@ -149,111 +93,7 @@ public class AoC2021_18 extends AoCBase {
                 }
                 return true;
             }
-            return explode3(pair.left, depth + 1) || explode3(pair.right, depth + 1);
-        }
-        
-        public static void explode2(final Number number) {
-            final Map<Integer, List<Number>> levels = Leveler.level(number);
-            if (!levels.containsKey(4)) {
-                return;
-            }
-            final List<Number> preOrder = PreOrderer.preOrder(number);
-            final Pair toExplode = (Pair) levels.get(4).get(0);
-            int idx = preOrder.indexOf(toExplode);
-            Regular prev = null;
-            Pair parent = null;
-            while (--idx >= 0) {
-                final Pair temp = (Pair) preOrder.get(idx);
-                if (prev == null && levels.get(4).contains(temp)) {
-                    if (temp.right instanceof Regular) {
-                        prev = (Regular) temp.right;
-                    } else if (temp.left instanceof Regular) {
-                        prev = (Regular) temp.left;
-                    }
-                } else if (levels.get(3).contains(temp)) {
-                    parent = temp;
-                }
-            }
-            idx = preOrder.indexOf(toExplode);
-            Regular next = null;
-            while (++idx < preOrder.size()) {
-                final Pair temp = (Pair) preOrder.get(idx);
-                if (next == null && levels.get(4).contains(temp)) {
-                    if (temp.left instanceof Regular) {
-                        next = (Regular) temp.left;
-                    } else if (temp.right instanceof Regular) {
-                        next = (Regular) temp.right;
-                    }
-                }
-            }
-            assert parent != null;
-//            assert !(prev == null && next == null); //?
-            if (prev != null) {
-                prev.value += ((Regular) toExplode.left).value;
-            }
-            if (next != null) {
-                next.value += ((Regular) toExplode.right).value;
-            }
-            if (parent.left.equals(toExplode)) {
-                parent.left = new Regular(0);
-            } else if (parent.right.equals(toExplode)) {
-                parent.right = new Regular(0);
-            } else {
-                throw new IllegalStateException();
-            }
-        }
-        
-        public static Pair explode(final Number number, final int level) {
-            if (level == 3 && number instanceof Pair) {
-                final Pair pair = (Pair) number;
-                final Pair up;
-                if (isPairOfRegulars(pair.left)) {
-                    final int addLeft = ((Regular) ((Pair) pair.left).left).value;
-                    final int addRight = ((Regular) ((Pair) pair.left).right).value;
-                    up = new Pair(new Regular(addLeft), new Regular(addRight));
-                    if (pair.right instanceof Regular) {
-                        final Regular right = (Regular) pair.right;
-                        pair.right = new Regular(right.value + addRight);
-                        up.right = null;
-                    }
-                    pair.left = new Regular(0);
-                } else if (isPairOfRegulars(pair.right)) {
-                    final int addLeft = ((Regular) ((Pair) pair.right).left).value;
-                    final int addRight = ((Regular) ((Pair) pair.right).right).value;
-                    up = new Pair(new Regular(addLeft), new Regular(addRight));
-                    if (pair.left instanceof Regular) {
-                        final Regular left = (Regular) pair.left;
-                        pair.left = new Regular(left.value + addLeft);
-                        up.left = null;
-                    }
-                    pair.right = new Regular(0);
-                } else {
-                    throw new IllegalArgumentException();
-                }
-                
-                return up;
-            } else if (number instanceof Pair) {
-                final Pair pair = ((Pair) number);
-                Pair up = explode(pair.left, level + 1);
-                if (up.left == null && up.right == null) {
-                    up = explode(pair.right, level + 1);
-                }
-                final Regular addLeft = (Regular) up.left;
-                final Regular addRight = (Regular) up.right;
-                if (pair.left instanceof Regular && addLeft != null) {
-                    final Regular left = (Regular) pair.left;
-                    pair.left = new Regular(left.value + addLeft.value);
-                    up.left = null;
-                }
-                if (pair.right instanceof Regular && addRight != null) {
-                    final Regular right = (Regular) pair.right;
-                    pair.right = new Regular(right.value + addRight.value);
-                    up.right = null;
-                }
-                return up;
-            } else {
-                return new Pair(null, null);
-            }
+            return explode(pair.left, depth + 1) || explode(pair.right, depth + 1);
         }
     }
     
@@ -266,17 +106,11 @@ public class AoC2021_18 extends AoCBase {
             if (!split.isEmpty()) {
                 return;
             }
-//            seen.add(number);
             if (number instanceof Pair) {
                 final Pair pair = (Pair) number;
                 doSplit(pair.left, seen, split);
                 doSplit(pair.right, seen, split);
                 return;
-//            for (final Number child : List.of(pair.left, pair.right)) {
-//                if (child instanceof Pair /*&& !seen.contains(child)*/) {
-//                    doSplit(child, seen, split);
-//                }
-//            }
             }
             final Regular regular = (Regular) number;
             final int value = regular.value;
@@ -293,65 +127,39 @@ public class AoC2021_18 extends AoCBase {
                 }
                 split.add(pair);
             }
-//
-//            if (pair.left instanceof Regular) {
-//                final int value = ((Regular) pair.left).value;
-//                if (value >= 10) {
-//                    pair.left = Pair.create(new Regular(value / 2), new Regular(value - value / 2));
-//                    pair.left.parent = pair;
-//                    split.add(number);
-//                    return;
-//                }
-//            }
-//            if (pair.right instanceof Regular) {
-//                final int value = ((Regular) pair.right).value;
-//                if (value >= 10) {
-//                    pair.right = Pair.create(new Regular(value / 2), new Regular(value - value / 2));
-//                    pair.right.parent = pair;
-//                    split.add(number);
-//                    return;
-//                }
-//            }
         }
     }
     
     static final class Reducer {
-        private static Exploder exploder = new Exploder();
-        private static Splitter splitter = new Splitter();
         static boolean debug;
         
-        private static void log(final Object obj) {
+        private static void log(final Supplier<Object> supplier) {
             if (!debug) {
                 return;
             }
-            System.out.println(obj);
+            System.out.println(supplier.get());
         }
         
-        @SuppressWarnings("static-access")
-        static void reduce(final Number number, final Exploder exploder, final Splitter splitter) {
+        static void reduce(final Number number) {
             boolean changed = true;
-            log("Reducing: " + number);
+            log(() -> "Reducing: " + number);
             while (changed) {
                 final String beforeEx = number.toString();
-                exploder.explode3(number, 0);
+                Exploder.explode(number, 0);
                 final String afterEx = number.toString();
                 changed = !beforeEx.equals(afterEx);
                 if (changed) {
-                    log("after explode: " + afterEx);
+                    log(() -> "after explode: " + afterEx);
                     continue;
                 }
                 final String beforeSp = number.toString();
-                splitter.split(number);
+                Splitter.split(number);
                 final String afterSp = number.toString();
                 changed = !beforeSp.equals(afterSp);
                 if (changed) {
-                    log("after split: " + afterSp);
+                    log(() -> "after split: " + afterSp);
                 }
             }
-        }
-        
-        public static void reduce(final Number number) {
-            reduce(number, exploder, splitter);
         }
     }
     
@@ -377,7 +185,6 @@ public class AoC2021_18 extends AoCBase {
         Number sum = numbers.get(0);
         for (int i = 1; i< numbers.size(); i++) {
             sum = Adder.add(List.of(sum, numbers.get(i)));
-            log("after addition:" + sum);
             Reducer.reduce(sum);
         }
         return sum;

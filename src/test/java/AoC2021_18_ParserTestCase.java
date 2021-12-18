@@ -62,10 +62,6 @@ public class AoC2021_18_ParserTestCase {
         assertThat(p.rightAdjacent().getValue(), is(1));
     }
     
-    private AoC2021_18.Pair getLeft(final AoC2021_18.Pair pair) {
-        return (AoC2021_18.Pair) pair.getLeft();
-    }
-
     private AoC2021_18.Pair getRight(final AoC2021_18.Pair pair) {
         return (AoC2021_18.Pair) pair.getRight();
     }
