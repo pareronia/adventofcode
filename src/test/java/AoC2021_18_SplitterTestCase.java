@@ -39,10 +39,6 @@ public class AoC2021_18_SplitterTestCase {
                         new AoC2021_18.Regular(20));
         assert number.toString().equals("[[9,10],20]");
         assertThat(split(number), is("[[9,[5,5]],20]"));
-                
-                
-                
-                
     }
     
     private String split(final AoC2021_18.Number number) {

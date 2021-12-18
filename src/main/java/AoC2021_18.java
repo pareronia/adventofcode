@@ -2,10 +2,8 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -17,17 +15,12 @@ import lombok.Getter;
 
 public class AoC2021_18 extends AoCBase {
     
-    private final List<Number> numbers;
     private final List<String> inputs;
     
     private AoC2021_18(final List<String> input, final boolean debug) {
         super(debug);
         this.inputs = input;
         Reducer.debug = debug;
-        this.numbers = input.stream()
-            .map(Parser::parse)
-            .collect(toList());
-        numbers.forEach(this::log);
     }
     
     static final class Parser {
@@ -98,35 +91,32 @@ public class AoC2021_18 extends AoCBase {
     }
     
     static final class Splitter {
-        public static void split(final Number number) {
-           doSplit(number, new HashSet<>(), new HashSet<>());
+        public static boolean split(final Number number) {
+           return doSplit(number);
         }
         
-        private static void doSplit(final Number number, final Set<Number> seen, final Set<Number> split) {
-            if (!split.isEmpty()) {
-                return;
-            }
-            if (number instanceof Pair) {
-                final Pair pair = (Pair) number;
-                doSplit(pair.left, seen, split);
-                doSplit(pair.right, seen, split);
-                return;
-            }
-            final Regular regular = (Regular) number;
-            final int value = regular.value;
-            if (value >= 10) {
-                final Pair pair = Pair.create(new Regular(value / 2), new Regular(value - value / 2));
-                pair.parent = regular.parent;
-                final Pair parent = (Pair) regular.parent;
-                if (regular.equals(parent.left)) {
-                    parent.left = pair;
-                } else if (regular.equals(parent.right)) {
-                    parent.right = pair;
+        private static boolean doSplit(final Number number) {
+            if (number instanceof Regular) {
+                final Regular regular = (Regular) number;
+                final int value = regular.value;
+                if (value >= 10) {
+                    final Pair pair = Pair.create(new Regular(value / 2), new Regular(value - value / 2));
+                    pair.parent = regular.parent;
+                    final Pair parent = (Pair) regular.parent;
+                    if (regular.equals(parent.left)) {
+                        parent.left = pair;
+                    } else if (regular.equals(parent.right)) {
+                        parent.right = pair;
+                    } else {
+                        throw new IllegalStateException();
+                    }
+                    return true;
                 } else {
-                    throw new IllegalStateException();
+                    return false;
                 }
-                split.add(pair);
             }
+            final Pair pair = (Pair) number;
+            return doSplit(pair.left) || doSplit(pair.right);
         }
     }
     
@@ -141,33 +131,25 @@ public class AoC2021_18 extends AoCBase {
         }
         
         static void reduce(final Number number) {
-            boolean changed = true;
             log(() -> "Reducing: " + number);
-            while (changed) {
-                final String beforeEx = number.toString();
-                Exploder.explode(number, 0);
-                final String afterEx = number.toString();
-                changed = !beforeEx.equals(afterEx);
-                if (changed) {
-                    log(() -> "after explode: " + afterEx);
+            while (true) {
+                if (Exploder.explode(number, 0)) {
+                    log(() -> "after explode: " + number);
                     continue;
                 }
-                final String beforeSp = number.toString();
-                Splitter.split(number);
-                final String afterSp = number.toString();
-                changed = !beforeSp.equals(afterSp);
-                if (changed) {
-                    log(() -> "after split: " + afterSp);
+                if (Splitter.split(number)) {
+                    log(() -> "after split: " + number);
+                    continue;
                 }
+                break;
             }
         }
     }
     
     static final class Adder {
 
-        public static Number add(final List<Number> numbers) {
-            return numbers.stream()
-                .reduce(Pair::create).orElseThrow();
+        public static Number add(final Number left, final Number right) {
+            return Pair.create(left, right);
         }
     }
     
@@ -181,17 +163,20 @@ public class AoC2021_18 extends AoCBase {
             return 3 * magnitude(pair.left) + 2 * magnitude(pair.right);
         }
     }
+
     private Number solve(final List<Number> numbers) {
         Number sum = numbers.get(0);
         for (int i = 1; i< numbers.size(); i++) {
-            sum = Adder.add(List.of(sum, numbers.get(i)));
+            sum = Adder.add(sum, numbers.get(i));
             Reducer.reduce(sum);
         }
         return sum;
     }
     
     private Number solve1() {
-        return solve(this.numbers);
+        return solve(this.inputs.stream()
+                .map(Parser::parse)
+                .collect(toList()));
     }
     
     @Override
@@ -213,11 +198,8 @@ public class AoC2021_18 extends AoCBase {
                         final Number n4 = Parser.parse(s1);
                         return Stream.of(List.of(n1, n2), List.of(n3, n4));
                     }))
-            .peek(this::log)
             .map(this::solve)
-            .peek(this::log)
             .map(Magnitude::magnitude)
-            .peek(this::log)
             .mapToLong(Long::valueOf)
             .max().orElseThrow();
     }
