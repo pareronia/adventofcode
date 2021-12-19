@@ -56,12 +56,11 @@ public class AoC2021_19 extends AoCBase {
         return new AoC2021_19(input, true);
     }
     
-    @Override
-    public Integer solvePart1() {
-        final List<ScannerData> lockedIn = new ArrayList<>();
+    public Map<ScannerData, Vector3D> solve() {
+        final Map<ScannerData, Vector3D> lockedIn = new HashMap<>();
         final Deque<ScannerData> q = new ArrayDeque<>(List.copyOf(this.scannerData));
         final ScannerData sc0 = q.pop();
-        lockedIn.add(sc0);
+        lockedIn.put(sc0, Vector3D.of(0, 0, 0));
         assert sc0.getId() == 0;
         outer:
         while (!q.isEmpty()) {
@@ -69,28 +68,26 @@ public class AoC2021_19 extends AoCBase {
             final Iterator<List<Position3D>> iterator = new Permutations(sc.beacons).iterator();
             while (iterator.hasNext()) {
                 final List<Position3D> positions = iterator.next();
-                for (final ScannerData li : lockedIn) {
+                for (final ScannerData li : lockedIn.keySet()) {
                     final Optional<Entry<Vector3D, List<Position3D>>> overlap = findOverlap(sc, positions, li);
                     if (overlap.isPresent()) {
                         final Vector3D vector = overlap.get().getKey();
                         log(vector);
-                        lockedIn.add(new ScannerData(
-                                sc.getId(),
-                                positions.stream()
-                                    .map(p -> p.translate(vector))
-                                    .collect(toList())));
+                        lockedIn.put(
+                                new ScannerData(
+                                        sc.getId(),
+                                        positions.stream()
+                                            .map(p -> p.translate(vector))
+                                            .collect(toList())),
+                                vector);
                         continue outer;
                     }
                 }
             }
             q.add(sc);
         }
-        log(lockedIn.stream().map(ScannerData::getId).collect(toList()));
-        final Set<Position3D> beacons = lockedIn.stream()
-            .flatMap(li -> li.getBeacons().stream())
-            .collect(toSet());
-        log(beacons.size());
-        return beacons.size();
+        log(lockedIn.keySet().stream().map(ScannerData::getId).collect(toList()));
+        return lockedIn;
     }
 
     private Optional<Entry<Vector3D,List<Position3D>>> findOverlap(
@@ -118,13 +115,36 @@ public class AoC2021_19 extends AoCBase {
     }
     
     @Override
+    public Integer solvePart1() {
+        final Map<ScannerData, Vector3D> scanners = solve();
+        final Set<Position3D> beacons = scanners.keySet().stream()
+                .flatMap(sc -> sc.beacons.stream())
+                .collect(toSet());
+        log(beacons.size());
+        return beacons.size();
+    }
+ 
+    @Override
     public Integer solvePart2() {
-        return null;
+        final Map<ScannerData, Vector3D> scanners = solve();
+        int max = Integer.MIN_VALUE;
+        for (final Vector3D b1 : scanners.values()) {
+            for (final Vector3D b2 : scanners.values()) {
+                if (b1.equals(b2)) {
+                    continue;
+                }
+                final Position3D p1 = Position3D.of(b1.getX(), b1.getY(), b1.getZ());
+                final Position3D p2 = Position3D.of(b2.getX(), b2.getY(), b2.getZ());
+                max = Math.max(max, p1.manhattanDistance(p2));
+            }
+        }
+        log(max);
+        return max;
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_19.createDebug(TEST).solvePart1() == 79;
-        assert AoC2021_19.create(TEST).solvePart2() == null;
+        assert AoC2021_19.create(TEST).solvePart1() == 79;
+        assert AoC2021_19.create(TEST).solvePart2() == 3621;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 19);
         puzzle.check(

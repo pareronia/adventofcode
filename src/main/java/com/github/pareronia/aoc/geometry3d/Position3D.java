@@ -32,6 +32,12 @@ public class Position3D extends Point3D {
         );
     }
     
+    public Integer manhattanDistance(final Position3D from) {
+        return Math.abs(this.getX() - from.getX())
+                + Math.abs(this.getY() - from.getY())
+                + Math.abs(this.getZ() - from.getZ());
+    }
+    
     @Override
     public String toString() {
         final StringBuilder builder = new StringBuilder();
