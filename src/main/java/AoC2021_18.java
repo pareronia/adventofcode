@@ -194,9 +194,7 @@ public class AoC2021_18 extends AoCBase {
                     .flatMap(s2 -> {
                         final Number n1 = Parser.parse(s1);
                         final Number n2 = Parser.parse(s2);
-                        final Number n3 = Parser.parse(s2);
-                        final Number n4 = Parser.parse(s1);
-                        return Stream.of(List.of(n1, n2), List.of(n3, n4));
+                        return Stream.of(List.of(n1, n2));
                     }))
             .map(this::solve)
             .map(Magnitude::magnitude)
