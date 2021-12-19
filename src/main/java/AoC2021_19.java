@@ -1,5 +1,6 @@
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -12,7 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Set;
+
+import org.eclipse.collections.api.tuple.Pair;
+import org.eclipse.collections.impl.tuple.Tuples;
 
 import com.github.pareronia.aoc.geometry3d.Position3D;
 import com.github.pareronia.aoc.geometry3d.Transformations3D;
@@ -62,84 +65,89 @@ public class AoC2021_19 extends AoCBase {
         final ScannerData sc0 = q.pop();
         lockedIn.put(sc0, Vector3D.of(0, 0, 0));
         assert sc0.getId() == 0;
-        outer:
         while (!q.isEmpty()) {
             final ScannerData sc = q.pop();
-            final Iterator<List<Position3D>> iterator = new Permutations(sc.beacons).iterator();
-            while (iterator.hasNext()) {
-                final List<Position3D> positions = iterator.next();
-                for (final ScannerData li : lockedIn.keySet()) {
-                    final Optional<Entry<Vector3D, List<Position3D>>> overlap = findOverlap(sc, positions, li);
-                    if (overlap.isPresent()) {
-                        final Vector3D vector = overlap.get().getKey();
-                        log(vector);
-                        lockedIn.put(
-                                new ScannerData(
-                                        sc.getId(),
-                                        positions.stream()
-                                            .map(p -> p.translate(vector))
-                                            .collect(toList())),
-                                vector);
-                        continue outer;
-                    }
-                }
+            final Optional<Pair<ScannerData, Vector3D>> overlapping
+                    = locateOverlappingScanner(sc, lockedIn);
+            if (overlapping.isPresent()) {
+                lockedIn.put(overlapping.get().getOne(), overlapping.get().getTwo());
+            } else {
+                q.add(sc);
             }
-            q.add(sc);
         }
         log(lockedIn.keySet().stream().map(ScannerData::getId).collect(toList()));
         return lockedIn;
     }
-
-    private Optional<Entry<Vector3D,List<Position3D>>> findOverlap(
-            final ScannerData sc, final List<Position3D> positions, final ScannerData other) {
-        
-        final Map<Vector3D, List<Position3D>> txmap = new HashMap<>();
-        for (final Position3D b : other.beacons) {
-            for (final Position3D p : positions) {
-                final Vector3D v = Vector3D.from(p, b);
-                txmap.merge(v, new ArrayList<>(List.of(p)), (l1, l2) -> {
-                    l1.addAll(l2);
-                    return l1;
-                });
+    
+    private
+    Optional<Pair<ScannerData, Vector3D>>
+    locateOverlappingScanner(final ScannerData sc,
+                             final Map<ScannerData, Vector3D> lockedIn)
+    {
+        for (final List<Position3D> positions : Transformations.of(sc.beacons)) {
+            for (final ScannerData li : lockedIn.keySet()) {
+                final Optional<Entry<Vector3D, List<Position3D>>> overlap
+                        = findOverlap(sc, positions, li);
+                if (overlap.isPresent()) {
+                    final Vector3D vector = overlap.get().getKey();
+                    log(vector);
+                    final ScannerData overlapping = new ScannerData(
+                            sc.getId(),
+                            Transformations3D.translate(positions, vector));
+                    return Optional.of(Tuples.pair(overlapping, vector));
+                }
             }
         }
-        final List<Entry<Vector3D, List<Position3D>>> overlaptx = txmap.entrySet().stream().filter(e -> e.getValue().size() >= 12).collect(toList());
+        return Optional.empty();
+    }
+
+    private
+    Optional<Entry<Vector3D,List<Position3D>>>
+    findOverlap(final ScannerData sc,
+                final List<Position3D> positions,
+                final ScannerData other)
+    {
+        final List<Entry<Vector3D, List<Position3D>>> overlaptx
+            = other.beacons.stream()
+                .flatMap(b -> positions.stream().map(p -> Tuples.pair(b, p)))
+                .collect(groupingBy(t -> Vector3D.from(t.getTwo(), t.getOne()),
+                                    mapping(t -> t.getTwo(), toList())))
+                .entrySet().stream()
+                    .filter(e -> e.getValue().size() >= 12)
+                    .collect(toList());
         if (overlaptx.size() > 0) {
-            log(String.format("overlaptx between sc%d and sc%d: %d", sc.getId(), other.getId(), overlaptx.size()));
+            log(String.format(
+                    "overlaptx between sc%d and sc%d", sc.getId(), other.getId()));
             assert overlaptx.size() == 1;
             final Entry<Vector3D, List<Position3D>> o = overlaptx.get(0);
             o.getValue().stream().map(p -> p.translate(o.getKey())).forEach(this::log);
             return Optional.of(o);
+        } else {
+            return Optional.empty();
         }
-        return Optional.empty();
     }
     
     @Override
-    public Integer solvePart1() {
+    public Long solvePart1() {
         final Map<ScannerData, Vector3D> scanners = solve();
-        final Set<Position3D> beacons = scanners.keySet().stream()
+        return scanners.keySet().stream()
                 .flatMap(sc -> sc.beacons.stream())
-                .collect(toSet());
-        log(beacons.size());
-        return beacons.size();
+                .distinct()
+                .count();
     }
  
     @Override
     public Integer solvePart2() {
         final Map<ScannerData, Vector3D> scanners = solve();
-        int max = Integer.MIN_VALUE;
-        for (final Vector3D b1 : scanners.values()) {
-            for (final Vector3D b2 : scanners.values()) {
-                if (b1.equals(b2)) {
-                    continue;
-                }
-                final Position3D p1 = Position3D.of(b1.getX(), b1.getY(), b1.getZ());
-                final Position3D p2 = Position3D.of(b2.getX(), b2.getY(), b2.getZ());
-                max = Math.max(max, p1.manhattanDistance(p2));
-            }
-        }
-        log(max);
-        return max;
+        return scanners.values().stream()
+            .flatMap(v1 -> scanners.values().stream()
+                            .map(v2 -> Tuples.pair(v1, v2)))
+            .filter(t -> !t.getOne().equals(t.getTwo()))
+            .map(t -> Position3D.of(0, 0, 0).translate(t.getOne())
+                        .manhattanDistance(
+                                Position3D.of(0, 0, 0).translate(t.getTwo())))
+            .mapToInt(Integer::intValue)
+            .max().orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -292,11 +300,15 @@ public class AoC2021_19 extends AoCBase {
         "30,-46,-14"
     );
     
-    static class Permutations implements Iterable<List<Position3D>> {
+    static class Transformations implements Iterable<List<Position3D>> {
         private final List<Position3D> positions;
 
-        public Permutations(final List<Position3D> positions) {
+        private Transformations(final List<Position3D> positions) {
             this.positions = positions;
+        }
+        
+        public static Transformations of(final List<Position3D> positions) {
+            return new Transformations(positions);
         }
 
         @Override
@@ -312,7 +324,7 @@ public class AoC2021_19 extends AoCBase {
                 @Override
                 public List<Position3D> next() {
                     return Transformations3D.apply(
-                            Permutations.this.positions,
+                            Transformations.this.positions,
                             Transformations3D.ALL_TRANSFORMATIONS.get(i++));
                 }
             };

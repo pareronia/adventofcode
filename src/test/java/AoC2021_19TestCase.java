@@ -14,9 +14,9 @@ import com.github.pareronia.aoc.geometry3d.Position3D;
 public class AoC2021_19TestCase {
 
     @Test
-    public void testPermutations() {
+    public void testTransformations() {
         final List<Position3D> positions = List.of(Position3D.of(-1, 2, -3));
-        final Iterator<List<Position3D>> iterator = new AoC2021_19.Permutations(positions).iterator();
+        final Iterator<List<Position3D>> iterator = AoC2021_19.Transformations.of(positions).iterator();
         final Set<Position3D> unique = new HashSet<>();
         int cnt = 0;
         while (iterator.hasNext()) {
