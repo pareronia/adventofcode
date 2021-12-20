@@ -1,5 +1,5 @@
+import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
@@ -86,10 +86,10 @@ public class AoC2021_19 extends AoCBase {
     {
         for (final List<Position3D> positions : Transformations.of(sc.beacons)) {
             for (final ScannerData li : lockedIn.keySet()) {
-                final Optional<Entry<Vector3D, List<Position3D>>> overlap
+                final Optional<Vector3D> overlap
                         = findOverlap(sc, positions, li);
                 if (overlap.isPresent()) {
-                    final Vector3D vector = overlap.get().getKey();
+                    final Vector3D vector = overlap.get();
                     log(vector);
                     final ScannerData overlapping = new ScannerData(
                             sc.getId(),
@@ -102,26 +102,25 @@ public class AoC2021_19 extends AoCBase {
     }
 
     private
-    Optional<Entry<Vector3D,List<Position3D>>>
+    Optional<Vector3D>
     findOverlap(final ScannerData sc,
                 final List<Position3D> positions,
                 final ScannerData other)
     {
-        final List<Entry<Vector3D, List<Position3D>>> overlaptx
+        final List<Vector3D> overlaptx
             = other.beacons.stream()
                 .flatMap(b -> positions.stream().map(p -> Tuples.pair(b, p)))
                 .collect(groupingBy(t -> Vector3D.from(t.getTwo(), t.getOne()),
-                                    mapping(t -> t.getTwo(), toList())))
+                                    counting()))
                 .entrySet().stream()
-                    .filter(e -> e.getValue().size() >= 12)
+                    .filter(e -> e.getValue() >= 12L)
+                    .map(Entry::getKey)
                     .collect(toList());
         if (overlaptx.size() > 0) {
             log(String.format(
                     "overlaptx between sc%d and sc%d", sc.getId(), other.getId()));
             assert overlaptx.size() == 1;
-            final Entry<Vector3D, List<Position3D>> o = overlaptx.get(0);
-            o.getValue().stream().map(p -> p.translate(o.getKey())).forEach(this::log);
-            return Optional.of(o);
+            return Optional.of(overlaptx.get(0));
         } else {
             return Optional.empty();
         }
