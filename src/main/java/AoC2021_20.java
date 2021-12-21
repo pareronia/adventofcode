@@ -1,6 +1,12 @@
+import static java.util.stream.Collectors.summarizingInt;
+
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Set;
+
+import org.apache.commons.math3.util.IntegerSequence.Range;
 
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
@@ -11,13 +17,12 @@ public class AoC2021_20 extends AoCBase {
     private static final char DARK = '.';
     private static final char LIGHT = '#';
     
-    private final String algorithm;
-    private final Set<Cell> image;
+    private final ImageEnhancement ie;
     
     private AoC2021_20(final List<String> input, final boolean debug) {
         super(debug);
-        this.algorithm = input.get(0);
-        assert this.algorithm.length() == 512;
+        final String algorithm = input.get(0);
+        assert algorithm.length() == 512;
         final Set<Cell> lights = new HashSet<>();
         final List<String> imageLines = input.subList(2, input.size());
         input.subList(2, input.size());
@@ -29,7 +34,7 @@ public class AoC2021_20 extends AoCBase {
                 }
             }
         }
-        this.image = lights;
+        this.ie = new ImageEnhancement(algorithm, lights);
     }
     
     public static final AoC2021_20 create(final List<String> input) {
@@ -40,64 +45,13 @@ public class AoC2021_20 extends AoCBase {
         return new AoC2021_20(input, true);
     }
     
-    private Set<Cell> cycle(final Set<Cell> image, final boolean flip, final boolean storedOn) {
-        final Set<Cell> newImage = new HashSet<>();
-        final int rowMin = image.stream().mapToInt(Cell::getRow).min().orElseThrow();
-        final int rowMax = image.stream().mapToInt(Cell::getRow).max().orElseThrow();
-        final int colMin = image.stream().mapToInt(Cell::getCol).min().orElseThrow();
-        final int colMax = image.stream().mapToInt(Cell::getCol).max().orElseThrow();
-        for (int row = rowMin - 5; row <= rowMax + 5; row++) {
-            for (int col = colMin - 5; col <= colMax + 5; col++) {
-                final StringBuilder sb = new StringBuilder();
-                for (final int rr : List.of(-1, 0, 1)) {
-                    for (final int cc : List.of(-1, 0, 1)) {
-                        final boolean found = image.contains(Cell.at(row + rr, col + cc));
-                        sb.append(found == (!flip || storedOn) ? '1' : '0');
-                    }
-                }
-                final String value = sb.toString();
-                assert value.length() == 9;
-                final int idx = Integer.parseInt(value, 2);
-                final char correction = this.algorithm.charAt(idx);
-                assert idx >= 0 && idx < 512;
-                if ((correction == LIGHT) == (!flip || !storedOn)) {
-                    newImage.add(Cell.at(row, col));
-                }
-            }
-        }
-        return newImage;
-    }
-    
-    private void printImage(final Set<Cell> image) {
-        if (!this.debug) {
-            return;
-        }
-        final int rowMin = image.stream().mapToInt(Cell::getRow).min().orElseThrow();
-        final int rowMax = image.stream().mapToInt(Cell::getRow).max().orElseThrow();
-        final int colMin = image.stream().mapToInt(Cell::getCol).min().orElseThrow();
-        final int colMax = image.stream().mapToInt(Cell::getCol).max().orElseThrow();
-        for (int row = rowMin - 5; row <= rowMax + 5; row++) {
-            final StringBuilder sb = new StringBuilder();
-            for (int col = colMin - 5; col <= colMax + 5; col++) {
-                sb.append(image.contains(Cell.at(row, col)) ? LIGHT : DARK);
-            }
-            log(String.valueOf(sb.toString()));
-        }
-        log("");
-    }
-    
     private int solve(final int cycles) {
-        Set<Cell> temp = this.image;
-        printImage(temp);
-        final boolean flip = this.algorithm.charAt(0) == LIGHT;
         for (int i = 0; i < cycles; i++) {
-            final boolean storedOn = i % 2 == 0;
-            temp = cycle(temp, flip, storedOn);
-            printImage(temp);
+            ie.run();
         }
-        return temp.size();
+        return ie.getLitPixels();
     }
-    
+
     @Override
     public Integer solvePart1() {
         return solve(2);
@@ -109,7 +63,7 @@ public class AoC2021_20 extends AoCBase {
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_20.create(TEST).solvePart1() == 35;
+        assert AoC2021_20.createDebug(TEST).solvePart1() == 35;
         assert AoC2021_20.create(TEST).solvePart2() == 3351;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 20);
@@ -134,4 +88,91 @@ public class AoC2021_20 extends AoCBase {
         "..#..\r\n" +
         "..###"
     );
+    
+    private static final class ImageEnhancement {
+        private final String algorithm;
+        private final boolean isFlicker;
+        private Set<Cell> data;
+        private boolean storeDark = false;
+        
+        public ImageEnhancement(final String algorithm, final Set<Cell> data) {
+            this.algorithm = algorithm;
+            this.isFlicker = algorithm.charAt(0) == LIGHT
+                    && algorithm.charAt(algorithm.length() - 1) == DARK;
+            this.data = data;
+        }
+
+        private Range getRowRange() {
+            final IntSummaryStatistics summary = this.data.stream()
+                    .map(Cell::getRow)
+                    .collect(summarizingInt(Integer::intValue));
+            return new Range(summary.getMin() - 2, summary.getMax() + 2, 1);
+        }
+
+        private Range getColRange() {
+            final IntSummaryStatistics summary = this.data.stream()
+                    .map(Cell::getCol)
+                    .collect(summarizingInt(Integer::intValue));
+            return new Range(summary.getMin() - 2, summary.getMax() + 2, 1);
+        }
+        
+        @SuppressWarnings("unused")
+        public List<String> print() {
+            final List<String> lines = new ArrayList<>();
+            final Range rowRange = this.getRowRange();
+            final Range colRange = this.getColRange();
+            for (final int row : rowRange) {
+                final StringBuilder sb = new StringBuilder();
+                for (final int col : colRange) {
+                    sb.append(this.data.contains(Cell.at(row, col)) ? LIGHT : DARK);
+                }
+                lines.add(String.valueOf(sb.toString()));
+            }
+            return lines;
+        }
+        
+        private String getSquareAround(final int row, final int col) {
+            final char found;
+            final char notFound;
+            if (!this.isFlicker || !this.storeDark) {
+                found = '1';
+                notFound = '0';
+            } else {
+                found = '0';
+                notFound = '1';
+            }
+            final StringBuilder sb = new StringBuilder();
+            for (final int rr : List.of(-1, 0, 1)) {
+                for (final int cc : List.of(-1, 0, 1)) {
+                    sb.append(this.data.contains(Cell.at(row + rr, col + cc))
+                                ? found : notFound);
+                }
+            }
+            return sb.toString();
+        }
+        
+        public void run() {
+            final Set<Cell> data2 = new HashSet<>();
+            final Range rowRange = this.getRowRange();
+            final Range colRange = this.getColRange();
+            for (final int row : rowRange) {
+                for (final int col : colRange) {
+                    final String square = getSquareAround(row, col);
+                    final int idx = Integer.parseInt(square, 2);
+                    assert idx >= 0 && idx < this.algorithm.length();
+                    final boolean light = this.algorithm.charAt(idx) == LIGHT;
+                    if (((!this.isFlicker || this.storeDark) && light)
+                        || (this.isFlicker && !this.storeDark && !light)) {
+                        data2.add(Cell.at(row, col));
+                    }
+                }
+            }
+            this.data = data2;
+            this.storeDark = !this.storeDark;
+        }
+        
+        public int getLitPixels() {
+            return this.data.size();
+        }
+    }
 }
