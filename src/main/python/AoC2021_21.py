@@ -14,37 +14,20 @@ def _parse(inputs: tuple[str]) -> int:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    start1, start2 = _parse(inputs)
-    pos1 = start1 - 1
-    pos2 = start2 - 1
-    score1 = score2 = 0
+    pos = list(map(lambda x: x - 1, _parse(inputs)))
+    score = [0, 0]
     die = 0
-    cnt = 0
     while True:
-        throws = (die + 1, die + 2, die + 3)
-        pos1 = (pos1 + sum(throws)) % 10
-        score1 += pos1 + 1
-        clog(lambda: "Player 1 rolls " + "+".join(map(str, throws)) +
-             f" and moves to space {str(pos1 + 1)}" +
-             f" for a total score of {str(score1)}")
-        die += 3
-        cnt += 3
-        if score1 >= 1000:
-            break
-        throws = (die + 1, die + 2, die + 3)
-        pos2 = (pos2 + sum(throws)) % 10
-        score2 += pos2 + 1
-        clog(lambda: "Player 2 rolls " + "+".join(map(str, throws)) +
-             f" and moves to space {str(pos2 + 1)}" +
-             f" for a total score of {str(score2)}")
-        die += 3
-        cnt += 3
-        if score2 >= 1000:
-            break
-    if score1 < score2:
-        return score1 * cnt
-    else:
-        return score2 * cnt
+        for p in [0, 1]:
+            throws = (die + 1, die + 2, die + 3)
+            die += 3
+            pos[p] = (pos[p] + sum(throws)) % 10
+            score[p] += pos[p] + 1
+            clog(lambda: f"Player {p + 1} rolls " + "+".join(map(str, throws))
+                 + f" and moves to space {str(pos[p] + 1)}"
+                 + f" for a total score of {str(score[p])}")
+            if score[p] >= 1000:
+                return score[(p + 1) % 2] * die
 
 
 def part_2(inputs: tuple[str]) -> int:
