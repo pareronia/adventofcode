@@ -37,9 +37,11 @@ class ImageEnhancement:
     def _print(self) -> None:
         if not __debug__:
             return
+        row_range = self._row_range()
+        col_range = self._col_range()
         lines = ["".join(LIGHT if (row, col) in self.data else DARK
-                         for col in self._col_range())
-                 for row in self._row_range()]
+                         for col in col_range)
+                 for row in row_range]
         [print(line) for line in lines]
 
     def _get_square_around(self, row: int, col: int) -> str:
@@ -54,8 +56,10 @@ class ImageEnhancement:
 
     def run(self) -> None:
         data2 = set[tuple[int, int]]()
-        for row in self._row_range():
-            for col in self._col_range():
+        row_range = self._row_range()
+        col_range = self._col_range()
+        for row in row_range:
+            for col in col_range:
                 square = self._get_square_around(row, col)
                 idx = int(square, 2)
                 assert 0 <= idx < len(self.algorithm)
