@@ -33,6 +33,20 @@ public class StringOps {
         return digits;
     }
     
+    public static String hexToBin(final String hex) {
+        final StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hex.length(); i++) {
+            final char c = hex.charAt(i);
+            final int n = Integer.parseInt(String.valueOf(c), 16);
+            final String b = Integer.toBinaryString(n);
+            for (int j = b.length(); j < 4; j++) {
+                sb.append('0');
+            }
+            sb.append(b);
+        }
+        return sb.toString();
+    }
+    
     public static char[] move(final char[] ch, final int from, final int to) {
         if (from == to) {
             throw new IllegalArgumentException("Expected from and to to be different");
