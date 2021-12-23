@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.impl.tuple.Tuples;
@@ -41,15 +42,6 @@ public class AoC2021_21 extends AoCBase {
         private int pos2;
         private int score1;
         private int score2;
-        private final int player;
-        
-        public static Game copyForPlayer1(final Game game) {
-            return new Game(game.pos1, game.pos2, game.score1, game.score2, 1);
-        }
-
-        public static Game copyForPlayer2(final Game game) {
-            return new Game(game.pos1, game.pos2, game.score1, game.score2, 2);
-        }
         
         public void turn1(final int[] rolls) {
             for (final int roll : rolls) {
@@ -68,7 +60,7 @@ public class AoC2021_21 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final Game game = new Game(this.p1 - 1, this.p2 - 1, 0, 0, -1);
+        final Game game = new Game(this.p1 - 1, this.p2 - 1, 0, 0);
         int die = 0;
         int cnt = 0;
         while (true) {
@@ -88,32 +80,32 @@ public class AoC2021_21 extends AoCBase {
     }
     
     private final Map<Game, Pair<Long, Long>> winsCache = new HashMap<>();
+    private static final Map<Integer, Integer> ROLLS = Map.of(
+        3, 1,
+        4, 3,
+        5, 6,
+        6, 7,
+        7, 6,
+        8, 3,
+        9, 1
+    );
     
     private Pair<Long, Long> solve2(final Game game) {
         if (winsCache.containsKey(game)) {
             return winsCache.get(game);
         }
-        if (game.score1 >= 21) {
-            return Tuples.pair(1L,  0L);
-        } else if (game.score2 >= 21) {
-            return Tuples.pair(0L, 1L);
-        }
-        Pair<Long, Long> wins = Tuples.pair(0L,  0L);
-        for (final int die1 : List.of(1, 2, 3)) {
-            for (final int die2 : List.of(1, 2, 3)) {
-                for (final int die3 : List.of(1, 2, 3)) {
-                    final Game newGame;
-                    if (game.player == 1) {
-                        newGame = Game.copyForPlayer2(game);
-                        newGame.turn1(new int[] { die1, die2, die3 });
-                    } else {
-                        newGame = Game.copyForPlayer1(game);
-                        newGame.turn2(new int[] { die1, die2, die3 });
-                    }
-                    final Pair<Long, Long> nwins = solve2(newGame);
-                    wins = Tuples.pair(wins.getOne() + nwins.getOne(),
-                                       wins.getTwo() + nwins.getTwo());
-                }
+        Pair<Long, Long> wins = Tuples.pair(0L, 0L);
+        for (final Entry<Integer, Integer> roll : ROLLS.entrySet()) {
+            final int nPos = (game.pos1 + roll.getKey()) % 10;
+            final int nScore = game.score1 + nPos + 1;
+            if (nScore >= 21 ) {
+                wins = Tuples.pair(wins.getOne() + roll.getValue(), wins.getTwo());
+            } else {
+                final Game newGame = new Game(game.pos2, nPos, game.score2, nScore);
+                final Pair<Long, Long> nwins = solve2(newGame);
+                wins = Tuples.pair(
+                        wins.getOne() + roll.getValue() * nwins.getTwo(),
+                        wins.getTwo() + roll.getValue() * nwins.getOne());
             }
         }
         winsCache.put(game, wins);
@@ -123,7 +115,7 @@ public class AoC2021_21 extends AoCBase {
     @Override
     public Long solvePart2() {
         final Pair<Long, Long> ans
-            = solve2(new Game(this.p1 - 1, this.p2 - 1, 0, 0, 1));
+            = solve2(new Game(this.p1 - 1, this.p2 - 1, 0, 0));
         log(ans);
         return Math.max(ans.getOne(), ans.getTwo());
     }
