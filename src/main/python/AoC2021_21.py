@@ -3,10 +3,16 @@
 # Advent of Code 2021 Day 21
 #
 
+import itertools
+from collections import Counter
 from functools import lru_cache
 from aoc import my_aocd
 import aocd
 from aoc.common import clog, log
+
+
+ROLLS = Counter(sum(_)
+                for _ in itertools.product((1, 2, 3), (1, 2, 3), (1, 2, 3)))
 
 
 def _parse(inputs: tuple[str]) -> int:
@@ -32,32 +38,24 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 @lru_cache(maxsize=None)
-def _solve2(pos1: int, pos2: int, score1: int, score2: int, player: int) \
-        -> tuple[int, int]:
-    if score1 >= 21:
-        return 1, 0
-    elif score2 >= 21:
-        return 0, 1
+def _solve2(pos1: int, pos2: int, score1: int, score2: int) -> tuple[int, int]:
     wins1, wins2 = 0, 0
-    for t1 in [1, 2, 3]:
-        for t2 in [1, 2, 3]:
-            for t3 in [1, 2, 3]:
-                if player == 1:
-                    npos1 = (pos1 + t1 + t2 + t3) % 10
-                    nscore1 = score1 + npos1 + 1
-                    nwins1, nwins2 = _solve2(npos1, pos2, nscore1, score2, 2)
-                else:
-                    npos2 = (pos2 + t1 + t2 + t3) % 10
-                    nscore2 = score2 + npos2 + 1
-                    nwins1, nwins2 = _solve2(pos1, npos2, score1, nscore2, 1)
-                wins1 += nwins1
-                wins2 += nwins2
+    for t, cnt in ROLLS.items():
+        npos = (pos1 + t) % 10
+        nscore = score1 + npos + 1
+        if (nscore >= 21):
+            wins1 += cnt
+        else:
+            nwins2, nwins1 = map(lambda x: cnt * x,
+                                 _solve2(pos2, npos, score2, nscore))
+            wins1 += nwins1
+            wins2 += nwins2
     return wins1, wins2
 
 
 def part_2(inputs: tuple[str]) -> int:
     pos1, pos2 = map(lambda x: x - 1, _parse(inputs))
-    ans = _solve2(pos1, pos2, score1=0, score2=0, player=1)
+    ans = _solve2(pos1, pos2, score1=0, score2=0)
     log(ans)
     return max(ans)
 
