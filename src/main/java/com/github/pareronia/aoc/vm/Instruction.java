@@ -24,8 +24,28 @@ public class Instruction {
         return new Instruction(Opcode.ADD, asList(register, value));
     }
 
+    public static Instruction ADD(final String register, final String value) {
+        return new Instruction(Opcode.ADD, asList(register, value));
+    }
+
     public static Instruction MUL(final String register, final Long value) {
         return new Instruction(Opcode.MUL, asList(register, value));
+    }
+
+    public static Instruction MUL(final String register, final String value) {
+        return new Instruction(Opcode.MUL, asList(register, value));
+    }
+
+    public static Instruction DIV(final String register, final String value) {
+        return new Instruction(Opcode.DIV, asList(register, value));
+    }
+
+    public static Instruction MOD(final String register, final String value) {
+        return new Instruction(Opcode.MOD, asList(register, value));
+    }
+
+    public static Instruction EQL(final String register, final String value) {
+        return new Instruction(Opcode.EQL, asList(register, value));
     }
 
     public static Instruction JMP(final Integer count) {
@@ -42,5 +62,9 @@ public class Instruction {
     
     public static Instruction OUT(final String operand) {
         return new Instruction(Opcode.OUT, List.of(operand));
+    }
+
+    public static Instruction INP(final String operand) {
+        return new Instruction(Opcode.INP, List.of(operand));
     }
 }

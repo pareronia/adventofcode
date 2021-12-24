@@ -16,10 +16,14 @@ public class VirtualMachine {
         this.instructionSet.put(Opcode.SET, this::set);
         this.instructionSet.put(Opcode.ADD, this::add);
         this.instructionSet.put(Opcode.MUL, this::mul);
+        this.instructionSet.put(Opcode.DIV, this::div);
+        this.instructionSet.put(Opcode.MOD, this::mod);
+        this.instructionSet.put(Opcode.EQL, this::eql);
         this.instructionSet.put(Opcode.JMP, this::jmp);
         this.instructionSet.put(Opcode.JN0, this::jn0);
         this.instructionSet.put(Opcode.TGL, this::tgl);
         this.instructionSet.put(Opcode.OUT, this::out);
+        this.instructionSet.put(Opcode.INP, this::inp);
     }
     
     private void nop(final Program program, final Instruction instruction, final Integer ip) {
@@ -42,21 +46,93 @@ public class VirtualMachine {
 
     private void add(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
-        final Long value = (Long) instruction.getOperands().get(1);
-        final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
-                                .map(v -> v + value)
-                                .orElse(value);
-        program.getRegisters().put(register, newValue);
+        final String op2 = (String) instruction.getOperands().get(1);
+        final Optional<Long> value;
+        if (op2.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op2));
+        }
+        value.ifPresent(v -> {
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r + v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
         program.moveIntructionPointer(1);
     }
     
     private void mul(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
-        final Long value = (Long) instruction.getOperands().get(1);
-        final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
-                .map(v -> v * value)
-                .orElse(value);
-        program.getRegisters().put(register, newValue);
+        final String op2 = (String) instruction.getOperands().get(1);
+        final Optional<Long> value;
+        if (op2.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op2));
+        }
+        value.ifPresent(v -> {
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r * v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
+        program.moveIntructionPointer(1);
+    }
+
+    private void div(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.getOperands().get(0);
+        final String op2 = (String) instruction.getOperands().get(1);
+        final Optional<Long> value;
+        if (op2.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op2));
+        }
+        value.ifPresent(v -> {
+            assert v != 0;
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> Math.floorDiv(r, v))
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
+        program.moveIntructionPointer(1);
+    }
+
+    private void mod(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.getOperands().get(0);
+        final String op2 = (String) instruction.getOperands().get(1);
+        final Optional<Long> value;
+        if (op2.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op2));
+        }
+        value.ifPresent(v -> {
+            assert v > 0;
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r % v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
+        program.moveIntructionPointer(1);
+    }
+
+    private void eql(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.getOperands().get(0);
+        final String op2 = (String) instruction.getOperands().get(1);
+        final Optional<Long> value;
+        if (op2.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op2));
+        }
+        value.ifPresent(v -> {
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r == v ? 1L : 0L)
+                    .orElse(0L); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
         program.moveIntructionPointer(1);
     }
     
@@ -139,6 +215,14 @@ public class VirtualMachine {
         if (program.getOutputConsumer() != null) {
             value.ifPresent(v -> program.getOutputConsumer().accept(v));
         }
+        program.moveIntructionPointer(1);
+    }
+    
+    private void inp(final Program program, final Instruction instruction, final Integer ip ) {
+        final String op1 = (String) instruction.getOperands().get(0);
+        assert program.getInputSupplier() != null;
+        final Long value = program.getInputSupplier().get();
+        program.getRegisters().put(op1, value);
         program.moveIntructionPointer(1);
     }
     
