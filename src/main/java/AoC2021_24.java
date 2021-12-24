@@ -231,7 +231,7 @@ public class AoC2021_24 extends AoCBase {
         }
     }
     
-    private void solve() {
+    private void solve(final boolean highest) {
         final Map<Integer, Set<Long>> wzz = new HashMap<>();
         Set<Long> zz = new HashSet<>();
         for (long w = 9; w > 0; w-- ) {
@@ -258,14 +258,27 @@ public class AoC2021_24 extends AoCBase {
         zz = new HashSet<>();
         wzz.put(14, Set.of(0L));
         long z = 0;
-        for (int j = 0; j < 14; j++) {
-            for (long w = 9; w > 0; w--) {
+        if (highest) {
+            for (int j = 0; j < 14; j++) {
+                for (long w = 9; w > 0; w--) {
+                        final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[j], ADDX[j], ADDY[j]));
+                        if (wzz.get(j + 1).contains(z_)) {
+                            z = z_;
+                            System.out.print(w);
+                            break;
+                        }
+                }
+            }
+        } else {
+            for (int j = 0; j < 14; j++) {
+                for (long w = 1; w < 10; w++) {
                     final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[j], ADDX[j], ADDY[j]));
                     if (wzz.get(j + 1).contains(z_)) {
                         z = z_;
                         System.out.print(w);
                         break;
                     }
+                }
             }
         }
         System.out.println();
@@ -302,12 +315,13 @@ public class AoC2021_24 extends AoCBase {
     
     @Override
     public String solvePart1() {
-        solve();
+        solve(true);
         return null;
     }
     
     @Override
     public Integer solvePart2() {
+        solve(false);
         return null;
     }
 
@@ -318,8 +332,8 @@ public class AoC2021_24 extends AoCBase {
         assert AoC2021_24.create(TEST3).runProgram("9").equals(Map.of("w", 1L, "x", 0L, "y", 0L, "z", 1L));
         assert AoC2021_24.create(TEST4).runProgram("9").equals(Map.of("w", 9L, "x", 1L, "y", 23L, "z", 23L));
         assert AoC2021_24.create(TEST4).runProgram("1").get("z") == 15;
-        assert AoC2021_24.create(TEST1).solvePart1() == null;
-        assert AoC2021_24.create(TEST1).solvePart2() == null;
+//        assert AoC2021_24.create(TEST1).solvePart1() == null;
+//        assert AoC2021_24.create(TEST1).solvePart2() == null;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 24);
         puzzle.check(
