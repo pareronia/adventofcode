@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -162,6 +163,10 @@ public class AoC2021_24 extends AoCBase {
         return program;
     }
     
+    private Program getProgram(final int digit) {
+        return createProgram(DIVZ[digit], ADDY[digit], ADDX[digit]);
+    }
+    
     private final Map<String, Program> programeCache = new HashMap<>();
     
     @RequiredArgsConstructor
@@ -207,25 +212,69 @@ public class AoC2021_24 extends AoCBase {
         return z;
     }
     
-    private void search(final long z, final int i) {
+    private void search(final long z, final int i, final List<Long> ww) {
         for (long w = 9L; w > 0; w--) {
-            log(String.format("w: %d, z: %d, i: %d", w, z, i));
-            for (int zi = -26; zi <= 26 ; zi++) {
-                final long zz = execProgram(new ProgramParams(w, zi, DIVZ[i], ADDX[i], ADDY[i]));
+//            log(String.format("w: %d, z: %d, i: %d", w, z, i));
+            ww.add(w);
+            for (int zi = 0; zi <= 9000 ; zi++) {
+                final long zz = execProgram2(new ProgramParams(w, zi, DIVZ[i], ADDX[i], ADDY[i]));
                 if (zz == z) {
                     if (i == 0) {
-                        log(w);
+                        log(ww);
+                        return;
                     } else {
-                        search(zi, i - 1);
+                        search(zi, i - 1, ww);
                     }
                 }
             }
+            ww.remove(ww.size() - 1);
         }
     }
     
     private void solve() {
+        final Map<Integer, Set<Long>> wzz = new HashMap<>();
+        Set<Long> zz = new HashSet<>();
+        for (long w = 9; w > 0; w-- ) {
+            for (long z = 0; z <= 1000000; z++) {
+                final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[13], ADDX[13], ADDY[13]));
+                if (z_ == 0) {
+                    zz.add(z);
+                }
+            }
+        }
+        wzz.put(13, zz);
+        for (int i = 12; i >= 1; i--) {
+            zz = new HashSet<>();
+            for (long w = 9; w > 0; w--) {
+                for (long z = 0; z <= 1000000; z++) {
+                    final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[i], ADDX[i], ADDY[i]));
+                    if (wzz.get(i + 1).contains(z_)) {
+                        zz.add(z);
+                    }
+                }
+            }
+            wzz.put(i, zz);
+        }
+        zz = new HashSet<>();
+        wzz.put(14, Set.of(0L));
+        long z = 0;
+        for (int j = 0; j < 14; j++) {
+            for (long w = 9; w > 0; w--) {
+                    final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[j], ADDX[j], ADDY[j]));
+                    if (wzz.get(j + 1).contains(z_)) {
+                        z = z_;
+                        System.out.print(w);
+                        break;
+                    }
+            }
+        }
+        System.out.println();
+//        log(Arrays.stream(ww).mapToObj(String::valueOf).collect(joining(",")));
+ 
 //        for (int w = 9; w > 0; w--) {
-            search(0L, 13);
+//            final ArrayList<Long> ww = new ArrayList<>();
+//            search(0L, 13, ww);
+//            log(ww);
 //            log(cache.size());
 //        }
 //        for (long n = 99_999_999_999_999L; n >= 11_111_111_111_111L; n--) {
@@ -267,9 +316,9 @@ public class AoC2021_24 extends AoCBase {
         assert AoC2021_24.create(TEST2).runProgram("13").get("z") == 1;
         assert AoC2021_24.create(TEST2).runProgram("31").get("z") == 0;
         assert AoC2021_24.create(TEST3).runProgram("9").equals(Map.of("w", 1L, "x", 0L, "y", 0L, "z", 1L));
-        assert AoC2021_24.createDebug(TEST4).runProgram("9").equals(Map.of("w", 9L, "x", 1L, "y", 23L, "z", 23L));
-        assert AoC2021_24.createDebug(TEST4).runProgram("1").get("z") == 15;
-        assert AoC2021_24.createDebug(TEST1).solvePart1() == null;
+        assert AoC2021_24.create(TEST4).runProgram("9").equals(Map.of("w", 9L, "x", 1L, "y", 23L, "z", 23L));
+        assert AoC2021_24.create(TEST4).runProgram("1").get("z") == 15;
+        assert AoC2021_24.create(TEST1).solvePart1() == null;
         assert AoC2021_24.create(TEST1).solvePart2() == null;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 24);
