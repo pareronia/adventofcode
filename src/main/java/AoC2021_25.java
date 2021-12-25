@@ -3,6 +3,7 @@ import static java.util.stream.Collectors.toSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.geometry.Position;
@@ -52,9 +53,6 @@ public class AoC2021_25 extends AoCBase {
     
     @SuppressWarnings("unused")
     private void print() {
-        if (!this.debug) {
-            return;
-        }
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 final Position pos = Position.of(row, col);
@@ -78,50 +76,40 @@ public class AoC2021_25 extends AoCBase {
     private Position destinationSouth(final Position p) {
         return Position.of((p.getX() + 1) % rows, p.getY());
     }
-
-    private Set<Position> findEast() {
-        return this.eastHerd.stream()
+    
+    private Set<Position> findMovable(
+            final Set<Position> herd,
+            final Function<Position, Position> destination
+        ) {
+        return herd.stream()
             .filter(p -> {
-                final Position newPos = destinationEast(p);
+                final Position newPos = destination.apply(p);
                 return !this.eastHerd.contains(newPos) && !this.southHerd.contains(newPos);
             })
             .collect(toSet());
     }
     
-    private Set<Position> findSouth() {
-        return this.southHerd.stream()
-                .filter(p -> {
-                    final Position newPos = destinationSouth(p);
-                    return !this.eastHerd.contains(newPos) && !this.southHerd.contains(newPos);
-                })
-                .collect(toSet());
-    }
-
-    private void moveSouth(final Set<Position> toMove) {
+    private void move(
+            final Set<Position> toMove,
+            final Set<Position> from,
+            final Function<Position, Position> destination
+    ) {
         toMove.stream()
             .forEach(p -> {
-                this.southHerd.remove(p);
-                this.southHerd.add(destinationSouth(p));
+                from.remove(p);
+                from.add(destination.apply(p));
             });
     }
 
-    private void moveEast(final Set<Position> toMove) {
-        toMove.stream()
-            .forEach(p -> {
-                this.eastHerd.remove(p);
-                this.eastHerd.add(destinationEast(p));
-            });
-    }
-    
     @Override
     public Integer solvePart1() {
         int cnt = 0;
         int moved = -1;
         while (moved != 0) {
-            final Set<Position> toMoveEast = findEast();
-            moveEast(toMoveEast);
-            final Set<Position> toMoveSouth = findSouth();
-            moveSouth(toMoveSouth);
+            final Set<Position> toMoveEast = findMovable(this.eastHerd, this::destinationEast);
+            move(toMoveEast, this.eastHerd, this::destinationEast);
+            final Set<Position> toMoveSouth = findMovable(this.southHerd, this::destinationSouth);
+            move(toMoveSouth, this.southHerd, this::destinationSouth);
             moved = toMoveEast.size() + toMoveSouth.size();
             cnt++;
         }
