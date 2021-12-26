@@ -8,7 +8,9 @@ public class AoC2021_18_ReducerTestCase {
     
     @BeforeClass
     public static void beforeClass() {
-        AoC2021_18.Reducer.debug = true;
+        if (!System.getProperties().containsKey("NDEBUG")) {
+            AoC2021_18.Reducer.debug = true;
+        }
     }
     
     @Test

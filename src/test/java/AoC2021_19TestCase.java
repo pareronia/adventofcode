@@ -23,11 +23,17 @@ public class AoC2021_19TestCase {
             final List<Position3D> next = iterator.next();
             unique.addAll(next);
             assertThat(next, is(notNullValue()));
-            System.out.println(next);
+            log(next);
             cnt++;
         }
         assertThat(cnt, is(24));
-        System.out.println("unique:");
-        System.out.println(unique);
+        log("unique:");
+        log(unique);
+    }
+    
+    private void log(final Object string) {
+        if (!System.getProperties().containsKey("NDEBUG")) {
+            System.out.println(string);
+        }
     }
 }
