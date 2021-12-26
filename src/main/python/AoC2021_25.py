@@ -4,6 +4,9 @@
 #
 
 from __future__ import annotations
+import os
+import time
+from typing import Callable
 from collections.abc import Generator
 from aoc import my_aocd
 import aocd
@@ -100,16 +103,16 @@ def _print(grid: Grid) -> None:
     for row in range(grid.rows):
         for col in range(grid.cols):
             if (row, col) in grid.south_herd:
-                print(SOUTH, end='')
+                print(SOUTH + ' ', end='')
             elif (row, col) in grid.east_herd:
-                print(EAST, end='')
+                print(EAST + ' ', end='')
             else:
-                print(EMPTY, end='')
+                print(EMPTY + ' ', end='')
         print()
     print()
 
 
-def part_1(inputs: tuple[str]) -> int:
+def _solve(inputs: tuple[str], on_step: Callable) -> int:
     grid = _parse(inputs)
     cnt = 0
     moved = -1
@@ -117,11 +120,32 @@ def part_1(inputs: tuple[str]) -> int:
         moved = _move_east(grid, _find_east(grid)) \
                 + _move_south(grid, _find_south(grid))
         cnt += 1
+        if on_step is not None:
+            on_step(grid)
     return cnt
+
+
+def part_1(inputs: tuple[str]) -> int:
+    return _solve(inputs, None)
 
 
 def part_2(inputs: tuple[str]) -> int:
     return None
+
+
+def visualize_part_1(inputs: tuple[str]) -> None:
+    step = 0
+
+    def on_step(grid: Grid) -> None:
+        nonlocal step
+        step += 1
+        time.sleep(0.25)
+        os.system('cls' if os.name in ('nt', 'dos') else 'clear')  # nosec
+        print(f"Step {step}:")
+        _print(grid)
+
+    print("Initial:")
+    _solve(inputs, on_step)
 
 
 TEST = """\
@@ -142,6 +166,7 @@ def main() -> None:
     my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 58
+    assert visualize_part_1(TEST) is None
 
     inputs = my_aocd.get_input(puzzle.year, puzzle.day, 137)
     result1 = part_1(inputs)
