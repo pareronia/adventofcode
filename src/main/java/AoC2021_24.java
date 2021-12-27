@@ -1,8 +1,10 @@
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -24,6 +26,7 @@ import lombok.ToString;
 
 public class AoC2021_24 extends AoCBase {
     
+    private static final int DIGITS = 14;
     private static final Set<String> REGISTERS = Set.of("w", "x", "y", "z");
     
     private final List<MonadInstruction> monadInstructions;
@@ -112,11 +115,11 @@ public class AoC2021_24 extends AoCBase {
         return program.getRegisters();
     }
     
-    private final int[] DIVZ = new int[] { 1, 1, 1, 1, 26, 26, 1, 26, 26, 26, 1, 26, 1, 26 };
-    private final int[] ADDY = new int[] { 14, 8, 4, 10, 14, 10, 4, 14, 1, 6, 0, 9, 13, 12 };
+    // FIXME: get from input
+    private final int[] DIVZ = new int[] {  1,  1,  1,  1, 26, 26,  1, 26, 26,  26,  1, 26,  1,  26 };
+    private final int[] ADDY = new int[] { 14,  8,  4, 10, 14, 10,  4, 14,  1,   6,  0,  9, 13,  12 };
     private final int[] ADDX = new int[] { 11, 13, 11, 10, -3, -4, 12, -8, -3, -12, 14, -6, 11, -12 };
    
-    
     //    mul x 0
     //    add x z
     //    mod x 26
@@ -134,17 +137,16 @@ public class AoC2021_24 extends AoCBase {
     //    add y <param3>
     //    mul y x
     //    add z y
-    private Program createProgram(final int param1, final int param2, final int param3) {
-        final String key = String.format("%d/%d/%d", param1, param2, param3);
-        if (programeCache.containsKey(key)) {
-            return programeCache.get(key);
+    private Program createProgram(final int digit) {
+        if (programCache.containsKey(digit)) {
+            return programCache.get(digit);
         }
         final List<Instruction> instructions = new ArrayList<>();
         instructions.add(Instruction.MUL("x", "0"));
         instructions.add(Instruction.ADD("x", "*z"));
         instructions.add(Instruction.MOD("x", "26"));
-        instructions.add(Instruction.DIV("z", String.valueOf(param1)));
-        instructions.add(Instruction.ADD("x", String.valueOf(param2)));
+        instructions.add(Instruction.DIV("z", String.valueOf(DIVZ[digit])));
+        instructions.add(Instruction.ADD("x", String.valueOf(ADDX[digit])));
         instructions.add(Instruction.EQL("x", "*w"));
         instructions.add(Instruction.EQL("x", "0"));
         instructions.add(Instruction.MUL("y", "0"));
@@ -154,100 +156,67 @@ public class AoC2021_24 extends AoCBase {
         instructions.add(Instruction.MUL("z", "*y"));
         instructions.add(Instruction.MUL("y", "0"));
         instructions.add(Instruction.ADD("y", "*w"));
-        instructions.add(Instruction.ADD("y", String.valueOf(param3)));
+        instructions.add(Instruction.ADD("y", String.valueOf(ADDY[digit])));
         instructions.add(Instruction.MUL("y", "*x"));
         instructions.add(Instruction.ADD("z", "*y"));
-        log(instructions);
+//        log(instructions);
         final Program program = new Program(instructions);
-        programeCache.put(key, program);
+        programCache.put(digit, program);
         return program;
     }
     
-    private Program getProgram(final int digit) {
-        return createProgram(DIVZ[digit], ADDY[digit], ADDX[digit]);
-    }
-    
-    private final Map<String, Program> programeCache = new HashMap<>();
+    private final Map<Integer, Program> programCache = new HashMap<>();
     
     @RequiredArgsConstructor
     @EqualsAndHashCode
     private static final class ProgramParams {
         private final long w;
         private final long z;
-        private final int param1;
-        private final int param2;
-        private final int param3;
-    }
-    
-    private final Map<ProgramParams, Long> cache = new HashMap<>();
-    
-    @SuppressWarnings("unused")
-    private long execProgram2(final ProgramParams params) {
-        final int a = params.param1;
-        final int b = params.param2;
-        final int c = params.param3;
-        final long z = params.z;
-        final long w = params.w;
-        if (z % 26 + b == w) {
-            return Math.floorDiv(z, a);
-        } else {
-            return Math.floorDiv(z, a) * 26 + w + c;
-        }
+        private final int digit;
     }
     
     private long execProgram(final ProgramParams params) {
-        if (cache.containsKey(params)) {
-            return cache.get(params);
-        }
-        final Program program = createProgram(params.param1, params.param2, params.param3);
+        final Program program = createProgram(params.digit);
         program.reset();
         program.getRegisters().put("w", params.w);
         program.getRegisters().put("x", 0L);
         program.getRegisters().put("y", 0L);
         program.getRegisters().put("z", params.z);
         new VirtualMachine().runProgram(program);
-        assert program.getRegisters().get("x") <= 25;
-        final Long z = program.getRegisters().get("z");
-        cache.put(params, z);
-        return z;
+        return program.getRegisters().get("z");
     }
     
-    private void search(final long z, final int i, final List<Long> ww) {
-        for (long w = 9L; w > 0; w--) {
-//            log(String.format("w: %d, z: %d, i: %d", w, z, i));
-            ww.add(w);
-            for (int zi = 0; zi <= 9000 ; zi++) {
-                final long zz = execProgram2(new ProgramParams(w, zi, DIVZ[i], ADDX[i], ADDY[i]));
-                if (zz == z) {
-                    if (i == 0) {
-                        log(ww);
-                        return;
-                    } else {
-                        search(zi, i - 1, ww);
-                    }
-                }
-            }
-            ww.remove(ww.size() - 1);
+    /**
+     * @see <a href="https://github.com/fuglede/adventofcode/blob/1ae9b4a917052e0be1ef938d8ad47cbac485f22d/2021/day24/solutions.py#L84">inspiration</a>
+     */
+    private long execProgram2(final ProgramParams params) {
+        final int a = DIVZ[params.digit];
+        final int b = ADDX[params.digit];
+        final int c = ADDY[params.digit];
+        final long z = params.z;
+        final long w = params.w;
+        long ans;
+        if (z % 26 + b == w) {
+            ans = Math.floorDiv(z, a);
+        } else {
+            ans = Math.floorDiv(z, a) * 26 + w + c;
         }
+        return ans;
     }
     
-    private void solve(final boolean highest) {
+    private long solve(final boolean highest) {
         final Map<Integer, Set<Long>> wzz = new HashMap<>();
+        wzz.put(DIGITS, Set.of(0L));
         Set<Long> zz = new HashSet<>();
-        for (long w = 9; w > 0; w-- ) {
-            for (long z = 0; z <= 1000000; z++) {
-                final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[13], ADDX[13], ADDY[13]));
-                if (z_ == 0) {
-                    zz.add(z);
-                }
-            }
-        }
-        wzz.put(13, zz);
-        for (int i = 12; i >= 1; i--) {
+        wzz.put(DIGITS - 1, zz);
+        for (int i = DIGITS - 1; i >= 1; i--) {
+            log("Looking for possible z input values, digit " + (i + 1));
             zz = new HashSet<>();
             for (long w = 9; w > 0; w--) {
-                for (long z = 0; z <= 1000000; z++) {
-                    final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[i], ADDX[i], ADDY[i]));
+                for (long z = 0; z <= 400_000; z++) {
+                    // Running 400_000 iterations with the vm literally takes a minute,
+                    // so using coded form here
+                    final long z_ = execProgram2(new ProgramParams(w, z, i));
                     if (wzz.get(i + 1).contains(z_)) {
                         zz.add(z);
                     }
@@ -255,74 +224,39 @@ public class AoC2021_24 extends AoCBase {
             }
             wzz.put(i, zz);
         }
-        zz = new HashSet<>();
-        wzz.put(14, Set.of(0L));
-        long z = 0;
+        final long[] ans = new long[DIGITS];
+        List<Long> range;
         if (highest) {
-            for (int j = 0; j < 14; j++) {
-                for (long w = 9; w > 0; w--) {
-                        final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[j], ADDX[j], ADDY[j]));
-                        if (wzz.get(j + 1).contains(z_)) {
-                            z = z_;
-                            System.out.print(w);
-                            break;
-                        }
-                }
-            }
+            range = List.of(9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L);
         } else {
-            for (int j = 0; j < 14; j++) {
-                for (long w = 1; w < 10; w++) {
-                    final long z_ = execProgram2(new ProgramParams(w, z, DIVZ[j], ADDX[j], ADDY[j]));
-                    if (wzz.get(j + 1).contains(z_)) {
-                        z = z_;
-                        System.out.print(w);
-                        break;
-                    }
+            range = List.of(1L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L);
+        }
+        long z = 0;
+        for (int j = 0; j < DIGITS; j++) {
+            log("Finding digit " + (j + 1) + " satisfying known valid z values");
+            for (final long w : range) {
+                final long z_ = execProgram(new ProgramParams(w, z, j));
+                if (wzz.get(j + 1).contains(z_)) {
+                    z = z_;
+                    ans[j] = w;
+                    break;
                 }
             }
         }
-        System.out.println();
-//        log(Arrays.stream(ww).mapToObj(String::valueOf).collect(joining(",")));
- 
-//        for (int w = 9; w > 0; w--) {
-//            final ArrayList<Long> ww = new ArrayList<>();
-//            search(0L, 13, ww);
-//            log(ww);
-//            log(cache.size());
-//        }
-//        for (long n = 99_999_999_999_999L; n >= 11_111_111_111_111L; n--) {
-//            final String s = String.valueOf(n);
-//            if (s.contains("0")) {
-//                continue;
-//            }
-//            if (n % 1_000_000L == 999_999L) {
-//                log(s);
-//                log("cache: " + cache.size());
-//            }
-//            long w = 0;
-//            long z = 0;
-//            for (int i = 0; i < 14; i++) {
-//                final char ch = s.charAt(i);
-//                w = Long.valueOf(Character.digit(ch, 10));
-//                z = execProgram(new ProgramParams(w, z, DIVZ[i], ADDX[i], ADDY[i]));
-//            }
-//            if (z == 0L) {
-//                log(n);
-//                break;
-//            }
-//        }
+        return Long.parseLong(
+                Arrays.stream(ans)
+                .mapToObj(String::valueOf)
+                .collect(joining()));
     }
     
     @Override
-    public String solvePart1() {
-        solve(true);
-        return null;
+    public Long solvePart1() {
+        return solve(true);
     }
     
     @Override
-    public Integer solvePart2() {
-        solve(false);
-        return null;
+    public Long solvePart2() {
+        return solve(false);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -332,12 +266,10 @@ public class AoC2021_24 extends AoCBase {
         assert AoC2021_24.create(TEST3).runProgram("9").equals(Map.of("w", 1L, "x", 0L, "y", 0L, "z", 1L));
         assert AoC2021_24.create(TEST4).runProgram("9").equals(Map.of("w", 9L, "x", 1L, "y", 23L, "z", 23L));
         assert AoC2021_24.create(TEST4).runProgram("1").get("z") == 15;
-//        assert AoC2021_24.create(TEST1).solvePart1() == null;
-//        assert AoC2021_24.create(TEST1).solvePart2() == null;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 24);
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_24.createDebug(puzzle.getInputData()).solvePart1()),
+            () -> lap("Part 1", () -> AoC2021_24.create(puzzle.getInputData()).solvePart1()),
             () -> lap("Part 2", () -> AoC2021_24.create(puzzle.getInputData()).solvePart2())
         );
     }
