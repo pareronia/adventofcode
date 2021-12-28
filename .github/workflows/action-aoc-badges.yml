@@ -6,6 +6,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2                # clones your repo
+      
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2021
           
       - uses: joblo2213/aoc-badges-action@v3
         with:
