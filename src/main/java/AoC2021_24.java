@@ -47,6 +47,9 @@ public class AoC2021_24 extends AoCBase {
     }
     
     private final int[] getOperandsAt(final List<String> input, final int offset) {
+        if (input.size() % 18 != 0) {
+            return new int[] {};
+        }
         return IntStream.range(0, input.size())
                 .filter(i -> i % 18 == offset)
                 .mapToObj(i -> input.get(i))
