@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.IntStream;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -30,13 +31,28 @@ public class AoC2021_24 extends AoCBase {
     private static final Set<String> REGISTERS = Set.of("w", "x", "y", "z");
     
     private final List<MonadInstruction> monadInstructions;
+    private final int[] divz;
+    private final int[] addy;
+    private final int[] addx;
     
     private AoC2021_24(final List<String> input, final boolean debug) {
         super(debug);
-         this.monadInstructions = input.stream()
+        this.divz = getOperandsAt(input, 4);
+        this.addy = getOperandsAt(input, 15);
+        this.addx = getOperandsAt(input, 5);
+        this.monadInstructions = input.stream()
                 .map(s -> s.split(" "))
                 .map(s -> new MonadInstruction(s[0], asList(subarray(s, 1, s.length))))
                 .collect(toList());
+    }
+    
+    private final int[] getOperandsAt(final List<String> input, final int offset) {
+        return IntStream.range(0, input.size())
+                .filter(i -> i % 18 == offset)
+                .mapToObj(i -> input.get(i))
+                .map(s -> s.split(" ")[2])
+                .mapToInt(Integer::parseInt)
+                .toArray();
     }
     
     public static final AoC2021_24 create(final List<String> input) {
@@ -115,11 +131,6 @@ public class AoC2021_24 extends AoCBase {
         return program.getRegisters();
     }
     
-    // FIXME: get from input
-    private final int[] DIVZ = new int[] {  1,  1,  1,  1, 26, 26,  1, 26, 26,  26,  1, 26,  1,  26 };
-    private final int[] ADDY = new int[] { 14,  8,  4, 10, 14, 10,  4, 14,  1,   6,  0,  9, 13,  12 };
-    private final int[] ADDX = new int[] { 11, 13, 11, 10, -3, -4, 12, -8, -3, -12, 14, -6, 11, -12 };
-   
     //    mul x 0
     //    add x z
     //    mod x 26
@@ -145,8 +156,8 @@ public class AoC2021_24 extends AoCBase {
         instructions.add(Instruction.MUL("x", "0"));
         instructions.add(Instruction.ADD("x", "*z"));
         instructions.add(Instruction.MOD("x", "26"));
-        instructions.add(Instruction.DIV("z", String.valueOf(DIVZ[digit])));
-        instructions.add(Instruction.ADD("x", String.valueOf(ADDX[digit])));
+        instructions.add(Instruction.DIV("z", String.valueOf(this.divz[digit])));
+        instructions.add(Instruction.ADD("x", String.valueOf(this.addx[digit])));
         instructions.add(Instruction.EQL("x", "*w"));
         instructions.add(Instruction.EQL("x", "0"));
         instructions.add(Instruction.MUL("y", "0"));
@@ -156,7 +167,7 @@ public class AoC2021_24 extends AoCBase {
         instructions.add(Instruction.MUL("z", "*y"));
         instructions.add(Instruction.MUL("y", "0"));
         instructions.add(Instruction.ADD("y", "*w"));
-        instructions.add(Instruction.ADD("y", String.valueOf(ADDY[digit])));
+        instructions.add(Instruction.ADD("y", String.valueOf(this.addy[digit])));
         instructions.add(Instruction.MUL("y", "*x"));
         instructions.add(Instruction.ADD("z", "*y"));
 //        log(instructions);
@@ -190,9 +201,9 @@ public class AoC2021_24 extends AoCBase {
      * @see <a href="https://github.com/fuglede/adventofcode/blob/1ae9b4a917052e0be1ef938d8ad47cbac485f22d/2021/day24/solutions.py#L84">inspiration</a>
      */
     private long execProgram2(final ProgramParams params) {
-        final int a = DIVZ[params.digit];
-        final int b = ADDX[params.digit];
-        final int c = ADDY[params.digit];
+        final int a = this.divz[params.digit];
+        final int b = this.addx[params.digit];
+        final int c = this.addy[params.digit];
         final long z = params.z;
         final long w = params.w;
         long ans;
