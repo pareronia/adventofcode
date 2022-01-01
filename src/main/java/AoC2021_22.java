@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import org.apache.commons.math3.util.IntegerSequence.Range;
+import org.apache.commons.lang3.Range;
 
 import com.github.pareronia.aoc.geometry3d.Position3D;
 import com.github.pareronia.aocd.Aocd;
@@ -32,24 +32,10 @@ public class AoC2021_22 extends AoCBase {
                     final Integer y2 = Integer.valueOf(m.group(5));
                     final Integer z1 = Integer.valueOf(m.group(6));
                     final Integer z2 = Integer.valueOf(m.group(7));
-                    final Range x;
-                    if (x1 < x2) {
-                        x = new Range(x1, x2, 1);
-                    } else {
-                        x = new Range(x2, x1, 1);
-                    }
-                    final Range y;
-                    if (y1 < y2) {
-                        y = new Range(y1, y2, 1);
-                    } else {
-                        y = new Range(y2, y1, 1);
-                    }
-                    final Range z;
-                    if (z1 < z2) {
-                        z = new Range(z1, z2, 1);
-                    } else {
-                        z = new Range(z2, z1, 1);
-                    }
+                    assert x1 <= x2 && y1 <= y2 && z1 <= z2;
+                    final Range<Integer> x = Range.between(x1, x2);
+                    final Range<Integer> y = Range.between(y1, y2);
+                    final Range<Integer> z = Range.between(z1, z2);
                     return new RebootStep(x, y, z, m.group(1));
             })
             .collect(toList());
@@ -64,31 +50,26 @@ public class AoC2021_22 extends AoCBase {
     }
     
     @Override
+    @SuppressWarnings("unchecked")
     public Integer solvePart1() {
         final Set<Position3D> cubes = new HashSet<>();
         this.steps.stream()
             .filter(s -> {
-                for (final int x : s.x) {
-                    if (x < -50 || x > 50) {
-                        return false;
-                    }
+                if (s.x.isBefore(-50) || s.x.isAfter(50)) {
+                    return false;
                 }
-                for (final int y : s.y) {
-                    if (y < -50 || y > 50) {
-                        return false;
-                    }
+                if (s.y.isBefore(-50) || s.y.isAfter(50)) {
+                    return false;
                 }
-                for (final int z : s.z) {
-                    if (z < -50 || z > 50) {
-                        return false;
-                    }
+                if (s.z.isBefore(-50) || s.z.isAfter(50)) {
+                    return false;
                 }
                 return true;
             })
             .forEach(s -> {
-                for (final int x : s.x) {
-                    for (final int y : s.y) {
-                        for (final int z : s.z) {
+                for (int x = (int) s.x.getMinimum(); x <= (int) s.x.getMaximum(); x++) {
+                    for (int y = (int) s.y.getMinimum(); y <= (int) s.y.getMaximum(); y++) {
+                        for (int z = (int) s.z.getMinimum(); z <= (int) s.z.getMaximum(); z++) {
                             if ("on".equals(s.state)) {
                                 cubes.add(Position3D.of(x, y, z));
                             } else {
@@ -98,6 +79,7 @@ public class AoC2021_22 extends AoCBase {
                     }
                 }
             });
+        log(cubes.size());
         return cubes.size();
     }
     
@@ -108,7 +90,7 @@ public class AoC2021_22 extends AoCBase {
 
     public static void main(final String[] args) throws Exception {
         assert AoC2021_22.create(TEST1).solvePart1() == 39;
-        assert AoC2021_22.createDebug(TEST2).solvePart1() == 590784;
+        assert AoC2021_22.create(TEST2).solvePart1() == 590784;
         assert AoC2021_22.create(TEST1).solvePart2() == null;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 22);
