@@ -1,4 +1,5 @@
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.stream.IntStream;
 
 import org.apache.commons.collections4.ListUtils;
 
+import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -23,6 +25,8 @@ import lombok.ToString;
 
 public class AoC2021_23 extends AoCBase {
     
+    private static final char WALL = '#';
+    
     private static final Map<Amphipod, Integer> ENERGY = Map.of(
         Amphipod.A, 1,
         Amphipod.B, 10,
@@ -30,37 +34,36 @@ public class AoC2021_23 extends AoCBase {
         Amphipod.D, 1000
     );
     
-    private final Diagram initialDiagram1, initialDiagram2;
-    private final Diagram endDiagram1, endDiagram2;
+    private final List<String> inputs;
     
     private AoC2021_23(final List<String> input, final boolean debug) {
         super(debug);
+        this.inputs = input;
+    }
+    
+    private final Diagram parse(final List<String> input) {
         final Amphipod[] hallway = new Amphipod[11];
+        final List<Amphipod> roomA = new ArrayList<>();
+        final List<Amphipod> roomB = new ArrayList<>();
+        final List<Amphipod> roomC = new ArrayList<>();
+        final List<Amphipod> roomD = new ArrayList<>();
         Arrays.fill(hallway, Amphipod.EMPTY);
-        this.initialDiagram1 = new Diagram(
-                hallway,
-                new Amphipod[] { Amphipod.B, Amphipod.B },
-                new Amphipod[] { Amphipod.C, Amphipod.C },
-                new Amphipod[] { Amphipod.D, Amphipod.A },
-                new Amphipod[] { Amphipod.A, Amphipod.D });
-        this.endDiagram1 = new Diagram(
-                Arrays.copyOf(hallway, hallway.length),
-                new Amphipod[] { Amphipod.A, Amphipod.A },
-                new Amphipod[] { Amphipod.B, Amphipod.B },
-                new Amphipod[] { Amphipod.C, Amphipod.C },
-                new Amphipod[] { Amphipod.D, Amphipod.D });
-        this.initialDiagram2 = new Diagram(
-            Arrays.copyOf(hallway, hallway.length),
-            new Amphipod[] { Amphipod.B, Amphipod.D, Amphipod.D, Amphipod.B },
-            new Amphipod[] { Amphipod.C, Amphipod.B, Amphipod.C, Amphipod.C },
-            new Amphipod[] { Amphipod.D, Amphipod.A, Amphipod.B, Amphipod.A },
-            new Amphipod[] { Amphipod.A, Amphipod.C, Amphipod.A, Amphipod.D });
-        this.endDiagram2 = new Diagram(
-            Arrays.copyOf(hallway, hallway.length),
-            new Amphipod[] { Amphipod.A, Amphipod.A, Amphipod.A, Amphipod.A },
-            new Amphipod[] { Amphipod.B, Amphipod.B, Amphipod.B, Amphipod.B },
-            new Amphipod[] { Amphipod.C, Amphipod.C, Amphipod.C, Amphipod.C },
-            new Amphipod[] { Amphipod.D, Amphipod.D, Amphipod.D, Amphipod.D });
+        for (int i = 2; i < input.size() - 1; i++) {
+            final List<Character> chars = Utils.asCharacterStream(input.get(i).strip())
+                .filter(c -> c != WALL)
+                .collect(toList());
+            assert chars.size() == 4;
+            roomA.add(0, getEnum(Amphipod.class, chars.get(0).toString()));
+            roomB.add(0, getEnum(Amphipod.class, chars.get(1).toString()));
+            roomC.add(0, getEnum(Amphipod.class, chars.get(2).toString()));
+            roomD.add(0, getEnum(Amphipod.class, chars.get(3).toString()));
+        }
+        return new Diagram(
+            hallway,
+            roomA.toArray(new Amphipod[roomA.size()]),
+            roomB.toArray(new Amphipod[roomB.size()]),
+            roomC.toArray(new Amphipod[roomC.size()]),
+            roomD.toArray(new Amphipod[roomD.size()]));
     }
     
     public static final AoC2021_23 create(final List<String> input) {
@@ -71,14 +74,14 @@ public class AoC2021_23 extends AoCBase {
         return new AoC2021_23(input, true);
     }
     
-    private int solveBis(final Diagram start, final Diagram end) {
+    private int solveBis(final Diagram start) {
         final PriorityQueue<State> q = new PriorityQueue<>();
         q.add(new State(start, 0));
         final Set<Diagram> seen = new HashSet<>();
-        seen.add(start);
         while (!q.isEmpty()) {
             final State state = q.poll();
-            if (state.diagram.equals(end)) {
+            if (state.diagram.complete()) {
+                log(state.cost);
                 return state.cost;
             }
             if (seen.contains(state.diagram)) {
@@ -94,7 +97,7 @@ public class AoC2021_23 extends AoCBase {
         throw new IllegalStateException("Unsolvable");
     }
     
-    private int solve(final Diagram start, final Diagram end) {
+    private int solve(final Diagram start) {
         final PriorityQueue<State> q = new PriorityQueue<>();
         q.add(new State(start, 0));
         final Map<Diagram, Integer> best = new HashMap<>();
@@ -103,19 +106,15 @@ public class AoC2021_23 extends AoCBase {
         while (!q.isEmpty()) {
             max = Math.max(q.size(), max);
             final State state = q.poll();
-//            if (q.size() % 10000 == 0) {
-//                log(q.size());
-//            }
-            if (state.diagram.equals(end)) {
+            if (state.diagram.complete()) {
+                log("max: " + max);
+                log(state.cost);
                 return state.cost;
             }
             if (state.cost > best.getOrDefault(state.diagram, Integer.MAX_VALUE)) {
                 continue;
             }
             for (final Move move : state.diagram.moves()) {
-//                if (move instanceof MoveFromHallway && move.room == Amphipod.A && move.posTo == 1) {
-//                    log(move);
-//                }
                 final Diagram newDiagram = state.diagram.doMove(move);
                 final int bestCost = best.getOrDefault(newDiagram, Integer.MAX_VALUE);
                 final int newCost = state.cost + move.energy;
@@ -131,27 +130,42 @@ public class AoC2021_23 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        return solve(this.initialDiagram1, this.endDiagram1);
+        final AoC2021_23.Diagram initialDiagram = parse(this.inputs);
+        return solve(initialDiagram);
     }
     
     @Override
     public Integer solvePart2() {
-        return solve(this.initialDiagram2, this.endDiagram2);
+        final List<String> inputs2 = List.of(
+            this.inputs.get(0),
+            this.inputs.get(1),
+            this.inputs.get(2),
+            "  #D#C#B#A#",
+            "  #D#B#A#C#",
+            this.inputs.get(3),
+            this.inputs.get(4)
+        );
+        final AoC2021_23.Diagram initialDiagram = parse(inputs2);
+        return solve(initialDiagram);
     }
 
     public static void main(final String[] args) throws Exception {
-//        assert AoC2021_23.createDebug(TEST).solvePart1() == 11120;
-//        assert AoC2021_23.create(TEST).solvePart2() == null;
+        assert AoC2021_23.create(TEST).solvePart1() == 12_521;
+        assert AoC2021_23.create(TEST).solvePart2() == 44_169;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 23);
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_23.createDebug(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_23.createDebug(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", () -> AoC2021_23.create(puzzle.getInputData()).solvePart1()),
+            () -> lap("Part 2", () -> AoC2021_23.create(puzzle.getInputData()).solvePart2())
         );
     }
 
     private static final List<String> TEST = splitLines(
-        ""
+        "#############\r\n" +
+        "#...........#\r\n" +
+        "###B#C#B#D###\r\n" +
+        "  #A#D#C#A#\r\n" +
+        "  #########"
     );
 
     enum Amphipod { EMPTY, A, B, C, D }
@@ -163,11 +177,7 @@ public class AoC2021_23 extends AoCBase {
         
         @Override
         public int compareTo(final State other) {
-            final int cc = Integer.compare(this.cost, other.cost);
-//            if (cc == 0) {
-//                return -1 * Integer.compare(this.diagram.completeness(), other.diagram.completeness());
-//            }
-            return cc;
+            return Integer.compare(this.cost, other.cost);
         }
     }
     
@@ -202,18 +212,11 @@ public class AoC2021_23 extends AoCBase {
                     return -1;
                 }
             }
-            
-//            for (int i = this.capacity - 1; i >= 0; i--) {
-//                if (this.amphipods[i] == amphipod) {
-////                    System.out.println(" vacancy for " + amphipod + ": " + (i - 1));
-//                    return i + 1;
-//                }
-//            }
             throw new IllegalStateException();
         }
         
         int availableToMove() {
-            if (this.complete()) {
+            if (this.completeness() + this.countEmpty() == this.capacity) {
                 return -1;
             }
             for (int i = this.capacity - 1; i >= 0; i--) {
@@ -286,6 +289,14 @@ public class AoC2021_23 extends AoCBase {
                     .build();
         }
         
+        public boolean complete() {
+            return Arrays.stream(this.hallway.amphipods).allMatch(a-> a == Amphipod.EMPTY)
+                    && this.roomA.complete()
+                    && this.roomB.complete()
+                    && this.roomC.complete()
+                    && this.roomD.complete();
+        }
+        
         public int completeness() {
             return this.roomA.completeness() + this.roomB.completeness()
                 + this.roomC.completeness() + this.roomD.completeness();
@@ -306,6 +317,24 @@ public class AoC2021_23 extends AoCBase {
                     Arrays.copyOf(this.roomB.amphipods, this.roomB.amphipods.length),
                     Arrays.copyOf(this.roomC.amphipods, this.roomC.amphipods.length),
                     Arrays.copyOf(this.roomD.amphipods, this.roomD.amphipods.length));
+        }
+        
+        private void assertValid() {
+            assert this.hallway.amphipods[2] == Amphipod.EMPTY
+                    && this.hallway.amphipods[4] == Amphipod.EMPTY
+                    && this.hallway.amphipods[6] == Amphipod.EMPTY
+                    && this.hallway.amphipods[8] == Amphipod.EMPTY;
+            assert this.countNonEmpty() == this.roomA.capacity
+                    + this.roomB.capacity + this.roomC.capacity
+                    + this.roomD.capacity;
+            for (final Room room : Set.of(this.roomA, this.roomB, this.roomC, this.roomD)) {
+                for (int i = 0; i < room.amphipods.length; i++) {
+                    final Amphipod amphipod = room.amphipods[i];
+                    if (amphipod == Amphipod.EMPTY && i < room.capacity - 1) {
+                        assert room.amphipods[i + 1] == Amphipod.EMPTY;
+                    }
+                }
+            }
         }
         
         private Room roomFor(final Amphipod amphipod) {
@@ -335,11 +364,8 @@ public class AoC2021_23 extends AoCBase {
                 copy.hallway.amphipods[move.posTo] = copy.roomFor(move.room).amphipods[move.posFrom];
                 copy.roomFor(move.room).amphipods[move.posFrom] = temp;
             }
-            assert copy.countNonEmpty() == roomA.capacity + roomB.capacity + roomC.capacity + roomD.capacity;
-            assert copy.hallway.amphipods[2] == Amphipod.EMPTY
-                    && copy.hallway.amphipods[4] == Amphipod.EMPTY
-                    && copy.hallway.amphipods[6] == Amphipod.EMPTY
-                    && copy.hallway.amphipods[8] == Amphipod.EMPTY;
+            this.assertValid();
+            copy.assertValid();
             return copy;
         }
         
