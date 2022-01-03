@@ -81,11 +81,12 @@ class Diagram(NamedTuple):
         assert len(self.room_c.amphipods) == self.room_c.capacity
         assert len(self.room_d.amphipods) == self.room_d.capacity
         assert all(self.hallway.amphipods[i] == EMPTY for i in ROOMS.values())
-        for r in ROOMS:
-            room = self._asdict()[r]
-            for i, amphipod in enumerate(room.amphipods):
-                if amphipod == EMPTY and i < room.capacity - 1:
-                    assert room.amphipods[i + 1] == EMPTY
+        if __debug__:
+            for r in ROOMS:
+                room = getattr(self, r)
+                for i, amphipod in enumerate(room.amphipods):
+                    if amphipod == EMPTY and i < room.capacity - 1:
+                        assert room.amphipods[i + 1] == EMPTY
 
     def is_complete(self) -> bool:
         return self.hallway.amphipods == [EMPTY] * 11 \
@@ -115,8 +116,8 @@ class Diagram(NamedTuple):
 
     def moves_to_hallway(self) -> set[tuple[str, int, int]]:
         moves = set[tuple[str, int, int]]()
-        for room_name, room_pos in ROOMS.items():
-            room = self._asdict()[room_name]
+        for room_name in ROOMS.keys():
+            room = getattr(self, room_name)
             from_ = room.available_for_move()
             if from_ is None:
                 continue
@@ -147,12 +148,12 @@ class Diagram(NamedTuple):
             if amphipod == EMPTY:
                 continue
             rooms = [r for r in ROOMS.keys()
-                     if self._asdict()[r].destination_for == amphipod]
+                     if getattr(self, r).destination_for == amphipod]
             assert len(rooms) == 1
             room_name = rooms[0]
             if not self.all_empty(from_, room_name):
                 continue
-            to = self._asdict()[room_name].vacancy_for(amphipod)
+            to = getattr(self, room_name).vacancy_for(amphipod)
             if to is None:
                 continue
             moves.add((room_name, from_, to))
@@ -160,14 +161,14 @@ class Diagram(NamedTuple):
 
     def energy_for_move_to_hallway(self, move: tuple[str, int, int]) -> int:
         room_name, from_, to = move
-        room = self._asdict()[room_name]
+        room = getattr(self, room_name)
         hor = abs(ROOMS[room_name] - to)
         ver = room.capacity - from_
         return (hor + ver) * ENERGY[room.amphipods[from_]]
 
     def energy_for_move_from_hallway(self, move: tuple[str, int, int]) -> int:
         room_name, from_, to = move
-        room = self._asdict()[room_name]
+        room = getattr(self, room_name)
         hor = abs(ROOMS[room_name] - from_)
         ver = room.capacity - to
         return (hor + ver) * ENERGY[self.hallway.amphipods[from_]]
@@ -175,7 +176,7 @@ class Diagram(NamedTuple):
     def do_move_from_hallway(self, move: tuple[str, int, int]) -> Diagram:
         room_name, from_, to = move
         copy = deepcopy(self)
-        room = copy._asdict()[room_name]
+        room = getattr(copy, room_name)
         assert copy.hallway.amphipods[from_] == room.destination_for
         temp = room.amphipods[to]
         assert temp == EMPTY
@@ -188,7 +189,7 @@ class Diagram(NamedTuple):
     def do_move_to_hallway(self, move: tuple[str, int, int]) -> Diagram:
         room_name, from_, to = move
         copy = deepcopy(self)
-        room = copy._asdict()[room_name]
+        room = getattr(copy, room_name)
         temp = copy.hallway.amphipods[to]
         assert temp == EMPTY
         copy.hallway.amphipods[to] = room.amphipods[from_]
