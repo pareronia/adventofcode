@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
@@ -237,8 +238,11 @@ public class AoC2021_24 extends AoCBase {
                 }
             }
             wzz.put(i, zz);
+            log(String.format("digit: %d, divz: %d, addx: %d, addy: %d, z-values (%d): %s",
+                    i + 1, this.divz[i], this.addx[i], this.addy[i], zz.size(), new TreeSet<Long>(zz)));
         }
         final long[] ans = new long[DIGITS];
+        Arrays.fill(ans, -1L);
         List<Long> range;
         if (highest) {
             range = List.of(9L, 8L, 7L, 6L, 5L, 4L, 3L, 2L, 1L);
@@ -256,6 +260,7 @@ public class AoC2021_24 extends AoCBase {
                     break;
                 }
             }
+            assert ans[j] != -1L;
         }
         return Long.parseLong(
                 Arrays.stream(ans)
