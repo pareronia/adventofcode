@@ -1,0 +1,22 @@
+package com.github.pareronia.aoc.geometry3d;
+
+import lombok.EqualsAndHashCode;
+
+@EqualsAndHashCode(callSuper = true)
+public class Vector3D extends Point3D {
+
+    public Vector3D(final int x, final int y, final int z) {
+        super(x, y, z);
+    }
+    
+    public static Vector3D of(final int x, final int y, final int z) {
+        return new Vector3D(x, y, z);
+    }
+    
+    public static Vector3D from(final Position3D from, final Position3D to) {
+        return new Vector3D(
+                to.getX() - from.getX(),
+                to.getY() - from.getY(),
+                to.getZ() - from.getZ());
+    }
+}

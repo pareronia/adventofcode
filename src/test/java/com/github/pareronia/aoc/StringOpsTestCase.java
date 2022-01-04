@@ -20,6 +20,22 @@ public class StringOpsTestCase {
         assertThat(asList(StringOps.getDigits("abc ", 0)), is(empty()));
     }
     
+    @Test(expected = NumberFormatException.class)
+    public void hexToBinIlegalChar() {
+        StringOps.hexToBin("1G");
+    }
+    
+    @Test
+    public void hexToBin() {
+        assertThat(StringOps.hexToBin("0"), is("0000"));
+        assertThat(StringOps.hexToBin("1"), is("0001"));
+        assertThat(StringOps.hexToBin("1F"), is("00011111"));
+        assertThat(StringOps.hexToBin("1f"), is("00011111"));
+        assertThat(StringOps.hexToBin("FF"), is("11111111"));
+        assertThat(StringOps.hexToBin("0F2F"), is("0000111100101111"));
+        assertThat(StringOps.hexToBin("CAFEBABE"), is("11001010111111101011101010111110"));
+    }
+    
     @Test(expected = IllegalArgumentException.class)
     public void moveSamePositions() {
         StringOps.move("".toCharArray(), 1, 1);

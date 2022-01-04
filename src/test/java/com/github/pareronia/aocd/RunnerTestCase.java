@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -83,13 +84,15 @@ public class RunnerTestCase {
 						"8",
 						"line1" + System.lineSeparator() + "line2", "line3"});
 		
-		assertThat(response.toString(), is("a" + System.lineSeparator() + "b"));
+		assertThat(response.toString(), is("3" + System.lineSeparator() + "3"));
 	}
 	
 	private static final class Stub {
+	    private final List<String> strings;
 		
 		public Stub(final List<String> input) {
 			assertThat(input, is(asList("line1", "line2", "line3")));
+			this.strings = new ArrayList<>(input);
 		}
 
 		@SuppressWarnings("unused")
@@ -98,13 +101,15 @@ public class RunnerTestCase {
 		}
 		
 		@SuppressWarnings("unused")
-		public String solvePart1() {
-			return "a";
+		public Integer solvePart1() {
+			final int result = this.strings.size();
+			this.strings.set(0, "changed");
+            return result;
 		}
 
 		@SuppressWarnings("unused")
-		public String solvePart2() {
-			return "b";
+		public Integer solvePart2() {
+		    return this.strings.size();
 		}
 	}
 }

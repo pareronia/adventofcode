@@ -88,7 +88,7 @@ unittest.py:
 #: Run Java unit tests
 unittest.java:
 	@$(call msg,"Running Java unit tests...")
-	@$(JAVA_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
+	@$(JAVA_CMD) -DNDEBUG -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
 		$(JAVA_UNITTEST_CMD) AllUnitTests
 
 #: Run all unit tests

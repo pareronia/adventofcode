@@ -32,11 +32,15 @@ public class Aocd {
 	
 	public static final ZoneId AOC_TZ = ZoneId.of("America/New_York");
 	
-	public static List<String> getData(Integer year, Integer day) {
-		final List<String> inputData = Puzzle.create(year, day).getInputData();
-		if (CollectionUtils.isEmpty(inputData)) {
-			System.err.println("!! INPUT DATA MISSING !!");
-		}
-		return inputData;
+	public static List<String> getData(final Integer year, final Integer day) {
+	    final List<String> inputData = puzzle(year, day).getInputData();
+	    if (CollectionUtils.isEmpty(inputData)) {
+	        System.err.println("!! INPUT DATA MISSING !!");
+	    }
+	    return inputData;
+	}
+	
+	public static Puzzle puzzle(final Integer year, final Integer day) {
+		return Puzzle.create(year, day);
 	}
 }

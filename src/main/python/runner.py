@@ -36,6 +36,7 @@ from collections import OrderedDict
 from datetime import datetime
 from termcolor import colored
 from dateutil.tz import gettz
+from aocd.exceptions import AocdError
 from aocd.models import AOCD_CONFIG_DIR
 from aocd.models import Puzzle
 from aocd.models import default_user
@@ -65,6 +66,8 @@ def main():
     parser.add_argument("-d", "--days", type=int, nargs="+", choices=days)
     parser.add_argument("-u", "--users", nargs="+", choices=users)
     parser.add_argument("-t", "--timeout", type=int, default=DEFAULT_TIMEOUT)
+    parser.add_argument("-s", "--no-submit", action="store_true",
+                        help="disable autosubmit")
     parser.add_argument("--log-level", default="WARNING", choices=log_levels)
     args = parser.parse_args()
     if not users:
@@ -82,6 +85,7 @@ def main():
         days=args.days or days,
         datasets={k: users[k] for k in (args.users or users)},
         timeout=args.timeout,
+        autosubmit=not args.no_submit,
     )
     sys.exit(rc)
 
@@ -154,7 +158,8 @@ def run_one(year, day, input_data, entry_point,
     return a, b, walltime, error
 
 
-def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT):
+def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
+            autosubmit=True):
     aoc_now = datetime.now(tz=AOC_TZ)
     entry_points = {ep.__name__: ep
                     for ep in all_entry_points
@@ -203,7 +208,17 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT):
                 try:
                     expected = getattr(puzzle, "answer_" + part)
                 except AttributeError:
-                    pass
+                    post = part == "a" or (part == "b" and puzzle.answered_a)
+                    if autosubmit and post:
+                        try:
+                            puzzle._submit(answer, part,
+                                           reopen=False, quiet=True)
+                        except AocdError as err:
+                            log.warning("error submitting - %s", err)
+                        try:
+                            expected = getattr(puzzle, "answer_" + part)
+                        except AttributeError:
+                            pass
                 correct = expected is not None and str(expected) == answer
                 icon = colored("✅", "green") if correct \
                     else colored("❌", "red")
@@ -261,6 +276,7 @@ def java(year: int, day: int, data: str):
         s.send(b'END\r\n')
         data = s.recv(1024)
     results = data.decode('UTF-8').rstrip().splitlines()
+    log.info(f"Results: {results}")
     if results:
         return tuple(results)
     else:

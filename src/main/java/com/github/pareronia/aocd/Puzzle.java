@@ -25,7 +25,9 @@ package com.github.pareronia.aocd;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.Callable;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 public class Puzzle {
@@ -33,26 +35,55 @@ public class Puzzle {
 	private final SystemUtils systemUtils;
 	private final Path inputDataFile;
 	private final Path titleFile;
+	private final Path answer1File;
+	private final Path answer2File;
+	private final FailDecider failDecider;
 	private String title;
+	private String answer1;
+	private String answer2;
 
-	private Puzzle(SystemUtils systemUtils, Integer year, Integer day, User user, Path aocdDir) {
+	private Puzzle(final SystemUtils systemUtils, final Integer year, final Integer day, final User user, final Path aocdDir) {
 		this.systemUtils = systemUtils;
 		this.inputDataFile = user.getMemoDir().resolve(String.format("%d_%02d_input.txt", year, day));
 		this.titleFile = aocdDir.resolve("titles").resolve(String.format("%d_%02d.txt", year, day));
+		this.answer1File = user.getMemoDir().resolve(String.format("%d_%02da_answer.txt", year, day));
+		this.answer2File = user.getMemoDir().resolve(String.format("%d_%02db_answer.txt", year, day));
+		this.failDecider = new FailDecider();
 	}
 
-	public static final Puzzle create(Integer year, Integer day) {
+	public static final Puzzle create(final Integer year, final Integer day) {
 		return create(year, day, User.getDefaultUser());
 	}
 	
-	public static final Puzzle create(Integer year, Integer day, User user) {
+	public static final Puzzle create(final Integer year, final Integer day, final User user) {
 		final SystemUtils systemUtils = new SystemUtils();
 		final Path aocdDir = systemUtils.getAocdDir();
 		return create(systemUtils, year, day, user, aocdDir);
 	}
 	
-	public static final Puzzle create(SystemUtils systemUtils, Integer year, Integer day, User user, Path aocdDir) {
+	public static final Puzzle create(final SystemUtils systemUtils, final Integer year, final Integer day, final User user, final Path aocdDir) {
 		return new Puzzle(systemUtils, year, day, user, aocdDir);
+	}
+	
+	public <V1, V2> void check(final Callable<V1> part1, final Callable<V2> part2) throws Exception {
+	    final String[] fails = new String[2];
+        final String answer1 = getAnswer1();
+	    final V1 result1 = part1.call();
+        if (failDecider.fail(answer1, result1)) {
+            fails[0] = String.format(
+                         "%sPart 1: Expected: '%s', got '%s'",
+                         System.lineSeparator(), answer1, result1);
+        }
+        final String answer2 = getAnswer2();
+	    final V2 result2 = part2.call();
+        if (failDecider.fail(answer2, result2)) {
+            fails[1] = String.format(
+                        "%sPart 2: Expected: '%s', got '%s'",
+                        System.lineSeparator(), answer2, result2);
+        }
+        if (StringUtils.isNotBlank(fails[0]) || StringUtils.isNotBlank(fails[1])) {
+            throw new AssertionError(StringUtils.join(fails));
+        }
 	}
 
 	public String getTitle() {
@@ -61,8 +92,37 @@ public class Puzzle {
 		}
 		return this.title;
 	}
+
+	public String getAnswer1() {
+	    if (StringUtils.isEmpty(this.answer1)) {
+	        this.answer1 = systemUtils.readFirstLineIfExists(answer1File)
+	                            .orElse(StringUtils.EMPTY);
+	    }
+	    return this.answer1;
+	}
+
+	public String getAnswer2() {
+	    if (StringUtils.isEmpty(this.answer2)) {
+	        this.answer2 = systemUtils.readFirstLineIfExists(answer2File)
+	                            .orElse(StringUtils.EMPTY);
+	    }
+	    return this.answer2;
+	}
 	
 	public List<String> getInputData() {
-		return systemUtils.readAllLinesIfExists(inputDataFile);
+		final List<String> inputData = systemUtils.readAllLinesIfExists(inputDataFile);
+	    if (CollectionUtils.isEmpty(inputData)) {
+	        System.err.println("!! INPUT DATA MISSING !!");
+	    }
+	    return inputData;
+	}
+	
+	public static final class FailDecider {
+	    
+	    public <V> boolean fail(final String answer, final V result) {
+	        return StringUtils.isNotEmpty(answer)
+	                && result != null
+	                && !answer.equals(String.valueOf(result));
+	    }
 	}
 }

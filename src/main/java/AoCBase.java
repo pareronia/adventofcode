@@ -11,11 +11,11 @@ public abstract class AoCBase {
 
 	protected final boolean debug;
 	
-	protected static List<String> splitLines(String input) {
+	protected static List<String> splitLines(final String input) {
 		return asList((requireNonNull(input) + "\n").split("\\r?\\n"));
 	}
 	
-	protected static List<List<String>> toBlocks(List<String> inputs) {
+	protected static List<List<String>> toBlocks(final List<String> inputs) {
 		if (inputs.isEmpty()) {
 			return Collections.emptyList();
 		}
@@ -36,7 +36,7 @@ public abstract class AoCBase {
 		return blocks;
 	}
 
-	protected static <V> void lap(String prefix, Callable<V> callable) throws Exception {
+	protected static <V> V lap(final String prefix, final Callable<V> callable) throws Exception {
 	    final long timerStart = System.nanoTime();
 	    final V answer = callable.call();
 	    final long timeSpent = (System.nanoTime() - timerStart) / 1000;
@@ -44,7 +44,7 @@ public abstract class AoCBase {
 	    String unit;
 	    if (timeSpent < 1000) {
 	        time = timeSpent;
-	        unit = "µs";
+	        unit = "Âµs";
 	    } else if (timeSpent < 1_000_000) {
 	        time = timeSpent / 1000.0;
 	        unit = "ms";
@@ -54,9 +54,10 @@ public abstract class AoCBase {
 	    }
 	    System.out.println(String.format("%s : %s, took: %.3f %s",
 	    								 prefix, answer, time, unit));
+	    return answer;
 	}
 
-	protected AoCBase(boolean debug) {
+	protected AoCBase(final boolean debug) {
 		this.debug = debug;
 	}
 	
@@ -68,14 +69,14 @@ public abstract class AoCBase {
 		return 0L;
 	}
 	
-	protected void log(Object obj) {
+	protected void log(final Object obj) {
 		if (!debug) {
 			return;
 		}
 		System.out.println(obj);
 	}
 
-	protected void log(Supplier<Object> supplier) {
+	protected void log(final Supplier<Object> supplier) {
 		if (!debug) {
 			return;
 		}

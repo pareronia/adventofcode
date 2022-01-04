@@ -22,7 +22,7 @@ public class FigthTestCase {
 		final AoC2015_22.Player player = new AoC2015_22.Player(10, 250, 0, 0, 0, 0);
 		final AoC2015_22.Fight fight
 				= new AoC2015_22.Fight(spells, turnStorage, spellSelector, player, boss);
-		fight.setDebug(true);
+		fight.setDebug(!System.getProperties().containsKey("NDEBUG"));
 
 		final long result = fight.run();
 		
@@ -41,7 +41,7 @@ public class FigthTestCase {
 		final AoC2015_22.Player player = new AoC2015_22.Player(10, 250, 0, 0, 0, 0);
 		final AoC2015_22.Fight fight
 				= new AoC2015_22.Fight(spells, turnStorage, spellSelector, player, boss);
-		fight.setDebug(true);
+		fight.setDebug(!System.getProperties().containsKey("NDEBUG"));
 		
 		final long result = fight.run();
 		
@@ -61,7 +61,7 @@ public class FigthTestCase {
 		final AoC2015_22.Player player = new AoC2015_22.Player(10, 250, 0, 0, 0, 0);
 		final AoC2015_22.Fight fight
 				= new AoC2015_22.Fight(spells, turnStorage, spellSelector, player, boss);
-		fight.setDebug(true);
+		fight.setDebug(!System.getProperties().containsKey("NDEBUG"));
 
 		final long result = fight.run();
 		
@@ -72,7 +72,7 @@ public class FigthTestCase {
 		private List<AoC2015_22.Turn> turn;
 		
 		@Override
-		public void push(AoC2015_22.Turn turn) {
+		public void push(final AoC2015_22.Turn turn) {
 			this.turn = Collections.singletonList(turn);
 		}
 

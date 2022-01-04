@@ -55,13 +55,18 @@ public class Runner {
 		} catch (final ClassNotFoundException e) {
 			return Response.EMPTY;
 		}
-		final Object puzzle = klass
-				.getDeclaredMethod("create", List.class)
-				.invoke(null, request.inputs);
-		final Object part1 = klass.getDeclaredMethod("solvePart1").invoke(puzzle);
-		final Object part2 = klass.getDeclaredMethod("solvePart2").invoke(puzzle);
+		final Object puzzle1 = createPuzzle(klass, List.copyOf(request.inputs));
+		final Object part1 = klass.getDeclaredMethod("solvePart1").invoke(puzzle1);
+		final Object puzzle2 = createPuzzle(klass, List.copyOf(request.inputs));
+		final Object part2 = klass.getDeclaredMethod("solvePart2").invoke(puzzle2);
 		return new Response(part1, part2);
 	}
+
+    private Object createPuzzle(final Class<?> klass, final List<String> inputs) throws Exception {
+        return klass
+				.getDeclaredMethod("create", List.class)
+				.invoke(null, inputs);
+    }
 	
 	private static final class Request {
 		private final Integer year;

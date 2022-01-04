@@ -44,7 +44,7 @@ public class NavigationWithHeadingTestCase {
             .right(180)
             .forward(10);
         
-        System.out.println(nav.getVisitedPositions(true));
+        log(nav.getVisitedPositions(true));
         assertThat(nav.getPosition(), is(Position.of(4, 1)));
         assertThat(nav.getVisitedPositions(true),
                     contains(   Position.of(0, 0),
@@ -55,5 +55,11 @@ public class NavigationWithHeadingTestCase {
                     contains(   Position.of(0, 1),
                                 Position.of(-1, 1),
                                 Position.of(4, 1)));
+    }
+    
+    private void log(final Object string) {
+        if (!System.getProperties().containsKey("NDEBUG")) {
+            System.out.println(string);
+        }
     }
 }

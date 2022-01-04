@@ -4,6 +4,7 @@ import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -38,6 +39,36 @@ public class PuzzleTestCase {
 		puzzle = Puzzle.create(systemUtils, 2015, 7, user, aocdDir);
 	}
 
+    @Test
+    @SuppressWarnings("unchecked")
+	public void testGetAnswer1() {
+		when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
+				.thenReturn(Optional.empty(), Optional.of("answer1"));
+		
+	    assertThat(puzzle.getAnswer1(), is(""));
+	    assertThat(puzzle.getAnswer1(), is("answer1"));
+	    
+	    final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
+	    verify(systemUtils, times(2)).readFirstLineIfExists(captor.capture());
+	    assertThat(captor.getValue().toString(),
+	            is("memoDir" + FS + "2015_07a_answer.txt"));
+	}
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testGetAnswer2() {
+        when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
+                .thenReturn(Optional.empty(), Optional.of("answer2"));
+        
+        assertThat(puzzle.getAnswer2(), is(""));
+        assertThat(puzzle.getAnswer2(), is("answer2"));
+        
+        final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
+        verify(systemUtils, times(2)).readFirstLineIfExists(captor.capture());
+        assertThat(captor.getValue().toString(),
+                is("memoDir" + FS + "2015_07b_answer.txt"));
+    }
+	
 	@Test
 	public void getTitle() {
 		when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))

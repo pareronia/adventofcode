@@ -1,4 +1,5 @@
 ''' Some aocd util methods '''
+import os
 import aocd
 
 
@@ -33,3 +34,21 @@ def print_header(year: int, day: int) -> None:
     print(puzzle.title)
     print("=" * len(s))
     print("")
+
+
+def check_results(puzzle: aocd.models.Puzzle, result1, result2) -> None:
+    try:
+        fail_a, fail_b = "", ""
+        if puzzle.answered_a and result1 is not None:
+            expected_a = puzzle.answer_a
+            if expected_a != str(result1):
+                fail_a = f"Part 1: Expected: '{expected_a}', got: '{result1}'"
+        if puzzle.answered_b and result2 is not None:
+            expected_b = puzzle.answer_b
+            if expected_b != str(result2):
+                fail_b = f"Part 2: Expected: '{expected_b}', got: '{result2}'"
+        message = os.linesep.join([fail_a, fail_b])
+        if message.strip() != "":
+            raise ValueError(os.linesep + message)
+    except aocd.exceptions.PuzzleLockedError:
+        pass
