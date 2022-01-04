@@ -3,7 +3,10 @@
 # Advent of Code 2021 Day 1
 #
 
-mapfile -t depths
+# shellcheck source=SCRIPTDIR/aocd/aocd.sh
+. "$(dirname "$0")/aocd/aocd.sh"
+
+mapfile -t depths < "$_aocd__inputfile"
 size="${#depths[@]}"
 
 countIncreases() {
