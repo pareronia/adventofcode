@@ -29,9 +29,16 @@ part2() {
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"
 
-inputfile="$(_aocd__inputFile 2021 01)" \
-    || { echo "Input file not found: $inputfile"; exit 1; }
+year=2021
+day=01
+inputfile="$(_aocd__inputFile "$year" "$day")" \
+    || { echo "Input file not found: $inputfile" >&2; exit 1; }
 mapfile -t input < "$inputfile"
 
-echo "Part 1: $(part1 "${input[@]}")"
-echo "Part 2: $(part2 "${input[@]}")"
+part1="$(part1 "${input[@]}")"
+echo "Part 1: $part1"
+part2="$(part2 "${input[@]}")"
+echo "Part 2: $part2"
+
+check="$(_aocd__check "$year" "$day" "$part1" "$part2")" \
+    || { echo "$check" >&2; exit 1; }
