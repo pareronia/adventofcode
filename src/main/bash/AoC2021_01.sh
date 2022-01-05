@@ -26,6 +26,24 @@ part2() {
     countIncreases 3 "$@"
 }
 
+sample=(
+199
+200
+208
+210
+200
+207
+240
+269
+260
+263
+)
+
+sample1="$(part1 "${sample[@]}")"
+[ "$sample1" = 7 ] || { echo "Part 1 sample failed: $sample1" >&2; exit 1; }
+sample2="$(part2 "${sample[@]}")"
+[ "$sample2" = 5 ] || { echo "Part 2 sample failed: $sample2" >&2; exit 1; }
+
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"
 
