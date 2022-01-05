@@ -29,7 +29,9 @@ part2() {
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"
 
-mapfile -t input < "$_aocd__inputfile"
+inputfile="$(_aocd__inputFile 2021 01)" \
+    || { echo "Input file not found: $inputfile"; exit 1; }
+mapfile -t input < "$inputfile"
 
 echo "Part 1: $(part1 "${input[@]}")"
 echo "Part 2: $(part2 "${input[@]}")"
