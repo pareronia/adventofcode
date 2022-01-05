@@ -7,8 +7,8 @@ else
     _aocd__memodir="$HOME/.config/aocd"
 fi
 
-if [ "$AOCD_SESSION" ]; then
-    _aocd__token="$AOCD_SESSION"
+if [ "$AOC_SESSION" ]; then
+    _aocd__token="$AOC_SESSION"
 else
     IFS='' read -r _aocd__token < "$_aocd__memodir/token"
 fi
