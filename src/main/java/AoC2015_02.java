@@ -1,4 +1,3 @@
-import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
@@ -32,7 +31,7 @@ public final class AoC2015_02 extends AoCBase {
         return new AoC2015_02(input, true);
     }
     
-    private Integer caclculateRequiredArea(final Present present) {
+    private int calculateRequiredArea(final Present present) {
         final int[] sides = new int[] {
                 2 * present.getLength() * present.getWidth(),
                 2 * present.getWidth() * present.getHeight(),
@@ -40,7 +39,7 @@ public final class AoC2015_02 extends AoCBase {
         return Arrays.stream(sides).sum() + Arrays.stream(sides).min().getAsInt() / 2;
     }
 
-    private Integer caclculateRequiredLength(final Present present) {
+    private int calculateRequiredLength(final Present present) {
         final int[] circumferences = new int[] {
                 2 * (present.getLength() + present.getWidth()),
                 2 * (present.getWidth() + present.getHeight()),
@@ -52,15 +51,15 @@ public final class AoC2015_02 extends AoCBase {
     @Override
     public Integer solvePart1() {
         return this.input.stream()
-                .map(this::caclculateRequiredArea)
-                .collect(summingInt(Integer::valueOf));
+                .mapToInt(this::calculateRequiredArea)
+                .sum();
     }
 
     @Override
     public Integer solvePart2() {
         return this.input.stream()
-                .map(this::caclculateRequiredLength)
-                .collect(summingInt(Integer::valueOf));
+                .mapToInt(this::calculateRequiredLength)
+                .sum();
     }
 
     public static void main(final String[] args) throws Exception {
