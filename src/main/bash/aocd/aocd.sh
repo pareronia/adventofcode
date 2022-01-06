@@ -15,23 +15,32 @@ fi
 
 _aocd__userid=$(eval "jq -r '.[\"$_aocd__token\"]' $_aocd__memodir/token2id.json")
 
-_aocd__inputFile() {
-    year="$1"
-    day="$2"
+_aocd__dayFormat() {
+    local year="$1"
+    local day="$2"
     [ ${#year} = 4 ] || { echo "Provide year as yyyy"; return 1; }
     [ ${#day} = 2 ] || { echo "Provide day as dd"; return 1; }
-    _aocd__inputfile="$_aocd__memodir"/"$_aocd__userid"/"$year"_"$day"_input.txt
+    echo "$year"_"$day"
+    return 0
+}
+
+_aocd__inputFile() {
+    local year="$1"
+    local day="$2"
+    _aocd__dayformat="$(_aocd__dayFormat "$year" "$day")" \
+        || { echo "$_aocd__dayformat"; return 1; }
+    _aocd__inputfile="$_aocd__memodir"/"$_aocd__userid"/"$_aocd__dayformat"_input.txt
     [ -f "$_aocd__inputfile" ] || { echo "$_aocd__inputfile not found"; return 1; }
     echo "$_aocd__inputfile"
 }
 
 _aocd__answer() {
-    year="$1"
-    day="$2"
+    local year="$1"
+    local day="$2"
     [ "$3" = 1 ] && part=a || part=b
-    [ ${#year} = 4 ] || { echo "Provide year as yyyy"; return 1; }
-    [ ${#day} = 2 ] || { echo "Provide day as dd"; return 1; }
-    _aocd__answerfile="$_aocd__memodir"/"$_aocd__userid"/"$year"_"$day""$part"_answer.txt
+    _aocd__dayformat="$(_aocd__dayFormat "$year" "$day")" \
+        || { echo "$_aocd__dayformat"; return 1; }
+    _aocd__answerfile="$_aocd__memodir"/"$_aocd__userid"/"$_aocd__dayformat""$part"_answer.txt
     [ -f "$_aocd__answerfile" ] || { echo ""; return 0; }
     IFS='' read -r _aocd__answer < "$_aocd__answerfile"
     echo "$_aocd__answer"
