@@ -3,48 +3,29 @@
 # Advent of Code 2015 Day 2
 #
 
-from __future__ import annotations
-from dataclasses import dataclass
 from aoc import my_aocd
 
 
-@dataclass(frozen=True)
-class Present:
-    l: int
-    w: int
-    h: int
-
-    @classmethod
-    def create(self, length: str, width: str, height: str) -> Present:
-        return Present(int(length), int(width), int(height))
-
-
-def _parse(inputs: tuple[str]) -> list[Present]:
-    return [Present.create(*input_.split("x")) for input_ in inputs]
-
-
-def _calculate_required_area(present: Present) -> int:
-    sides = (2 * present.l * present.w,
-             2 * present.w * present.h,
-             2 * present.h * present.l)
+def _calculate_required_area(present: tuple[int, int, int]) -> int:
+    l, w, h = present
+    sides = (2 * l * w, 2 * w * h, 2 * h * l)
     return sum(sides) + min(sides) // 2
 
 
-def _calculate_required_length(present: Present) -> int:
-    circumferences = (2 * (present.l + present.w),
-                      2 * (present.w + present.h),
-                      2 * (present.h + present.l))
-    return min(circumferences) + present.l * present.w * present.h
+def _calculate_required_length(present: tuple[int, int, int]) -> int:
+    l, w, h = present
+    circumferences = (2 * (l + w), 2 * (w + h), 2 * (h + l))
+    return min(circumferences) + l * w * h
 
 
 def part_1(inputs: tuple[str]) -> int:
-    presents = _parse(inputs)
-    return sum([_calculate_required_area(p) for p in presents])
+    return sum(_calculate_required_area((map(int, line.split('x'))))
+               for line in inputs)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    presents = _parse(inputs)
-    return sum([_calculate_required_length(p) for p in presents])
+    return sum(_calculate_required_length((map(int, line.split('x'))))
+               for line in inputs)
 
 
 TEST1 = "2x3x4".splitlines()
