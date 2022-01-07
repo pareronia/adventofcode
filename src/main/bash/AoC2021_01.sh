@@ -24,6 +24,7 @@ part2() {
     countIncreases 3 "$1"
 }
 
+# shellcheck disable=SC2034
 sample=(
 199
 200
@@ -37,10 +38,11 @@ sample=(
 263
 )
 
-sample1="$(part1 <(for line in "${sample[@]}"; do echo "$line"; done))"
-[ "$sample1" = 7 ] || { echo "Part 1 sample failed: $sample1" >&2; exit 1; }
-sample2="$(part2 <(for line in "${sample[@]}"; do echo "$line"; done))"
-[ "$sample2" = 5 ] || { echo "Part 2 sample failed: $sample2" >&2; exit 1; }
+# shellcheck source=SCRIPTDIR/aoc.sh
+. "$(dirname "$0")/aoc.sh"
+
+TEST part1 sample 7
+TEST part2 sample 5
 
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"

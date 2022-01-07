@@ -32,17 +32,19 @@ part2() {
     return 0
 }
 
-sample1=("2x3x4")
-sample2=("1x1x10")
+# shellcheck disable=SC2034
+{
+    sample1=("2x3x4")
+    sample2=("1x1x10")
+}
 
-sample="$(part1 <(for line in "${sample1[@]}"; do echo "$line"; done))"
-[ "$sample" = 58 ] || { echo "Part 1 sample1 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample2[@]}"; do echo "$line"; done))"
-[ "$sample" = 43 ] || { echo "Part 1 sample2 failed: $sample" >&2; exit 1; }
-sample="$(part2 <(for line in "${sample1[@]}"; do echo "$line"; done))"
-[ "$sample" = 34 ] || { echo "Part 2 sample1 failed: $sample" >&2; exit 1; }
-sample="$(part2 <(for line in "${sample2[@]}"; do echo "$line"; done))"
-[ "$sample" = 14 ] || { echo "Part 2 sample2 failed: $sample" >&2; exit 1; }
+# shellcheck source=SCRIPTDIR/aoc.sh
+. "$(dirname "$0")/aoc.sh"
+
+TEST part1 sample1 58
+TEST part1 sample2 43
+TEST part2 sample1 34
+TEST part2 sample2 14
 
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"

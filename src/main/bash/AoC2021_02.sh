@@ -51,6 +51,7 @@ part2() {
     return 0
 }
 
+# shellcheck disable=SC2034
 sample=(
 "forward 5"
 "down 5"
@@ -60,10 +61,11 @@ sample=(
 "forward 2"
 )
 
-sample1="$(part1 <(for line in "${sample[@]}"; do echo "$line"; done))"
-[ "$sample1" = 150 ] || { echo "Part 1 sample failed: $sample1" >&2; exit 1; }
-sample2="$(part2 <(for line in "${sample[@]}"; do echo "$line"; done))"
-[ "$sample2" = 900 ] || { echo "Part 2 sample failed: $sample2" >&2; exit 1; }
+# shellcheck source=SCRIPTDIR/aoc.sh
+. "$(dirname "$0")/aoc.sh"
+
+TEST part1 sample 150
+TEST part2 sample 900
 
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"

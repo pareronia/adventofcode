@@ -37,40 +37,35 @@ part2() {
     done < "$1"
 }
 
-sample1=("(())")
-sample2=("()()")
-sample3=("(((")
-sample4=("(()(()(")
-sample5=("))(((((")
-sample6=("())")
-sample7=("))(")
-sample8=(")))")
-sample9=(")())())")
-sample10=(")")
-sample11=("()())")
+# shellcheck disable=SC2034
+{
+    sample1=("(())")
+    sample2=("()()")
+    sample3=("(((")
+    sample4=("(()(()(")
+    sample5=("))(((((")
+    sample6=("())")
+    sample7=("))(")
+    sample8=(")))")
+    sample9=(")())())")
+    sample10=(")")
+    sample11=("()())")
+}
 
-sample="$(part1 <(for line in "${sample1[@]}"; do echo "$line"; done))"
-[ "$sample" = 0 ] || { echo "Part 1 sample1 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample2[@]}"; do echo "$line"; done))"
-[ "$sample" = 0 ] || { echo "Part 1 sample2 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample3[@]}"; do echo "$line"; done))"
-[ "$sample" = 3 ] || { echo "Part 1 sample3 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample4[@]}"; do echo "$line"; done))"
-[ "$sample" = 3 ] || { echo "Part 1 sample4 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample5[@]}"; do echo "$line"; done))"
-[ "$sample" = 3 ] || { echo "Part 1 sample5 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample6[@]}"; do echo "$line"; done))"
-[ "$sample" = -1 ] || { echo "Part 1 sample6 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample7[@]}"; do echo "$line"; done))"
-[ "$sample" = -1 ] || { echo "Part 1 sample7 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample8[@]}"; do echo "$line"; done))"
-[ "$sample" = -3 ] || { echo "Part 1 sample8 failed: $sample" >&2; exit 1; }
-sample="$(part1 <(for line in "${sample9[@]}"; do echo "$line"; done))"
-[ "$sample" = -3 ] || { echo "Part 1 sample9 failed: $sample" >&2; exit 1; }
-sample="$(part2 <(for line in "${sample10[@]}"; do echo "$line"; done))"
-[ "$sample" = 1 ] || { echo "Part 2 sample10 failed: $sample" >&2; exit 1; }
-sample="$(part2 <(for line in "${sample11[@]}"; do echo "$line"; done))"
-[ "$sample" = 5 ] || { echo "Part 2 sample11 failed: $sample" >&2; exit 1; }
+# shellcheck source=SCRIPTDIR/aoc.sh
+. "$(dirname "$0")/aoc.sh"
+
+TEST part1 sample1 0
+TEST part1 sample2 0
+TEST part1 sample3 3
+TEST part1 sample4 3
+TEST part1 sample5 3
+TEST part1 sample6 -1
+TEST part1 sample7 -1
+TEST part1 sample8 -3
+TEST part1 sample9 -3
+TEST part2 sample10 1
+TEST part2 sample11 5
 
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"
