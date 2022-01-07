@@ -11,6 +11,7 @@ JAVA_TEST_ROOT := $(SRC_ROOT_TEST)/java
 JAVA_DST_ROOT := target
 JAVA_DST := $(JAVA_DST_ROOT)/classes
 JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
+BASH_ROOT := $(SRC_ROOT_MAIN)/bash
 CFG := setup.cfg
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
@@ -73,6 +74,10 @@ py:
 #: Run Java (with ARGS=year,day)
 java:
 	@$(JAVA_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) $(call day,$(ARGS),"")
+
+#: Run Bash (with ARGS=year,day)
+bash:
+	@./$(BASH_ROOT)/$(call day,$(ARGS),".sh")
 
 #: Build Java
 build.java:
