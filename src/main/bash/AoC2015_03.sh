@@ -8,7 +8,12 @@ part1() {
     local curr="0,0"
     visited["0,0"]=1
     while read -r -n1 char; do
-        IFS=',' read -r x y <<< "$curr"
+        OLDIFS="$IFS"; IFS=","
+        # shellcheck disable=SC2206
+        local fields=($curr)
+        IFS="$OLDIFS"
+        local x="${fields[0]}"
+        local y="${fields[1]}"
         case "$char" in
             ^)
                 curr="$x,$((y+1))"
@@ -40,7 +45,12 @@ part2() {
         else
             curr="$currS"
         fi
-        IFS=',' read -r x y <<< "$curr"
+        OLDIFS="$IFS"; IFS=","
+        # shellcheck disable=SC2206
+        local fields=($curr)
+        IFS="$OLDIFS"
+        local x="${fields[0]}"
+        local y="${fields[1]}"
         case "$char" in
             ^)
                 curr="$x,$((y+1))"
