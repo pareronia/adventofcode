@@ -20,6 +20,15 @@ Part 2: 3812909
 $
 ```
 
+## Day 3
+
+```console
+$ ./src/main/bash/AoC2015_03.sh
+Part 1: 2565
+Part 2: 2639
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
