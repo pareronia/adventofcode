@@ -29,6 +29,15 @@ Part 2: 2639
 $
 ```
 
+## Day 5
+
+```console
+$ ./src/main/bash/AoC2015_05.sh
+Part 1: 255
+Part 2: 55
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
