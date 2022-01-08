@@ -2,6 +2,7 @@ package com.github.pareronia.aoc;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -59,6 +60,27 @@ public final class IntGrid {
         return builder.build();
     }
     
+    public Stream<Cell> findAllMatching(final Predicate<Integer> test) {
+        final Builder<Cell> builder = Stream.builder();
+        for (int row = 0; row < getHeight(); row++) {
+            final int[] cs = this.values[row];
+            for (int col = 0; col < getWidth(); col++) {
+                if (test.test(cs[col])) {
+                    builder.add(Cell.at(row, col));
+                }
+            }
+        }
+        return builder.build();
+    }
+    
+    public Stream<Cell> getAllEqualTo(final int i) {
+        return findAllMatching(c -> c == i);
+    }
+    
+    public long countAllEqualTo(final int i) {
+        return getAllEqualTo(i).count();
+    }
+   
     @RequiredArgsConstructor(staticName = "at")
     @Getter
     @EqualsAndHashCode
