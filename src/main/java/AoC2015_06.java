@@ -11,6 +11,8 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+// TODO: use IntGrid for naive approach
+// TODO: better -> https://www.reddit.com/r/adventofcode/comments/3vmltn/day_6_solutions/cxozgap/
 public final class AoC2015_06 extends AoCBase {
     
     private final transient List<Instruction> input;
