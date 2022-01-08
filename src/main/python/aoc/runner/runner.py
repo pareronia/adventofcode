@@ -49,6 +49,7 @@ root = os.getcwd()
 
 
 def main():
+    start_java()
     aoc_now = datetime.now(tz=AOC_TZ)
     plugins = OrderedDict([(ep.__name__, ep) for ep in all_entry_points])
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
@@ -329,7 +330,7 @@ def stop_java():
         s.send(b'STOP')
 
 
+all_entry_points = [py, java, bash]
+
 if __name__ == '__main__':
-    start_java()
-    all_entry_points = [py, java, bash]
     main()
