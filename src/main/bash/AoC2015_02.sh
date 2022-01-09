@@ -52,12 +52,11 @@ TEST part2 sample2 14
 year=2015
 day=02
 inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || { echo "Input file not found: $inputfile" >&2; exit 1; }
+    || fatal 1 "Input file not found: $inputfile"
 
 part1="$(part1 "$inputfile")"
 echo "Part 1: $part1"
 part2="$(part2 "$inputfile")"
 echo "Part 2: $part2"
 
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" \
-    || { echo "$check" >&2; exit 1; }
+check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"

@@ -1,6 +1,8 @@
 # shellcheck shell=bash
 
 E_ASSERT_FAILED=99
+RED='\033[1;31m'
+NC='\033[0m' # No Color
 
 # assert
 # If condition false, exit from script with appropriate error message.
@@ -31,6 +33,21 @@ assert () {
     eval "$cmd"
 }
 
+red() {
+    if [ -t 1 ]; then 
+        echo -e "$RED$*$NC"
+    else 
+        echo "$*"
+    fi
+}
+
+fatal() {
+    local exitcode="$1"
+    shift
+    red "**** FATAL: $*" >&2
+    exit "$exitcode"
+}
+
 TEST() {
     local part="$1"
     local arg="$2[@]"
@@ -38,8 +55,7 @@ TEST() {
     local expected="$3"
     local actual
     actual="$("$part" <(for line in "${lines[@]}"; do echo "$line"; done))"
-    if [ "$actual" != "$expected" ]; then
-        echo "FAILED $part SAMPLE $2: expected '$expected', got '$actual'" >&2
-        exit $E_ASSERT_FAILED
-    fi
+    local msg="FAILED $part SAMPLE $2: expected '$expected', got '$actual'"
+    [ "$actual" != "$expected" ] \
+        && fatal "$E_ASSERT_FAILED" "$msg" >&2
 }
