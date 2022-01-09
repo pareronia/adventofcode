@@ -49,6 +49,15 @@ Part 2: 165
 $
 ```
 
+## Day 2
+
+```console
+$ ./src/main/bash/AoC2016_02.sh
+Part 1: 35749
+Part 2: 9365C
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
