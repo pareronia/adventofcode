@@ -58,6 +58,15 @@ Part 2: 9365C
 $
 ```
 
+## Day 3
+
+```console
+$ ./src/main/bash/AoC2016_03.sh
+Part 1: 993
+Part 2: 1849
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
