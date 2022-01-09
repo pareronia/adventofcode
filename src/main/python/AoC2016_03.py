@@ -3,13 +3,13 @@
 # Advent of Code 2016 Day 3
 #
 
+from collections.abc import Generator
+import aocd
 from aoc import my_aocd
 
 
-def _parse(inputs: tuple[str]) -> tuple[tuple[int]]:
-    return ((int(_[0]), int(_[1]), int(_[2]))
-            for _ in (line.split() for line in inputs)
-            )
+def _parse(inputs: tuple[str]) -> Generator[tuple[int, int, int]]:
+    return (tuple(map(int, line.split())) for line in inputs)
 
 
 def _valid(t: tuple[int]) -> bool:
@@ -19,7 +19,7 @@ def _valid(t: tuple[int]) -> bool:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return sum(1 for t in _parse(inputs) if _valid(t))
+    return sum(_valid(t) for t in _parse(inputs))
 
 
 def part_2(inputs: tuple[str]) -> int:
@@ -41,7 +41,8 @@ TEST3 = '''\
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 3)
+    puzzle = aocd.models.Puzzle(2016, 3)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST1) == 0
     assert part_1(TEST2) == 1
@@ -52,6 +53,7 @@ def main() -> None:
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
