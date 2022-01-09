@@ -38,6 +38,17 @@ Part 2: 55
 $
 ```
 
+# Advent of Code 2016
+
+## Day 1
+
+```console
+$ ./src/main/bash/AoC2016_01.sh
+Part 1: 307
+Part 2: 165
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
