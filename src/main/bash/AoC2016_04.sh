@@ -3,14 +3,15 @@
 # Advent of Code 2016 Day 4
 #
 
+re1="([-a-z]+)-([0-9]+)\\[([a-z]{5})\\]$"
+
 part1() {
     local -i ans=0
-    local re="([-a-z]+)-([0-9]+)\\[([a-z]{5})\\]$"
     while read -r room; do
-        [[ "$room" =~ $re ]]
-        local name="${BASH_REMATCH[1]}" 
-        local -i sector="${BASH_REMATCH[2]}" 
-        local chksum="${BASH_REMATCH[3]}" 
+        [[ "$room" =~ $re1 ]]
+        local name="${BASH_REMATCH[1]}"
+        local -i sector="${BASH_REMATCH[2]}"
+        local chksum="${BASH_REMATCH[3]}"
         local -A hist=()
         for ((i = 0; i < ${#name}; i++)); do
             local ch="${name:$i:1}"
@@ -30,10 +31,36 @@ part1() {
         [ "$chksum_" = "$chksum" ] && ((ans += sector))
     done < "$1"
     echo "$ans"
+    return 0
 }
 
 part2() {
-    echo
+    local -i ans=0
+    local re2="[a-z]{9}-[a-z]{6}-[a-z]{7}$"
+    while read -r room; do
+        [[ "$room" =~ $re1 ]]
+        local name="${BASH_REMATCH[1]}"
+        local -i sector="${BASH_REMATCH[2]}"
+        [[ "$name" =~ $re2 ]]
+        [ "${#BASH_REMATCH[@]}" = 0 ] && continue
+        local -i shift=$((sector % 26))
+        local decrypt=""
+        for ((i = 0; i < ${#name}; i++)); do
+            local ch="${name:$i:1}"
+            if [ "$ch" = "-" ]; then
+                decrypt+=" "
+            else
+                local -i ord
+                ord=$(printf '%d' "'$ch")
+                ord=$(((ord + shift - 97) % 26 + 97))
+                # shellcheck disable=SC2059
+                decrypt+=$(printf "\\$(printf '%03o' "$ord")")
+            fi
+        done
+        [ "$decrypt" = "northpole object storage" ] \
+            && { echo "$sector"; break; }
+    done < "$1"
+    return 0
 }
 
 # shellcheck disable=SC2034
@@ -47,7 +74,7 @@ sample=(
 # shellcheck source=SCRIPTDIR/aoc.sh
 . "$(dirname "$0")/aoc.sh"
 
-# TEST part1 sample 1514
+TEST part1 sample 1514
 
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
 . "$(dirname "$0")/aocd/aocd.sh"

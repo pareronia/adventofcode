@@ -72,7 +72,7 @@ $
 ```console
 $ ./src/main/bash/AoC2016_04.sh
 Part 1: 137896
-Part 2: 
+Part 2: 501
 $
 ```
 
