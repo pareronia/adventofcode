@@ -35,7 +35,7 @@ declare -A keypad2=(
 solve() {
     local -n keypad="$1"
     local -i x=0 y=0 new_x=0 new_y=0
-    while read -r button; do
+    while read -r button || [ -n "$button" ]; do
         for ((i = 0; i < "${#button}"; i++)); do
             local dir="${button:i:1}"
             case "$dir" in

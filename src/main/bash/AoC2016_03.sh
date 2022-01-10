@@ -5,7 +5,7 @@
 
 part1() {
     local -i valid=0
-    while read -r t; do
+    while read -r t || [ -n "$t" ]; do
         OLDIFS="$IFS"; IFS=' '
         # shellcheck disable=SC2206
         local -a fields=($t)
@@ -18,7 +18,7 @@ part1() {
 
 part2() {
     local -i valid=0
-    while read -r line1 && read -r line2 && read -r line3; do
+    while read -r line1 && read -r line2 && read -r line3 || [ -n "$line1" ]; do
         OLDIFS="$IFS"; IFS=' '
         # shellcheck disable=SC2206
         local -a t1=($line1) t2=($line2) t3=($line3)

@@ -6,7 +6,7 @@
 part1() {
     local ver=0
     local hor=0
-    while read -r dir amount; do
+    while read -r dir amount || [ -n "$dir" ]; do
         case "$dir" in
             up)
                 ((ver -= amount))
@@ -30,7 +30,7 @@ part2() {
     local ver=0
     local hor=0
     local aim=0
-    while read -r dir amount; do
+    while read -r dir amount || [ -n "$dir" ]; do
         case "$dir" in
             up)
                 ((aim -= amount))
