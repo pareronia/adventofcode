@@ -13,6 +13,7 @@ JAVA_DST := $(JAVA_DST_ROOT)/classes
 JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
 BASH_ROOT := $(SRC_ROOT_MAIN)/bash
 CFG := setup.cfg
+SHELLCHECK := shellcheck -a -P SCRIPTDIR
 BANDIT := bandit --silent --ini $(CFG)
 FLAKE := flake8
 VULTURE := vulture --min-confidence 80
@@ -42,7 +43,8 @@ PY_SRCS = $(shell find $(PYTHON_ROOT) $(PYTHON_TEST_ROOT) -name "*.py")
 JAVA_SRCS = $(shell find $(JAVA_ROOT) -name "*.java")
 JAVA_TEST_SRCS = $(shell find $(JAVA_TEST_ROOT) -name "*.java")
 CLITEST_SRCS = $(shell find $(CLITEST_ROOT) -name "*.md")
-SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(MAKEFILE)
+BASH_SRCS = $(shell find $(BASH_ROOT) -name "*.sh")
+SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(BASH_SRCS) $(MAKEFILE)
 JAVA_LIBS = $(shell find $(JAVA_LIB_ROOT) -name "*.jar" -not -name "*-sources.jar")
 JAVA_CP_LIBS = $(call to_path,$(JAVA_LIBS))
 
@@ -122,6 +124,11 @@ bandit:
 	@$(call msg,"Running bandit against Python source files...")
 	@$(BANDIT) $(PY_SRCS)
 
+#: Run shellcheck - Bash code linter
+shellcheck:
+	@$(call msg,"Running shellcheck against Bash source files...")
+	@$(SHELLCHECK) $(BASH_SRCS)
+
 #: Run PMD - Java static source code analyzer
 pmd: $(PMD_CACHE_DIR)
 	@$(PMD) -cache $(PMD_CACHE_DIR)/cache -dir $(JAVA_ROOT) -format textcolor
@@ -141,8 +148,8 @@ $(PMD_CACHE_DIR):
 $(PMD_HTML_DIR):
 	@$(MKDIR) --parents $(PMD_HTML_DIR)
 
-#: Run all linters (Flake8, Vulture, Bandit)
-lint: flake vulture bandit
+#: Run all linters (Flake8, Vulture, Bandit, shellcheck)
+lint: flake vulture bandit shellcheck
 
 fixme todo:
 	-@$(call igrep,"$@",$(PY_SRCS) $(JAVA_SRCS))
