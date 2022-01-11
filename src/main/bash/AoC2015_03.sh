@@ -3,6 +3,9 @@
 # Advent of Code 2015 Day 3
 #
 
+year=2015
+day=03
+
 part1() {
     declare -A visited
     local curr="0,0"
@@ -76,35 +79,21 @@ part2() {
     echo "${#visited[@]}"
 }
 
-# shellcheck disable=SC2034
-{
-    sample1=(">")
-    sample2=("^>v<")
-    sample3=("^v^v^v^v^v")
-    sample4=("^v")
+tests() {
+    # shellcheck disable=SC2034
+    {
+        sample1=(">")
+        sample2=("^>v<")
+        sample3=("^v^v^v^v^v")
+        sample4=("^v")
+    }
+
+    TEST part1 sample1 2
+    TEST part1 sample2 4
+    TEST part1 sample3 2
+    TEST part2 sample4 3
+    TEST part2 sample2 3
+    TEST part2 sample3 11
 }
 
-# shellcheck source=SCRIPTDIR/aoc.sh
-. "$(dirname "$0")/aoc.sh"
-
-TEST part1 sample1 2
-TEST part1 sample2 4
-TEST part1 sample3 2
-TEST part2 sample4 3
-TEST part2 sample2 3
-TEST part2 sample3 11
-
-# shellcheck source=SCRIPTDIR/aocd/aocd.sh
-. "$(dirname "$0")/aocd/aocd.sh"
-
-year=2015
-day=03
-inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || fatal 1 "Input file not found: $inputfile"
-
-part1="$(part1 "$inputfile")"
-echo "Part 1: $part1"
-part2="$(part2 "$inputfile")"
-echo "Part 2: $part2"
-
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"
+source "$(dirname "$0")/aoc_main.sh"

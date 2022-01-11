@@ -3,6 +3,9 @@
 # Advent of Code 2015 Day 5
 #
 
+year=2015
+day=05
+
 part1() {
     local -i cnt=0
     while read -r input; do
@@ -42,45 +45,31 @@ part2() {
     echo "$cnt"
 }
 
-# shellcheck disable=SC2034
-{
-    sample1=("ugknbfddgicrmopn")
-    sample2=("aaa")
-    sample3=("jchzalrnumimnmhp")
-    sample4=("haegwjzuvuyypxyu")
-    sample5=("dvszwmarrgswjxmb")
-    sample6=("qjhvhtzxzqqjkmpb")
-    sample7=("xxyxx")
-    sample8=("uurcxstgmygtbstg")
-    sample9=("ieodomkazucvgmuy")
-    sample10=("xyxy")
+tests() {
+    # shellcheck disable=SC2034
+    {
+        sample1=("ugknbfddgicrmopn")
+        sample2=("aaa")
+        sample3=("jchzalrnumimnmhp")
+        sample4=("haegwjzuvuyypxyu")
+        sample5=("dvszwmarrgswjxmb")
+        sample6=("qjhvhtzxzqqjkmpb")
+        sample7=("xxyxx")
+        sample8=("uurcxstgmygtbstg")
+        sample9=("ieodomkazucvgmuy")
+        sample10=("xyxy")
+    }
+
+    TEST part1 sample1 1
+    TEST part1 sample2 1
+    TEST part1 sample3 0
+    TEST part1 sample4 0
+    TEST part1 sample5 0
+    TEST part2 sample6 1
+    TEST part2 sample7 1
+    TEST part2 sample8 0
+    TEST part2 sample9 0
+    TEST part2 sample10 1
 }
 
-# shellcheck source=SCRIPTDIR/aoc.sh
-. "$(dirname "$0")/aoc.sh"
-
-TEST part1 sample1 1
-TEST part1 sample2 1
-TEST part1 sample3 0
-TEST part1 sample4 0
-TEST part1 sample5 0
-TEST part2 sample6 1
-TEST part2 sample7 1
-TEST part2 sample8 0
-TEST part2 sample9 0
-TEST part2 sample10 1
-
-# shellcheck source=SCRIPTDIR/aocd/aocd.sh
-. "$(dirname "$0")/aocd/aocd.sh"
-
-year=2015
-day=05
-inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || fatal 1 "Input file not found: $inputfile"
-
-part1="$(part1 "$inputfile")"
-echo "Part 1: $part1"
-part2="$(part2 "$inputfile")"
-echo "Part 2: $part2"
-
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"
+source "$(dirname "$0")/aoc_main.sh"

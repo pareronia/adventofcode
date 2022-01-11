@@ -3,6 +3,9 @@
 # Advent of Code 2016 Day 4
 #
 
+year=2016
+day=04
+
 re1="([-a-z]+)-([0-9]+)\\[([a-z]{5})\\]$"
 
 part1() {
@@ -63,30 +66,16 @@ part2() {
     return 0
 }
 
-# shellcheck disable=SC2034
-sample=(
-"aaaaa-bbb-z-y-x-123[abxyz]"
-"a-b-c-d-e-f-g-h-987[abcde]"
-"not-a-real-room-404[oarel]"
-"totally-real-room-200[decoy]"
-)
+tests() {
+    # shellcheck disable=SC2034
+    sample=(
+    "aaaaa-bbb-z-y-x-123[abxyz]"
+    "a-b-c-d-e-f-g-h-987[abcde]"
+    "not-a-real-room-404[oarel]"
+    "totally-real-room-200[decoy]"
+    )
 
-# shellcheck source=SCRIPTDIR/aoc.sh
-. "$(dirname "$0")/aoc.sh"
+    TEST part1 sample 1514
+}
 
-TEST part1 sample 1514
-
-# shellcheck source=SCRIPTDIR/aocd/aocd.sh
-. "$(dirname "$0")/aocd/aocd.sh"
-
-year=2016
-day=04
-inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || fatal 1 "Input file not found: $inputfile"
-
-part1="$(part1 "$inputfile")"
-echo "Part 1: $part1"
-part2="$(part2 "$inputfile")"
-echo "Part 2: $part2"
-
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"
+source "$(dirname "$0")/aoc_main.sh"

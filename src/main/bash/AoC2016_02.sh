@@ -3,6 +3,9 @@
 # Advent of Code 2016 Day 2
 #
 
+year=2016
+day=02
+
 # shellcheck disable=SC2034
 declare -A keypad1=(
 ["-1,1"]=1
@@ -72,31 +75,17 @@ part2() {
     solve "keypad2" "$@"
 }
 
-# shellcheck disable=SC2034
-sample=(
-ULL
-RRDDD
-LURDL
-UUUUD
-)
+tests() {
+    # shellcheck disable=SC2034
+    sample=(
+    ULL
+    RRDDD
+    LURDL
+    UUUUD
+    )
 
-# shellcheck source=SCRIPTDIR/aoc.sh
-. "$(dirname "$0")/aoc.sh"
+    TEST part1 sample "1985"
+    TEST part2 sample "5DB3"
+}
 
-TEST part1 sample "1985"
-TEST part2 sample "5DB3"
-
-# shellcheck source=SCRIPTDIR/aocd/aocd.sh
-. "$(dirname "$0")/aocd/aocd.sh"
-
-year=2016
-day=02
-inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || fatal 1 "Input file not found: $inputfile"
-
-part1="$(part1 "$inputfile")"
-echo "Part 1: $part1"
-part2="$(part2 "$inputfile")"
-echo "Part 2: $part2"
-
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"
+source "$(dirname "$0")/aoc_main.sh"

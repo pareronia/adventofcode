@@ -3,6 +3,9 @@
 # Advent of Code 2015 Day 4
 #
 
+year=2015
+day=04
+
 solve() {
     read -r input < "$1"
     local val="$input"
@@ -29,29 +32,16 @@ part2() {
     solve "$1" "000000"
 }
 
-# shellcheck disable=SC2034
-{
-    sample1=("abcdef")
-    sample2=("pqrstuv")
+tests() {
+    # shellcheck disable=SC2034
+    {
+        sample1=("abcdef")
+        sample2=("pqrstuv")
+    }
+
+    TEST part1 sample1 609043
+    TEST part1 sample2 1048970
 }
 
-# shellcheck source=SCRIPTDIR/aoc.sh
-. "$(dirname "$0")/aoc.sh"
-
-TEST part1 sample1 609043
-TEST part1 sample2 1048970
-
 # shellcheck source=SCRIPTDIR/aocd/aocd.sh
-. "$(dirname "$0")/aocd/aocd.sh"
-
-year=2015
-day=04
-inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || fatal 1 "Input file not found: $inputfile"
-
-part1="$(part1 "$inputfile")"
-echo "Part 1: $part1"
-part2="$(part2 "$inputfile")"
-echo "Part 2: $part2"
-
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"
+source "$(dirname "$0")/aoc_main.sh"

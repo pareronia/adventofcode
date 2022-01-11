@@ -1,5 +1,6 @@
 # shellcheck shell=bash
 
+E_PARAM_ERR=98
 E_ASSERT_FAILED=99
 RED='\033[1;31m'
 NC='\033[0m' # No Color
@@ -9,8 +10,6 @@ NC='\033[0m' # No Color
 # https://tldp.org/LDP/abs/html/debugging.html#ASSERT
 #
 assert () {
-    E_PARAM_ERR=98
-
     if [ -z "$2" ]; then  #  Not enough parameters passed to assert() function.
         return $E_PARAM_ERR   #  No damage done.
     fi

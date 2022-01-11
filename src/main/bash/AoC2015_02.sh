@@ -3,6 +3,9 @@
 # Advent of Code 2015 Day 2
 #
 
+year=2015
+day=02
+
 part1() {
     local tot=0
     IFS='x'; while read -r l w h; do
@@ -32,31 +35,17 @@ part2() {
     return 0
 }
 
-# shellcheck disable=SC2034
-{
-    sample1=("2x3x4")
-    sample2=("1x1x10")
+tests() {
+    # shellcheck disable=SC2034
+    {
+        sample1=("2x3x4")
+        sample2=("1x1x10")
+    }
+
+    TEST part1 sample1 58
+    TEST part1 sample2 43
+    TEST part2 sample1 34
+    TEST part2 sample2 14
 }
 
-# shellcheck source=SCRIPTDIR/aoc.sh
-. "$(dirname "$0")/aoc.sh"
-
-TEST part1 sample1 58
-TEST part1 sample2 43
-TEST part2 sample1 34
-TEST part2 sample2 14
-
-# shellcheck source=SCRIPTDIR/aocd/aocd.sh
-. "$(dirname "$0")/aocd/aocd.sh"
-
-year=2015
-day=02
-inputfile="$(_aocd__inputFile "$year" "$day")" \
-    || fatal 1 "Input file not found: $inputfile"
-
-part1="$(part1 "$inputfile")"
-echo "Part 1: $part1"
-part2="$(part2 "$inputfile")"
-echo "Part 2: $part2"
-
-check="$(_aocd__check "$year" "$day" "$part1" "$part2")" || fatal 1 "$check"
+source "$(dirname "$0")/aoc_main.sh"
