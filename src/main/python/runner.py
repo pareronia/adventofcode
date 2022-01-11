@@ -239,6 +239,25 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
     return n_incorrect
 
 
+def bash(year: int, day: int, data: str):
+    def run_part(part: int) -> str:
+        global root
+        file_name = "AoC" + str(year) + "_" + str(day).rjust(2, '0') + ".sh"
+        f = os.path.join(root, "src", "main", "bash", file_name)
+        logging.debug(f)
+        completed = subprocess.run(  # nosec
+            ["bash",
+             f,
+             str(part),
+             "input.txt"],
+            text=True,
+            capture_output=True,
+        )
+        return completed.stdout.strip()
+
+    return run_part(1), run_part(2)
+
+
 def py(year: int, day: int, data: str):
     day_mod_name = "AoC" + str(year) + "_" + str(day).rjust(2, '0')
     try:
@@ -312,5 +331,5 @@ def stop_java():
 
 if __name__ == '__main__':
     start_java()
-    all_entry_points = [py, java]
+    all_entry_points = [py, java, bash]
     main()
