@@ -1,16 +1,18 @@
-import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 
-import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
-import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.IntGrid;
+import com.github.pareronia.aoc.IntGrid.Cell;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+// TODO: better -> https://www.reddit.com/r/adventofcode/comments/3vmltn/day_6_solutions/cxozgap/
 public final class AoC2015_06 extends AoCBase {
     
     private final transient List<Instruction> input;
@@ -48,61 +50,62 @@ public final class AoC2015_06 extends AoCBase {
         return new AoC2015_06(input, true);
     }
     
-    @FunctionalInterface
-    private interface Action {
-        void execute(int[][] lights, Cell cell);
-    }
-    
-    void forEachCell(final int[][] grid, final Cell start, final Cell end, final Action action) {
+    private void forEachCell(final Cell start, final Cell end, final Consumer<Cell> action) {
         for (int rr = start.getRow(); rr <= end.getRow(); rr++) {
             for (int cc = start.getCol(); cc <= end.getCol(); cc++) {
-                action.execute(grid, Cell.at(cc, rr));
+                action.accept(IntGrid.Cell.at(rr, cc));
             }
         }
     }
     
-    private Integer sumLit(final int[][] lights) {
-        return Arrays.stream(lights)
-                .map(a -> Arrays.stream(a).sum())
-                .collect(summingInt(Integer::valueOf));
-    }
-    
     @Override
     public Integer solvePart1() {
-        final int[][] lights = new int[1_000][1_000];
-        this.input.stream()
-                .forEach(ins -> {
-                    if (ins.isTurnOn()) {
-                        forEachCell(lights, ins.getStart(), ins.getEnd(),
-                                    (g, c) -> g[c.getRow()][c.getCol()] = 1);
-                    } else if (ins.isTurnOff()) {
-                        forEachCell(lights, ins.getStart(), ins.getEnd(),
-                                    (g, c) -> g[c.getRow()][c.getCol()] = 0);
-                    } else if (ins.isToggle()) {
-                        forEachCell(lights, ins.getStart(), ins.getEnd(),
-                                    (g, c) -> g[c.getRow()][c.getCol()] = (g[c.getRow()][c.getCol()] == 1 ? 0 : 1));
+        final IntGrid lights = new IntGrid(new int[1_000][1_000]);
+        this.input.stream().forEach(ins -> {
+            if (ins.isTurnOn()) {
+                forEachCell(ins.getStart(), ins.getEnd(), c ->
+                    lights.setValue(Cell.at(c.getRow(), c.getCol()), 1));
+            } else if (ins.isTurnOff()) {
+                forEachCell(ins.getStart(), ins.getEnd(), c ->
+                    lights.setValue(Cell.at(c.getRow(), c.getCol()), 0));
+            } else if (ins.isToggle()) {
+                forEachCell(ins.getStart(), ins.getEnd(), c -> {
+                    final Cell cell = Cell.at(c.getRow(), c.getCol());
+                    if (lights.getValue(cell) == 1) {
+                        lights.setValue(cell, 0);
+                    } else {
+                        lights.setValue(cell, 1);
                     }
                 });
-        return sumLit(lights);
+            }
+        });
+        return (int) lights.countAllEqualTo(1);
     }
 
     @Override
     public Integer solvePart2() {
-        final int[][] lights = new int[1_000][1_000];
-        this.input.stream()
-                .forEach(ins -> {
-                    if (ins.isTurnOn()) {
-                        forEachCell(lights, ins.getStart(), ins.getEnd(),
-                                    (g, c) -> g[c.getRow()][c.getCol()] = g[c.getRow()][c.getCol()] + 1);
-                    } else if (ins.isTurnOff()) {
-                        forEachCell(lights, ins.getStart(), ins.getEnd(),
-                                    (g, c) -> g[c.getRow()][c.getCol()] = Math.max(g[c.getRow()][c.getCol()] - 1, 0));
-                    } else if (ins.isToggle()) {
-                        forEachCell(lights, ins.getStart(), ins.getEnd(),
-                                    (g, c) -> g[c.getRow()][c.getCol()] = g[c.getRow()][c.getCol()] + 2);
-                    }
+        final IntGrid lights = new IntGrid(new int[1_000][1_000]);
+        this.input.stream().forEach(ins -> {
+            if (ins.isTurnOn()) {
+                forEachCell(ins.getStart(), ins.getEnd(), c -> {
+                    final Cell cell = Cell.at(c.getRow(), c.getCol());
+                    lights.setValue(cell, lights.getValue(cell) + 1);
                 });
-        return sumLit(lights);
+            } else if (ins.isTurnOff()) {
+                forEachCell(ins.getStart(), ins.getEnd(), c -> {
+                    final Cell cell = Cell.at(c.getRow(), c.getCol());
+                    lights.setValue(cell, Math.max(lights.getValue(cell) - 1, 0));
+                });
+            } else if (ins.isToggle()) {
+                forEachCell(ins.getStart(), ins.getEnd(), c -> {
+                    final Cell cell = Cell.at(c.getRow(), c.getCol());
+                    lights.setValue(cell, lights.getValue(cell) + 2);
+                });
+            }
+        });
+        return lights.getCells()
+                .mapToInt(c -> lights.getValue(c))
+                .sum();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -112,9 +115,11 @@ public final class AoC2015_06 extends AoCBase {
         assert AoC2015_06.createDebug(TEST4).solvePart2() == 1;
         assert AoC2015_06.createDebug(TEST5).solvePart2() == 2_000_000;
 
-        final List<String> input = Aocd.getData(2015, 6);
-        lap("Part 1", () -> AoC2015_06.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_06.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2015, 6);
+        puzzle.check(
+            () -> lap("Part 1", () -> AoC2015_06.create(puzzle.getInputData()).solvePart1()),
+            () -> lap("Part 2", () -> AoC2015_06.create(puzzle.getInputData()).solvePart2())
+        );
     }
 
     private static final List<String> TEST1 = splitLines("turn on 0,0 through 999,999");
