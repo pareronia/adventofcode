@@ -31,6 +31,7 @@ import os
 import tempfile
 import logging
 import json
+from typing import NamedTuple
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
@@ -109,19 +110,22 @@ def run_with_timeout(entry_point, timeout, progress, dt=0.005, **kwargs):
             elapsed = format_time(time.time() - t0, timeout)
         walltime = time.time() - t0
         try:
-            a, b = future.result()
+            result_a, result_b = future.result()
         except Exception as err:
-            a = b = ""
+            result_a = Result(False, "")
+            result_b = Result(False, "")
             error = repr(err)[:50]
         else:
             error = ""
             # longest correct answer seen so far has been 32 chars
-            a = str(a)[:50]
-            b = str(b)[:50]
+            if result_a.present:
+                result_a = Result(True, str(result_a.answer)[:50])
+            if result_b.present:
+                result_b = Result(True, str(result_b.answer)[:50])
     if progress is not None:
         sys.stderr.write("\r" + " " * len(line) + "\r")
         sys.stderr.flush()
-    return a, b, walltime, error
+    return result_a, result_b, walltime, error
 
 
 def format_time(t, timeout=DEFAULT_TIMEOUT):
@@ -144,7 +148,7 @@ def run_one(year, day, input_data, entry_point,
     try:
         with open("input.txt", "w") as f:
             f.write(input_data)
-        a, b, walltime, error = run_with_timeout(
+        result_a, result_b, walltime, error = run_with_timeout(
             entry_point=entry_point,
             timeout=timeout,
             year=year,
@@ -156,7 +160,7 @@ def run_one(year, day, input_data, entry_point,
         os.unlink("input.txt")
         os.chdir(prev)
         os.rmdir(scratch)
-    return a, b, walltime, error
+    return result_a, result_b, walltime, error
 
 
 def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
@@ -184,7 +188,7 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         progress = "{}/{:<2d} - {:<40}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
         progress = progress.format(year, day, title, plugin, dataset)
-        a, b, walltime, error = run_one(
+        result_a, result_b, walltime, error = run_one(
             year=year,
             day=day,
             input_data=puzzle.input_data,
@@ -195,13 +199,13 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         runtime = format_time(walltime, timeout)
         line = "   ".join([runtime, progress])
         if error:
-            assert a == b == ""
+            assert result_a.answer == result_b.answer == ""
             icon = colored("❌", "red")
             n_incorrect += 1
             line += "   {icon} {error}".format(icon=icon, error=error)
         else:
             result_template = "   {icon} part {part}: {answer}"
-            for answer, part in zip((a, b), "ab"):
+            for result, part in zip((result_a, result_b), "ab"):
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
                     continue
@@ -209,10 +213,12 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                 try:
                     expected = getattr(puzzle, "answer_" + part)
                 except AttributeError:
-                    post = part == "a" or (part == "b" and puzzle.answered_a)
+                    post = (result.present
+                            and (part == "a"
+                                 or (part == "b" and puzzle.answered_a)))
                     if autosubmit and post:
                         try:
-                            puzzle._submit(answer, part,
+                            puzzle._submit(result.answer, part,
                                            reopen=False, quiet=True)
                         except AocdError as err:
                             log.warning("error submitting - %s", err)
@@ -220,18 +226,23 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                             expected = getattr(puzzle, "answer_" + part)
                         except AttributeError:
                             pass
-                correct = expected is not None and str(expected) == answer
-                icon = colored("✅", "green") if correct \
-                    else colored("❌", "red")
-                correction = ""
-                if not correct:
-                    n_incorrect += 1
-                    if expected is None:
-                        icon = colored("?", "magenta")
-                        correction = "(correct answer unknown)"
-                    else:
-                        correction = "(expected: {})".format(expected)
-                answer = "{} {}".format(answer, correction)
+                if not result.present:
+                    icon = "⭕"
+                    answer = "- missing -"
+                else:
+                    correct = expected is not None \
+                            and str(expected) == result.answer
+                    icon = colored("✅", "green") if correct \
+                        else colored("❌", "red")
+                    correction = ""
+                    if not correct:
+                        n_incorrect += 1
+                        if expected is None:
+                            icon = colored("?", "magenta")
+                            correction = "(correct answer unknown)"
+                        else:
+                            correction = "(expected: {})".format(expected)
+                    answer = "{} {}".format(result.answer, correction)
                 if part == "a":
                     answer = answer.ljust(30)
                 line += result_template.format(icon=icon, part=part,
@@ -246,6 +257,8 @@ def bash(year: int, day: int, data: str):
         file_name = "AoC" + str(year) + "_" + str(day).rjust(2, '0') + ".sh"
         f = os.path.join(root, "src", "main", "bash", file_name)
         logging.debug(f)
+        if not os.path.exists(f):
+            return Result(False, None)
         completed = subprocess.run(  # nosec
             ["bash",
              f,
@@ -254,7 +267,7 @@ def bash(year: int, day: int, data: str):
             text=True,
             capture_output=True,
         )
-        return completed.stdout.strip()
+        return Result(True, completed.stdout.strip())
 
     return run_part(1), run_part(2)
 
@@ -264,9 +277,11 @@ def py(year: int, day: int, data: str):
     try:
         day_mod = importlib.import_module(day_mod_name)
     except ModuleNotFoundError:
-        return None, None
+        return Result(False, None), Result(False, None)
     inputs = data.splitlines()
-    return day_mod.part_1(inputs), day_mod.part_2(inputs)
+    answer_1 = day_mod.part_1(inputs)
+    answer_2 = day_mod.part_2(inputs)
+    return Result(True, answer_1), Result(True, answer_2)
 
 
 def _java(year: int, day: int, data: str):
@@ -280,11 +295,11 @@ def _java(year: int, day: int, data: str):
         text=True,
         capture_output=True,
     )
-    results = completed.stdout
+    results = completed.stdout.splitlines()
     if results:
-        return tuple(results.splitlines())
+        return Result(True, results[0]), Result(True, results[1])
     else:
-        return None, None
+        return Result(False, None), Result(False, None)
 
 
 def java(year: int, day: int, data: str):
@@ -298,9 +313,9 @@ def java(year: int, day: int, data: str):
     results = data.decode('UTF-8').rstrip().splitlines()
     log.info(f"Results: {results}")
     if results:
-        return tuple(results)
+        return Result(True, results[0]), Result(True, results[1])
     else:
-        return None, None
+        return Result(False, None), Result(False, None)
 
 
 def start_java():
@@ -328,6 +343,11 @@ def stop_java():
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect(('localhost', 5555))
         s.send(b'STOP')
+
+
+class Result(NamedTuple):
+    present: bool
+    answer: str
 
 
 all_entry_points = [py, java, bash]
