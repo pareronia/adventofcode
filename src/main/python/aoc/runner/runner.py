@@ -37,12 +37,13 @@ from aocd.models import AOCD_CONFIG_DIR
 from aocd.models import Puzzle
 from aocd.models import default_user
 from . import Result
+from .config import config
 from .py import py
 from .java import java, start_java
 from .bash import bash
 
 
-DEFAULT_TIMEOUT = 60
+DEFAULT_TIMEOUT = config.default_timeout
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
 all_entry_points = [py, java, bash]
@@ -143,9 +144,9 @@ def run_one(year, day, input_data, entry_point,
     prev = os.getcwd()
     scratch = tempfile.mkdtemp(prefix="{}-{:02d}-".format(year, day))
     os.chdir(scratch)
-    assert not os.path.exists("input.txt")
+    assert not os.path.exists(config.scratch_file)
     try:
-        with open("input.txt", "w") as f:
+        with open(config.scratch_file, "w") as f:
             f.write(input_data)
         result_a, result_b, walltime, error = run_with_timeout(
             entry_point=entry_point,
@@ -156,7 +157,7 @@ def run_one(year, day, input_data, entry_point,
             progress=progress,
         )
     finally:
-        os.unlink("input.txt")
+        os.unlink(config.scratch_file)
         os.chdir(prev)
         os.rmdir(scratch)
     return result_a, result_b, walltime, error
