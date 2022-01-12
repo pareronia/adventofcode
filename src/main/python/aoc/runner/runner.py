@@ -19,10 +19,6 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import atexit
-import importlib
-import subprocess  # nosec
-import socket
 import pebble
 import itertools
 import time
@@ -31,7 +27,6 @@ import os
 import tempfile
 import logging
 import json
-from typing import NamedTuple
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
@@ -41,12 +36,16 @@ from aocd.exceptions import AocdError
 from aocd.models import AOCD_CONFIG_DIR
 from aocd.models import Puzzle
 from aocd.models import default_user
+from . import Result
+from .py import py
+from .java import java, start_java
+from .bash import bash
 
 
 DEFAULT_TIMEOUT = 60
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
-root = os.getcwd()
+all_entry_points = [py, java, bash]
 
 
 def main():
@@ -250,107 +249,6 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         print(line)
     return n_incorrect
 
-
-def bash(year: int, day: int, data: str):
-    def run_part(part: int) -> str:
-        global root
-        file_name = "AoC" + str(year) + "_" + str(day).rjust(2, '0') + ".sh"
-        f = os.path.join(root, "src", "main", "bash", file_name)
-        logging.debug(f)
-        if not os.path.exists(f):
-            return Result(False, None)
-        completed = subprocess.run(  # nosec
-            ["bash",
-             f,
-             str(part),
-             "input.txt"],
-            text=True,
-            capture_output=True,
-        )
-        return Result(True, completed.stdout.strip())
-
-    return run_part(1), run_part(2)
-
-
-def py(year: int, day: int, data: str):
-    day_mod_name = "AoC" + str(year) + "_" + str(day).rjust(2, '0')
-    try:
-        day_mod = importlib.import_module(day_mod_name)
-    except ModuleNotFoundError:
-        return Result(False, None), Result(False, None)
-    inputs = data.splitlines()
-    answer_1 = day_mod.part_1(inputs)
-    answer_2 = day_mod.part_2(inputs)
-    return Result(True, answer_1), Result(True, answer_2)
-
-
-def _java(year: int, day: int, data: str):
-    global root
-    completed = subprocess.run(  # nosec
-        ["java",
-         "-cp",
-         os.environ['CLASSPATH'] + ":" + root + "/target/classes",
-         "com.github.pareronia.aocd.Runner",
-         str(year), str(day), data],
-        text=True,
-        capture_output=True,
-    )
-    results = completed.stdout.splitlines()
-    if results:
-        return Result(True, results[0]), Result(True, results[1])
-    else:
-        return Result(False, None), Result(False, None)
-
-
-def java(year: int, day: int, data: str):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('localhost', 5555))
-        s.send(f'{year}\r\n'.encode('UTF-8'))
-        s.send(f'{day}\r\n'.encode('UTF-8'))
-        s.send(f'{data}\r\n'.encode('UTF-8'))
-        s.send(b'END\r\n')
-        data = s.recv(1024)
-    results = data.decode('UTF-8').rstrip().splitlines()
-    log.info(f"Results: {results}")
-    if results:
-        return Result(True, results[0]), Result(True, results[1])
-    else:
-        return Result(False, None), Result(False, None)
-
-
-def start_java():
-    completed = subprocess.Popen(  # nosec
-        ["java",
-         "-cp",
-         os.environ['CLASSPATH'] + ":" + root + "/target/classes",
-         "com.github.pareronia.aocd.RunServer",
-         ],
-    )
-    if not completed.pid:
-        raise RuntimeError("Could not start Java run server")
-    time.sleep(0.5)
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('localhost', 5555))
-        s.send(('HELLO' + os.linesep).encode('UTF-8'))
-        data = s.recv(1024)
-    results = data.decode('UTF-8').rstrip().splitlines()
-    if results != ["HELLO"]:
-        raise RuntimeError("No response from Java run server")
-
-
-@atexit.register
-def stop_java():
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect(('localhost', 5555))
-        s.send(b'STOP')
-
-
-class Result(NamedTuple):
-    present: bool
-    answer: str
-
-
-all_entry_points = [py, java, bash]
 
 if __name__ == '__main__':
     main()
