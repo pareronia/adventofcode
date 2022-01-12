@@ -10,7 +10,7 @@ re1="([-a-z]+)-([0-9]+)\\[([a-z]{5})\\]$"
 
 part1() {
     local -i ans=0
-    while read -r room; do
+    while read -r room || [ -n "$room" ]; do
         [[ "$room" =~ $re1 ]]
         local name="${BASH_REMATCH[1]}"
         local -i sector="${BASH_REMATCH[2]}"
@@ -40,7 +40,7 @@ part1() {
 part2() {
     local -i ans=0
     local re2="[a-z]{9}-[a-z]{6}-[a-z]{7}$"
-    while read -r room; do
+    while read -r room || [ -n "$room" ]; do
         [[ "$room" =~ $re1 ]]
         local name="${BASH_REMATCH[1]}"
         local -i sector="${BASH_REMATCH[2]}"

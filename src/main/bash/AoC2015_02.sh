@@ -8,7 +8,7 @@ day=02
 
 part1() {
     local tot=0
-    IFS='x'; while read -r l w h; do
+    IFS='x'; while read -r l w h || [ -n "$l" ]; do
         local side1=$((2 * l * w))
         local min="$side1"
         local side2=$((2 * w * h))
@@ -23,7 +23,7 @@ part1() {
 
 part2() {
     local tot=0
-    IFS='x'; while read -r l w h; do
+    IFS='x'; while read -r l w h || [ -n "$l" ]; do
         local min=$((2 * (l + w)))
         local length=$((2 * (w + h)))
         [ "$length" -lt "$min" ] && min="$length"
