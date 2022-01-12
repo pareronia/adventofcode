@@ -21,7 +21,7 @@ public class Instruction {
     }
 
     public static Instruction ADD(final String register, final Long value) {
-        return new Instruction(Opcode.ADD, asList(register, value));
+        return new Instruction(Opcode.ADD, asList(register, value.toString()));
     }
 
     public static Instruction ADD(final String register, final String value) {
@@ -29,7 +29,7 @@ public class Instruction {
     }
 
     public static Instruction MUL(final String register, final Long value) {
-        return new Instruction(Opcode.MUL, asList(register, value));
+        return new Instruction(Opcode.MUL, asList(register, value.toString()));
     }
 
     public static Instruction MUL(final String register, final String value) {

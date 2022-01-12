@@ -28,7 +28,7 @@ public class VirtualMachineTestCase {
             Instruction.JMP(2),
             Instruction.NOP(),
             Instruction.NOP(),
-            Instruction.ADD("A", "6"),
+            Instruction.ADD("A", 6L),
             Instruction.OUT("*A"),
             Instruction.SET("B", "1"),
             Instruction.OUT("7"),
