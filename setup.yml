@@ -1,0 +1,11 @@
+implementation_tables:
+    rows:
+        - language: python3
+          base_dir: src/main/python
+          pattern: AoC{year}_{day:0>2}.py
+        - language: java
+          base_dir: src/main/java
+          pattern: AoC{year}_{day:0>2}.java
+        - language: bash
+          base_dir: src/main/bash
+          pattern: AoC{year}_{day:0>2}.sh

@@ -148,6 +148,10 @@ $(PMD_CACHE_DIR):
 $(PMD_HTML_DIR):
 	@$(MKDIR) --parents $(PMD_HTML_DIR)
 
+#: Update docs
+docs.update:
+	@$(PYTHON_PATH) $(PYTHON_CMD) -m aoc.implementation_tables README.md
+
 #: Run all linters (Flake8, Vulture, Bandit, shellcheck)
 lint: flake vulture bandit shellcheck
 
@@ -194,4 +198,4 @@ help:
 		| $(SORT)
 
 .PHONY: flake vulture bandit fixme todo list help py java unittest.py clitest \
-	build.java clean unittest.java pmd pmd.html pmd.html.open
+	build.java clean unittest.java pmd pmd.html pmd.html.open docs.update
