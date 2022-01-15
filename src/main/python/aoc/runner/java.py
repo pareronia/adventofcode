@@ -15,7 +15,7 @@ def _java(year: int, day: int, data: str):
     completed = subprocess.run(  # nosec
         [config.java['command'],
          "-cp",
-         config.java['classpath'],
+         ":".join(config.java['classpath']),
          config.java['class'],
          str(year), str(day), data],
         text=True,
@@ -49,7 +49,7 @@ def start_java():
     completed = subprocess.Popen(  # nosec
         [config.java['server']['command'],
          "-cp",
-         config.java['server']['classpath'],
+         ":".join(config.java['classpath']),
          config.java['server']['class'],
          ],
     )

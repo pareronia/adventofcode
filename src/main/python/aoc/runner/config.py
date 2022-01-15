@@ -23,13 +23,13 @@ class Config:
         }
         self.java = {
             'command': "java",
-            'classpath': os.environ['CLASSPATH'] + ":"
-            + self.root + "/target/classes",
+            'classpath': [os.environ['CLASSPATH'],
+                          self.root + "/target/classes"],
             'class': "com.github.pareronia.aocd.Runner",
             'server': {
                 'command': "java",
-                'classpath': os.environ['CLASSPATH'] + ":"
-                + self.root + "/target/classes",
+                'classpath': [os.environ['CLASSPATH'],
+                              self.root + "/target/classes"],
                 'class': "com.github.pareronia.aocd.RunServer",
                 'host': "localhost",
                 'port': 5555,
