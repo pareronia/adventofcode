@@ -76,6 +76,44 @@ Part 2: 501
 $
 ```
 
+## Day 7
+
+```console
+$ ./src/main/bash/AoC2016_07.sh
+Part 1: 115
+Part 2: 231
+$
+```
+
+# Advent of Code 2017
+
+## Day 1
+
+```console
+$ ./src/main/bash/AoC2017_01.sh
+Part 1: 1069
+Part 2: 1268
+$
+```
+
+## Day 2
+
+```console
+$ ./src/main/bash/AoC2017_02.sh
+Part 1: 47136
+Part 2: 250
+$
+```
+
+## Day 4
+
+```console
+$ ./src/main/bash/AoC2017_04.sh
+Part 1: 383
+Part 2: 265
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
