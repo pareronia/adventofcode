@@ -76,6 +76,15 @@ Part 2: 501
 $
 ```
 
+## Day 6
+
+```console
+$ ./src/main/bash/AoC2016_06.sh
+Part 1: qqqluigu
+Part 2: lsoypmia
+$
+```
+
 ## Day 7
 
 ```console
