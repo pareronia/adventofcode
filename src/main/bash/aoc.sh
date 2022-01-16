@@ -40,6 +40,20 @@ red() {
     fi
 }
 
+_debug() {
+    if [ -n "$DEBUG" ]; then
+        echo "**** DEBUG: $*" >&2
+    fi
+    return 0
+}
+
+_info() {
+    if [ -n "$DEBUG" ]; then
+        echo "**** INFO: $*" >&2
+    fi
+    return 0
+}
+
 fatal() {
     local exitcode="$1"
     shift
