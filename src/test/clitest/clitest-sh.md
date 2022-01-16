@@ -171,3 +171,12 @@ Part 1: 2019945
 Part 2: 1599311480
 $
 ```
+
+## Day 13
+
+```console
+$ ./src/main/bash/AoC2021_13.sh 2>/dev/null
+Part 1: 602
+Part 2: CAFJHZCK
+$
+```
