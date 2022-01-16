@@ -141,6 +141,17 @@ Part 2: 265
 $
 ```
 
+# Advent of Code 2019
+
+## Day 8
+
+```console
+$ ./src/main/bash/AoC2019_08.sh 2>/dev/null
+Part 1: 1848
+Part 2: FGJUZ
+$
+```
+
 # Advent of Code 2021
 
 ## Day 1
