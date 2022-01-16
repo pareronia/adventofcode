@@ -103,6 +103,15 @@ Part 2: ZFHFSFOGPO
 $
 ```
 
+## Day 9
+
+```console
+$ ./src/main/bash/AoC2016_09.sh
+Part 1: 107035
+Part 2: 11451628995
+$
+```
+
 # Advent of Code 2017
 
 ## Day 1
