@@ -85,6 +85,15 @@ Part 2: 231
 $
 ```
 
+## Day 8
+
+```console
+$ ./src/main/bash/AoC2016_08.sh 2>/dev/null
+Part 1: 119
+Part 2: ZFHFSFOGPO
+$
+```
+
 # Advent of Code 2017
 
 ## Day 1
