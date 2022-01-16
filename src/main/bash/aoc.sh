@@ -33,9 +33,9 @@ assert () {
 }
 
 red() {
-    if [ -t 1 ]; then 
+    if [ -t 1 ]; then
         echo -e "$RED$*$NC"
-    else 
+    else
         echo "$*"
     fi
 }
@@ -48,13 +48,14 @@ fatal() {
 }
 
 TEST() {
-    local part="$1"
+    OLDIFS="$IFS"; IFS=' ' read -ra cmd <<< "$1"; IFS="$OLDIFS"
     local arg="$2[@]"
     local lines=("${!arg}")
     local expected="$3"
     local actual
-    actual="$("$part" <(for line in "${lines[@]}"; do echo "$line"; done))"
-    local msg="FAILED $part SAMPLE $2: expected '$expected', got '$actual'"
+    actual="$("${cmd[0]}" "${cmd[@]:1}" \
+        <(for line in "${lines[@]}"; do echo "$line"; done))"
+    local msg="FAILED ${cmd[*]} SAMPLE $2: expected '$expected', got '$actual'"
     [ "$actual" != "$expected" ] \
         && fatal "$E_ASSERT_FAILED" "$msg" >&2
 }
