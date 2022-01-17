@@ -21,9 +21,7 @@ solve() {
         grid+=("$row")
     done
     while read -r instruction || [ -n "$instruction" ]; do
-        local re1="^rect ([0-9]*)x([0-9]*)$"
-        [[ "$instruction" =~ $re1 ]]
-        if [ "${#BASH_REMATCH[@]}" -gt 0 ]; then
+        if [[ "$instruction" =~ 'rect '([0-9]+)x([0-9]+) ]]; then
             local -i a="${BASH_REMATCH[1]}"
             local -i b="${BASH_REMATCH[2]}"
             local on_part=""
@@ -36,18 +34,14 @@ solve() {
             done
             continue
         fi
-        local re2="^rotate row y=([0-9]*) by ([0-9]*)$"
-        [[ "$instruction" =~ $re2 ]]
-        if [ "${#BASH_REMATCH[@]}" -gt 0 ]; then
+        if [[ "$instruction" =~ 'rotate row y='([0-9]+)' by '([0-9]+) ]]; then
             local -i a="${BASH_REMATCH[1]}"
             local -i b="${BASH_REMATCH[2]}"
             local row="${grid[$a]}"
             grid[$a]="${row:$width-$b}""${row:0:$width-$b}"
             continue
         fi
-        local re3="^rotate column x=([0-9]*) by ([0-9]*)$"
-        [[ "$instruction" =~ $re3 ]]
-        if [ "${#BASH_REMATCH[@]}" -gt 0 ]; then
+        if [[ "$instruction" =~ 'rotate column x='([0-9]+)' by '([0-9]+) ]]; then
             local -i a="${BASH_REMATCH[1]}"
             local -i b="${BASH_REMATCH[2]}"
             local col=""

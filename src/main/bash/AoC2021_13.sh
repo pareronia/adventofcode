@@ -14,15 +14,13 @@ declare -A points=()
 solve() {
     local -i part="$1"; shift
     while read -r line || [ -n "$line" ]; do
-        [[ "$line" =~ ^([0-9]+),([0-9]+)$ ]]
-        if [ "${#BASH_REMATCH[@]}" -gt 0 ]; then
+        if [[ "$line" =~ ([0-9]+),([0-9]+) ]]; then
             local -i x="${BASH_REMATCH[1]}"
             local -i y="${BASH_REMATCH[2]}"
-            points["$line"]="$ON"
+            points["$x,$y"]="$ON"
             continue
         fi
-        [[ "$line" =~ ^'fold along '([xy])=([0-9]+)$ ]]
-        if [ "${#BASH_REMATCH[@]}" -gt 0 ]; then
+        if [[ "$line" =~ 'fold along '([xy])=([0-9]+) ]]; then
             local axis="${BASH_REMATCH[1]}"
             local -i amount="${BASH_REMATCH[2]}"
             for k in "${!points[@]}"; do
