@@ -38,6 +38,15 @@ Part 2: 55
 $
 ```
 
+## Day 9
+
+```console
+$ ./src/main/bash/AoC2015_09.sh
+Part 1: 117
+Part 2: 909
+$
+```
+
 # Advent of Code 2016
 
 ## Day 1
