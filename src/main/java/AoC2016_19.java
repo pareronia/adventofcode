@@ -1,103 +1,63 @@
-import java.util.Arrays;
-import java.util.LinkedList;
 import java.util.List;
 
 import com.github.pareronia.aocd.Aocd;
 
 public class AoC2016_19 extends AoCBase {
     
-    private final Integer numberOfElves;
+    private final DoublyLinkedList elves;
 	
-	private AoC2016_19(List<String> input, boolean debug) {
+	private AoC2016_19(final List<String> input, final boolean debug) {
 		super(debug);
 		assert input.size() == 1;
-		this.numberOfElves = Integer.valueOf(input.get(0));
+	    this.elves = new DoublyLinkedList();
+	    for (int i = 1; i <= Integer.valueOf(input.get(0)); i++) {
+	        elves.addTail(i);
+	    }
+	    this.elves.close();
 	}
 	
-	public static AoC2016_19 create(List<String> input) {
+	public static AoC2016_19 create(final List<String> input) {
 		return new AoC2016_19(input, false);
 	}
 
-	public static AoC2016_19 createDebug(List<String> input) {
+	public static AoC2016_19 createDebug(final List<String> input) {
 		return new AoC2016_19(input, true);
-	}
-	
-	@FunctionalInterface
-	private interface NextLoserFinder {
-		int find(boolean[] a, int j, int count);
-	}
-	
-	private int nextIndex(int n, int size) {
-		return (n + 1) % size;
-	}
-	
-	private int findNextWithPresents(boolean[] a, int j) {
-		while (!a[j]) {
-			j = nextIndex(j, AoC2016_19.this.numberOfElves);
-		}
-		log("next with presents: " + (j + 1));
-		return j;
 	}
 	
 	@Override
 	public Integer solvePart1() {
-	    final boolean[] a = new boolean[this.numberOfElves];
-	    int count = this.numberOfElves;
-        Arrays.fill(a , true);
-        int i = 0;
-        int lasti = 0;
-        while (count > 1) {
-            int j = nextIndex(i, AoC2016_19.this.numberOfElves);
-            if (a[i]) {
-            	j = findNextWithPresents(a, j);
-                a[j] = false;
-                count--;
-                lasti = i;
-            }
-            i = j;
-        }
-        log(lasti + 1);
-        return lasti + 1;
+	    Node curr = this.elves.head;
+	    while (this.elves.size > 1) {
+	        final Node loser = curr.next;
+	        elves.remove(loser);
+	        curr = curr.next;
+	    }
+	    return curr.value;
 	}
 	
 	@Override
 	public Integer solvePart2() {
-	    return 0;
+	    Node curr = this.elves.head;
+	    Node opposite = this.elves.head;
+	    for (int i = 0; i < this.elves.size / 2; i++) {
+	        opposite = opposite.next;
+	    }
+	    while (this.elves.size > 1) {
+	        final Node loser = opposite;
+	        this.elves.remove(loser);
+	        if (this.elves.size % 2 == 1) {
+	            opposite = opposite.next;
+	        } else {
+	            opposite = opposite.next.next;
+	        }
+	        curr = curr.next;
+	    }
+	    return curr.value;
 	}
 	 
-	private Integer solve2() {
-		final LinkedList<Integer> a = new LinkedList<>();
-	    for (int x = 0; x < this.numberOfElves; x++) {
-	    	a.add(x + 1);
-	    }
-	    a.listIterator();
-        int i = 0;
-        int winner = 0;
-        int count = this.numberOfElves;
-	    while (count > 1) {
-//	        log(a);
-//        	log("i: " + i);
-        	final int l = (i + count / 2) % count;
-        	winner = a.get(i);
-        	final int loser = a.remove(l);
-        	count--;
-//        	log("winner:" + winner);
-//        	log("loser:" + loser);
-        	if (i == a.size()) {
-        	    i = 0;
-        	} else {
-        	    i = nextIndex(a.listIterator(i).nextIndex(), count);
-        	}
-        	if (count % 1000 == 0) {
-        		System.out.println("count: " + count);
-        	}
-	    }
-	    return winner;
-	}
-	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2016_19.createDebug(TEST).solvePart1() == 3;
-		assert AoC2016_19.createDebug(TEST).solve2() == 2;
+		assert AoC2016_19.createDebug(TEST).solvePart2() == 2;
 
 		final List<String> input = Aocd.getData(2016, 19);
 		lap("Part 1", () -> AoC2016_19.create(input).solvePart1());
@@ -105,4 +65,52 @@ public class AoC2016_19 extends AoCBase {
 	}
 	
 	private static final List<String> TEST = splitLines("5");
+
+	public static final class DoublyLinkedList {
+        
+        private Node head;
+        private Node tail;
+        private int size;
+
+        public DoublyLinkedList() {
+            this.head = null;
+            this.tail = null;
+            this.size = 0;
+        }
+        
+        public void close() {
+            head.prev = tail;
+            tail.next = head;
+        }
+        
+        public void addTail(final int value) {
+            final Node node = new Node(value);
+            node.next = null;
+            if (this.size == 0) {
+                this.tail = node;
+                this.head = node;
+            } else {
+                this.tail.next = node;
+                node.prev = this.tail;
+                this.tail = node;
+            }
+            this.size++;
+        }
+        
+        public void remove(final Node node) {
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+            this.size--;
+        }
+	}
+
+    public static class Node {
+        public int value;
+        public Node next;
+        public Node prev;
+        
+        public Node(final int value) {
+            this.value = value;
+        }
+    }
 }
