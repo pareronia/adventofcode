@@ -74,6 +74,8 @@
 ![](https://img.shields.io/badge/2016%20stars%20⭐-48-yellow)
 ![](https://img.shields.io/badge/2016%20days%20completed-23-red)
 
+![2016 Calendar](doc/aoc2016.jpg "2016 Calendar")
+
 <!-- @BEGIN:ImplementationsTable:2016@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
