@@ -21,6 +21,7 @@ import org.apache.commons.math3.util.CombinatoricsUtils;
 import org.eclipse.collections.api.tuple.Pair;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
@@ -43,7 +44,7 @@ public final class AoC2016_11 extends AoCBase {
         final Map<String, Integer> generators = new HashMap<>();
         for (int i = 0; i < inputs.size(); i++) {
             String floor = inputs.get(i);
-            floor = floor.replaceAll(", and", ",");
+            floor = floor.replaceAll(",? and", ",");
             floor = floor.replaceAll("\\.", "");
             final String contains = floor.split(" contains ")[1];
             final String[] contained = contains.split(", ");
@@ -130,9 +131,11 @@ public final class AoC2016_11 extends AoCBase {
     public static void main(final String[] args) throws Exception {
         assert AoC2016_11.createDebug(TEST).solvePart1() == 11;
 
-        final List<String> input = Aocd.getData(2016, 11);
-        lap("Part 1", () -> AoC2016_11.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_11.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 11);
+        puzzle.check(
+            () -> lap("Part 1", () -> AoC2016_11.create(puzzle.getInputData()).solvePart1()),
+            () -> lap("Part 2", () -> AoC2016_11.create(puzzle.getInputData()).solvePart2())
+        );
     }
     
     private static final List<String> TEST = splitLines(
