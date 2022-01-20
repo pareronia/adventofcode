@@ -7,7 +7,8 @@ from .config import config
 
 def bash(year: int, day: int, data: str):
     def run_part(part: int) -> str:
-        file_name = config.bash['day_format'].format(year=year, day=day)
+        file_name = config.bash['day_format'].format(year=year, day=day) \
+                + config.bash['ext']
         f = os.path.join(config.root, config.bash['base_dir'], file_name)
         logging.debug(f)
         if not os.path.exists(f):

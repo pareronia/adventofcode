@@ -12,13 +12,17 @@ class Row(NamedTuple):
     language: str
     base_dir: str
     pattern: str
+    ext: str
 
 
 class Config:
     def get_rows(self) -> list[Row]:
         rows = list[Row]()
         for row in self.implementation_tables['rows']:
-            rows.append(Row(row['language'], row['base_dir'], row['pattern']))
+            rows.append(Row(row['language'],
+                            row['base_dir'],
+                            row['pattern'],
+                            row['ext']))
         return rows
 
 

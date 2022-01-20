@@ -1,40 +1,52 @@
 import os
+import re
+import yaml
+import logging
 
 
 class Config:
-    root: str
-    default_timeout: int
-    scratch_file: str
-    bash: dict
-    py: dict
-    java: dict
+    @property
+    def default_timeout(self):
+        return self.runner['default_timeout']
 
-    def __init__(self):
-        self.root = os.getcwd()
-        self.default_timeout = 60
-        self.scratch_file = "input.txt"
-        self.bash = {
-            'day_format': "AoC{year}_{day:0>2}.sh",
-            'base_dir': "src/main/bash",
-            'command': "bash",
-        }
-        self.py = {
-            'day_format': "AoC{year}_{day:0>2}"
-        }
-        self.java = {
-            'command': "java",
-            'classpath': [os.environ['CLASSPATH'],
-                          self.root + "/target/classes"],
-            'class': "com.github.pareronia.aocd.Runner",
-            'server': {
-                'command': "java",
-                'classpath': [os.environ['CLASSPATH'],
-                              self.root + "/target/classes"],
-                'class': "com.github.pareronia.aocd.RunServer",
-                'host': "localhost",
-                'port': 5555,
-            },
-        }
+    @property
+    def py(self):
+        return self.runner['plugins']['py']
+
+    @property
+    def java(self):
+        return self.runner['plugins']['java']
+
+    @property
+    def bash(self):
+        return self.runner['plugins']['bash']
+
+    @property
+    def scratch_file(self):
+        return self.runner['scratch_file']
+
+    @property
+    def root(self):
+        return self.runner['root']
 
 
-config = Config()
+def path_constructor(_loader, node):
+    return os.path.expandvars(node.value)
+
+
+log = logging.getLogger(__name__)
+
+# https://stackoverflow.com/q/52412297
+path_matcher = re.compile(r'.*\$\{([^}^{]+)\}.*')
+yaml.add_implicit_resolver('!path', path_matcher)
+yaml.add_constructor('!path', path_constructor)
+with open(os.path.join('.', 'setup.yml'), 'r') as f:
+    setup_yaml = f.read()
+config = yaml.load(  # nosec
+    "!!python/object:" + __name__ + ".Config\n" + setup_yaml,
+    Loader=yaml.Loader)
+log.debug(config.__dict__)
+
+
+if __name__ == "__main__":
+    print(config.runner)

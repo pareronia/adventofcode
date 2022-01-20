@@ -49,7 +49,7 @@ def start_java():
     completed = subprocess.Popen(  # nosec
         [config.java['server']['command'],
          "-cp",
-         ":".join(config.java['classpath']),
+         ":".join(config.java['server']['classpath']),
          config.java['server']['class'],
          ],
     )

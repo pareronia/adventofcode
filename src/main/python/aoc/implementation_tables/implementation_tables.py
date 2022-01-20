@@ -30,8 +30,9 @@ def _print_year(year: int, rows: list[Row], f: IO[str]) -> None:
         log.debug(f"Adding {row.language}")
         print(
             "| " + row.language + " "
-            + _build_row(_build_link(row.base_dir, row.pattern, year, day)
-                         for day in range(1, 26)),
+            + _build_row(
+                _build_link(row.base_dir, row.pattern + row.ext, year, day)
+                for day in range(1, 26)),
             file=f)
 
 

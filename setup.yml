@@ -1,11 +1,52 @@
+python:
+    base_dir: &python-base_dir src/main/python
+    file_pattern: &python-file_pattern AoC{year}_{day:0>2}
+    file_ext: &python-file_ext .py
+java:
+    base_dir: &java-base_dir src/main/java
+    file_pattern: &java-file_pattern AoC{year}_{day:0>2}
+    file_ext: &java-file_ext .java
+bash:
+    base_dir: &bash-base_dir src/main/bash
+    file_pattern: &bash-file_pattern AoC{year}_{day:0>2}
+    file_ext: &bash-file_ext .sh
 implementation_tables:
     rows:
         - language: python3
-          base_dir: src/main/python
-          pattern: AoC{year}_{day:0>2}.py
+          base_dir: *python-base_dir
+          pattern: *python-file_pattern
+          ext: *python-file_ext
         - language: java
-          base_dir: src/main/java
-          pattern: AoC{year}_{day:0>2}.java
+          base_dir: *java-base_dir
+          pattern: *java-file_pattern
+          ext: *java-file_ext
         - language: bash
-          base_dir: src/main/bash
-          pattern: AoC{year}_{day:0>2}.sh
+          base_dir: *bash-base_dir
+          pattern: *bash-file_pattern
+          ext: *bash-file_ext
+runner:
+    root: ${PWD}
+    default_timeout: 60
+    scratch_file: input.txt
+    plugins:
+        bash:
+            command: bash
+            base_dir: *bash-base_dir
+            day_format: *bash-file_pattern
+            ext: *bash-file_ext
+        py:
+            day_format: *python-file_pattern
+        java:
+            command: java
+            classpath:
+                - ${CLASSPATH}
+                - ${PWD}/target/classes
+            class: com.github.pareronia.aocd.Runner
+            server:
+                command: java
+                classpath:
+                    - ${CLASSPATH}
+                    - ${PWD}/target/classes
+                class: com.github.pareronia.aocd.RunServer
+                host: localhost
+                port: 5555
