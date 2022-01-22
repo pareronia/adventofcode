@@ -8,6 +8,7 @@ import re
 from dataclasses import dataclass
 from collections import defaultdict
 from aoc import my_aocd
+import aocd
 
 
 REGEXP = r'([A-Za-z]+) can fly ([0-9]+) km/s for ([0-9]+) seconds, but then must rest for ([0-9]+) seconds\.'  # noqa
@@ -53,8 +54,12 @@ def _do_part_2(inputs: tuple[str], time: int) -> int:
     reindeer = _parse(inputs)
     points = defaultdict(int)
     for i in range(time):
-        distances = {_distance_reached(r, i+1): r.name for r in reindeer}
-        points[distances[max(distances.keys())]] += 1
+        distances = {r.name: _distance_reached(r, i + 1)
+                     for r in reindeer}
+        lead = max(distances.values())
+        for r, d in distances.items():
+            if d == lead:
+                points[r] += 1
     return max(points.values())
 
 
@@ -69,16 +74,17 @@ Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 14)
+    puzzle = aocd.models.Puzzle(2015, 14)
 
     assert _do_part_1(TEST, 1000) == 1120
     assert _do_part_2(TEST, 1000) == 689
 
-    inputs = my_aocd.get_input(2015, 14, 9)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 9)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
