@@ -6,47 +6,27 @@
 year=2015
 day=10
 
-look_and_say() {
-    local string="$1"
-    local -i i=0
-    local -i size="${#string}"
-    while ((i < size)); do
-        local digit="${string:$i:1}"
-        local -i j=0
-        local -i idx=i
-        while ((idx < size)); do
-            [ "${string:$idx:1}" != "$digit" ] && break
-            ((j++))
-            idx=$((i + j))
-        done
-        echo -n "$j$digit"
-        ((i += j))
-    done
-    return 0
-}
-
 solve() {
     local -i n="$1"
-    read -r string < "$2"
+    read -r str < "$2"
     for ((i = 0; i < n; i++)); do
-        _debug "$i: ${#string}"
-        string="$(look_and_say "$string")"
+        str=$(fold --width=1 <<< "$str" | uniq --count | tr --delete '\n ')
     done
-    echo "$string"
+    echo "$str"
     return 0
 }
 
 part1() {
     local ans
-    ans="$(solve 40 "$@")"
-    echo "${#ans}"
+    ans="$(solve 40 "$@" | wc --chars)"
+    echo $((ans - 1))
     return 0
 }
 
 part2() {
     local ans
-    ans="$(solve 50 "$@")"
-    echo "${#ans}"
+    ans="$(solve 50 "$@" | wc --chars)"
+    echo $((ans - 1))
     return 0
 }
 

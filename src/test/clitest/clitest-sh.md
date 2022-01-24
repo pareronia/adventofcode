@@ -47,6 +47,15 @@ Part 2: 909
 $
 ```
 
+## Day 10
+
+```console
+$ ./src/main/bash/AoC2015_10.sh
+Part 1: 360154
+Part 2: 5103798
+$
+```
+
 ## Day 14
 
 ```console
