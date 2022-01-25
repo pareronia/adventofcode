@@ -37,7 +37,7 @@ string aocd::sys::getAocdDir() {
 }
 
 string aocd::sys::getToken() {
-    if (const char* env_t = getenv("AOCD_SESSION")) {
+    if (const char* env_t = getenv("AOC_SESSION")) {
         const string envs_t = env_t;
         if (!envs_t.empty()) {
             return envs_t;
