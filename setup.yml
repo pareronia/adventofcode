@@ -11,8 +11,9 @@ bash:
     file_pattern: &bash-file_pattern AoC{year}_{day:0>2}
     file_ext: &bash-file_ext .sh
 cpp:
-    base_dir: &cpp-base_dir build/cpp
+    base_dir: &cpp-base_dir src/main/cpp
     file_pattern: &cpp-file_pattern AoC{year}_{day:0>2}
+    file_ext: &cpp-file_ext .cpp
 implementation_tables:
     rows:
         - language: python3
@@ -27,6 +28,10 @@ implementation_tables:
           base_dir: *bash-base_dir
           pattern: *bash-file_pattern
           ext: *bash-file_ext
+        - language: c++
+          base_dir: *cpp-base_dir
+          pattern: '{year}/{day:0>2}/AoC{year}_{day:0>2}'
+          ext: *cpp-file_ext
 runner:
     root: ${PWD}
     default_timeout: 60
@@ -54,5 +59,5 @@ runner:
                 host: localhost
                 port: 5555
         cpp:
-            base_dir: *cpp-base_dir
+            base_dir: build/cpp
             day_format: *cpp-file_pattern
