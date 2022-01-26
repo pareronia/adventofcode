@@ -22,6 +22,10 @@ class Config:
         return self.runner['plugins']['bash']
 
     @property
+    def cpp(self):
+        return self.runner['plugins']['cpp']
+
+    @property
     def scratch_file(self):
         return self.runner['scratch_file']
 

@@ -10,6 +10,9 @@ bash:
     base_dir: &bash-base_dir src/main/bash
     file_pattern: &bash-file_pattern AoC{year}_{day:0>2}
     file_ext: &bash-file_ext .sh
+cpp:
+    base_dir: &cpp-base_dir build/cpp
+    file_pattern: &cpp-file_pattern AoC{year}_{day:0>2}
 implementation_tables:
     rows:
         - language: python3
@@ -50,3 +53,6 @@ runner:
                 class: com.github.pareronia.aocd.RunServer
                 host: localhost
                 port: 5555
+        cpp:
+            base_dir: *cpp-base_dir
+            day_format: *cpp-file_pattern
