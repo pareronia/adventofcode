@@ -27,8 +27,14 @@ public class AoC2015_14 extends AoCBase {
         this.reindeer = inputs.stream()
             .map(input -> {
                 final Matcher m = pattern.matcher(input);
-                assert m.matches();
-                return new Reindeer(m.group(1), Integer.valueOf(m.group(2)), Integer.valueOf(m.group(3)), Integer.valueOf(m.group(4)));
+                if (m.matches()) {
+                    return new Reindeer(m.group(1),
+                            Integer.valueOf(m.group(2)),
+                            Integer.valueOf(m.group(3)),
+                            Integer.valueOf(m.group(4)));
+                } else {
+                    throw new IllegalArgumentException();
+                }
             })
             .collect(toList());
     }
@@ -88,7 +94,7 @@ public class AoC2015_14 extends AoCBase {
 
         final Puzzle puzzle = Aocd.puzzle(2015, 14);
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_14.create(puzzle.getInputData()).solvePart1()),
+            () -> lap("Part 1", () -> AoC2015_14.createDebug(puzzle.getInputData()).solvePart1()),
             () -> lap("Part 2", () -> AoC2015_14.create(puzzle.getInputData()).solvePart2())
         );
     }
