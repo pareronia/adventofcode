@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "../../aoc/aoc.hpp"
 #include "../../aocd/aocd.hpp"
 
 using namespace std;
@@ -37,13 +38,9 @@ int part2(const vector<string> &input) {
     return countIncreases(input, 3);
 }
 
-int main() {
+void samples() {
     assert(part1(TEST) == 7);
     assert(part2(TEST) == 5);
-
-    const vector<string> input = aocd::puzzle::getInputData(2021, 1);
-    cout << "Part 1: " << part1(input) << endl;
-    cout << "Part 2: " << part2(input) << endl;
-
-    return 0;
 }
+
+MAIN(2021, 1)

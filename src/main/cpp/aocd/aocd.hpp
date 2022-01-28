@@ -1,5 +1,5 @@
-#ifndef _AOC_HPP_
-#define _AOC_HPP_
+#ifndef _AOCD_HPP_
+#define _AOCD_HPP_
 
 #include <string>
 #include <vector>
@@ -24,4 +24,5 @@ namespace aocd {
         vector<string> getInputData(const int year, const int day);
     }
 }
+
 #endif

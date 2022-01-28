@@ -4,6 +4,7 @@
 #include <sstream>
 #include <vector>
 #include <set>
+#include "../../aoc/aoc.hpp"
 #include "../../aocd/aocd.hpp"
 
 using namespace std;
@@ -96,14 +97,9 @@ int part2(const vector<string> &input) {
     return hor * ver;
 }
 
-
-int main() {
+void samples() {
     assert(part1(TEST) == 150);
     assert(part2(TEST) == 900);
-
-    const vector<string> input = aocd::puzzle::getInputData(2021, 2);
-    cout << "Part 1: " << part1(input) << endl;
-    cout << "Part 2: " << part2(input) << endl;
-
-    return 0;
 }
+
+MAIN(2021, 2)

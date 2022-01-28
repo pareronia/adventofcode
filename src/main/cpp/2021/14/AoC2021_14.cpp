@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include "../../aoc/aoc.hpp"
 #include "../../aocd/aocd.hpp"
 
 using namespace std;
@@ -72,13 +73,9 @@ int64_t part2(const vector<string> &input) {
     return solve(input, 40);
 }
 
-int main() {
+void samples() {
     assert(part1(TEST) == 1588);
     assert(part2(TEST) == 2188189693529);
-
-    const vector<string> input = aocd::puzzle::getInputData(2021, 14);
-    cout << "Part 1: " << part1(input) << endl;
-    cout << "Part 2: " << part2(input) << endl;
-
-    return 0;
 }
+
+MAIN(2021, 14)
