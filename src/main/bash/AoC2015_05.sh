@@ -8,7 +8,7 @@ day=05
 
 part1() {
     local -i cnt=0
-    while read -r input; do
+    while read -r input || [ -n "$input" ]; do
         local re="([a-z])\1"
         [[ "$input" =~ $re ]]
         [ "${#BASH_REMATCH[@]}" -ge 1 ] || continue
@@ -33,7 +33,7 @@ part1() {
 
 part2() {
     local -i cnt=0
-    while read -r input; do
+    while read -r input || [ -n "$input" ]; do
         local re="([a-z]{2})[a-z]*\1"
         [[ "$input" =~ $re ]]
         [ "${#BASH_REMATCH[@]}" -ge 1 ] || continue
