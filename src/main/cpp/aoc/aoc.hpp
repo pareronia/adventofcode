@@ -1,6 +1,16 @@
 #ifndef _AOC_HPP_
 #define _AOC_HPP_
 
+#include <string>
+#include <vector>
+
+using namespace std;
+
+namespace aoc {
+    vector<vector<string>> toBlocks(vector<string> lines);
+    vector<int> getNumbers(const string s);
+}
+
 #define MAIN(Year, Day)                                                     \
 int main(int argc, char **argv) {                                           \
     if (argc > 1) {                                                         \
