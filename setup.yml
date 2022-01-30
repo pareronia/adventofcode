@@ -42,6 +42,16 @@ runner:
             base_dir: *bash-base_dir
             day_format: *bash-file_pattern
             ext: *bash-file_ext
+            skip:
+                - year: 2015
+                  day: 4
+                  part: 1
+                - year: 2015
+                  day: 4
+                  part: 2
+                - year: 2017
+                  day: 5
+                  part: 2
         py:
             day_format: *python-file_pattern
         java:

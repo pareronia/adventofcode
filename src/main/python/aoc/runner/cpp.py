@@ -11,7 +11,7 @@ def cpp(year: int, day: int, data: str):
         f = os.path.join(config.root, config.cpp['base_dir'], file_name)
         logging.debug(f)
         if not os.path.exists(f):
-            return Result(False, None)
+            return Result.missing()
         completed = subprocess.run(  # nosec
             [f,
              str(part),
@@ -19,6 +19,6 @@ def cpp(year: int, day: int, data: str):
             text=True,
             capture_output=True,
         )
-        return Result(True, completed.stdout.strip())
+        return Result.ok(completed.stdout.strip())
 
     return run_part(1), run_part(2)

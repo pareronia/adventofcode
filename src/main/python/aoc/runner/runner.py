@@ -113,16 +113,16 @@ def run_with_timeout(entry_point, timeout, progress, dt=0.005, **kwargs):
         try:
             result_a, result_b = future.result()
         except Exception as err:
-            result_a = Result(False, "")
-            result_b = Result(False, "")
+            result_a = Result.ok("")
+            result_b = Result.ok("")
             error = repr(err)[:50]
         else:
             error = ""
             # longest correct answer seen so far has been 32 chars
-            if result_a.present:
-                result_a = Result(True, str(result_a.answer)[:50])
-            if result_b.present:
-                result_b = Result(True, str(result_b.answer)[:50])
+            if result_a.is_ok:
+                result_a = Result.ok(str(result_a.answer)[:50])
+            if result_b.is_ok:
+                result_b = Result.ok(str(result_b.answer)[:50])
     if progress is not None:
         sys.stderr.write("\r" + " " * len(line) + "\r")
         sys.stderr.flush()
@@ -214,7 +214,7 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                 try:
                     expected = getattr(puzzle, "answer_" + part)
                 except AttributeError:
-                    post = (result.present
+                    post = (result.is_ok
                             and (part == "a"
                                  or (part == "b" and puzzle.answered_a)))
                     if autosubmit and post:
@@ -227,9 +227,12 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                             expected = getattr(puzzle, "answer_" + part)
                         except AttributeError:
                             pass
-                if not result.present:
+                if result.is_missing:
                     icon = "⭕"
                     answer = "- missing -"
+                elif result.is_skipped:
+                    icon = "⌚"
+                    answer = "- skipped -"
                 else:
                     correct = expected is not None \
                             and str(expected) == result.answer

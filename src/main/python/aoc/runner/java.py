@@ -23,9 +23,9 @@ def _java(year: int, day: int, data: str):
     )
     results = completed.stdout.splitlines()
     if results:
-        return Result(True, results[0]), Result(True, results[1])
+        return Result.ok(results[0]), Result.ok(results[1])
     else:
-        return Result(False, None), Result(False, None)
+        return Result.skipped(), Result.skipped()
 
 
 def java(year: int, day: int, data: str):
@@ -40,9 +40,9 @@ def java(year: int, day: int, data: str):
     results = data.decode('UTF-8').rstrip().splitlines()
     log.info(f"Results: {results}")
     if results:
-        return Result(True, results[0]), Result(True, results[1])
+        return Result.ok(results[0]), Result.ok(results[1])
     else:
-        return Result(False, None), Result(False, None)
+        return Result.skipped(), Result.skipped()
 
 
 def start_java():

@@ -10,8 +10,8 @@ def py(year: int, day: int, data: str):
     try:
         day_mod = importlib.import_module(day_mod_name)
     except ModuleNotFoundError:
-        return Result(False, None), Result(False, None)
+        return Result.missing(), Result.missing()
     inputs = data.splitlines()
     answer_1 = day_mod.part_1(inputs)
     answer_2 = day_mod.part_2(inputs)
-    return Result(True, answer_1), Result(True, answer_2)
+    return Result.ok(answer_1), Result.ok(answer_2)

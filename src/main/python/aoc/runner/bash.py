@@ -6,13 +6,15 @@ from .config import config
 
 
 def bash(year: int, day: int, data: str):
-    def run_part(part: int) -> str:
+    def run_part(part: int) -> Result:
         file_name = config.bash['day_format'].format(year=year, day=day) \
                 + config.bash['ext']
         f = os.path.join(config.root, config.bash['base_dir'], file_name)
         logging.debug(f)
         if not os.path.exists(f):
-            return Result(False, None)
+            return Result.missing()
+        if {'year': year, 'day': day, 'part': part} in config.bash['skip']:
+            return Result.skipped()
         completed = subprocess.run(  # nosec
             [config.bash['command'],
              f,
@@ -21,6 +23,6 @@ def bash(year: int, day: int, data: str):
             text=True,
             capture_output=True,
         )
-        return Result(True, completed.stdout.strip())
+        return Result.ok(completed.stdout.strip())
 
     return run_part(1), run_part(2)
