@@ -1,6 +1,7 @@
 #! /usr/bin/env julia
 #
 
+include("aoc.jl")
 include("aocd.jl")
 using .Aocd
 
@@ -20,7 +21,7 @@ function part2(input)
     return countIncreases(_parse(input), 3)
 end
 
-TEST = split("""
+TEST = @aoc_splitlines("""
 199
 200
 208
@@ -38,21 +39,4 @@ function samples()
     @assert part2(TEST) == 5
 end
 
-function main(args)
-    if isempty(args)
-        samples()
-        input = Aocd.getInputData(2021, 1)
-        ans1 = part1(input)
-        println("Part 1: $ans1")
-        ans2 = part2(input)
-        println("Part 2: $ans2")
-    else
-        if args[1] == "1"
-            println(part1(readlines(args[2])))
-        else
-            println(part2(readlines(args[2])))
-        end
-    end
-end
-
-main(ARGS)
+@aoc_main 2021 1
