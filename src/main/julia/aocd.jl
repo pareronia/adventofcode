@@ -1,6 +1,5 @@
 module Aocd
 
-using JSON
 using Printf
 
 function getAocdDir()
@@ -33,8 +32,15 @@ function getUserIds()
     if isempty(lines)
         throw(SystemError("Missing token2id.json"))
     else
-        json = JSON.parse(join(lines))
-        return json
+        # Not ideal, but JSON is too slow...
+        userIds = Dict()
+        for line ∈ lines
+            m = match(r""".*"(.*)": "(.*)",?""", line)
+            if m != nothing
+                userIds[m.captures[1]] = m.captures[2]
+            end
+        end
+        return userIds
     end
 end
 
