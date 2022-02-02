@@ -15,6 +15,8 @@ def julia(year: int, day: int, data: str):
             return Result.missing()
         completed = subprocess.run(  # nosec
             [config.julia['command'],
+             config.julia['options'],
+             '--',
              f,
              str(part),
              config.scratch_file],
