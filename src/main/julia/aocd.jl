@@ -57,4 +57,27 @@ function getInputData(year::Int, day::Int)
                               dayFormat(year, day) * "_input.txt"))
 end
 
+function getAnswer(year::Int, day::Int, partnum::Int)
+    part = partnum == 1 ? "a" : "b"
+    lines = readlines(joinpath(getMemoDir(),
+                               dayFormat(year, day) * part * "_answer.txt"))
+    return lines[1]
+end
+
+function check(year::Int, day::Int, part1, part2)
+    answer1 = getAnswer(year, day, 1)
+    fail1 = ""
+    if !isempty(answer1) && !isempty(part1) && answer1 != string(part1)
+        fail1 = string("Part 1: Expected: ", answer1, ", got: ", part1)
+    end
+    answer2 = getAnswer(year, day, 2)
+    fail2 = ""
+    if !isempty(answer2) && !isempty(part2) && answer2 != string(part2)
+        fail2 = string("Part 2: Expected: ", answer2, ", got: ", part2)
+    end
+    if !isempty(fail1) || !isempty(fail2)
+        throw(AssertionError(join([fail1, fail2], '\n')))
+    end
+end
+
 end  # module Aocd
