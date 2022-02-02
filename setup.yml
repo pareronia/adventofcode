@@ -36,6 +36,10 @@ implementation_tables:
           base_dir: *cpp-base_dir
           pattern: '{year}/{day:0>2}/AoC{year}_{day:0>2}'
           ext: *cpp-file_ext
+        - language: julia
+          base_dir: *julia-base_dir
+          pattern: *julia-file_pattern
+          ext: *julia-file_ext
 runner:
     root: ${PWD}
     default_timeout: 60
