@@ -14,6 +14,10 @@ cpp:
     base_dir: &cpp-base_dir src/main/cpp
     file_pattern: &cpp-file_pattern AoC{year}_{day:0>2}
     file_ext: &cpp-file_ext .cpp
+julia:
+    base_dir: &julia-base_dir src/main/julia
+    file_pattern: &julia-file_pattern AoC{year}_{day:0>2}
+    file_ext: &julia-file_ext .jl
 implementation_tables:
     rows:
         - language: python3
@@ -71,3 +75,8 @@ runner:
         cpp:
             base_dir: build/cpp
             day_format: *cpp-file_pattern
+        julia:
+            command: julia
+            base_dir: *julia-base_dir
+            day_format: *julia-file_pattern
+            ext: *julia-file_ext

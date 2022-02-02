@@ -42,12 +42,13 @@ from .py import py
 from .java import java, start_java
 from .bash import bash
 from .cpp import cpp
+from .julia import julia
 
 
 DEFAULT_TIMEOUT = config.default_timeout
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
-all_entry_points = [py, java, bash, cpp]
+all_entry_points = [py, java, bash, cpp, julia]
 
 
 def main():

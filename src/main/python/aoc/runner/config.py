@@ -26,6 +26,10 @@ class Config:
         return self.runner['plugins']['cpp']
 
     @property
+    def julia(self):
+        return self.runner['plugins']['julia']
+
+    @property
     def scratch_file(self):
         return self.runner['scratch_file']
 
