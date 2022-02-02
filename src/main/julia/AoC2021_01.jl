@@ -9,16 +9,16 @@ function _parse(input)
     return [parse(Int, line) for line in input]
 end
 
-function countIncreases(depths, window::Int)
+function count_increases(depths, window::Int)
     return count(i->(depths[i] > depths[i - window]), window+1:length(depths))
 end
 
 function part1(input)
-    return countIncreases(_parse(input), 1)
+    return count_increases(_parse(input), 1)
 end
 
 function part2(input)
-    return countIncreases(_parse(input), 3)
+    return count_increases(_parse(input), 3)
 end
 
 TEST = @aoc_splitlines("""

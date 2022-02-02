@@ -3,7 +3,7 @@ macro aoc_main(year::Int, day::Int)
         if isempty(args)
             @time begin
                 samples()
-                input = Aocd.getInputData(year, day)
+                input = Aocd.get_input_data(year, day)
                 ans1 = @timed part1(input)
                 println("Part 1: $(ans1.value), took: $(ans1.time * 1000) ms")
                 ans2 = @timed part2(input)
