@@ -14,6 +14,7 @@ JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
 BASH_ROOT := $(SRC_ROOT_MAIN)/bash
 CPP_ROOT := $(SRC_ROOT_MAIN)/cpp
 CPP_DST_ROOT := build/cpp
+JULIA_ROOT := $(SRC_ROOT_MAIN)/julia
 CFG := setup.cfg
 SHELLCHECK := shellcheck -a -P SCRIPTDIR
 BANDIT := bandit --silent --ini $(CFG)
@@ -33,6 +34,7 @@ PYTHON_UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := $(JAVA_EXE) -ea
 JAVAC_CMD := $(JAVAC_EXE) -encoding cp1252
 JAVA_UNITTEST_CMD := org.junit.runner.JUnitCore
+JULIA_CMD := julia --optimize
 WSLPATH := wslpath
 RM := rm -Rf
 MKDIR := mkdir
@@ -47,8 +49,9 @@ JAVA_TEST_SRCS = $(shell find $(JAVA_TEST_ROOT) -name "*.java")
 CLITEST_SRCS = $(shell find $(CLITEST_ROOT) -name "*.md")
 BASH_SRCS = $(shell find $(BASH_ROOT) -name "*.sh")
 CPP_SRCS = $(shell find $(CPP_ROOT) -name "*.cpp" -or -name "*.hpp")
+JULIA_SRCS = $(shell find $(JULIA_ROOT) -name "*.jl")
 SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(BASH_SRCS) \
-	   $(CPP_SRCS) $(MAKEFILE)
+	   $(CPP_SRCS) $(JULIA_SRCS) $(MAKEFILE)
 JAVA_LIBS = $(shell find $(JAVA_LIB_ROOT) -name "*.jar" -not -name "*-sources.jar")
 JAVA_CP_LIBS = $(call to_path,$(JAVA_LIBS))
 
@@ -93,6 +96,10 @@ cpp: export MAIN=$(call day,$(ARGS),"")
 cpp:
 	@$(MAKE) -s -C $(CPP_ROOT)/$(call subdir,$(ARGS))
 	@./$(CPP_DST_ROOT)/$(call day,$(ARGS),"")
+
+#: Run Julia (with ARGS=year,day)
+julia:
+	@$(JULIA_CMD) $(JULIA_ROOT)/$(call day,$(ARGS),".jl")
 
 #: Build Java
 build.java:
@@ -210,6 +217,6 @@ help:
 		| column -t -s '###' \
 		| $(SORT)
 
-.PHONY: flake vulture bandit fixme todo list help py java cpp unittest.py \
-	clitest build.java clean unittest.java pmd pmd.html pmd.html.open \
-	docs.update
+.PHONY: flake vulture bandit fixme todo list help py java cpp julia \
+	unittest.py clitest build.java clean unittest.java pmd pmd.html \
+	pmd.html.open docs.update
