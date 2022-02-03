@@ -25,7 +25,7 @@ def _java(year: int, day: int, data: str):
     if results:
         return Result.ok(results[0]), Result.ok(results[1])
     else:
-        return Result.skipped(), Result.skipped()
+        return Result.missing(), Result.missing()
 
 
 def java(year: int, day: int, data: str):
@@ -42,7 +42,7 @@ def java(year: int, day: int, data: str):
     if results:
         return Result.ok(results[0]), Result.ok(results[1])
     else:
-        return Result.skipped(), Result.skipped()
+        return Result.missing(), Result.missing()
 
 
 def start_java():
