@@ -1,28 +1,29 @@
 import os
-import logging
 import subprocess  # nosec
 from . import Result
+from .plugin import Plugin
 from .config import config
 
 
-def bash(year: int, day: int, data: str):
-    def run_part(part: int) -> Result:
-        file_name = config.bash['day_format'].format(year=year, day=day) \
-                + config.bash['ext']
-        f = os.path.join(config.root, config.bash['base_dir'], file_name)
-        logging.debug(f)
-        if not os.path.exists(f):
-            return Result.missing()
-        if {'year': year, 'day': day, 'part': part} in config.bash['skip']:
-            return Result.skipped()
-        completed = subprocess.run(  # nosec
-            [config.bash['command'],
-             f,
-             str(part),
-             config.scratch_file],
-            text=True,
-            capture_output=True,
-        )
-        return Result.ok(completed.stdout.strip())
+class Bash(Plugin):
+    def run(self, year: int, day: int, data: str):
+        def run_part(part: int) -> Result:
+            file_name = config.bash['day_format'].format(year=year, day=day) \
+                    + config.bash['ext']
+            f = os.path.join(config.root, config.bash['base_dir'], file_name)
+            self.log.debug(f)
+            if not os.path.exists(f):
+                return Result.missing()
+            if {'year': year, 'day': day, 'part': part} in config.bash['skip']:
+                return Result.skipped()
+            completed = subprocess.run(  # nosec
+                [config.bash['command'],
+                 f,
+                 str(part),
+                 config.scratch_file],
+                text=True,
+                capture_output=True,
+            )
+            return Result.ok(completed.stdout.strip())
 
-    return run_part(1), run_part(2)
+        return run_part(1), run_part(2)

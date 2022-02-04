@@ -38,23 +38,26 @@ from aocd.models import Puzzle
 from aocd.models import default_user
 from . import Result
 from .config import config
-from .py import py
-from .java import java, start_java
-from .bash import bash
-from .cpp import cpp
-from .julia import julia
+from .py import Py
+from .java import Java
+from .bash import Bash
+from .cpp import Cpp
+from .julia import Julia
 
 
 DEFAULT_TIMEOUT = config.default_timeout
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
-all_entry_points = [py, java, bash, cpp, julia]
+all_plugins = OrderedDict({"py": Py(),
+                           "java": Java(),
+                           "bash": Bash(),
+                           "cpp": Cpp(),
+                           "julia": Julia(),
+                           })
 
 
 def main():
-    start_java()
     aoc_now = datetime.now(tz=AOC_TZ)
-    plugins = OrderedDict([(ep.__name__, ep) for ep in all_entry_points])
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
     path = os.path.join(AOCD_CONFIG_DIR, "tokens.json")
@@ -65,7 +68,8 @@ def main():
         users = {"default": default_user().token}
     log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
     parser = ArgumentParser(description="AoC runner")
-    parser.add_argument("-p", "--plugins", nargs="+", choices=plugins)
+    parser.add_argument("-p", "--plugins", nargs="+",
+                        choices=all_plugins.keys())
     parser.add_argument("-y", "--years", type=int, nargs="+", choices=years)
     parser.add_argument("-d", "--days", type=int, nargs="+", choices=days)
     parser.add_argument("-u", "--users", nargs="+", choices=users)
@@ -83,25 +87,34 @@ def main():
         )
         sys.exit(1)
     logging.basicConfig(level=getattr(logging, args.log_level))
-    rc = run_for(
-        plugins=args.plugins or list(plugins),
-        years=args.years or years,
-        days=args.days or days,
-        datasets={k: users[k] for k in (args.users or users)},
-        timeout=args.timeout,
-        autosubmit=not args.no_submit,
-    )
+    plugins = OrderedDict({k: all_plugins[k]
+                           for k in args.plugins or all_plugins})
+    for p in plugins:
+        plugins[p].start()
+    try:
+        rc = run_for(
+            plugins=plugins,
+            years=args.years or years,
+            days=args.days or days,
+            datasets={k: users[k] for k in (args.users or users)},
+            timeout=args.timeout,
+            autosubmit=not args.no_submit,
+        )
+    finally:
+        for p in plugins:
+            plugins[p].stop()
     sys.exit(rc)
 
 
-def run_with_timeout(entry_point, timeout, progress, dt=0.005, **kwargs):
+def run_with_timeout(plugin, timeout, progress, dt=0.005, **kwargs):
     # TO_DO : multi-process over the different tokens
     spinner = itertools.cycle(r"\|/-")
     pool = pebble.ProcessPool(max_workers=1)
     line = elapsed = format_time(0)
     with pool:
         t0 = time.time()
-        future = pool.schedule(entry_point, kwargs=kwargs, timeout=timeout)
+        future = pool.schedule(
+            plugin[1].run, kwargs=kwargs, timeout=timeout)
         while not future.done():
             if progress is not None:
                 line = "\r" + elapsed + "   " + progress \
@@ -141,7 +154,7 @@ def format_time(t, timeout=DEFAULT_TIMEOUT):
     return runtime
 
 
-def run_one(year, day, input_data, entry_point,
+def run_one(year, day, input_data, plugin,
             timeout=DEFAULT_TIMEOUT, progress=None):
     prev = os.getcwd()
     scratch = tempfile.mkdtemp(prefix="{}-{:02d}-".format(year, day))
@@ -151,7 +164,7 @@ def run_one(year, day, input_data, entry_point,
         with open(config.scratch_file, "w") as f:
             f.write(input_data)
         result_a, result_b, walltime, error = run_with_timeout(
-            entry_point=entry_point,
+            plugin=plugin,
             timeout=timeout,
             year=year,
             day=day,
@@ -168,33 +181,30 @@ def run_one(year, day, input_data, entry_point,
 def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
             autosubmit=True):
     aoc_now = datetime.now(tz=AOC_TZ)
-    entry_points = {ep.__name__: ep
-                    for ep in all_entry_points
-                    if ep.__name__ in plugins}
-    it = itertools.product(years, days, plugins, datasets)
+    log.debug(plugins)
+    it = itertools.product(years, days, plugins.items(), datasets)
     userpad = 3
     datasetpad = 8
     n_incorrect = 0
-    if entry_points:
-        userpad = len(max(entry_points, key=len))
+    if plugins:
+        userpad = len(max(plugins.keys(), key=len))
     if datasets:
         datasetpad = len(max(datasets, key=len))
     for year, day, plugin, dataset in it:
         if year == aoc_now.year and day > aoc_now.day:
             continue
         token = datasets[dataset]
-        entry_point = entry_points[plugin]
         os.environ["AOC_SESSION"] = token
         puzzle = Puzzle(year=year, day=day)
         title = puzzle.title
         progress = "{}/{:<2d} - {:<40}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
-        progress = progress.format(year, day, title, plugin, dataset)
+        progress = progress.format(year, day, title, plugin[0], dataset)
         result_a, result_b, walltime, error = run_one(
             year=year,
             day=day,
             input_data=puzzle.input_data,
-            entry_point=entry_point,
+            plugin=plugin,
             timeout=timeout,
             progress=progress,
         )
