@@ -57,15 +57,22 @@ all_plugins = OrderedDict({"py": Py(),
 
 
 def main():
+    def _tokens_path():
+        return os.path.join(AOCD_CONFIG_DIR, "tokens.json")
+
+    def _load_users():
+        path = _tokens_path()  # os.path.join(AOCD_CONFIG_DIR, "tokens.json")
+        try:
+            with open(path) as f:
+                users = json.load(f)
+        except IOError:
+            users = {"default": default_user().token}
+        return users
+
     aoc_now = datetime.now(tz=AOC_TZ)
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
-    path = os.path.join(AOCD_CONFIG_DIR, "tokens.json")
-    try:
-        with open(path) as f:
-            users = json.load(f)
-    except IOError:
-        users = {"default": default_user().token}
+    users = _load_users()
     log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
     parser = ArgumentParser(description="AoC runner")
     parser.add_argument("-p", "--plugins", nargs="+",
@@ -82,7 +89,7 @@ def main():
         print(
             "There are no datasets available to use.\n"
             "Either export your AOC_SESSION or put some auth "
-            "tokens into {}".format(path),
+            "tokens into {}".format(_tokens_path()),
             file=sys.stderr,
         )
         sys.exit(1)
@@ -175,6 +182,53 @@ def run_one(year, day, input_data, plugin,
 
 def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
             autosubmit=True):
+    def _get_expected(puzzle, part, result, autosubmit):
+        expected = None
+        try:
+            expected = getattr(puzzle, "answer_" + part)
+        except AttributeError:
+            post = (result.is_ok
+                    and (part == "a"
+                         or (part == "b" and puzzle.answered_a)))
+            if autosubmit and post:
+                try:
+                    puzzle._submit(result.answer, part,
+                                   reopen=False, quiet=True)
+                except AocdError as err:
+                    log.warning("error submitting - %s", err)
+                try:
+                    expected = getattr(puzzle, "answer_" + part)
+                except AttributeError:
+                    pass
+        return expected
+
+    def _get_icon_and_answer(result, correct, expected, error):
+        # longest correct answer seen so far has been 32 chars
+        cutoff = 50
+        if error:
+            icon = colored("❌", "red")
+            answer = error[:cutoff]
+        elif correct:
+            icon = colored("✅", "green")
+            answer = f"{result.answer[:cutoff]}"
+        elif not correct:
+            if expected is None:
+                icon = colored("?", "magenta")
+                correction = "(correct answer unknown)"
+            else:
+                icon = colored("❌", "red")
+                correction = f"(expected: {expected})"
+            answer = f"{result.answer[:cutoff]} {correction}"
+        elif result.is_missing:
+            icon = "⭕"
+            answer = "- missing -"
+        elif result.is_skipped:
+            icon = "⌚"
+            answer = "- skipped -"
+        else:
+            raise ValueError("Invalid state")
+        return icon, answer
+
     aoc_now = datetime.now(tz=AOC_TZ)
     log.debug(plugins)
     it = itertools.product(years, days, plugins.items(), datasets)
@@ -205,55 +259,24 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         )
         runtime = format_time(walltime, timeout)
         line = "   ".join([runtime, progress])
-        # longest correct answer seen so far has been 32 chars
-        cutoff = 50
         if error:
             assert result_a.answer == result_b.answer == ""
-            icon = colored("❌", "red")
             n_incorrect += 1
-            line += f"   {icon} {error[:cutoff]}"
+            icon, answer = _get_icon_and_answer(None, None, None, error)
+            line += f"   {icon} {answer}"
         else:
             for result, part in zip((result_a, result_b), "ab"):
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
                     continue
-                expected = None
-                try:
-                    expected = getattr(puzzle, "answer_" + part)
-                except AttributeError:
-                    post = (result.is_ok
-                            and (part == "a"
-                                 or (part == "b" and puzzle.answered_a)))
-                    if autosubmit and post:
-                        try:
-                            puzzle._submit(result.answer, part,
-                                           reopen=False, quiet=True)
-                        except AocdError as err:
-                            log.warning("error submitting - %s", err)
-                        try:
-                            expected = getattr(puzzle, "answer_" + part)
-                        except AttributeError:
-                            pass
-                if result.is_missing:
-                    icon = "⭕"
-                    answer = "- missing -"
-                elif result.is_skipped:
-                    icon = "⌚"
-                    answer = "- skipped -"
-                else:
-                    correct = expected is not None \
-                            and str(expected) == result.answer
-                    icon = colored("✅", "green") if correct \
-                        else colored("❌", "red")
-                    correction = ""
-                    if not correct:
-                        n_incorrect += 1
-                        if expected is None:
-                            icon = colored("?", "magenta")
-                            correction = "(correct answer unknown)"
-                        else:
-                            correction = f"(expected: {expected})"
-                    answer = f"{result.answer[:cutoff]} {correction}"
+                expected = _get_expected(puzzle, part, result, autosubmit)
+                correct = not result.is_missing and not result.is_skipped \
+                    and expected is not None \
+                    and str(expected) == result.answer
+                if not correct:
+                    n_incorrect += 1
+                icon, answer = _get_icon_and_answer(
+                    result, correct, expected, None)
                 if part == "a":
                     answer = answer.ljust(30)
                 line += f"   {icon} part {part}: {answer}"
