@@ -269,14 +269,17 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
                     continue
-                expected = _get_expected(puzzle, part, result, autosubmit)
-                correct = not result.is_missing and not result.is_skipped \
-                    and expected is not None \
-                    and str(expected) == result.answer
-                if not correct:
-                    n_incorrect += 1
-                icon, answer = _get_icon_and_answer(
-                    result, correct, expected, None)
+                if result.is_missing or result.is_skipped:
+                    icon, answer = _get_icon_and_answer(
+                        result, None, None, None)
+                else:
+                    expected = _get_expected(puzzle, part, result, autosubmit)
+                    correct = expected is not None \
+                        and str(expected) == result.answer
+                    icon, answer = _get_icon_and_answer(
+                        result, correct, expected, None)
+                    if not correct:
+                        n_incorrect += 1
                 if part == "a":
                     answer = answer.ljust(30)
                 line += f"   {icon} part {part}: {answer}"
