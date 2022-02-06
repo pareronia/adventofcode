@@ -208,6 +208,12 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         if error:
             icon = colored("❌", "red")
             answer = error[:cutoff]
+        elif result.is_missing:
+            icon = "⭕"
+            answer = "- missing -"
+        elif result.is_skipped:
+            icon = "⌚"
+            answer = "- skipped -"
         elif correct:
             icon = colored("✅", "green")
             answer = f"{result.answer[:cutoff]}"
@@ -219,12 +225,6 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                 icon = colored("❌", "red")
                 correction = f"(expected: {expected})"
             answer = f"{result.answer[:cutoff]} {correction}"
-        elif result.is_missing:
-            icon = "⭕"
-            answer = "- missing -"
-        elif result.is_skipped:
-            icon = "⌚"
-            answer = "- skipped -"
         else:
             raise ValueError("Invalid state")
         return icon, answer
