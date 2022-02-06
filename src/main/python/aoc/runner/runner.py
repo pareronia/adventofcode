@@ -129,14 +129,9 @@ def run_with_timeout(plugin, timeout, progress, dt=0.005, **kwargs):
         except Exception as err:
             result_a = Result.ok("")
             result_b = Result.ok("")
-            error = repr(err)[:50]
+            error = repr(err)
         else:
             error = ""
-            # longest correct answer seen so far has been 32 chars
-            if result_a.is_ok:
-                result_a = Result.ok(str(result_a.answer)[:50])
-            if result_b.is_ok:
-                result_b = Result.ok(str(result_b.answer)[:50])
     if progress is not None:
         sys.stderr.write("\r" + " " * len(line) + "\r")
         sys.stderr.flush()
@@ -210,13 +205,14 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         )
         runtime = format_time(walltime, timeout)
         line = "   ".join([runtime, progress])
+        # longest correct answer seen so far has been 32 chars
+        cutoff = 50
         if error:
             assert result_a.answer == result_b.answer == ""
             icon = colored("❌", "red")
             n_incorrect += 1
-            line += "   {icon} {error}".format(icon=icon, error=error)
+            line += f"   {icon} {error[:cutoff]}"
         else:
-            result_template = "   {icon} part {part}: {answer}"
             for result, part in zip((result_a, result_b), "ab"):
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
@@ -256,12 +252,11 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
                             icon = colored("?", "magenta")
                             correction = "(correct answer unknown)"
                         else:
-                            correction = "(expected: {})".format(expected)
-                    answer = "{} {}".format(result.answer, correction)
+                            correction = f"(expected: {expected})"
+                    answer = f"{result.answer[:cutoff]} {correction}"
                 if part == "a":
                     answer = answer.ljust(30)
-                line += result_template.format(icon=icon, part=part,
-                                               answer=answer)
+                line += f"   {icon} part {part}: {answer}"
         print(line)
     return n_incorrect
 

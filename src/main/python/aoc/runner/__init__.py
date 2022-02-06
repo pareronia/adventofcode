@@ -19,7 +19,7 @@ class Result(NamedTuple):
 
     @classmethod
     def ok(cls, answer: str) -> Result:
-        return Result(ResultType.OK, answer)
+        return Result(ResultType.OK, str(answer))
 
     @classmethod
     def skipped(cls) -> Result:
