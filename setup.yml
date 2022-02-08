@@ -66,13 +66,13 @@ runner:
             command: java
             classpath:
                 - ${CLASSPATH}
-                - ${PWD}/target/classes
+                - ${PWD}/build/java/classes
             class: com.github.pareronia.aocd.Runner
             server:
                 command: java
                 classpath:
                     - ${CLASSPATH}
-                    - ${PWD}/target/classes
+                    - ${PWD}/build/java/classes
                 class: com.github.pareronia.aocd.RunServer
                 host: localhost
                 port: 5555

@@ -1,5 +1,6 @@
 # statics
 SRC_ROOT := src
+DST_ROOT := build
 SRC_ROOT_MAIN := $(SRC_ROOT)/main
 SRC_ROOT_TEST := $(SRC_ROOT)/test
 PYTHON_ROOT := $(SRC_ROOT_MAIN)/python
@@ -8,12 +9,12 @@ CLITEST_ROOT := $(SRC_ROOT_TEST)/clitest
 PYTHON_PATH := PYTHONPATH=$(PYTHON_ROOT)
 JAVA_ROOT := $(SRC_ROOT_MAIN)/java
 JAVA_TEST_ROOT := $(SRC_ROOT_TEST)/java
-JAVA_DST_ROOT := target
+JAVA_DST_ROOT := $(DST_ROOT)/java
 JAVA_DST := $(JAVA_DST_ROOT)/classes
 JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
 BASH_ROOT := $(SRC_ROOT_MAIN)/bash
 CPP_ROOT := $(SRC_ROOT_MAIN)/cpp
-CPP_DST_ROOT := build/cpp
+CPP_DST_ROOT := $(DST_ROOT)/cpp
 JULIA_ROOT := $(SRC_ROOT_MAIN)/julia
 CFG := setup.cfg
 SHELLCHECK := shellcheck -a -P SCRIPTDIR
