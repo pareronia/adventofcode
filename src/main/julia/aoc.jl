@@ -40,3 +40,7 @@ function aoc_to_blocks(lines)
     end        
     return blocks
 end
+
+const OCTANTS = ((-1, 0), (-1, 1), (0, 1), (1, 1),
+                 (1, 0), (1, -1), (0, -1), (-1, -1))
+const CAPITALS = ((-1, 0), (0, 1), (1, 0), (0, -1))

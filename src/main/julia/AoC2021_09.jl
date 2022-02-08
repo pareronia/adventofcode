@@ -15,7 +15,7 @@ end
 
 function neighbours(grid, r, c)
     return (CartesianIndex(r + Δr, c + Δc)
-            for (Δr, Δc) ∈ ((-1, 0), (0, 1), (1, 0), (0, -1))
+            for (Δr, Δc) ∈ CAPITALS
             if r + Δr ∈ 1:size(grid, 1) && c + Δc ∈ 1:size(grid, 2))
 end
 
