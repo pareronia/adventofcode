@@ -91,7 +91,7 @@ public class RunServerTest {
 			}
 			assertThat(response, is(expectedResponse));
 		} finally {
-			System.out.println(String.format("Took %d µs", (System.nanoTime() - start) / 1000));
+			System.out.println(String.format("Took %d Âµs", (System.nanoTime() - start) / 1000));
 		}
 	}
 }
