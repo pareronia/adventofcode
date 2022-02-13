@@ -85,3 +85,11 @@ runner:
             base_dir: *julia-base_dir
             day_format: *julia-file_pattern
             ext: *julia-file_ext
+            server:
+                command:
+                    - julia
+                    - -O
+                    - --
+                    - src/main/julia/Runner.jl
+                host: localhost
+                port: 5556

@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2021_07
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 function solve(input, calc)
     positions = parse.(Int, split(input[1], ","))
@@ -28,4 +34,6 @@ function samples()
     @assert part2(TEST) == 168
 end
 
-@aoc_main 2021 7
+end # module AoC2021_07
+
+aoc_main(@__FILE__, ARGS, 2021, 7)

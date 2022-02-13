@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2021_04
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 const MARKED = -1
 
@@ -85,4 +91,6 @@ function samples()
     @assert part2(TEST) == 1924
 end
 
-@aoc_main 2021 4
+end  # module AoC2021_04
+
+aoc_main(@__FILE__, ARGS, 2021, 4)

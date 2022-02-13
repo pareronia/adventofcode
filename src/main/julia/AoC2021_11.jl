@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2021_11
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 function _parse(input)
     grid = Matrix{Int}(undef, length(input), length(input[1]))
@@ -77,4 +83,6 @@ function samples()
     @assert part2(TEST) == 195
 end
 
-@aoc_main 2021 11
+end # module AoC2021_11
+
+aoc_main(@__FILE__, ARGS, 2021, 11)

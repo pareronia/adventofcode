@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2021_06
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 function solve(input, days)
     fishies = zeros(Int, 9)
@@ -35,4 +41,6 @@ function samples()
     @assert part2(TEST) == 26_984_457_539
 end
 
-@aoc_main 2021 6
+end # module AoC2021_06
+
+aoc_main(@__FILE__, ARGS, 2021, 6)

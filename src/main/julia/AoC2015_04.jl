@@ -1,9 +1,16 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2015_04
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
+
 using MD5
 
 function solve(input, zeroes)
@@ -33,4 +40,6 @@ function samples()
     @assert part1(TEST2) == 1_048_970
 end
 
-@aoc_main 2015 4
+end # module AoC2015_04
+
+aoc_main(@__FILE__, ARGS, 2015, 4)

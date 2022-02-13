@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2021_01
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 function _parse(input)
     return [parse(Int, line) for line in input]
@@ -39,4 +45,6 @@ function samples()
     @assert part2(TEST) == 5
 end
 
-@aoc_main 2021 1
+end # module AoC2021_01
+
+aoc_main(@__FILE__, ARGS, 2021, 1)

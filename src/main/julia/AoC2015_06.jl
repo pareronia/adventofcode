@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2015_06
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 const REGEXP = r"([ a-z]+) ([0-9]+),([0-9]+) through ([0-9]+),([0-9]+)"
 
@@ -59,4 +65,6 @@ function samples()
     @assert part2(TEST5) == 2_000_000
 end
 
-@aoc_main 2015 6
+end # module AoC2015_06
+
+aoc_main(@__FILE__, ARGS, 2015, 6)

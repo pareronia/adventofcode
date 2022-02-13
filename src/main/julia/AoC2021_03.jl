@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2021_03
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 function bitcount(input, pos)
     size = length(input)
@@ -57,4 +63,6 @@ function samples()
     @assert part2(TEST) == 230
 end
 
-@aoc_main 2021 3
+end # module AoC2021_03
+
+aoc_main(@__FILE__, ARGS, 2021, 3)

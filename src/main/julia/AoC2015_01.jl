@@ -1,9 +1,15 @@
 #! /usr/bin/env julia
 #
 
+include("aoc_main.jl")
+if abspath(PROGRAM_FILE) == @__FILE__
+    include("aocd.jl")
+    using .Aocd
+end
+
+module AoC2015_01
+
 include("aoc.jl")
-include("aocd.jl")
-using .Aocd
 
 function part1(input)
     return length(input[1]) - 2 * count(==(')'), input[1])
@@ -44,4 +50,6 @@ function samples()
     @assert part2(TEST11) == 5
 end
 
-@aoc_main 2015 1
+end # module AoC2015_01
+
+aoc_main(@__FILE__, ARGS, 2015, 1)
