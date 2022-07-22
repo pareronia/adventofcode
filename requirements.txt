@@ -2,7 +2,7 @@ advent-of-code-data==1.1.2
 advent-of-code-ocr==1.0.0
 asttokens==2.0.5
 backcall==0.2.0
-bandit==1.7.1
+bandit==1.7.4
 beautifulsoup4==4.10.0
 certifi==2021.10.8
 chardet==4.0.0
@@ -12,7 +12,7 @@ decorator==5.1.0
 executing==0.8.3
 flake8==4.0.1
 gitdb==4.0.9
-GitPython==3.1.24
+GitPython==3.1.27
 idna==3.3
 ipython==8.4.0
 ipython-genutils==0.2.0
@@ -41,13 +41,13 @@ six==1.16.0
 smmap==5.0.0
 soupsieve==2.3.1
 stack-data==0.3.0
-stevedore==3.5.0
+stevedore==4.0.0
 termcolor==1.1.0
 toml==0.10.2
 traitlets==5.1.1
-typing_extensions==4.0.0
+typing_extensions==4.3.0
 tzdata==2021.5
 tzlocal==4.1
 urllib3==1.26.7
-vulture==2.3
+vulture==2.5
 wcwidth==0.2.5
