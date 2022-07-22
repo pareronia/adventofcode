@@ -1,4 +1,4 @@
-advent-of-code-data==1.1.1
+advent-of-code-data==1.1.2
 advent-of-code-ocr==1.0.0
 backcall==0.2.0
 bandit==1.7.1
