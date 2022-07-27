@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
@@ -183,6 +184,54 @@ public class Grid {
 	
 	public char[] getRightEdgeReversed() {
 		return getColumnReversed(getMaxColIndex());
+	}
+	
+	public Stream<Cell> getCellsN(final Cell cell) {
+	    return IntStream.iterate(cell.getRow() - 1, i -> i >= 0, i -> i - 1)
+	            .mapToObj(i -> Cell.at(i, cell.getCol()));
+	}
+	
+	public Stream<Cell> getCellsNE(final Cell cell) {
+	    final int cntRight = this.getWidth() - 1 - cell.getCol();
+	    final int cntUp = cell.getRow();
+	    return IntStream.iterate(1, i -> i <= Math.min(cntRight, cntUp), i -> i + 1)
+	            .mapToObj(i -> Cell.at(cell.getRow() - i, cell.getCol() + i));
+	}
+	
+	public Stream<Cell> getCellsE(final Cell cell) {
+	    return IntStream.iterate(cell.getCol() + 1, i -> i < this.getWidth(), i -> i + 1)
+	            .mapToObj(i -> Cell.at(cell.getRow(), i));
+	}
+	
+	public Stream<Cell> getCellsSE(final Cell cell) {
+	    final int cntRight = this.getWidth() - 1 - cell.getCol();
+	    final int cntDown = this.getHeight() - 1 - cell.getRow();
+	    return IntStream.iterate(1, i -> i <= Math.min(cntRight, cntDown), i -> i + 1)
+	            .mapToObj(i -> Cell.at(cell.getRow() + i, cell.getCol() + i));
+	}
+	
+	public Stream<Cell> getCellsS(final Cell cell) {
+	    return IntStream.iterate(cell.getRow() + 1, i -> i < this.getHeight(), i -> i + 1)
+	            .mapToObj(i -> Cell.at(i, cell.getCol()));
+	}
+	
+	public Stream<Cell> getCellsSW(final Cell cell) {
+	    final int cntLeft = cell.getCol();
+	    final int cntDown = this.getHeight() - 1 - cell.getRow();
+	    return IntStream.iterate(1, i -> i <= Math.min(cntLeft, cntDown), i -> i + 1)
+	            .mapToObj(i -> Cell.at(cell.getRow() + i, cell.getCol() - i));
+	}
+	
+	public Stream<Cell> getCellsW(final Cell cell) {
+	    return IntStream.iterate(cell.getCol() - 1, i -> i >= 0, i -> i - 1)
+	            .mapToObj(i -> Cell.at(cell.getRow(), i));
+	}
+	
+	public Stream<Cell> getCellsNW(final Cell cell) {
+	    final int cntLeft = cell.getCol();
+	    final int cntUp = cell.getRow();
+	    return IntStream.iterate(1, i -> i <= Math.min(cntLeft, cntUp), i -> i + 1)
+	            .mapToObj(i -> Cell.at(cell.getRow() - i, cell.getCol() - i));
 	}
 	
 	public Stream<Cell> findAllMatching(final Predicate<Character> test) {

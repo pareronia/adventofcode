@@ -8,6 +8,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
 
 import java.util.Iterator;
 import java.util.List;
@@ -170,7 +171,7 @@ public class GridTestCase {
 													"123")));
 	}
 	
-	private List<String> asStringList(Grid grid) {
+	private List<String> asStringList(final Grid grid) {
 		return stream(grid.getRowsAsStrings().spliterator(), false).collect(toList());
 	}
 	
@@ -316,5 +317,125 @@ public class GridTestCase {
 	    final Grid result = grid.addRow("EFGH");
 
 		assertThat(asStringList(result), is(asList("ABCD", "EFGH")));
+	}
+	
+	@Test
+	public void getCellsN() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+		final List<Cell> result1 = grid.getCellsN(Cell.at(2, 1)).collect(toList());
+		final List<Cell> result2 = grid.getCellsN(Cell.at(0, 2)).collect(toList());
+		
+		assertThat(result1, contains(Cell.at(1, 1), Cell.at(0, 1)));
+		assertThat(result2.isEmpty(), is(true));
+	}
+
+	@Test
+	public void getCellsS() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsS(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsS(Cell.at(4, 0)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(3, 1), Cell.at(4, 1)));
+	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getCellsE() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsE(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsE(Cell.at(1, 3)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(2, 2), Cell.at(2, 3)));
+	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getCellsW() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsW(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsW(Cell.at(1, 0)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(2, 0)));
+	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getCellsNW() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsNW(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsNW(Cell.at(0, 0)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(1, 0)));
+	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getCellsNE() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsNE(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsNE(Cell.at(0, 3)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(1, 2), Cell.at(0, 3)));
+	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getCellsSE() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsSE(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsSE(Cell.at(4, 3)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(3, 2), Cell.at(4, 3)));
+	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void getCellsSW() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP",
+											"QRST"));
+	    
+	    final List<Cell> result1 = grid.getCellsSW(Cell.at(2, 1)).collect(toList());
+	    final List<Cell> result2 = grid.getCellsSW(Cell.at(4, 0)).collect(toList());
+	    
+	    assertThat(result1, contains(Cell.at(3, 0)));
+	    assertThat(result2.isEmpty(), is(true));
 	}
 }
