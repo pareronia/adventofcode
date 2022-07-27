@@ -22,6 +22,12 @@ class Position(Point):
     def of(cls, x: int, y: int) -> Position:
         return Position(x, y)
 
+    def manhattan_distance(self, other: Position) -> int:
+        return abs(self.x - other.x) + abs(self.y - other.y)
+
+    def manhattan_distance_to_origin(self) -> int:
+        return self.manhattan_distance(Position.of(0, 0))
+
 
 @dataclass
 class Vector(Point):
