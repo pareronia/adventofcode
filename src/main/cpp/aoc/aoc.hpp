@@ -11,6 +11,11 @@ namespace aoc {
     vector<int> getNumbers(const string s);
 }
 
+#define DEBUG(Message) \
+if (getenv("NDEBUG") == NULL) { \
+    cerr << Message << endl; \
+}
+
 #define MAIN(Year, Day)                                                     \
 int main(int argc, char **argv) {                                           \
     if (argc > 1) {                                                         \
