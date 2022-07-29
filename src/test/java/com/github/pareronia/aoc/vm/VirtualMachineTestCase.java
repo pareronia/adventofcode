@@ -39,7 +39,12 @@ public class VirtualMachineTestCase {
             Instruction.SET("E", "2"),
             Instruction.JN0("*D", "1"),
             Instruction.JN0("*B", "*E"),
-            Instruction.SET("A", "99")
+            Instruction.SET("A", "99"),
+            Instruction.ADD("B", "3"),
+            Instruction.SET("E", "2"),
+            Instruction.JG0("*B", "*E"),
+            Instruction.NOP(),
+            Instruction.SET("E", "7")
         ),
         output::add);
         
@@ -47,11 +52,11 @@ public class VirtualMachineTestCase {
         
         assertThat(program.getMemory().size(), is(0));
         assertThat(program.getRegisters().get("A"), is(54L));
-        assertThat(program.getRegisters().get("B"), is(-1L));
+        assertThat(program.getRegisters().get("B"), is(2L));
         assertThat(program.getRegisters().get("C"), is(0L));
         assertThat(program.getRegisters().get("D"), is(nullValue()));
-        assertThat(program.getRegisters().get("E"), is(2L));
-        assertThat(program.getInstructionPointer(), is(16));
+        assertThat(program.getRegisters().get("E"), is(7L));
+        assertThat(program.getInstructionPointer(), is(21));
         assertThat(output, is(List.of(6L, 7L)));
     }
 }

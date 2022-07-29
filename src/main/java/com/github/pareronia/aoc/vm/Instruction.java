@@ -56,12 +56,20 @@ public class Instruction {
         return new Instruction(Opcode.JN0, asList(register, count));
     }
     
+    public static Instruction JG0(final String register, final String count) {
+        return new Instruction(Opcode.JG0, asList(register, count));
+    }
+    
     public static Instruction TGL(final String register) {
         return new Instruction(Opcode.TGL, List.of(register));
     }
     
     public static Instruction OUT(final String operand) {
         return new Instruction(Opcode.OUT, List.of(operand));
+    }
+
+    public static Instruction ON0(final String register, final String operand) {
+        return new Instruction(Opcode.ON0, List.of(register, operand));
     }
 
     public static Instruction INP(final String operand) {

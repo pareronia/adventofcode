@@ -3,6 +3,7 @@ package com.github.pareronia.aoc.vm;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,8 +22,10 @@ public class VirtualMachine {
         this.instructionSet.put(Opcode.EQL, this::eql);
         this.instructionSet.put(Opcode.JMP, this::jmp);
         this.instructionSet.put(Opcode.JN0, this::jn0);
+        this.instructionSet.put(Opcode.JG0, this::jg0);
         this.instructionSet.put(Opcode.TGL, this::tgl);
         this.instructionSet.put(Opcode.OUT, this::out);
+        this.instructionSet.put(Opcode.ON0, this::on0);
         this.instructionSet.put(Opcode.INP, this::inp);
     }
     
@@ -142,6 +145,16 @@ public class VirtualMachine {
     }
     
     private void jn0(final Program program, final Instruction instruction, final Integer ip) {
+        jump(program, instruction, ip, v -> !v.equals(0L));
+    }
+    
+    private void jg0(final Program program, final Instruction instruction, final Integer ip) {
+        jump(program, instruction, ip, v -> v > 0);
+    }
+    
+    private void jump(final Program program, final Instruction instruction,
+            final Integer ip, final Predicate<Long> condition
+    ) {
         final String op1 = (String) instruction.getOperands().get(0);
         final Optional<Long> test;
         if (op1.startsWith("*")) {
@@ -156,11 +169,10 @@ public class VirtualMachine {
         } else {
             count = Long.valueOf(op2);
         }
-        test.filter(v -> !v.equals(0L))
+        test.filter(condition)
                 .ifPresentOrElse(
                         v -> program.moveIntructionPointer(count.intValue()),
                         () -> program.moveIntructionPointer(1));
-        
     }
     
     private void tgl(final Program program, final Instruction instruction, final Integer ip) {
@@ -218,6 +230,29 @@ public class VirtualMachine {
         program.moveIntructionPointer(1);
     }
     
+    private void on0(final Program program, final Instruction instruction, final Integer ip) {
+        final String op1 = (String) instruction.getOperands().get(0);
+        final Optional<Long> test;
+        if (op1.startsWith("*")) {
+            test = Optional.ofNullable(program.getRegisters().get(op1.substring(1)));
+        } else {
+            test = Optional.of(Long.valueOf(op1));
+        }
+        final Optional<Long> value;
+        final String op2 = (String) instruction.getOperands().get(1);
+        if (op2.startsWith("*")) {
+            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
+        } else {
+            value = Optional.of(Long.valueOf(op2));
+        }
+        test.filter(t -> t != 0).ifPresent(x -> {
+            if (program.getOutputConsumer() != null) {
+                value.ifPresent(program.getOutputConsumer()::accept);
+            }
+        });
+        program.moveIntructionPointer(1);
+    }
+    
     private void inp(final Program program, final Instruction instruction, final Integer ip ) {
         final String op1 = (String) instruction.getOperands().get(0);
         assert program.getInputSupplier() != null;
@@ -230,14 +265,10 @@ public class VirtualMachine {
         final Map<Integer, Integer> seen = new HashMap<>();
         while (0 <= program.getInstructionPointer()
                 && program.getInstructionPointer() < program.getInstructions().size()) {
-            final Instruction instruction = program.getInstructions()
-                    .get(program.getInstructionPointer());
             if (program.getInfiniteLoopTreshold() != null) {
                 seen.merge(program.getInstructionPointer(), 1, (a, b) -> a + b);
             }
-            this.instructionSet.get(instruction.getOpcode())
-                    .execute(program, instruction, program.getInstructionPointer());
-            program.incrementCycles();
+            step(program);
             if (program.getInfiniteLoopTreshold() != null
                     && seen.containsKey(program.getInstructionPointer())) {
                 final Integer instructionCount = seen.get(program.getInstructionPointer());
@@ -246,6 +277,15 @@ public class VirtualMachine {
                 }
             }
         }
+    }
+
+    public void step(final Program program) {
+        final Integer instructionPointer = program.getInstructionPointer();
+        final Instruction instruction
+                = program.getInstructions().get(instructionPointer);
+        this.instructionSet.get(instruction.getOpcode())
+                .execute(program, instruction, instructionPointer);
+        program.incrementCycles();
     }
     
     @FunctionalInterface
