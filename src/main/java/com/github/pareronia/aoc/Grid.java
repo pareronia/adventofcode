@@ -17,6 +17,8 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
 
+import com.github.pareronia.aoc.navigation.Headings;
+
 import lombok.Value;
 
 public class Grid {
@@ -127,6 +129,15 @@ public class Grid {
 		set.add(getLeftEdge());
 		set.add(getRightEdge());
 		return set;
+	}
+	
+	public Stream<Cell> getCapitalNeighbours(final Cell cell) {
+        return Headings.CAPITAL.stream()
+            .filter(n -> cell.getRow() + n.getX() >= 0)
+            .filter(n -> cell.getRow() + n.getX() < this.getHeight())
+            .filter(n -> cell.getCol() + n.getY() >= 0)
+            .filter(n -> cell.getCol() + n.getY() < this.getWidth())
+            .map(n -> Cell.at(cell.getRow() + n.getX(), cell.getCol() + n.getY()));
 	}
 	
 	public String getRowAsString(final Integer row) {
