@@ -76,7 +76,7 @@
 | java | [✓](src/main/java/AoC2017_01.java) | [✓](src/main/java/AoC2017_02.java) | [✓](src/main/java/AoC2017_03.java) | [✓](src/main/java/AoC2017_04.java) | [✓](src/main/java/AoC2017_05.java) | [✓](src/main/java/AoC2017_06.java) | [✓](src/main/java/AoC2017_07.java) | [✓](src/main/java/AoC2017_08.java) | [✓](src/main/java/AoC2017_09.java) | [✓](src/main/java/AoC2017_10.java) |  | [✓](src/main/java/AoC2017_12.java) |  |  | [✓](src/main/java/AoC2017_15.java) | [✓](src/main/java/AoC2017_16.java) | [✓](src/main/java/AoC2017_17.java) | [✓](src/main/java/AoC2017_18.java) |  |  |  |  |  |  |  |
 | bash | [✓](src/main/bash/AoC2017_01.sh) | [✓](src/main/bash/AoC2017_02.sh) |  | [✓](src/main/bash/AoC2017_04.sh) | [✓](src/main/bash/AoC2017_05.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ | [✓](src/main/cpp/2017/01/AoC2017_01.cpp) | [✓](src/main/cpp/2017/02/AoC2017_02.cpp) | [✓](src/main/cpp/2017/03/AoC2017_03.cpp) | [✓](src/main/cpp/2017/04/AoC2017_04.cpp) | [✓](src/main/cpp/2017/05/AoC2017_05.cpp) |  |  |  |  |  |  |  |  |  |  |  |  | [✓](src/main/cpp/2017/18/AoC2017_18.cpp) |  |  |  |  |  |  |  |
-| julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| julia | [✓](src/main/julia/AoC2017_01.jl) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2017@ -->
 
 ## 2016
