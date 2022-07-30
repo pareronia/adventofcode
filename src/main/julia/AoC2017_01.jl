@@ -11,14 +11,6 @@ module AoC2017_01
 
 include("aoc.jl")
 
-function _parse(input)
-    return [parse(Int, line) for line in input]
-end
-
-function count_increases(depths, window::Int)
-    return count(i->(depths[i] > depths[i - window]), window+1:length(depths))
-end
-
 function sum_same_chars(string, distance::Int)
     test = string * string[1:distance]
     return sum([parse.(Int, test[i])
