@@ -117,7 +117,6 @@ void VirtualMachine::step(Program &program) {
     } else {
         throw invalid_argument("invalid input");
     }
-    DEBUG(program);
 }
 
 void VirtualMachine1::snd(Program &program, const string &operand) {
@@ -153,21 +152,26 @@ long VirtualMachine2::in(queue<long> &q, bool &waiting) {
     }
     const long x = q.front();
     q.pop();
+    DEBUG("<- " + to_string(x));
     return x;
 }
 
 void VirtualMachine2::out(const long x, queue<long> &q, bool &waiting, int &count) {
+    DEBUG("-> " + to_string(x));
     q.push(x);
     waiting = false;
     count++;
 }
 
 ostream& operator <<(ostream &strm, const Program &program) {
-    strm << program.ip << ": [";
-    for (const auto &item : program.registers) {
-        strm << item.first << ": " << to_string(item.second) << ", ";
+    auto first = program.registers.begin();
+    auto last = program.registers.end();
+    strm << program.ip << ": {";
+    strm << first->first << "=" << to_string(first->second);
+    while (++first != last) {
+        strm << ", " << first->first << "=" << to_string(first->second);
     }
-    return strm << "]";
+    return strm << "}";
 }
 
 long part1(const vector<string> &input) {
@@ -195,13 +199,25 @@ int part2(const vector<string> &input) {
             [&](long x) { vm.out(x, q0, waiting0, count1); },
             [&]() { return vm.in(q1, waiting1); });
     program1.put("p", 1);
+    uint cycle = 0;
     while (true) {
         if (waiting0 && waiting1) {
             break;
         }
+        DEBUG("cycle: " + to_string(cycle));
+        DEBUG("Stepping p0");
         vm.step(program0);
+        DEBUG(program0);
+        DEBUG("q0: (" + to_string(q0.size()) + ") " + to_string(q0.front()));
+        DEBUG("q1: (" + to_string(q1.size()) + ") " + to_string(q1.front()));
+        DEBUG("Stepping p1");
         vm.step(program1);
+        DEBUG(program1);
+        DEBUG("q0: (" + to_string(q0.size()) + ") " + to_string(q0.front()));
+        DEBUG("q1: (" + to_string(q1.size()) + ") " + to_string(q1.front()));
+        cycle++;
     }
+    DEBUG("cycles: " + to_string(cycle));
     return count1;
 }
 
