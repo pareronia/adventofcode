@@ -63,20 +63,14 @@ public final class AoC2015_06 extends AoCBase {
         final IntGrid lights = new IntGrid(new int[1_000][1_000]);
         this.input.stream().forEach(ins -> {
             if (ins.isTurnOn()) {
-                forEachCell(ins.getStart(), ins.getEnd(), c ->
-                    lights.setValue(Cell.at(c.getRow(), c.getCol()), 1));
+                forEachCell(ins.getStart(), ins.getEnd(),
+                    c -> lights.setValue(c, 1));
             } else if (ins.isTurnOff()) {
-                forEachCell(ins.getStart(), ins.getEnd(), c ->
-                    lights.setValue(Cell.at(c.getRow(), c.getCol()), 0));
+                forEachCell(ins.getStart(), ins.getEnd(),
+                    c -> lights.setValue(c, 0));
             } else if (ins.isToggle()) {
-                forEachCell(ins.getStart(), ins.getEnd(), c -> {
-                    final Cell cell = Cell.at(c.getRow(), c.getCol());
-                    if (lights.getValue(cell) == 1) {
-                        lights.setValue(cell, 0);
-                    } else {
-                        lights.setValue(cell, 1);
-                    }
-                });
+                forEachCell(ins.getStart(), ins.getEnd(),
+                    c -> lights.setValue(c, lights.getValue(c) == 1 ? 0 : 1));
             }
         });
         return (int) lights.countAllEqualTo(1);
@@ -87,20 +81,14 @@ public final class AoC2015_06 extends AoCBase {
         final IntGrid lights = new IntGrid(new int[1_000][1_000]);
         this.input.stream().forEach(ins -> {
             if (ins.isTurnOn()) {
-                forEachCell(ins.getStart(), ins.getEnd(), c -> {
-                    final Cell cell = Cell.at(c.getRow(), c.getCol());
-                    lights.setValue(cell, lights.getValue(cell) + 1);
-                });
+                forEachCell(ins.getStart(), ins.getEnd(),
+                    c -> lights.setValue(c, lights.getValue(c) + 1));
             } else if (ins.isTurnOff()) {
-                forEachCell(ins.getStart(), ins.getEnd(), c -> {
-                    final Cell cell = Cell.at(c.getRow(), c.getCol());
-                    lights.setValue(cell, Math.max(lights.getValue(cell) - 1, 0));
-                });
+                forEachCell(ins.getStart(), ins.getEnd(),
+                    c -> lights.setValue(c, Math.max(lights.getValue(c) - 1, 0)));
             } else if (ins.isToggle()) {
-                forEachCell(ins.getStart(), ins.getEnd(), c -> {
-                    final Cell cell = Cell.at(c.getRow(), c.getCol());
-                    lights.setValue(cell, lights.getValue(cell) + 2);
-                });
+                forEachCell(ins.getStart(), ins.getEnd(),
+                    c -> lights.setValue(c, lights.getValue(c) + 2));
             }
         });
         return lights.getCells()
