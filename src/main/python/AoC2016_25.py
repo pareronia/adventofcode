@@ -45,7 +45,7 @@ def _solve(inputs: tuple[str]) -> int:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _solve_vm(inputs)
+    return _solve(inputs)
 
 
 def part_2(inputs: tuple[str]) -> int:
@@ -89,7 +89,7 @@ jnz 1 -21
 def main() -> None:
     my_aocd.print_header(2016, 25)
 
-    assert _solve(TEST) == 182
+    assert _solve_vm(TEST) == 182
 
     inputs = my_aocd.get_input(2016, 25, 30)
     result1 = part_1(inputs)
