@@ -37,12 +37,7 @@ public class VirtualMachine {
     private void set(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
-        final Optional<Long> value;
-        if (op2.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op2));
-        }
+        final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> program.setRegisterValue(register, v));
         program.moveIntructionPointer(1);
     }
@@ -50,12 +45,7 @@ public class VirtualMachine {
     private void add(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
-        final Optional<Long> value;
-        if (op2.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op2));
-        }
+        final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
                     .map(r -> r + v)
@@ -68,12 +58,7 @@ public class VirtualMachine {
     private void mul(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
-        final Optional<Long> value;
-        if (op2.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op2));
-        }
+        final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
                     .map(r -> r * v)
@@ -86,12 +71,7 @@ public class VirtualMachine {
     private void div(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
-        final Optional<Long> value;
-        if (op2.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op2));
-        }
+        final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             assert v != 0;
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -105,12 +85,7 @@ public class VirtualMachine {
     private void mod(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
-        final Optional<Long> value;
-        if (op2.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op2));
-        }
+        final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             assert v > 0;
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -124,12 +99,7 @@ public class VirtualMachine {
     private void eql(final Program program, final Instruction instruction, final Integer ip) {
         final String register = (String) instruction.getOperands().get(0);
         final String op2 = (String) instruction.getOperands().get(1);
-        final Optional<Long> value;
-        if (op2.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op2));
-        }
+        final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
                     .map(r -> r == v ? 1L : 0L)
@@ -156,12 +126,7 @@ public class VirtualMachine {
             final Integer ip, final Predicate<Long> condition
     ) {
         final String op1 = (String) instruction.getOperands().get(0);
-        final Optional<Long> test;
-        if (op1.startsWith("*")) {
-            test = Optional.ofNullable(program.getRegisters().get(op1.substring(1)));
-        } else {
-            test = Optional.of(Long.valueOf(op1));
-        }
+        final Optional<Long> test = getValue(program, op1);
         final String op2 = (String) instruction.getOperands().get(1);
         final Long count;
         if (op2.startsWith("*")) {
@@ -218,12 +183,7 @@ public class VirtualMachine {
     
     private void out(final Program program, final Instruction instruction, final Integer ip) {
         final String op1 = (String) instruction.getOperands().get(0);
-        final Optional<Long> value;
-        if (op1.startsWith("*")) {
-            value = Optional.ofNullable(program.getRegisters().get(op1.substring(1)));
-        } else {
-            value = Optional.of(Long.valueOf(op1));
-        }
+        final Optional<Long> value = getValue(program, op1);
         if (program.getOutputConsumer() != null) {
             value.ifPresent(v -> program.getOutputConsumer().accept(v));
         }
@@ -232,12 +192,7 @@ public class VirtualMachine {
     
     private void on0(final Program program, final Instruction instruction, final Integer ip) {
         final String op1 = (String) instruction.getOperands().get(0);
-        final Optional<Long> test;
-        if (op1.startsWith("*")) {
-            test = Optional.ofNullable(program.getRegisters().get(op1.substring(1)));
-        } else {
-            test = Optional.of(Long.valueOf(op1));
-        }
+        final Optional<Long> test = getValue(program, op1);
         final Optional<Long> value;
         final String op2 = (String) instruction.getOperands().get(1);
         if (op2.startsWith("*")) {
@@ -286,6 +241,14 @@ public class VirtualMachine {
         this.instructionSet.get(instruction.getOpcode())
                 .execute(program, instruction, instructionPointer);
         program.incrementCycles();
+    }
+
+    private Optional<Long> getValue(final Program program, final String op) {
+        if (op.startsWith("*")) {
+            return Optional.ofNullable(program.getRegisters().get(op.substring(1)));
+        } else {
+            return Optional.of(Long.valueOf(op));
+        }
     }
     
     @FunctionalInterface
