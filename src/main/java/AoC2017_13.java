@@ -1,6 +1,7 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -31,22 +32,30 @@ public final class AoC2017_13 extends AoCBase {
         return new AoC2017_13(input, true);
     }
     
+    private Stream<Layer> caught(final int delay) {
+        return this.layers.stream()
+            .filter(l -> (delay + l.depth) % ((l.range - 1) * 2) == 0);
+    }
+    
     @Override
     public Integer solvePart1() {
-        return this.layers.stream()
-                .skip(1)
-                .filter(l -> l.depth % ((l.range - 1) * 2) == 0)
-                .mapToInt(l -> l.depth * l.range)
-                .sum();
+        return caught(0)
+            .mapToInt(l -> l.depth * l.range)
+            .sum();
     }
     
     @Override
     public Integer solvePart2() {
-        return 0;
+        int delay = 0;
+        while (caught(delay).count() != 0) {
+            delay++;
+        }
+        return delay;
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2017_13.createDebug(TEST).solvePart1() == 24;
+        assert AoC2017_13.createDebug(TEST).solvePart2() == 10;
 
         final Puzzle puzzle = Aocd.puzzle(2017, 13);
         puzzle.check(
