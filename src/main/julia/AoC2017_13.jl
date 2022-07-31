@@ -24,20 +24,20 @@ function _parse(input)
     return [Layer(Tuple(parse.(Int, split(line, ": ")))) for line ∈ input]
 end
 
-function caught(layers, delay::Int)
-    return (lyr for lyr ∈ layers
-            if (lyr.depth + delay) % ((lyr.range - 1) * 2) == 0)
+function caught(layer::Layer, delay::Int)
+    return (layer.depth + delay) % ((layer.range - 1) * 2) == 0
 end
 
 function part1(input)
     layers = _parse(input)
-    return sum(lyr -> lyr.depth * lyr.range, caught(layers, 0))
+    return sum(layer -> layer.depth * layer.range,
+               (layer for layer ∈ layers if caught(layer, 0)))
 end
 
 function part2(input)
     layers = _parse(input)
     delay::Int = 0
-    while length(collect(caught(layers, delay))) != 0
+    while any(caught(layer, delay) for layer ∈ layers)
         delay += 1
     end
     return delay
