@@ -1,7 +1,8 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.stream.Stream;
+
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -32,25 +33,25 @@ public final class AoC2017_13 extends AoCBase {
         return new AoC2017_13(input, true);
     }
     
-    private Stream<Layer> caught(final int delay) {
-        return this.layers.stream()
-            .filter(l -> (delay + l.depth) % ((l.range - 1) * 2) == 0);
+    private boolean caught(final Layer layer, final int delay) {
+        return (delay + layer.depth) % ((layer.range - 1) * 2) == 0;
     }
     
     @Override
     public Integer solvePart1() {
-        return caught(0)
+        return this.layers.stream()
+            .filter(layer -> caught(layer, 0))
             .mapToInt(l -> l.depth * l.range)
             .sum();
     }
     
     @Override
     public Integer solvePart2() {
-        int delay = 0;
-        while (caught(delay).count() != 0) {
-            delay++;
+        final MutableInt delay = new MutableInt(0);
+        while (this.layers.stream().anyMatch(layer -> caught(layer, delay.intValue()))) {
+            delay.increment();
         }
-        return delay;
+        return delay.intValue();
     }
 
     public static void main(final String[] args) throws Exception {
