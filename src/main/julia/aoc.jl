@@ -17,6 +17,14 @@ function aoc_to_blocks(lines)
     return blocks
 end
 
-const OCTANTS = ((-1, 0), (-1, 1), (0, 1), (1, 1),
-                 (1, 0), (1, -1), (0, -1), (-1, -1))
-const CAPITALS = ((-1, 0), (0, 1), (1, 0), (0, -1))
+const Heading_N = (-1, 0)
+const Heading_NE = (-1, 1)
+const Heading_E = (0, 1)
+const Heading_SE = (1, 1)
+const Heading_S = (1, 0)
+const Heading_SW = (1, -1)
+const Heading_W = (0, -1)
+const Heading_NW = (-1, -1)
+const OCTANTS = (Heading_N, Heading_NE, Heading_E, Heading_SE,
+                 Heading_S, Heading_SW, Heading_W, Heading_NW)
+const CAPITALS = (Heading_N, Heading_E, Heading_S, Heading_W)
