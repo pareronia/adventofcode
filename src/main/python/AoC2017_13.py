@@ -17,20 +17,20 @@ def _parse(inputs: tuple[str]) -> list[Layer]:
     return [Layer(*map(int, layer.split(": "))) for layer in inputs]
 
 
-def _caught(layers: list[Layer], delay: int):
-    return (lyr for lyr in layers
-            if (lyr.depth + delay) % ((lyr.range - 1) * 2) == 0)
+def _caught(layer: Layer, delay: int) -> bool:
+    return (layer.depth + delay) % ((layer.range - 1) * 2) == 0
 
 
 def part_1(inputs: tuple[str]) -> int:
     layers = _parse(inputs)
-    return sum(map(lambda lyr: lyr.depth * lyr.range, _caught(layers, 0)))
+    return sum(map(lambda layer: layer.depth * layer.range,
+                   (layer for layer in layers if _caught(layer, 0))))
 
 
 def part_2(inputs: tuple[str]) -> int:
     layers = _parse(inputs)
     delay = 0
-    while sum(1 for _ in _caught(layers, delay)) != 0:
+    while any(_caught(layer, delay) for layer in layers):
         delay += 1
     return delay
 
