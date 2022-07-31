@@ -1,13 +1,15 @@
-import static java.util.Comparator.naturalOrder;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
+
+import lombok.RequiredArgsConstructor;
 
 public final class AoC2017_06 extends AoCBase {
 
@@ -28,49 +30,54 @@ public final class AoC2017_06 extends AoCBase {
         return new AoC2017_06(input, true);
     }
     
-    private Integer getRedistributionCycles() {
-        String banks = this.input.stream()
-                .map(String::valueOf)
-                .collect(joining());
-        final Set<String> seen = new HashSet<>();
+    private Result getRedistributionCycles() {
+        final Map<List<Integer>, Integer> seen = new HashMap<>();
+        List<Integer> banks = new ArrayList<>(this.input);
         int cnt = 0;
-        while (!seen.contains(banks)) {
-            seen.add(banks);
-            final Integer max = this.input.stream()
-                    .max(naturalOrder()).orElseThrow();
-            final int idx = this.input.indexOf(max);
-            final Integer blocks = this.input.get(idx);
-            this.input.set(idx, 0);
+        while (!seen.containsKey(banks)) {
+            seen.put(banks, cnt);
+            final int max = banks.stream()
+                    .mapToInt(Integer::valueOf)
+                    .max().getAsInt();
+            final int idx = banks.indexOf(max);
+            final Integer blocks = banks.get(idx);
+            banks = new ArrayList<>(banks);
+            banks.set(idx, 0);
             for (int i = 1; i <= blocks; i++) {
-                final int j = (idx + i) % this.input.size();
-                final int newBlocks = this.input.get(j) + 1;
-                this.input.set(j, newBlocks);
+                final int j = (idx + i) % banks.size();
+                final int newBlocks = banks.get(j) + 1;
+                banks.set(j, newBlocks);
             }
-            banks = this.input.stream()
-                    .map(String::valueOf)
-                    .collect(joining());
             cnt++;
         }
-        return cnt;
+        return new Result(seen, banks);
     }
     
     @Override
     public Integer solvePart1() {
-        return getRedistributionCycles();
+        return getRedistributionCycles().map.size();
     }
     
     @Override
     public Integer solvePart2() {
-        getRedistributionCycles();
-        return getRedistributionCycles();
+        final Result result = getRedistributionCycles();
+        return result.map.size() - result.map.get(result.last);
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2017_06.createDebug(splitLines("0 2 7 0")).solvePart1() == 5;
         assert AoC2017_06.createDebug(splitLines("0 2 7 0")).solvePart2() == 4;
 
-        final List<String> input = Aocd.getData(2017, 6);
-        lap("Part 1", () -> AoC2017_06.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_06.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 6);
+        puzzle.check(
+            () -> lap("Part 1", () -> AoC2017_06.create(puzzle.getInputData()).solvePart1()),
+            () -> lap("Part 2", () -> AoC2017_06.create(puzzle.getInputData()).solvePart2())
+        );
+    }
+    
+    @RequiredArgsConstructor
+    private static final class Result {
+        private final Map<List<Integer>, Integer> map;
+        private final List<Integer> last;
     }
 }
