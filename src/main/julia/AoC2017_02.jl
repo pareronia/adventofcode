@@ -16,18 +16,11 @@ function difference_highest_lowest(line)
 end
 
 function evenlyDivisibleQuotient(line)
-    for n1 ∈ line
-        for n2 ∈ line
-            if n1 == n2
-                continue
-            end
-            if n1 > n2
-                if n1 % n2 == 0
-                    return n1 ÷ n2
-                end
-            elseif n2 % n1 == 0
-                return n2 ÷ n1
-            end
+    for n1 ∈ line, n2 ∈ line
+        if n1 > n2
+            n1 % n2 == 0 && return n1 ÷ n2
+        elseif n2 > n1
+            n2 % n1 == 0 && return n2 ÷ n1
         end
     end
 end
