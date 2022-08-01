@@ -2,7 +2,6 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_05 extends AoCBase {
@@ -57,14 +56,14 @@ public class AoC2020_05 extends AoCBase {
 	}
 
 	public static void main(final String[] args) throws Exception {
-		assert AoC2020_05.createDebug(TEST1).solvePart1() == 820;
-		assert AoC2020_05.createDebug(TEST2).solvePart2() == 3;
+		assert createDebug(TEST1).solvePart1() == 820;
+		assert createDebug(TEST2).solvePart2() == 3;
 		
-        final Puzzle puzzle = Aocd.puzzle(2020, 5);
+        final Puzzle puzzle = puzzle(AoC2020_05.class);
 		final List<String> input = puzzle.getInputData();
         puzzle.check(
-           () -> lap("Part 1", AoC2020_05.create(input)::solvePart1),
-           () -> lap("Part 2", AoC2020_05.create(input)::solvePart2)
+           () -> lap("Part 1", create(input)::solvePart1),
+           () -> lap("Part 2", create(input)::solvePart2)
 	    );
 	}
 	

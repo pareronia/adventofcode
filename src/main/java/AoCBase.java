@@ -7,9 +7,17 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
+import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
+
 public abstract class AoCBase {
 
 	protected final boolean debug;
+	
+	protected static Puzzle puzzle(final Class<? extends AoCBase> klass) {
+	   final String[] split = klass.getSimpleName().substring("AoC".length()).split("_");
+	   return Aocd.puzzle(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+	}
 	
 	protected static List<String> splitLines(final String input) {
 		return asList((requireNonNull(input) + "\n").split("\\r?\\n"));
