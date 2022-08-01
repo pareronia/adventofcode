@@ -8,7 +8,7 @@ import aocd
 
 def _parse(inputs: tuple[str]) -> list[str]:
     table = str.maketrans("FBLR", "0101")
-    return [line.translate(table) for line in inputs]
+    return sorted(line.translate(table) for line in inputs)
 
 
 def _as_int(binary: str) -> int:
@@ -17,15 +17,12 @@ def _as_int(binary: str) -> int:
 
 def part_1(inputs: tuple[str]) -> int:
     translated = _parse(inputs)
-    return max(_as_int(_) for _ in translated)
+    return _as_int(translated[-1])
 
 
 def part_2(inputs: tuple[str]) -> int:
     translated = _parse(inputs)
-    translated.sort()
-    for i in range(len(translated)):
-        if i+1 == len(translated):
-            break
+    for i in range(len(translated) - 1):
         if translated[i][-1] == translated[i+1][-1]:
             return _as_int(translated[i]) + 1
     raise ValueError("Unsolvable")
