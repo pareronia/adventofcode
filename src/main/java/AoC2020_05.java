@@ -35,21 +35,17 @@ public class AoC2020_05 extends AoCBase {
 	
 	@Override
 	public Integer solvePart1() {
-		return translated(this.inputs).stream()
-			.mapToInt(this::asInt)
-			.max().orElseThrow();
+		final List<String> list = translated(this.inputs);
+	    return asInt(list.get(list.size() - 1));
 	}
 
 	@Override
 	public Integer solvePart2() {
 		final int last = this.inputs.get(0).length() - 1;
 		final List<String> list = translated(this.inputs);
-		for (int i = 0; i < list.size(); i++) {
-			if (i + 1 == list.size()) {
-				break;
-			}
-			if (list.get(i).charAt(last) == list.get(i + 1).charAt(last)) {
-				return asInt(list.get(i)) + 1;
+		for (int i = 1; i < list.size() - 1; i++) {
+			if (list.get(i).charAt(last) == list.get(i - 1).charAt(last)) {
+				return asInt(list.get(i)) - 1;
 			}
 		}
 		throw new RuntimeException("Unsolvable");
