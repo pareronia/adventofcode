@@ -1,28 +1,28 @@
 import static java.util.stream.Collectors.toList;
 
-import java.util.Comparator;
 import java.util.List;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_05 extends AoCBase {
 	
 	private final List<String> inputs;
 	
-	private AoC2020_05(List<String> input, boolean debug) {
+	private AoC2020_05(final List<String> input, final boolean debug) {
 		super(debug);
 		this.inputs = input;
 	}
 	
-	public static AoC2020_05 create(List<String> input) {
+	public static AoC2020_05 create(final List<String> input) {
 		return new AoC2020_05(input, false);
 	}
 
-	public static AoC2020_05 createDebug(List<String> input) {
+	public static AoC2020_05 createDebug(final List<String> input) {
 		return new AoC2020_05(input, true);
 	}
 	
-	private List<String> translated(List<String> inputs) {
+	private List<String> translated(final List<String> inputs) {
 		return inputs.stream()
 				.map(s -> s.replaceAll("F", "0").replaceAll("B", "1")
 							.replaceAll("L", "0").replaceAll("R", "1"))
@@ -30,12 +30,15 @@ public class AoC2020_05 extends AoCBase {
 				.collect(toList());
 	}
 	
+	private int asInt(final String s) {
+	    return Integer.parseInt(s, 2);
+	}
+	
 	@Override
 	public Integer solvePart1() {
 		return translated(this.inputs).stream()
-			.map(b -> Integer.valueOf(b, 2))
-			.max(Comparator.naturalOrder())
-			.orElseThrow(() -> new RuntimeException("Unsolvable"));
+			.mapToInt(this::asInt)
+			.max().orElseThrow();
 	}
 
 	@Override
@@ -47,19 +50,22 @@ public class AoC2020_05 extends AoCBase {
 				break;
 			}
 			if (list.get(i).charAt(last) == list.get(i + 1).charAt(last)) {
-				return Integer.valueOf(list.get(i), 2) + 1;
+				return asInt(list.get(i)) + 1;
 			}
 		}
 		throw new RuntimeException("Unsolvable");
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_05.createDebug(TEST1).solvePart1() == 820;
 		assert AoC2020_05.createDebug(TEST2).solvePart2() == 3;
 		
-		final List<String> input = Aocd.getData(2020, 5);
-		lap("Part 1", () -> AoC2020_05.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_05.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2020, 5);
+		final List<String> input = puzzle.getInputData();
+        puzzle.check(
+           () -> lap("Part 1", AoC2020_05.create(input)::solvePart1),
+           () -> lap("Part 2", AoC2020_05.create(input)::solvePart2)
+	    );
 	}
 	
 	private static final List<String> TEST1 = splitLines(
