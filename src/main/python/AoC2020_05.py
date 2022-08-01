@@ -3,11 +3,12 @@
 # Advent of Code 2020 Day 5
 #
 from aoc import my_aocd
+import aocd
 
 
-def _translate(input_: str) -> str:
+def _parse(inputs: tuple[str]) -> list[str]:
     table = str.maketrans("FBLR", "0101")
-    return input_.translate(table)
+    return [line.translate(table) for line in inputs]
 
 
 def _as_int(binary: str) -> int:
@@ -15,17 +16,19 @@ def _as_int(binary: str) -> int:
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return max([_as_int(_translate(input_)) for input_ in inputs])
+    translated = _parse(inputs)
+    return max(_as_int(_) for _ in translated)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    sorted_inputs = list(inputs)
-    sorted_inputs.sort()
-    for i in range(len(sorted_inputs)):
-        if i+1 == len(sorted_inputs):
-            raise ValueError("Unsolvable")
-        if sorted_inputs[i][-1] == sorted_inputs[i+1][-1]:
-            return _as_int(_translate(sorted_inputs[i])) + 1
+    translated = _parse(inputs)
+    translated.sort()
+    for i in range(len(translated)):
+        if i+1 == len(translated):
+            break
+        if translated[i][-1] == translated[i+1][-1]:
+            return _as_int(translated[i]) + 1
+    raise ValueError("Unsolvable")
 
 
 TEST1 = """\
@@ -46,7 +49,8 @@ FFFFFFFRLR
 
 
 def main() -> None:
-    my_aocd.print_header(2020, 5)
+    puzzle = aocd.models.Puzzle(2020, 5)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST1) == 820
     assert part_2(TEST2) == 3
@@ -56,6 +60,7 @@ def main() -> None:
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':
