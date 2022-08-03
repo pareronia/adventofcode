@@ -2,8 +2,15 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.Range;
 
@@ -17,8 +24,8 @@ import lombok.ToString;
 public class AoC2020_16 extends AoCBase {
     
     private final Set<Rule> rules;
-    private final List<Integer> myTicket;
-    private final List<List<Integer>> tickets;
+    private final Ticket myTicket;
+    private final List<Ticket> tickets;
 	
 	private AoC2020_16(final List<String> input, final boolean debug) {
 		super(debug);
@@ -45,10 +52,10 @@ public class AoC2020_16 extends AoCBase {
         return builder.build();
     }
     
-    private final List<Integer> parseTicket(final String s) {
-        return Arrays.stream(s.split(","))
+    private final Ticket parseTicket(final String s) {
+        return new Ticket(Arrays.stream(s.split(","))
                 .map(Integer::parseInt)
-                .collect(toList());
+                .collect(toList()));
     }
     
 	public static AoC2020_16 create(final List<String> input) {
@@ -58,19 +65,21 @@ public class AoC2020_16 extends AoCBase {
 	public static AoC2020_16 createDebug(final List<String> input) {
 		return new AoC2020_16(input, true);
 	}
-	
-	@Override
+
+    @Override
 	public Integer solvePart1() {
 	    return this.tickets.stream()
-	            .flatMap(List::stream)
-	            .filter(v -> this.rules.stream().noneMatch(r -> r.validate(v)))
+	            .flatMap(t -> t.invalidValues(rules).stream())
 	            .mapToInt(Integer::valueOf)
 	            .sum();
 	}
 
 	@Override
-	public Integer solvePart2() {
-	    return 0;
+	public Long solvePart2() {
+	    return Matches.create(this.tickets, this.rules).stream()
+                .filter(m -> m.rule.field.startsWith("departure "))
+                .mapToLong(m -> this.myTicket.values.get(m.idx))
+                .reduce(1, (a, b) -> a * b);
 	}
 
 	public static void main(final String[] args) throws Exception {
@@ -125,4 +134,92 @@ public class AoC2020_16 extends AoCBase {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));
 	    }
 	}
+	
+	@RequiredArgsConstructor
+    private static final class Ticket {
+        private final List<Integer> values;
+        
+        public boolean invalid(final Set<Rule> rules) {
+            return this.values.stream()
+                    .anyMatch(fieldDoesNotMatchAnyRule(rules));
+        }
+        
+        public List<Integer> invalidValues(final Set<Rule> rules) {
+            return this.values.stream()
+                .filter(fieldDoesNotMatchAnyRule(rules))
+                .collect(toList());
+        }
+
+        private Predicate<Integer> fieldDoesNotMatchAnyRule(final Set<Rule> rules) {
+            return v -> rules.stream().noneMatch(r -> r.validate(v));
+        }
+    }
+    
+    @RequiredArgsConstructor
+    private static final class Match {
+        private final Rule rule;
+        private final int idx;
+    }
+    
+    @RequiredArgsConstructor
+    private static final class Matches {
+        private final Map<Rule, Set<Integer>> matches;
+    
+        private static boolean matchColumn(final List<Ticket> tickets,
+                                           final int column, final Rule rule) {
+            return tickets.stream()
+                    .map(t -> t.values.get(column))
+                    .allMatch(rule::validate);
+        }
+
+        public static Matches create(
+                final List<Ticket> tickets,
+                final Set<Rule> rules
+        ) {
+            final List<Ticket> validTickets = tickets.stream()
+                    .filter(t -> !t.invalid(rules))
+                    .collect(toList());
+            final Set<Integer> idxs = IntStream
+                    .range(0, validTickets.get(0).values.size())
+                    .boxed()
+                    .collect(toSet());
+            final Map<Rule, Set<Integer>> matches = new HashMap<>();
+            for (final Rule rule : rules) {
+                matches.put(rule, new HashSet<>());
+            }
+            for (final Rule rule : rules) {
+                for (final Integer idx : idxs) {
+                    if (matchColumn(validTickets, idx, rule)) {
+                        matches.get(rule).add(idx);
+                    }
+                }
+            }
+            return new Matches(matches);
+        }
+        
+        private void remove(final Match match) {
+            this.matches.remove(match.rule);
+            this.matches.values().stream()
+                .forEach(v -> v.remove(match.idx));
+        }
+        
+        private Match next() {
+            final Rule rule = this.matches.entrySet().stream()
+                    .filter(e -> e.getValue().size() == 1)
+                    .map(Entry::getKey)
+                    .findFirst().orElseThrow();
+            final Integer idx = matches.get(rule).iterator().next();
+            return new Match(rule, idx);
+        }
+        
+        public Stream<Match> stream() {
+            final Stream.Builder<Match> builder = Stream.builder();
+            while (!this.matches.isEmpty()) {
+                final Match nextMatch = next();
+                builder.add(nextMatch);
+                remove(nextMatch);
+            }
+            return builder.build();
+        }
+    }
 }
