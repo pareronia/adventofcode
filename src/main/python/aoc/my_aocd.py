@@ -16,10 +16,21 @@ def to_blocks(inputs: tuple[str]) -> list[list[str]]:
     return blocks
 
 
-def get_input(year: int, day: int, expected: int = None) -> tuple[str]:
-    inputs = aocd.get_data(year=year, day=day).splitlines()
+def check_input_data(inputs, expected: int = None) -> None:
     if expected is not None and len(inputs) != expected:
         raise AssertionError(f"Expected {expected} lines")
+
+
+def get_input_data(puzzle: aocd.models.Puzzle,
+                   expected: int = None) -> tuple[str]:
+    inputs = puzzle.input_data.splitlines()
+    check_input_data(inputs, expected)
+    return tuple(inputs)
+
+
+def get_input(year: int, day: int, expected: int = None) -> tuple[str]:
+    inputs = aocd.get_data(year=year, day=day).splitlines()
+    check_input_data(inputs, expected)
     return tuple(inputs)
 
 
