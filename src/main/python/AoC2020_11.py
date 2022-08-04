@@ -2,9 +2,10 @@
 #
 # Advent of Code 2020 Day 11
 #
+import time
+import os
 from functools import lru_cache
 from aoc import my_aocd
-from aoc.common import log
 
 
 FLOOR = "."
@@ -96,15 +97,17 @@ def _run_cycle(grid: list[str], strategy, tolerance: int) -> list[str]:
     return new_grid, changed
 
 
-def _find_count_of_equilibrium(inputs: tuple[str], strategy,
-                               tolerance: int) -> int:
+def _find_count_of_equilibrium(inputs: tuple[str],
+                               strategy,
+                               tolerance: int,
+                               on_step=None) -> int:
     global the_grid
     the_grid = list(inputs)
     grid = the_grid
-    log(grid)
     while True:
         new_grid, changed = _run_cycle(grid, strategy, tolerance)
-        log(new_grid)
+        if on_step is not None:
+            on_step(new_grid)
         if not changed:
             return sum(row.count(OCCUPIED) for row in grid)
         grid = new_grid
@@ -116,6 +119,37 @@ def part_1(inputs: tuple[str]) -> int:
 
 def part_2(inputs: tuple[str]) -> int:
     return _find_count_of_equilibrium(inputs, _find_visible, tolerance=5)
+
+
+def on_step(grid: list[str]) -> None:
+    global step
+    step += 1
+    time.sleep(1)
+    os.system('cls' if os.name in ('nt', 'dos') else 'clear')  # nosec
+    print(f"Step {step}:")
+    [print(line) for line in grid]
+
+
+def visualize_part_1(inputs: tuple[str]) -> None:
+    global step
+    global the_grid
+    step = 0
+    os.system('cls' if os.name in ('nt', 'dos') else 'clear')  # nosec
+    print("Initial:")
+    [print(line) for line in the_grid]
+    _find_count_of_equilibrium(inputs, _find_adjacent,
+                               tolerance=4, on_step=on_step)
+
+
+def visualize_part_2(inputs: tuple[str]) -> None:
+    global step
+    global the_grid
+    step = 0
+    os.system('cls' if os.name in ('nt', 'dos') else 'clear')  # nosec
+    print("Initial:")
+    [print(line) for line in the_grid]
+    _find_count_of_equilibrium(inputs, _find_visible,
+                               tolerance=5, on_step=on_step)
 
 
 TEST = """\
@@ -137,6 +171,8 @@ def main() -> None:
 
     assert part_1(TEST) == 37
     assert part_2(TEST) == 26
+    assert visualize_part_1(TEST) is None
+    assert visualize_part_2(TEST) is None
 
     inputs = my_aocd.get_input(2020, 11, 94)
     result1 = part_1(inputs)
