@@ -1,9 +1,10 @@
-import static java.util.Collections.unmodifiableList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
@@ -11,12 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 
-import org.apache.commons.collections4.SetUtils;
+import org.apache.commons.lang3.Range;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aocd.Puzzle;
+
+import lombok.RequiredArgsConstructor;
 
 public class AoC2020_17 extends AoCBase {
     
@@ -40,120 +42,44 @@ public class AoC2020_17 extends AoCBase {
     }
 	
 	private List<Integer> create3D(final int row, final int col) {
-	    return unmodifiableList(List.of(0, row, col));
+	    return List.of(0, row, col);
 	}
 
 	private List<Integer> create4D(final int row, final int col) {
-	    return unmodifiableList(List.of(0, 0, row, col));
+	    return List.of(0, 0, row, col);
 	}
 	
-	private Set<List<Integer>> parse(
+	private Space parseSpace(
 	        final BiFunction<Integer, Integer, List<Integer>> factory
 	) {
-	    return new Grid(this.input).getAllEqualTo(ON)
+	    final Grid grid = new Grid(this.input);
+	    final Map<Space.Dimension, Range<Integer>> ranges = new HashMap<>();
+	    ranges.put(Space.Dimension.ROW, Range.between(0, grid.getMaxRowIndex()));
+	    ranges.put(Space.Dimension.COL, Range.between(0, grid.getMaxColIndex()));
+	    ranges.put(Space.Dimension.LAYER, Range.between(0, 0));
+	    ranges.put(Space.Dimension.WTF, Range.between(0, 0));
+	    final Set<List<Integer>> on = grid.getAllEqualTo(ON)
 	        .map(cell -> factory.apply(cell.getRow(), cell.getCol()))
 	        .collect(toSet());
+	    return new Space(ranges, on);
 	}
-	
-	private final Map<List<Integer>, Set<List<Integer>>> nbrs3D = new HashMap<>();
-
-	private Set<List<Integer>> neighbours3D(final List<Integer> cube) {
-	    return nbrs3D.computeIfAbsent(cube, this::getNeighbours3D);
-	}
-	
-	private Set<List<Integer>> getNeighbours3D(final List<Integer> cube) {
-	    final int layer = cube.get(0);
-	    final int row = cube.get(1);
-	    final int col = cube.get(2);
-	    final Set<List<Integer>> neighbours = new HashSet<>();
-	    for (int l = -1; l <= 1; l++) {
-	        for (int r = -1; r <= 1; r++) {
-	            for (int c = -1; c <= 1; c++) {
-	                if (!(l == 0 && r == 0 && c == 0)) {
-	                    neighbours.add(unmodifiableList(
-	                            List.of(layer + l, row + r, col + c)));
-	                }
-	            }
-	        }
-	    }
-	    return neighbours;
-	}
-
-	private final Map<List<Integer>, Set<List<Integer>>> nbrs4D = new HashMap<>();
-	
-	private Set<List<Integer>> neighbours4D(final List<Integer> cube) {
-	    return nbrs4D.computeIfAbsent(cube, this::getNeighbours4D);
-	}
-	
-	private Set<List<Integer>> getNeighbours4D(final List<Integer> cube) {
-	    final int wtf = cube.get(0);
-	    final int layer = cube.get(1);
-	    final int row = cube.get(2);
-	    final int col = cube.get(3);
-	    final Set<List<Integer>> neighbours = new HashSet<>();
-	    for (int w = -1; w <= 1; w++) {
-            for (int l = -1; l <= 1; l++) {
-                for (int r = -1; r <= 1; r++) {
-                    for (int c = -1; c <= 1; c++) {
-                        if (!(w == 0 && l == 0 && r == 0 && c == 0)) {
-                            neighbours.add(unmodifiableList(
-                                List.of(wtf + w, layer + l, row + r, col + c)));
-                        }
-                    }
-                }
-            }
-	    }
-	    return neighbours;
-	}
-	
-	private Set<List<Integer>> nextGeneration(
-	        final Set<List<Integer>> space,
-	        final Function<List<Integer>, Set<List<Integer>>> neighbourFactory
-	) {
-	    final Set<List<Integer>> toOn = new HashSet<>();
-	    final Set<List<Integer>> toOff = new HashSet<>();
-	    for (final List<Integer> cube : space) {
-	        final Set<List<Integer>> neigbours = neighbourFactory.apply(cube);
-            final long nOn = neigbours.stream().filter(space::contains).count();
-            if (nOn == 2 || nOn == 3) {
-                toOn.add(cube);
-            } else {
-                toOff.add(cube);
-            }
-            for (final List<Integer> n : SetUtils.difference(neigbours, space)) {
-                final long nnOn = neighbourFactory.apply(n)
-                    .stream()
-                    .filter(space::contains)
-                    .count();
-                if (nnOn == 3) {
-                    toOn.add(n);
-                }
-            }
-	    }
-	    final Set<List<Integer>> ans = SetUtils.union(space, toOn);
-	    return SetUtils.disjunction(ans, toOff);
-	}
-
-    private Integer solve(
-            Set<List<Integer>> space,
-            final Function<List<Integer>, Set<List<Integer>>> neighbourFactory
-    ) {
-        for (int i = 0; i < GENERATIONS; i++) {
-            space = nextGeneration(space, neighbourFactory);
-        }
-        return space.size();
-    }
 	
     @Override
 	public Integer solvePart1() {
-        final Set<List<Integer>> space = parse(this::create3D);
-        return solve(space, this::neighbours3D);
+        final Space space = parseSpace(this::create3D);
+        for (int i = 0; i < GENERATIONS; i++) {
+            space.nextGeneration(Space.DIM3);
+        }
+        return space.alive.size();
 	}
 
 	@Override
 	public Integer solvePart2() {
-        final Set<List<Integer>> space = parse(this::create4D);
-        return solve(space, this::neighbours4D);
+        final Space space = parseSpace(this::create4D);
+        for (int i = 0; i < GENERATIONS; i++) {
+            space.nextGeneration(Space.DIM4);
+        }
+        return space.alive.size();
 	}
 
 	public static void main(final String[] args) throws Exception {
@@ -173,6 +99,101 @@ public class AoC2020_17 extends AoCBase {
 			"..#\r\n" +
 			"###"
 	);
+	
+	@RequiredArgsConstructor
+	private static final class Space {
+	    public enum Dimension { ROW, COL, LAYER, WTF }
+
+	    public static final List<Dimension> DIM3 = List.of(
+	            Space.Dimension.LAYER,
+	            Space.Dimension.ROW,
+	            Space.Dimension.COL);
+	    
+	    public static final List<Dimension> DIM4 = List.of(
+	            Space.Dimension.WTF,
+	            Space.Dimension.LAYER,
+	            Space.Dimension.ROW,
+	            Space.Dimension.COL);
+	    
+	    private final Map<Dimension, Range<Integer>> ranges;
+	    private final Set<List<Integer>> alive;
+	    private final Map<List<Integer>, Set<List<Integer>>> neighboursCache = new HashMap<>();
+	    
+	    public void nextGeneration(final List<Dimension> dimensions) {
+	        final Set<List<Integer>> newAlive = new HashSet<>();
+	        expand();
+	        for (final List<Integer> cell : cells(dimensions)) {
+	            final long cnt = neighbours(cell).stream()
+	                    .filter(this.alive::contains)
+	                    .count();
+	            if (this.alive.contains(cell) && (cnt == 2 || cnt == 3)) {
+	                newAlive.add(cell);
+	            }
+	            if (!this.alive.contains(cell) && cnt == 3) {
+	                newAlive.add(cell);
+	            }
+	        }
+	        this.alive.clear();
+	        this.alive.addAll(newAlive);
+	    }
+	    
+	    private void expand() {
+	        for (final Dimension dimension : ranges.keySet()) {
+	            final Range<Integer> range = ranges.get(dimension);
+	            final Range<Integer> newRange = Range.between(
+	                range.getMinimum() - 1,
+	                range.getMaximum() + 1);
+	            ranges.put(dimension, newRange);
+	        }
+	    }
+	    
+	    private Set<List<Integer>> cells(final List<Dimension> dimensions) {
+	        final List<Dimension> order = new ArrayList<>(dimensions);
+            Collections.reverse(order);
+	        final List<Range<Integer>> rngs = order.stream()
+	                .map(this.ranges::get)
+	                .collect(toList());
+	        return product(rngs);
+	    }
+	    
+	    private Set<List<Integer>> neighbours(final List<Integer> cell) {
+	        return this.neighboursCache.computeIfAbsent(cell, this::getNeighbours);
+	    }
+	    
+	    private Set<List<Integer>> getNeighbours(final List<Integer> cell) {
+	        final List<Range<Integer>> rngs = new ArrayList<>();
+	        final List<Integer> zeroes = new ArrayList<>();
+	        for (int i = 0; i < cell.size(); i++) {
+                rngs.add(Range.between(-1, 1));
+                zeroes.add(0);
+            }
+	        final Set<List<Integer>> ans = product(rngs);
+	        ans.remove(zeroes);
+	        for (final List<Integer> a : ans) {
+	            for (int i = 0; i < a.size(); i++) {
+                    a.set(i, cell.get(i) + a.get(i));
+                }
+            }
+	        return ans;
+	    }
+
+        private Set<List<Integer>> product(final List<Range<Integer>> rngs) {
+            Set<List<Integer>> ans = new HashSet<>(Set.of(List.of()));
+	        for (final Range<Integer> range : rngs) {
+	            final Set<List<Integer>> set = new HashSet<>();
+	            for (int i = range.getMinimum(); i <= range.getMaximum(); i++) {
+                    for (final List<Integer> tmp : ans) {
+                        final List<Integer> lst = new ArrayList<>();
+                        lst.add(i);
+                        lst.addAll(tmp);
+                        set.add(lst);
+                    }
+                }
+	            ans = set;
+	        }
+	        return ans;
+        }
+    }
 	
 	@SuppressWarnings("unused")
     private static final class Printer {
