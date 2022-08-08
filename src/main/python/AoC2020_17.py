@@ -4,20 +4,19 @@
 #
 
 from aoc import my_aocd
-from aoc.game_of_life import GameOfLife
+from aoc.game_of_life import GameOfLife, InfiniteGrid, ClassicRules
 import aocd
-
 
 ON = "#"
 GENERATIONS = 6
 
 
 def _parse(inputs: tuple[str], dim: int) -> GameOfLife:
-    return GameOfLife({(r, c, 0, 0)
-                       for r, row in enumerate(inputs)
-                       for c, state in enumerate(row)
-                       if state == ON},
-                      dim)
+    alive = {(r, c, 0, 0)
+             for r, row in enumerate(inputs)
+             for c, state in enumerate(row)
+             if state == ON}
+    return GameOfLife(alive, InfiniteGrid(dim), ClassicRules())
 
 
 def _solve(inputs: tuple[str], dim: int) -> int:
