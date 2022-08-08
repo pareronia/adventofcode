@@ -11,6 +11,7 @@ import java.util.function.BiFunction;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.game_of_life.GameOfLife;
+import com.github.pareronia.aoc.game_of_life.InfiniteGrid;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_17 extends AoCBase {
@@ -49,15 +50,15 @@ public class AoC2020_17 extends AoCBase {
 	    final Set<List<Integer>> on = grid.getAllEqualTo(ON)
 	        .map(cell -> cellFactory.apply(cell.getRow(), cell.getCol()))
 	        .collect(toSet());
-	    return new GameOfLife(on);
+	    return new GameOfLife(new InfiniteGrid(), GameOfLife.classicRules, on);
 	}
 	
 	private int solve(
 	        final BiFunction<Integer, Integer, List<Integer>> cellFactory
 	) {
-        final GameOfLife gol = parse(cellFactory);
+        GameOfLife gol = parse(cellFactory);
         for (int i = 0; i < GENERATIONS; i++) {
-            gol.nextGeneration(cnt -> (cnt == 2 || cnt == 3), cnt -> cnt == 3);
+            gol = gol.nextGeneration();
         }
         return gol.getAlive().size();
 	}
