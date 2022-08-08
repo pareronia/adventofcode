@@ -31,7 +31,7 @@
 | java | [✓](src/main/java/AoC2020_01.java) | [✓](src/main/java/AoC2020_02.java) | [✓](src/main/java/AoC2020_03.java) | [✓](src/main/java/AoC2020_04.java) | [✓](src/main/java/AoC2020_05.java) | [✓](src/main/java/AoC2020_06.java) | [✓](src/main/java/AoC2020_07.java) | [✓](src/main/java/AoC2020_08.java) | [✓](src/main/java/AoC2020_09.java) | [✓](src/main/java/AoC2020_10.java) | [✓](src/main/java/AoC2020_11.java) | [✓](src/main/java/AoC2020_12.java) | [✓](src/main/java/AoC2020_13.java) | [✓](src/main/java/AoC2020_14.java) | [✓](src/main/java/AoC2020_15.java) | [✓](src/main/java/AoC2020_16.java) | [✓](src/main/java/AoC2020_17.java) | [✓](src/main/java/AoC2020_18.java) |  | [✓](src/main/java/AoC2020_20.java) |  | [✓](src/main/java/AoC2020_22.java) | [✓](src/main/java/AoC2020_23.java) |  |  |
 | bash |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| julia |  |  |  |  | [✓](src/main/julia/AoC2020_05.jl) |  |  |  |  |  |  |  |  |  |  | [✓](src/main/julia/AoC2020_16.jl) |  |  |  |  |  |  |  |  |  |
+| julia |  |  |  |  | [✓](src/main/julia/AoC2020_05.jl) |  |  |  |  |  |  |  |  |  |  | [✓](src/main/julia/AoC2020_16.jl) | [✓](src/main/julia/AoC2020_17.jl) |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2020@ -->
 
 ## 2019
