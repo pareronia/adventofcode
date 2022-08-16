@@ -1,0 +1,8 @@
+[tool.vulture]
+exclude = [".venv"]
+min_confidence = 80
+
+[tool.bandit]
+exclude_dirs = [".venv"]
+skips = ["B101"]
+
