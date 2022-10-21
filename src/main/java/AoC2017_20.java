@@ -1,13 +1,10 @@
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
@@ -69,20 +66,17 @@ public final class AoC2017_20 extends AoCBase {
     
     @Override
     public Integer solvePart2() {
-        Map<Position3D, List<Particle>> map
-            = this.buffer.stream().collect(Particle.groupingByPosition());
+        List<Particle> b = new ArrayList<>(this.buffer);
         for (int i = 0; i < TICKS; i++) {
-            map = map.values().stream()
-                .flatMap(List::stream)
+            b = b.stream()
                 .map(Particle::next)
-                .collect(Particle.groupingByPosition());
-            final Set<Position3D> collisions = map.entrySet().stream()
-                .filter(e -> e.getValue().size() > 1)
-                .map(Entry::getKey)
-                .collect(toSet());
-            collisions.forEach(map::remove);
+                .collect(Particle.groupingByPosition())
+                .values().stream()
+                .filter(v -> v.size() == 1)
+                .flatMap(List::stream)
+                .collect(toList());
         }
-        return map.size();
+        return b.size();
     }
 
     public static void main(final String[] args) throws Exception {
