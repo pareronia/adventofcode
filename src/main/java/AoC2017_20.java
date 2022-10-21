@@ -25,7 +25,7 @@ import lombok.With;
 
 public final class AoC2017_20 extends AoCBase {
 
-    private static final int TICKS = 300;
+    private static final int TICKS = 400;
     private static final Pattern PATTERN = Pattern.compile("[-0-9]+");
     
     private final List<Particle> buffer;
