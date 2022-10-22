@@ -9,6 +9,7 @@ import static java.util.stream.StreamSupport.stream;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
+import static org.junit.Assert.fail;
 
 import java.util.Iterator;
 import java.util.List;
@@ -298,9 +299,11 @@ public class GridTestCase {
 		
 		final Grid result1 = grid.subGrid(Cell.at(1, 1), Cell.at(4, 4));
 		final Grid result2 = grid.subGrid(Cell.at(0, 0), Cell.at(0, 0));
+		final Grid result3 = grid.subGrid(Cell.at(1, 1), Cell.at(5, 5));
 
 		assertThat(asStringList(result1), is(asList("FGH", "JKL", "NOP")));
 		assertThat(asStringList(result2), is(emptyList()));
+		assertThat(asStringList(result3), is(asList("FGH", "JKL", "NOP", "RST")));
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
@@ -437,5 +440,55 @@ public class GridTestCase {
 	    
 	    assertThat(result1, contains(Cell.at(3, 0)));
 	    assertThat(result2.isEmpty(), is(true));
+	}
+	
+	@Test
+	public void divide() {
+		final Grid grid = Grid.from(asList(	"ABCD",
+											"EFGH",
+											"IJKL",
+											"MNOP"));
+	    
+		final Grid[][] result = grid.divide(2);
+		
+		assertThat(result.length, is(2));
+		assertThat(result[0].length, is(2));
+		assertThat(result[1].length, is(2));
+		assertThat(asStringList(result[0][0]), is(asList("AB",
+		                                                 "EF")));
+		assertThat(asStringList(result[0][1]), is(asList("CD",
+		                                                 "GH")));
+		assertThat(asStringList(result[1][0]), is(asList("IJ",
+		                                                 "MN")));
+		assertThat(asStringList(result[1][1]), is(asList("KL",
+		                                                 "OP")));
+	}
+	
+	@Test
+	public void merge() {
+	    final Grid grid1 = Grid.from(asList("AB",
+	                                        "EF"));
+	    final Grid grid2 = Grid.from(asList("CD",
+	                                        "GH"));
+	    final Grid grid3 = Grid.from(asList("IJ",
+	                                        "MN"));
+	    final Grid grid4 = Grid.from(asList("KL",
+	                                        "OP"));
+	    final Grid grid5 = Grid.from(asList("XXX",
+	                                        "XXX"));
+	    
+	    final Grid result =
+	            Grid.merge(new Grid[][] { { grid1, grid2 }, { grid3, grid4 } });
+	    
+	    assertThat(asStringList(result), is(asList("ABCD",
+	                                               "EFGH",
+	                                               "IJKL",
+	                                               "MNOP")));
+
+	    try {
+            Grid.merge(new Grid[][] { { grid1, grid2 }, { grid3, grid5 } });
+            fail("Expected IllegalArgumentException");
+        } catch (final IllegalArgumentException expected) {
+        }
 	}
 }

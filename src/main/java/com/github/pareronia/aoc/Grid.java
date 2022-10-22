@@ -1,5 +1,6 @@
 package com.github.pareronia.aoc;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.github.pareronia.aoc.navigation.Headings;
 
@@ -301,14 +303,61 @@ public class Grid {
 			throw new IllegalArgumentException("Invalid coordinates");
 		}
 		
-		final char[][] cells = new char[to.row - from.row][to.col - from.col];
-		for (int row = from.row, i = 0; row < to.row && i < cells.length; row++, i++) {
-			for (int col = from.col, j = 0; col < to.col && j < cells[0].length; col++, j++) {
-				cells[i][j] = this.cells[row][col];
+		final int endRow = Math.min(to.row, this.getHeight());
+		final int endCol = Math.min(to.col, this.getWidth());
+		final char[][] cells = new char[endRow - from.row][endCol - from.col];
+		for (int row = from.row, i = 0; row < endRow && i < cells.length; row++, i++) {
+			for (int col = from.col, j = 0; col < endCol && j < cells[0].length; col++, j++) {
+				final char temp = this.cells[row][col];
+                cells[i][j] = temp;
 			}
 		}
 		return new Grid(cells);
 	}
+	
+	public Grid[][] divide(final int partSize) {
+	    validateIsSquare();
+        final int parts = this.getHeight() / partSize;
+        final Grid[][] subGrids = new Grid[parts][parts];
+        for (int r = 0; r < parts; r++) {
+            for (int c = 0; c < parts; c++) {
+                subGrids[r][c] = this.subGrid(
+                        Cell.at(r * partSize, c * partSize),
+                        Cell.at((r + 1) * partSize, (c + 1) * partSize));
+            }
+        }
+        return subGrids;
+    }
+	
+	public static Grid merge(final Grid[][] grids) {
+	    if (Arrays.stream(grids)
+	            .flatMap(Arrays::stream)
+	            .mapToInt(Grid::getHeight)
+	            .distinct().count() > 1
+	        ||
+	        Arrays.stream(grids)
+	            .flatMap(Arrays::stream)
+	            .mapToInt(Grid::getWidth)
+	            .distinct().count() > 1
+	    ) {
+	        throw new IllegalArgumentException("Grids should be same size");
+	    }
+        final List<String> strings = new ArrayList<>();
+        for (int r = 0; r < grids.length; r++) {
+            final List<List<String>> rowsList = new ArrayList<>();
+            for (int c = 0; c < grids[r].length; c++) {
+                rowsList.add(grids[r][c].getRowsAsStringList());
+            }
+            final MutableInt n = new MutableInt();
+            for (int j = 0; j < rowsList.get(0).size(); j++) {
+                strings.add(rowsList.stream()
+                    .map(l -> l.get(n.getValue()))
+                    .collect(joining()));
+                n.increment();
+            }
+        }
+        return Grid.from(strings);
+    }
 	
 	public Grid getWithEdgesRemoved() {
 		final char[][] cells = new char[getHeight() - 2][];
@@ -380,9 +429,7 @@ public class Grid {
 	 * <a href="https://solitaryroad.com/c308.html">The Dihedral Group of the Square</a>
 	 */
 	public Iterator<Grid> getPermutations() {
-		if (!this.isSquare()) {
-			throw new UnsupportedOperationException("Grid should be square.");
-		}
+		validateIsSquare();
 		return new Iterator<>() {
 			int i = 0;
 			Grid grid = Grid.this;
@@ -449,6 +496,12 @@ public class Grid {
 			throw new IllegalArgumentException("Invalid column index.");
 		}
 	}
+
+    private void validateIsSquare() {
+        if (!this.isSquare()) {
+            throw new UnsupportedOperationException("Grid should be square.");
+        }
+    }
 	
 	@Value
 	public static final class Cell {

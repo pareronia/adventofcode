@@ -61,4 +61,10 @@ public class Utils {
             }
         };
     }
+    
+    public static <T> Stream<T> stream(final Iterator<T> iterator) {
+        return Stream.generate(() -> null)
+                .takeWhile(x -> iterator.hasNext())
+                .map(n -> iterator.next());
+    }
 }
