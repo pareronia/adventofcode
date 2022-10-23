@@ -66,8 +66,8 @@
 
 ## 2017
 
-![](https://img.shields.io/badge/2017%20stars%20⭐-36-yellow)
-![](https://img.shields.io/badge/2017%20days%20completed-18-red)
+![](https://img.shields.io/badge/2017%20stars%20⭐-42-yellow)
+![](https://img.shields.io/badge/2017%20days%20completed-21-red)
 
 <!-- @BEGIN:ImplementationsTable:2017@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
