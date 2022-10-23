@@ -1,5 +1,5 @@
 from collections.abc import Generator
-from typing import NamedTuple
+from typing import NamedTuple, Callable
 
 
 class Cell(NamedTuple):
@@ -34,6 +34,28 @@ class IntGrid(NamedTuple):
         self.values[c.row][c.col] += 1
 
     def get_cells(self) -> Generator[Cell]:
-        return (Cell(r, c)
-                for r in range(self.get_height())
-                for c in range(self.get_width()))
+        return (
+            Cell(r, c)
+            for r in range(self.get_height())
+            for c in range(self.get_width())
+        )
+
+    def get_capital_neighbours(self, cell: Cell) -> Generator[Cell]:
+        return (
+            Cell(cell.row + dr, cell.col + dc)
+            for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
+            if cell.row + dr >= 0
+            and cell.row + dr < self.get_height()
+            and cell.col + dc >= 0
+            and cell.col + dc < self.get_width()
+        )
+
+    def find_all_matching(
+        self, predicate: Callable[[int], bool]
+    ) -> Generator[Cell]:
+        return (cell for cell in self.get_cells() if predicate(cell))
+
+    def get_all_equal_to(self, value: int) -> Generator[Cell]:
+        return self.find_all_matching(
+            lambda cell: self.get_value(cell) == value
+        )

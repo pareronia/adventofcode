@@ -13,6 +13,12 @@ class KnotHash:
         skip: int
 
     @classmethod
+    def bin_string(cls, input_: str) -> str:
+        return KnotHash._to_bin_string(
+            KnotHash._calculate(KnotHash._padded_lengths(input_))
+        )
+
+    @classmethod
     def hex_string(cls, input_: str) -> str:
         return KnotHash._to_hex_string(
             KnotHash._calculate(KnotHash._padded_lengths(input_))
@@ -62,4 +68,8 @@ class KnotHash:
 
     @classmethod
     def _to_hex_string(cls, dense: list[int]) -> str:
-        return "".join([("%0.2X" % i).lower() for i in dense])
+        return "".join(("%0.2X" % i).lower() for i in dense)
+
+    @classmethod
+    def _to_bin_string(cls, dense: list[int]) -> str:
+        return "".join(format(i, "08b") for i in dense)
