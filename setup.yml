@@ -62,6 +62,10 @@ runner:
                   part: 2
         py:
             day_format: *python-file_pattern
+            skip:
+                - year: 2017
+                  day: 22
+                  part: 2
         java:
             command: java
             classpath:
