@@ -1,15 +1,11 @@
 import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -19,28 +15,36 @@ import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.With;
 
 public final class AoC2017_22 extends AoCBase {
     
-    private static final String INFECTED = "#";
-    
-    private final Set<Position> input;
-    private final Carrier carrier;
+    private static final Heading UP = Headings.NORTH.get();
+    private static final Heading DOWN = Headings.SOUTH.get();
+    private static final Heading LEFT = Headings.WEST.get();
+    private static final Heading RIGHT = Headings.EAST.get();
+    private static final Map<Heading, Map<Turn, Heading>> TURNS = Map.of(
+        UP, Map.of(Turn.LEFT, LEFT, Turn.RIGHT, RIGHT, Turn.AROUND, DOWN),
+        DOWN, Map.of(Turn.LEFT, RIGHT, Turn.RIGHT, LEFT, Turn.AROUND, UP),
+        LEFT, Map.of(Turn.LEFT, DOWN, Turn.RIGHT, UP, Turn.AROUND, RIGHT),
+        RIGHT, Map.of(Turn.LEFT, UP, Turn.RIGHT, DOWN, Turn.AROUND, LEFT)
+    );
+
+    private final Map<Position, State> input;
+    private final Position start;
     
     private AoC2017_22(final List<String> inputs, final boolean debug) {
         super(debug);
         final List<String> lines = new ArrayList<>(inputs);
         Collections.reverse(lines);
-        final int size = inputs.size();
+        final int size = lines.size();
         this.input = Stream.iterate(0, i -> i < size, i -> i + 1)
-                .flatMap(r -> IntStream.range(0, size).mapToObj(c -> Position.of(r, c)))
-                .filter(p -> INFECTED.equals(lines.get(p.getY()).substring(p.getX(), p.getX() + 1)))
-                .collect(toSet());
-        this.carrier = new Carrier(Position.of(size / 2, size / 2), Headings.NORTH.get(), 0);
+                .flatMap(r -> IntStream.range(0, size)
+                                    .mapToObj(c -> Position.of(r, c)))
+                .collect(toMap(
+                    p -> p,
+                    p -> State.fromValue(lines.get(p.getY()).charAt(p.getX()))));
+        this.start = Position.of(size / 2, size / 2);
     }
 
     public static AoC2017_22 create(final List<String> input) {
@@ -52,83 +56,58 @@ public final class AoC2017_22 extends AoCBase {
     }
     
     private int solve(
-            final int bursts,
-            final Function<Position, State> getCurrentState,
-            final Function<State, State> calcNewState,
-            final BiFunction<Heading, AoC2017_22.State, Heading> calcNewHeading,
-            final BiConsumer<Position, State> setNewState
+        final Map<Position, State> nodes,
+        final Map<State, State> states,
+        final Map<State, Turn> turns,
+        final Position start,
+        final int bursts
     ) {
-        Carrier carrier = this.carrier;
+        Position position = start;
+        Heading heading = UP;
+        int count = 0;
         for (int i = 0; i < bursts; i++) {
-            final State currentState = getCurrentState.apply(carrier.position);
-            final Heading heading = calcNewHeading.apply(carrier.heading, currentState);
-            final State newState = calcNewState.apply(currentState);
-            setNewState.accept(carrier.position, newState);
-            carrier = carrier
-                    .withCount(newState == State.INFECTED ? carrier.count + 1 : carrier.count)
-                    .withHeading(heading)
-                    .withPosition(carrier.position.translate(heading));
+            final State currentState = nodes.getOrDefault(position, State.CLEAN);
+            final State newState = states.get(currentState);
+            nodes.put(position, newState);
+            if (newState == State.INFECTED) {
+                count++;
+            }
+            final Turn turn = turns.get(currentState);
+            if (turn != null) {
+                heading = TURNS.get(heading).get(turn);
+            }
+            position = Position.of(
+                position.getX() + heading.getX(),
+                position.getY() + heading.getY());
         }
-        return carrier.count;
+        return count;
     }
     
     @Override
     public Integer solvePart1() {
-        final Set<Position> nodes = new HashSet<>(this.input);
-        final Function<Position, State> getCurrentState = p -> (nodes.contains(p) ? State.INFECTED : State.CLEAN);
-        final BiFunction<Heading, State, Heading> calcNewHeading = (h, s) -> {
-            if (s == State.CLEAN) {
-                return h.rotate(-90);
-            } else {
-                return h.rotate(90);
-            }
-        };
-        final Function<State, State> calcNewState = s -> s == State.CLEAN ? State.INFECTED : State.CLEAN;
-        final BiConsumer<Position, State> setNewState = (p, s) -> {
-            if (s == State.CLEAN) {
-                nodes.remove(p);
-            } else {
-                nodes.add(p);
-            }
-        };
-        return solve(10_000, getCurrentState, calcNewState, calcNewHeading, setNewState);
+        final Map<Position, State> nodes = new HashMap<>(this.input);
+        final Map<State, State> states = Map.of(
+                State.CLEAN, State.INFECTED,
+                State.INFECTED, State.CLEAN);
+        final Map<State, Turn> turns = Map.of(
+                State.CLEAN, Turn.LEFT,
+                State.INFECTED, Turn.RIGHT);
+        return solve(nodes, states, turns, this.start, 10_000);
     }
     
     @Override
     public Integer solvePart2() {
-        final Map<Position, State> nodes = this.input.stream()
-                .collect(toMap(p -> p, p -> State.INFECTED));
-        final Function<Position, State> getCurrentState = p -> nodes.getOrDefault(p, State.CLEAN);
-        final BiFunction<Heading, State, Heading> calcNewHeading = (h, s) -> {
-            if (s == State.CLEAN) {
-                return h.rotate(-90);
-            } else if (s == State.INFECTED) {
-                return h.rotate(90);
-            } else if (s == State.FLAGGED) {
-                return h.rotate(180);
-            } else {
-                return h;
-            }
-        };
-        final Function<State, State> calcNewState = s -> {
-            if (s == State.CLEAN) {
-                return State.WEAKENED;
-            } else if (s == State.INFECTED) {
-                return State.FLAGGED;
-            } else if (s == State.FLAGGED) {
-                return State.CLEAN;
-            } else {
-                return State.INFECTED;
-            }
-        };
-        final BiConsumer<Position, State> setNewState = (p, s) -> {
-            if (s == State.CLEAN) {
-                nodes.remove(p);
-            } else {
-                nodes.put(p, s);
-            }
-        };
-        return solve(10_000_000, getCurrentState, calcNewState, calcNewHeading, setNewState);
+        final Map<Position, State> nodes = new HashMap<>(this.input);
+        final Map<State, State> states = Map.of(
+                State.CLEAN, State.WEAKENED,
+                State.WEAKENED, State.INFECTED,
+                State.INFECTED, State.FLAGGED,
+                State.FLAGGED, State.CLEAN);
+        final Map<State, Turn> turns = Map.of(
+                State.CLEAN, Turn.LEFT,
+                State.INFECTED, Turn.RIGHT,
+                State.FLAGGED, Turn.AROUND);
+        return solve(nodes, states, turns, this.start, 10_000_000);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -150,14 +129,17 @@ public final class AoC2017_22 extends AoCBase {
     );
     
     @RequiredArgsConstructor
-    @Getter
-    @With
-    @ToString
-    private static final class Carrier {
-        private final Position position;
-        private final Heading heading;
-        private final int count;
+    private enum State {
+        CLEAN('.'), WEAKENED('W'), INFECTED('#'), FLAGGED('F');
+
+        private final char value;
+
+        public static State fromValue(final char value) {
+            return EnumSet.allOf(State.class).stream()
+                    .filter(s -> s.value == value)
+                    .findFirst().orElseThrow();
+        }
     }
     
-    private enum State { CLEAN, WEAKENED, INFECTED, FLAGGED }
+    private enum Turn { LEFT, RIGHT, AROUND }
 }
