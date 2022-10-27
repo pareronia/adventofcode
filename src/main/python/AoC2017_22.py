@@ -2,133 +2,114 @@
 #
 # Advent of Code 2017 Day 22
 #
-from __future__ import annotations
-from typing import NamedTuple, Callable
-from enum import Enum, unique
+
 from aoc import my_aocd
-from aoc.common import log
-from aoc.geometry import Vector
-from aoc.navigation import Headings, Heading
+from aoc.navigation import Headings
 import aocd
 
 
+CLEAN = "."
 INFECTED = "#"
+WEAKENED = "W"
+FLAGGED = "F"
+LEFT = "L"
+RIGHT = "R"
+AROUND = "A"
+HEADING_UP = (Headings.N.value.x, Headings.N.value.y)
+HEADING_DOWN = (Headings.S.value.x, Headings.S.value.y)
+HEADING_LEFT = (Headings.W.value.x, Headings.W.value.y)
+HEADING_RIGHT = (Headings.E.value.x, Headings.E.value.y)
+TURNS = {
+    HEADING_UP: {
+        LEFT: HEADING_LEFT,
+        RIGHT: HEADING_RIGHT,
+        AROUND: HEADING_DOWN,
+    },
+    HEADING_DOWN: {
+        LEFT: HEADING_RIGHT,
+        RIGHT: HEADING_LEFT,
+        AROUND: HEADING_UP,
+    },
+    HEADING_LEFT: {
+        LEFT: HEADING_DOWN,
+        RIGHT: HEADING_UP,
+        AROUND: HEADING_RIGHT,
+    },
+    HEADING_RIGHT: {
+        LEFT: HEADING_UP,
+        RIGHT: HEADING_DOWN,
+        AROUND: HEADING_LEFT,
+    },
+}
 
 
-@unique
-class State(Enum):
-    CLEAN = "."
-    INFECTED = "#"
-    WEAKENED = "W"
-    FLAGGED = "F"
-
-
-class Position(NamedTuple):
-    x: int
-    y: int
-
-    def translate(self, vector: Vector, amplitude: int = 1) -> Position:
-        return Position.of(
-            self.x + vector.x * amplitude, self.y + vector.y * amplitude
-        )
-
-    @classmethod
-    def of(cls, x: int, y: int) -> Position:
-        return Position(x, y)
-
-
-class Carrier(NamedTuple):
-    position: Position
-    heading: Heading
-    count: int
-
-
-def _parse(inputs: tuple[str]) -> tuple[set[Position, Carrier]]:
+def _parse(
+    inputs: tuple[str],
+) -> tuple[tuple[int, int], dict[tuple[int, int], str]]:
     size = len(inputs)
     nodes = {
-        Position.of(x, y)
+        (x, y): inputs[size - 1 - y][x]
         for x, y in ((x, y) for x in range(size) for y in range(size))
-        if inputs[size - 1 - y][x] == INFECTED
     }
-    carrier = Carrier(Position.of(size // 2, size // 2), Headings.N.value, 0)
-    return carrier, nodes
+    start = (size // 2, size // 2)
+    return nodes, start
 
 
 def _solve(
-    carrier: Carrier,
+    position: tuple[int, int],
     bursts: int,
-    get_current_state: Callable[[Position], State],
-    calc_new_state: Callable[[State], State],
-    calc_new_heading: Callable[[Heading, State], State],
-    set_new_state: Callable[[Position, State], None],
+    nodes: dict[tuple[int, int], str],
+    states: dict[str, str],
+    turns: dict[str, str],
 ) -> int:
+    heading = HEADING_UP
+    count = 0
     for _ in range(bursts):
-        current_state = get_current_state(carrier.position)
-        heading = calc_new_heading(carrier.heading, current_state)
-        new_state = calc_new_state(current_state)
-        set_new_state(carrier.position, new_state)
-        carrier = Carrier(
-            carrier.position.translate(heading),
-            heading,
-            carrier.count + 1
-            if new_state == State.INFECTED
-            else carrier.count,
-        )
-    return carrier.count
+        current_state = nodes.get(position, CLEAN)
+        new_state = states[current_state]
+        nodes[position] = new_state
+        if new_state == INFECTED:
+            count += 1
+        turn = turns[current_state]
+        if turn is not None:
+            heading = TURNS[heading][turn]
+        position = (position[0] + heading[0], position[1] + heading[1])
+    return count
 
 
 def part_1(inputs: tuple[str]) -> int:
-    def set_new_state(nodes: set[Position], p: Position, s: State) -> None:
-        if s == State.INFECTED:
-            nodes.add(p)
-        elif p in nodes:
-            nodes.remove(p)
-
-    carrier, nodes = _parse(inputs)
+    nodes, start = _parse(inputs)
+    states = {CLEAN: INFECTED, INFECTED: CLEAN}
+    turns = {CLEAN: LEFT, INFECTED: RIGHT}
     return _solve(
-        carrier,
+        start,
         10_000,
-        lambda p: State.INFECTED if p in nodes else State.CLEAN,
-        lambda s: State.CLEAN if s == State.INFECTED else State.INFECTED,
-        lambda h, s: Heading.rotate(h, -90 if s == State.CLEAN else 90),
-        lambda p, s: set_new_state(nodes, p, s),
+        nodes,
+        states,
+        turns,
     )
 
 
 def part_2(inputs: tuple[str]) -> int:
-    def set_new_state(
-        nodes: dict[Position, State], p: Position, s: State
-    ) -> None:
-        if s == State.CLEAN:
-            del nodes[p]
-        else:
-            nodes[p] = s
-
-    carrier, _ = _parse(inputs)
-    nodes = {p: State.INFECTED for p in _}
-    log(nodes)
+    nodes, start = _parse(inputs)
+    states = {
+        CLEAN: WEAKENED,
+        WEAKENED: INFECTED,
+        INFECTED: FLAGGED,
+        FLAGGED: CLEAN,
+    }
+    turns = {
+        CLEAN: LEFT,
+        WEAKENED: None,
+        INFECTED: RIGHT,
+        FLAGGED: AROUND,
+    }
     return _solve(
-        carrier,
+        start,
         10_000_000,
-        lambda p: nodes.get(p, State.CLEAN),
-        lambda s: State.CLEAN
-        if s == State.FLAGGED
-        else State.FLAGGED
-        if s == State.INFECTED
-        else State.WEAKENED
-        if s == State.CLEAN
-        else State.INFECTED,
-        lambda h, s: Heading.rotate(
-            h,
-            -90
-            if s == State.CLEAN
-            else 90
-            if s == State.INFECTED
-            else 180
-            if s == State.FLAGGED
-            else 0,
-        ),
-        lambda p, s: set_new_state(nodes, p, s),
+        nodes,
+        states,
+        turns,
     )
 
 
