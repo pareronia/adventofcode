@@ -16,6 +16,7 @@ public class VirtualMachine {
         this.instructionSet.put(Opcode.NOP, this::nop);
         this.instructionSet.put(Opcode.SET, this::set);
         this.instructionSet.put(Opcode.ADD, this::add);
+        this.instructionSet.put(Opcode.SUB, this::sub);
         this.instructionSet.put(Opcode.MUL, this::mul);
         this.instructionSet.put(Opcode.DIV, this::div);
         this.instructionSet.put(Opcode.MOD, this::mod);
@@ -49,6 +50,19 @@ public class VirtualMachine {
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
                     .map(r -> r + v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
+        program.moveIntructionPointer(1);
+    }
+    
+    private void sub(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.getOperands().get(0);
+        final String op2 = (String) instruction.getOperands().get(1);
+        final Optional<Long> value = getValue(program, op2);
+        value.ifPresent(v -> {
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r - v)
                     .orElse(v); // FIXME
             program.getRegisters().put(register, newValue);
         });

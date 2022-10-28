@@ -28,6 +28,10 @@ public class Instruction {
         return new Instruction(Opcode.ADD, asList(register, value));
     }
 
+    public static Instruction SUB(final String register, final String value) {
+        return new Instruction(Opcode.SUB, asList(register, value));
+    }
+
     public static Instruction MUL(final String register, final Long value) {
         return new Instruction(Opcode.MUL, asList(register, value.toString()));
     }
@@ -74,5 +78,9 @@ public class Instruction {
 
     public static Instruction INP(final String operand) {
         return new Instruction(Opcode.INP, List.of(operand));
+    }
+    
+    public boolean isMUL() {
+        return this.opcode == Opcode.MUL;
     }
 }

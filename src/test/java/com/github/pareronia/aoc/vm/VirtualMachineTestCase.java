@@ -34,7 +34,7 @@ public class VirtualMachineTestCase {
             Instruction.OUT("7"),
             Instruction.MUL("A", "3"),
             Instruction.SET("C", "*B"),
-            Instruction.ADD("B", "-1"),
+            Instruction.SUB("B", "1"),
             Instruction.JN0("*C", "-3"),
             Instruction.SET("E", "2"),
             Instruction.JN0("*D", "1"),
