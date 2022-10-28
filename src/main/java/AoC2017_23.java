@@ -104,7 +104,7 @@ public final class AoC2017_23 extends AoCBase {
         final long step = -1L * Long.parseLong((String)
                 instructions.get(instructions.size() - 2).getOperands().get(1));
         return LongStream.iterate(from, i -> i <= to, i -> i + step)
-            .filter(this::isPrime)
+            .filter(i -> !isPrime(i))
             .count();
     }
 
