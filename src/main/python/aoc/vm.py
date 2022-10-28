@@ -49,7 +49,11 @@ class Instruction:
         return Instruction("ADD", (register, value))
 
     @classmethod
-    def MUL(cls, register: str, value: int) -> Instruction:
+    def SUB(cls, register: str, value: str) -> Instruction:
+        return Instruction("SUB", (register, value))
+
+    @classmethod
+    def MUL(cls, register: str, value: str) -> Instruction:
         return Instruction("MUL", (register, value))
 
     @classmethod
@@ -71,6 +75,10 @@ class Instruction:
     @property
     def operands(self) -> tuple[str]:
         return self._operands
+
+    @property
+    def is_MUL(self) -> bool:
+        return self._opcode == "MUL"
 
 
 class Program:
@@ -156,6 +164,7 @@ class VirtualMachine:
             "SET": self._set,
             "TGL": self._tgl,
             "ADD": self._add,
+            "SUB": self._sub,
             "MUL": self._mul,
             "DIV": self._div,
             "MEM": self._mem,
@@ -268,6 +277,17 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         log(program.registers)
 
+    def _sub(self, program: Program, instruction: Instruction, ip: str):
+        log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        value = self._value(program, value)
+        new_value = value \
+            if register not in program.registers \
+            else program.registers[register] - value
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        log(program.registers)
+
     def _div(self, program: Program, instruction: Instruction, ip: int):
         log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
@@ -278,9 +298,10 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         log(program.registers)
 
-    def _mul(self, program: Program, instruction: Instruction, ip: int):
+    def _mul(self, program: Program, instruction: Instruction, ip: str):
         log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
+        value = self._value(program, value)
         new_value = value \
             if register not in program.registers \
             else program.registers[register] * value
@@ -305,23 +326,40 @@ class VirtualMachine:
             program.output_consumer(operand)
         program.move_instruction_pointer(1)
 
+    def _value(self, program: Program, op: str) -> int:
+        if op.startswith("*"):
+            return program.registers[op[1:]]
+        else:
+            return int(op)
+
     def run_program(self, program: Program):
         seen = defaultdict(int)
         while 0 <= program.instruction_pointer < len(program.instructions):
-            instruction = program.instructions[program.instruction_pointer]
+            # instruction = program.instructions[program.instruction_pointer]
             if program.inf_loop_treshold is not None:
                 seen[program.instruction_pointer] += 1
-            if instruction.opcode not in self._instruction_set:
-                raise ValueError("Unsupported instruction: "
-                                 + instruction.opcode)
-            self._instruction_set[instruction.opcode](
-                program,
-                instruction,
-                program.instruction_pointer)
-            program._cycles += 1
+
+            #                      + instruction.opcode)
+            # self._instruction_set[instruction.opcode](
+            #     program,
+            #     instruction,
+            #     program.instruction_pointer)
+            # program._cycles += 1
+            self.step(program)
             if program.inf_loop_treshold is not None \
                and program.instruction_pointer in seen:
                 instruction_count = seen[program.instruction_pointer]
                 if instruction_count >= program.inf_loop_treshold:
                     raise RuntimeError("Infinite loop!")
         log("Normal exit")
+
+    def step(self, program: Program) -> None:
+        instruction = program.instructions[program.instruction_pointer]
+        if instruction.opcode not in self._instruction_set:
+            raise ValueError("Unsupported instruction: "
+                             + instruction.opcode)
+        self._instruction_set[instruction.opcode](
+            program,
+            instruction,
+            program.instruction_pointer)
+        program._cycles += 1
