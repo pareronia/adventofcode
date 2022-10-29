@@ -43,11 +43,11 @@ Step parseStep(const vector<string>& lines, const uint idx) {
     return Step(write, move, goTo);
 }
 
-tuple<string, uint, map<string, State>> parse(const vector<string>& input) {
+tuple<string, uint, unordered_map<string, State>> parse(const vector<string>& input) {
     const vector<vector<string>> blocks = aoc::toBlocks(input);
     const string start = getLastWord(blocks[0][0]);
     const uint steps = stoi(split(blocks[0][1])[5]);
-    map<string, State> states;
+    unordered_map<string, State> states;
     for (uint i = 1; i < blocks.size(); i++) {
         const vector<string>& block = blocks[i];
         const string& name = getLastWord(block[0]);
@@ -61,9 +61,9 @@ tuple<string, uint, map<string, State>> parse(const vector<string>& input) {
 int part1(const vector<string> &input) {
     string start;
     uint steps;
-    map<string, State> states;
+    unordered_map<string, State> states;
     tie(start, steps, states) = parse(input);
-    map<int, uint> tape;
+    unordered_map<int, uint> tape;
     int pos = 0;
     State state = states[start];
     for (uint i = 0; i < steps; i++) {
@@ -73,8 +73,9 @@ int part1(const vector<string> &input) {
         pos += step.move;
         state = states[step.goTo];
     }
-    return count_if(tape.begin(), tape.end(),
-        [](const auto& item) { return item.second == 1; });
+    return accumulate(
+            tape.begin(), tape.end(),
+            0, [](int a, const auto& item) { return a + item.second; });
 }
 
 int part2(const vector<string> &input) {
