@@ -21,7 +21,9 @@ namespace aocd {
     }
 
     namespace puzzle {
-        vector<string> getInputData(const int year, const int day);
+        vector<string> getInputData(const uint year, const uint day);
+        string answer(const uint year, const uint day, const uint partnum);
+        int check(const uint year, const uint day, const string part1, const string part2);
     }
 }
 

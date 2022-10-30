@@ -31,8 +31,11 @@ int main(int argc, char **argv) {                                           \
         samples();                                                          \
                                                                             \
         const vector<string> input = aocd::puzzle::getInputData(Year, Day); \
-        cout << "Part 1: " << part1(input) << endl;                         \
-        cout << "Part 2: " << part2(input) << endl;                         \
+        const string part_1 = to_string(part1(input));                      \
+        const string part_2 = to_string(part2(input));                      \
+        cout << "Part 1: " << part_1 << endl;                               \
+        cout << "Part 2: " << part_2 << endl;                               \
+        return aocd::puzzle::check(Year, Day, part_1, part_2);              \
     }                                                                       \
     return 0;                                                               \
 }
