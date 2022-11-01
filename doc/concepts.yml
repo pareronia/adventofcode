@@ -1,0 +1,52 @@
+concepts:
+    year:
+        - 2017:
+            day:
+                - 1:
+                    tags:
+                        - circular list
+                        - sum
+                        - rule matching
+                - 2:
+                    tags:
+                        - minimum
+                        - maximum
+                        - division
+                        - sum
+                        - combinations
+                - 3:
+                    tags:
+                        - manhattan distance
+                        - grid
+                        - exotic coordinate system
+                - 4:
+                    tags:
+                        - string
+                        - rule matching
+                - 10:
+                    tags:
+                        - knot hash
+                        - ascii
+                        - hexadecimal
+                        - xor
+                - 14:
+                    tags:
+                        - knot hash
+                        - ascii
+                        - hexadecimal
+                        - binary
+                        - xor
+                        - grid
+                        - group finding
+                        - bfs
+                - 21:
+                    tags:
+                        - grid
+                        - dihedral group of the square
+        - 2020:
+            day:
+                - 20:
+                    tags:
+                        - grid
+                        - dihedral group of the square
+                        - sea monsters
