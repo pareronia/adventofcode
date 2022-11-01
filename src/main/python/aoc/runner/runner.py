@@ -83,6 +83,8 @@ def main():
     parser.add_argument("-t", "--timeout", type=int, default=DEFAULT_TIMEOUT)
     parser.add_argument("-s", "--no-submit", action="store_true",
                         help="disable autosubmit")
+    parser.add_argument("-m", "--hide-missing", action="store_true",
+                        help="hide missing")
     parser.add_argument("--log-level", default="WARNING", choices=log_levels)
     args = parser.parse_args()
     if not users:
@@ -106,6 +108,7 @@ def main():
             datasets={k: users[k] for k in (args.users or users)},
             timeout=args.timeout,
             autosubmit=not args.no_submit,
+            hide_missing=args.hide_missing,
         )
     finally:
         for p in plugins:
@@ -180,8 +183,15 @@ def run_one(year, day, input_data, plugin,
     return result_a, result_b, walltime, error
 
 
-def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
-            autosubmit=True):
+def run_for(
+    plugins,
+    years,
+    days,
+    datasets,
+    timeout=DEFAULT_TIMEOUT,
+    autosubmit=True,
+    hide_missing=False,
+) -> int:
     def _get_expected(puzzle, part, result, autosubmit):
         expected = None
         try:
@@ -259,6 +269,8 @@ def run_for(plugins, years, days, datasets, timeout=DEFAULT_TIMEOUT,
         )
         runtime = format_time(walltime, timeout)
         line = "   ".join([runtime, progress])
+        if result_a.is_missing and hide_missing:
+            continue
         if error:
             assert result_a.answer == result_b.answer == ""
             n_incorrect += 1
