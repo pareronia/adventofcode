@@ -14,6 +14,7 @@ JAVA_DST := $(JAVA_DST_ROOT)/classes
 JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
 BASH_ROOT := $(SRC_ROOT_MAIN)/bash
 CPP_ROOT := $(SRC_ROOT_MAIN)/cpp
+CPP_TEST_ROOT := $(SRC_ROOT_TEST)/cpp
 CPP_DST_ROOT := $(DST_ROOT)/cpp
 JULIA_ROOT := $(SRC_ROOT_MAIN)/julia
 CFG := pyproject.toml
@@ -36,6 +37,7 @@ JAVA_CMD := $(JAVA_EXE) -ea
 JAVAC_CMD := $(JAVAC_EXE) -encoding utf-8
 JAVA_UNITTEST_CMD := org.junit.runner.JUnitCore
 JULIA_CMD := julia --optimize
+BAZEL := bazel
 WSLPATH := wslpath
 RM := rm -Rf
 MKDIR := mkdir
@@ -119,8 +121,13 @@ unittest.java:
 	@$(JAVA_CMD) -DNDEBUG -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
 		$(JAVA_UNITTEST_CMD) AllUnitTests
 
+#: Run C++ unit tests
+unittest.cplusplus:
+	@$(call msg,"Running C++ unit tests...")
+	@$(BAZEL) test $(CPP_TEST_ROOT)/...
+
 #: Run all unit tests
-unittest: unittest.py unittest.java
+unittest: unittest.py unittest.java unittest.cplusplus
 
 #: Run command line integration tests
 clitest:
@@ -220,4 +227,4 @@ help:
 
 .PHONY: flake vulture bandit fixme todo list help py java cpp julia \
 	unittest.py clitest build.java clean unittest.java pmd pmd.html \
-	pmd.html.open docs.update
+	pmd.html.open docs.update unittest.cplusplus

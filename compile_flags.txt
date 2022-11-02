@@ -1,0 +1,5 @@
+-Wall
+-std=c++17
+-I/home/tom/.local/src/adventofcode/bazel-adventofcode/external/gtest/googletest/include
+-Isrc/main/cpp
+-Isrc/test/cpp
