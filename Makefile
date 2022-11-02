@@ -124,7 +124,7 @@ unittest.java:
 #: Run C++ unit tests
 unittest.cplusplus:
 	@$(call msg,"Running C++ unit tests...")
-	@$(BAZEL) test $(CPP_TEST_ROOT)/...
+	@$(BAZEL) test --test_output=all $(CPP_TEST_ROOT)/...
 
 #: Run all unit tests
 unittest: unittest.py unittest.java unittest.cplusplus

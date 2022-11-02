@@ -6,6 +6,7 @@
 using namespace std;
 using ::testing::Eq;
 using ::testing::IsEmpty;
+using ::testing::MatchesRegex;
 
 TEST(test_aoc, getNumbers) {
     vector<int> expected = {1, 2, 3, 4, 5, 67};
@@ -31,4 +32,19 @@ TEST(test_aoc, toBlocksReturnOneBlockIfNoEmptyLines) {
 TEST(test_aoc, toBlocksReturnsEmptyWhenNoLines) {
     vector<string> input = {};
     EXPECT_THAT(aoc::toBlocks(input), IsEmpty());
+}
+
+TEST(test_aoc, DEBUG) {
+    ::testing::internal::CaptureStderr();
+    DEBUG("test");
+    const string& captured = ::testing::internal::GetCapturedStderr().c_str();
+    EXPECT_THAT(captured, MatchesRegex("test\r?\n"));
+}
+
+TEST(test_aoc, DEBUGDoesNothingWhenNDEBUG) {
+    ::testing::internal::CaptureStderr();
+    setenv("NDEBUG", "", 1);
+    DEBUG("test");
+    const string& captured = ::testing::internal::GetCapturedStderr().c_str();
+    EXPECT_THAT(captured, IsEmpty());
 }
