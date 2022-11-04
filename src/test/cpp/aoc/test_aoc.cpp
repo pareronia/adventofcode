@@ -48,3 +48,11 @@ TEST(test_aoc, DEBUGDoesNothingWhenNDEBUG) {
     const string& captured = ::testing::internal::GetCapturedStderr().c_str();
     EXPECT_THAT(captured, IsEmpty());
 }
+
+TEST(test_aoc, splitOnSpace) {
+    EXPECT_THAT(aoc::split(""), Eq(vector<string>({})));
+    EXPECT_THAT(aoc::split("a b"), Eq(vector<string>({"a", "b"})));
+    EXPECT_THAT(aoc::split(" a b "), Eq(vector<string>({"a", "b"})));
+    EXPECT_THAT(aoc::split("a   b"), Eq(vector<string>({"a", "b"})));
+    EXPECT_THAT(aoc::split("a1 b 2"), Eq(vector<string>({"a1", "b", "2"})));
+}

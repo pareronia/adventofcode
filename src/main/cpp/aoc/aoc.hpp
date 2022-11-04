@@ -10,6 +10,7 @@ using namespace std;
 namespace aoc {
     vector<vector<string>> toBlocks(vector<string> lines);
     vector<int> getNumbers(const string s);
+    vector<string> split(const string& s);
 }
 
 #define DEBUG(Message) \
