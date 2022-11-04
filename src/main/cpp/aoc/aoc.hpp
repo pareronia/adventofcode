@@ -11,6 +11,7 @@ namespace aoc {
     vector<vector<string>> toBlocks(vector<string> lines);
     vector<int> getNumbers(const string s);
     vector<string> split(const string& s);
+    vector<string> split(const string& s, const string& delim);
 }
 
 #define DEBUG(Message) \

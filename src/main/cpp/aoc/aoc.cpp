@@ -44,3 +44,19 @@ vector<string> aoc::split(const string& s) {
     istringstream iss(s);
     return {istream_iterator<string>{iss}, istream_iterator<string>{}};
 }
+
+vector<string> aoc::split(const string& s, const string& delim) {
+    if (delim.empty()) {
+        throw "Expected non-empty delimiter";
+    }
+    vector<string> ans;
+    uint start = 0;
+    int end = s.find(delim);
+    while (end != -1) {
+        ans.push_back(s.substr(start, end - start));
+        start = end + delim.size();
+        end = s.find(delim, start);
+    }
+    ans.push_back(s.substr(start, end - start));
+    return ans;
+}

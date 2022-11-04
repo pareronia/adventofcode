@@ -14,23 +14,10 @@ struct Layer {
     }
 };
 
-vector<string> split(const string& s, const string& delim) {
-    vector<string> ans;
-    uint start = 0;
-    int end = s.find(delim);
-    while (end != -1) {
-        ans.push_back(s.substr(start, end - start));
-        start = end + delim.size();
-        end = s.find(delim, start);
-    }
-    ans.push_back(s.substr(start, end - start));
-    return ans;
-}
-
 vector<Layer> parse(const vector<string>& input) {
     vector<Layer> ans;
     for (const auto& line : input) {
-        const auto& splits = split(line, ": ");
+        const auto& splits = aoc::split(line, ": ");
         ans.push_back(Layer(stoi(splits[0]), stoi(splits[1])));
     }
     return ans;

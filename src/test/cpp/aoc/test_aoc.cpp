@@ -56,3 +56,14 @@ TEST(test_aoc, splitOnSpace) {
     EXPECT_THAT(aoc::split("a   b"), Eq(vector<string>({"a", "b"})));
     EXPECT_THAT(aoc::split("a1 b 2"), Eq(vector<string>({"a1", "b", "2"})));
 }
+
+TEST(test_aoc, splitOnToken) {
+    EXPECT_THAT(aoc::split("a-b", "-"), Eq(vector<string>({"a", "b"})));
+    EXPECT_THAT(aoc::split("a- b", "-"), Eq(vector<string>({"a", " b"})));
+    EXPECT_THAT(aoc::split("a--b", "-"), Eq(vector<string>({"a", "", "b"})));
+    EXPECT_THAT(aoc::split("a-b+c", "-"), Eq(vector<string>({"a", "b+c"})));
+    EXPECT_THAT(aoc::split("a1-->b-->2c$3", "-->"), Eq(vector<string>({"a1", "b", "2c$3"})));
+    EXPECT_THAT(aoc::split("a", "-->"), Eq(vector<string>({"a"})));
+    EXPECT_THAT(aoc::split("", "-->"), Eq(vector<string>({""})));
+    EXPECT_ANY_THROW(aoc::split("aa", ""));
+}
