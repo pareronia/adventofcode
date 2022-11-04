@@ -93,11 +93,9 @@ java:
 bash:
 	@./$(BASH_ROOT)/$(call day,$(ARGS),".sh")
 
-cpp: export MAIN=$(call day,$(ARGS),"")
-
 #: Run C++ (with ARGS=year,day)
 cpp:
-	@$(MAKE) -s -C $(CPP_ROOT)/$(call subdir,$(ARGS))
+	@MAIN=$(call day,$(ARGS),"") $(MAKE) -s -C $(CPP_ROOT)/$(call subdir,$(ARGS))
 	@./$(CPP_DST_ROOT)/$(call day,$(ARGS),"")
 
 #: Run Julia (with ARGS=year,day)
@@ -109,6 +107,11 @@ build.java:
 	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS) -d $(JAVA_DST) $(JAVA_SRCS)
 	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) \
 		-d $(JAVA_TEST_DST) $(JAVA_TEST_SRCS)
+
+#: Build C++
+build.cplusplus:
+	@$(call msg,"Building C++")
+	$(shell for f in $(find src/main/cpp/ -name "AoC*.cpp"); do rm -f "build/cpp/$(basename $f .cpp)" && MAIN=$(basename $f .cpp) make -C "$(dirname $(realpath $f))" all; done)
 
 #: Run Python unit tests
 unittest.py:
@@ -227,4 +230,4 @@ help:
 
 .PHONY: flake vulture bandit fixme todo list help py java cpp julia \
 	unittest.py clitest build.java clean unittest.java pmd pmd.html \
-	pmd.html.open docs.update unittest.cplusplus
+	pmd.html.open docs.update unittest.cplusplus build.cplusplus

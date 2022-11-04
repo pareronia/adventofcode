@@ -2,6 +2,7 @@ module Runner
 
 include("aocd.jl")
 using .Aocd
+using Printf
 using Sockets
 using Logging
 
@@ -21,7 +22,8 @@ function run(year::Int, day::Int, part::Int, input::Vector{String})
             ans = @timed Runner.$mod.part2($input)
         end
     end
-    return ans.value
+    return @sprintf("{\"part%d\":{\"answer\":\"%s\",\"duration\":%d}}",
+                    part, ans.value, ans.time * 1e9)
 end
 
 function server()

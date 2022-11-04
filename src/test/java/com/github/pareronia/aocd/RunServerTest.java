@@ -4,6 +4,7 @@ import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.mockito.Mockito.mock;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -28,7 +29,7 @@ public class RunServerTest {
 
 	private RunServer runServer;
 	
-	private final RequestHandler requestHandler = Runner.createRequestHandler();
+	private final RequestHandler requestHandler = Runner.createRequestHandler(mock(SystemUtils.class));
 	
 	@Before
 	public void setUp() {
@@ -66,7 +67,7 @@ public class RunServerTest {
 		doTest(asList("STOP"), "STOP" + System.lineSeparator());
 	}
 
-	private void doTest(List<String> in, String expectedResponse) throws Exception, IOException {
+	private void doTest(final List<String> in, final String expectedResponse) throws Exception, IOException {
 		final long start = System.nanoTime();
 		try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), 5555)) {
 			assertThat(socket.isConnected(), is(TRUE));

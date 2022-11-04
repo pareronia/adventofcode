@@ -155,7 +155,7 @@ def format_time(t, timeout=DEFAULT_TIMEOUT):
         color = "yellow"
     else:
         color = "red"
-    runtime = colored("{: 7.3f}s".format(t), color)
+    runtime = colored("{: 8.4f}s".format(t), color)
     return runtime
 
 
@@ -256,7 +256,7 @@ def run_for(
         os.environ["AOC_SESSION"] = token
         puzzle = Puzzle(year=year, day=day)
         title = puzzle.title
-        progress = "{}/{:<2d} - {:<40}   {:>%d}/{:<%d}"
+        progress = "{}/{:<2d} - {:<39}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
         progress = progress.format(year, day, title, plugin[0], dataset)
         result_a, result_b, walltime, error = run_one(
@@ -267,7 +267,12 @@ def run_for(
             timeout=timeout,
             progress=progress,
         )
-        runtime = format_time(walltime, timeout)
+        time = (
+            walltime
+            if result_a.duration is None or result_b.duration is None
+            else (result_a.duration + result_b.duration) / 1e9
+        )
+        runtime = format_time(time, timeout)
         line = "   ".join([runtime, progress])
         if result_a.is_missing and hide_missing:
             continue

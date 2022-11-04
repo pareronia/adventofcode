@@ -1,3 +1,4 @@
+import json
 import os
 import time
 import subprocess  # nosec
@@ -29,7 +30,11 @@ class Julia(Plugin):
                 text=True,
                 capture_output=True,
             )
-            return Result.ok(completed.stdout.strip())
+            result = json.loads(completed.stdout.strip())
+            return Result.ok(
+                result["part" + str(part)]["answer"],
+                result["part" + str(part)]["duration"],
+            )
 
         return run_part(1), run_part(2)
 
@@ -94,7 +99,11 @@ class Julia(Plugin):
             result = data.decode('UTF-8').rstrip()
             self.log.debug(f"Result: {result}")
             if result:
-                return Result.ok(result)
+                result = json.loads(result)
+                return Result.ok(
+                    result["part" + str(part)]["answer"],
+                    result["part" + str(part)]["duration"],
+                )
             else:
                 return Result.missing()
 
