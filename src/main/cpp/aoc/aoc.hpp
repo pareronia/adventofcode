@@ -12,6 +12,37 @@ namespace aoc {
     vector<int> getNumbers(const string s);
     vector<string> split(const string& s);
     vector<string> split(const string& s, const string& delim);
+
+    class Range {
+        int from;
+        int to;
+    public:
+        Range(const int _from, const int _to) {
+            assert(_from <= _to);
+            from = _from;
+            to = _to;
+        }
+        // member typedefs provided through inheriting from std::iterator
+        class iterator: public std::iterator<
+                        std::input_iterator_tag,   // iterator_category
+                        int,                      // value_type
+                        int,                      // difference_type
+                        const int*,               // pointer
+                        int                       // reference
+                        >
+        {
+            int num;
+        public:
+            explicit iterator(int _num = 0) : num(_num) {}
+            iterator& operator++() {num = num + 1; return *this;}
+            iterator operator++(int) {iterator retval = *this; ++(*this); return retval;}
+            bool operator==(iterator other) const {return num == other.num;}
+            bool operator!=(iterator other) const {return !(*this == other);}
+            reference operator*() const {return num;}
+        };
+        iterator begin() {return iterator(from);}
+        iterator end() {return iterator(to >= from ? to + 1 : to - 1);}
+    };
 }
 
 #define DEBUG(Message) \
