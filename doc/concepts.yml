@@ -50,3 +50,11 @@ concepts:
                         - grid
                         - dihedral group of the square
                         - sea monsters
+        - 2021:
+            day:
+                - 15:
+                    tags:
+                        - grid
+                        - int grid
+                        - path finding
+                        - A*
