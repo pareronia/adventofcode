@@ -10,7 +10,7 @@ vector<vector<string>> aoc::toBlocks(vector<string> lines) {
     vector<string> current_split;
     for (string& str : lines) {
         if (!str.empty()) {
-            current_split.emplace_back(move(str));
+            current_split.emplace_back(str);
             continue;
         }
 
@@ -18,11 +18,11 @@ vector<vector<string>> aoc::toBlocks(vector<string> lines) {
             continue;
         }
 
-        splits.emplace_back(move(current_split));
+        splits.emplace_back(current_split);
         current_split.clear();
     }
     if (!current_split.empty()) {
-        splits.emplace_back(move(current_split));
+        splits.emplace_back(current_split);
     }
     return splits;
 }
@@ -40,3 +40,23 @@ vector<int> aoc::getNumbers(const string s) {
     return numbers;
 }
 
+vector<string> aoc::split(const string& s) {
+    istringstream iss(s);
+    return {istream_iterator<string>{iss}, istream_iterator<string>{}};
+}
+
+vector<string> aoc::split(const string& s, const string& delim) {
+    if (delim.empty()) {
+        throw "Expected non-empty delimiter";
+    }
+    vector<string> ans;
+    uint start = 0;
+    int end = s.find(delim);
+    while (end != -1) {
+        ans.push_back(s.substr(start, end - start));
+        start = end + delim.size();
+        end = s.find(delim, start);
+    }
+    ans.push_back(s.substr(start, end - start));
+    return ans;
+}

@@ -14,6 +14,7 @@ JAVA_DST := $(JAVA_DST_ROOT)/classes
 JAVA_TEST_DST := $(JAVA_DST_ROOT)/test-classes
 BASH_ROOT := $(SRC_ROOT_MAIN)/bash
 CPP_ROOT := $(SRC_ROOT_MAIN)/cpp
+CPP_TEST_ROOT := $(SRC_ROOT_TEST)/cpp
 CPP_DST_ROOT := $(DST_ROOT)/cpp
 JULIA_ROOT := $(SRC_ROOT_MAIN)/julia
 CFG := pyproject.toml
@@ -36,6 +37,7 @@ JAVA_CMD := $(JAVA_EXE) -ea
 JAVAC_CMD := $(JAVAC_EXE) -encoding utf-8
 JAVA_UNITTEST_CMD := org.junit.runner.JUnitCore
 JULIA_CMD := julia --optimize
+BAZEL := bazel
 WSLPATH := wslpath
 RM := rm -Rf
 MKDIR := mkdir
@@ -91,11 +93,9 @@ java:
 bash:
 	@./$(BASH_ROOT)/$(call day,$(ARGS),".sh")
 
-cpp: export MAIN=$(call day,$(ARGS),"")
-
 #: Run C++ (with ARGS=year,day)
 cpp:
-	@$(MAKE) -s -C $(CPP_ROOT)/$(call subdir,$(ARGS))
+	@MAIN=$(call day,$(ARGS),"") $(MAKE) -s -C $(CPP_ROOT)/$(call subdir,$(ARGS))
 	@./$(CPP_DST_ROOT)/$(call day,$(ARGS),"")
 
 #: Run Julia (with ARGS=year,day)
@@ -108,6 +108,11 @@ build.java:
 	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS):$(JAVA_DST) \
 		-d $(JAVA_TEST_DST) $(JAVA_TEST_SRCS)
 
+#: Build C++
+build.cplusplus:
+	@$(call msg,"Building C++")
+	$(shell for f in $(find src/main/cpp/ -name "AoC*.cpp"); do rm -f "build/cpp/$(basename $f .cpp)" && MAIN=$(basename $f .cpp) make -C "$(dirname $(realpath $f))" all; done)
+
 #: Run Python unit tests
 unittest.py:
 	@$(call msg,"Running Python	unit tests...")
@@ -119,8 +124,13 @@ unittest.java:
 	@$(JAVA_CMD) -DNDEBUG -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
 		$(JAVA_UNITTEST_CMD) AllUnitTests
 
+#: Run C++ unit tests
+unittest.cplusplus:
+	@$(call msg,"Running C++ unit tests...")
+	@$(BAZEL) test --test_output=errors $(CPP_TEST_ROOT)/...
+
 #: Run all unit tests
-unittest: unittest.py unittest.java
+unittest: unittest.py unittest.java unittest.cplusplus
 
 #: Run command line integration tests
 clitest:
@@ -220,4 +230,4 @@ help:
 
 .PHONY: flake vulture bandit fixme todo list help py java cpp julia \
 	unittest.py clitest build.java clean unittest.java pmd pmd.html \
-	pmd.html.open docs.update
+	pmd.html.open docs.update unittest.cplusplus build.cplusplus

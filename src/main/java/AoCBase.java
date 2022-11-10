@@ -69,6 +69,10 @@ public abstract class AoCBase {
 		this.debug = debug;
 	}
 	
+	public Object warmUp() {
+	    return 0L;
+	}
+	
 	public Object solvePart1() {
 		return 0L;
 	}

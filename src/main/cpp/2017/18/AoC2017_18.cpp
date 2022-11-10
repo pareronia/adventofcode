@@ -40,7 +40,6 @@ class VirtualMachine {
         void step(Program &program);
 
     protected:
-        vector<string> split(const string& s);
         long getValue(Program &program, const string& s);
         virtual void snd(Program &program, const string &operand) = 0;
         virtual void rcv(Program &program, const string &operand) = 0;
@@ -74,11 +73,6 @@ void Program::put(const string &name, long value) {
     registers[name] = value;
 }
 
-vector<string> VirtualMachine::split(const string& s) {
-    istringstream iss(s);
-    return {istream_iterator<string>{iss}, istream_iterator<string>{}};
-}
-
 long VirtualMachine::getValue(Program &program, const string& s) {
     try {
         return stoi(s);
@@ -89,7 +83,7 @@ long VirtualMachine::getValue(Program &program, const string& s) {
 
 void VirtualMachine::step(Program &program) {
     const string &line = program.instructions[program.ip];
-    const vector<string> &splits = split(line);
+    const vector<string> &splits = aoc::split(line);
     const string &operation = splits[0];
     const string &op1 = splits[1];
     if (operation == "set") {

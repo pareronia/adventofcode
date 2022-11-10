@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess  # nosec
 import socket
@@ -18,9 +19,19 @@ class Java(Plugin):
             text=True,
             capture_output=True,
         )
-        results = completed.stdout.splitlines()
-        if results:
-            return Result.ok(results[0]), Result.ok(results[1])
+        result = completed.stdout.rstrip()
+        if result:
+            result = json.loads(result)
+            return (
+                Result.ok(
+                    result["part1"]["answer"],
+                    result["part1"]["duration"],
+                ),
+                Result.ok(
+                    result["part2"]["answer"],
+                    result["part2"]["duration"],
+                ),
+            )
         else:
             return Result.missing(), Result.missing()
 
@@ -33,10 +44,20 @@ class Java(Plugin):
             s.send(f'{data}\r\n'.encode('UTF-8'))
             s.send(b'END\r\n')
             data = s.recv(1024)
-        results = data.decode('UTF-8').rstrip().splitlines()
-        self.log.info(f"Results: {results}")
-        if results:
-            return Result.ok(results[0]), Result.ok(results[1])
+        result = data.decode('UTF-8').rstrip()
+        self.log.info(f"Result: {result}")
+        if result:
+            result = json.loads(result)
+            return (
+                Result.ok(
+                    result["part1"]["answer"],
+                    result["part1"]["duration"],
+                ),
+                Result.ok(
+                    result["part2"]["answer"],
+                    result["part2"]["duration"],
+                ),
+            )
         else:
             return Result.missing(), Result.missing()
 

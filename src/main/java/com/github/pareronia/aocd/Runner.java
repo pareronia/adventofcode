@@ -1,52 +1,52 @@
 package com.github.pareronia.aocd;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.lang.reflect.Method;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
-import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.RunServer.RequestHandler;
+import com.google.gson.Gson;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+@RequiredArgsConstructor
 public class Runner {
 
 	public static void main(final String[] args) throws Exception {
-		final Response result = Runner.create().run(args);
+	    final SystemUtils systemUtils = new SystemUtils();
+	    final Request request = Request.create(systemUtils.getLocalDate(), args);
+		final Response result = Runner.create(systemUtils).run(request);
 		System.out.println(result.toString());
 	}
 	
-	public static RequestHandler createRequestHandler() {
-		return request -> {
-			final String[] args = request.toArray(new String[request.size()]);
-			return Runner.create().run(args).toString();
+	public static RequestHandler createRequestHandler(final SystemUtils systemUtils) {
+		return input -> {
+			final String[] args = input.toArray(new String[input.size()]);
+			final Request request = Request.create(systemUtils.getLocalDate(), args);
+			return Runner.create(systemUtils).run(request).toString();
 		};
 	}
 
-	private static Runner create() {
-		return new Runner(() -> LocalDate.now(Aocd.AOC_TZ),
+	private static Runner create(final SystemUtils systemUtils) {
+		return new Runner(systemUtils,
 						  className -> Class.forName(className));
 	}
 	
-	static Runner create(final Supplier<LocalDate> dateSupplier,
-								final ClassFactory classFactory) {
-		return new Runner(dateSupplier, classFactory);
+	static Runner create(final SystemUtils systemUtils,
+						 final ClassFactory classFactory) {
+		return new Runner(systemUtils, classFactory);
 	}
 	
-	private final Supplier<LocalDate> dateSupplier;
+	private final SystemUtils systemUtils;
 	private final ClassFactory classFactory;
 	
-	private Runner(final Supplier<LocalDate> dateSupplier,
-				   final ClassFactory classFactory) {
-		this.dateSupplier = dateSupplier;
-		this.classFactory = classFactory;
-	}
-
-	Response run(final String args[]) throws Exception {
-		final Request request = new Request(this.dateSupplier, args);
+	Response run(final Request request) throws Exception {
 		final Class<?> klass;
 		try {
 			final String className = "AoC" + request.year.toString()
@@ -55,65 +55,102 @@ public class Runner {
 		} catch (final ClassNotFoundException e) {
 			return Response.EMPTY;
 		}
-		final Object puzzle1 = createPuzzle(klass, List.copyOf(request.inputs));
-		final Object part1 = klass.getDeclaredMethod("solvePart1").invoke(puzzle1);
-		final Object puzzle2 = createPuzzle(klass, List.copyOf(request.inputs));
-		final Object part2 = klass.getDeclaredMethod("solvePart2").invoke(puzzle2);
-		return new Response(part1, part2);
+        warmUpPart(1, klass, List.copyOf(request.inputs));
+		final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
+		warmUpPart(2, klass, List.copyOf(request.inputs));
+		final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
+		return Response.create(result1, result2);
 	}
 
-    private Object createPuzzle(final Class<?> klass, final List<String> inputs) throws Exception {
+    private void warmUpPart(final int part, final Class<?> klass, final List<String> input) {
+        try {
+            final Object puzzle = createPuzzle(klass, input);
+            final Method method = klass.getDeclaredMethod("solvePart" + part);
+            method.invoke(puzzle);
+        } catch (final Exception e) {
+        }
+    }
+
+    private Result runPart(
+            final int part,
+            final Class<?> klass,
+            final List<String> input)
+        throws Exception
+    {
+        final Object puzzle = createPuzzle(klass, input);
+        final Method method = klass.getDeclaredMethod("solvePart" + part);
+		final long start = systemUtils.getSystemNanoTime();
+		final Object answer = method.invoke(puzzle);
+		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
+		return new Result(answer, duration);
+    }
+
+    private Object createPuzzle(final Class<?> klass, final List<String> input) throws Exception {
         return klass
-				.getDeclaredMethod("create", List.class)
-				.invoke(null, inputs);
+		        .getDeclaredMethod("create", List.class)
+		        .invoke(null, input);
     }
 	
-	private static final class Request {
+	@RequiredArgsConstructor
+	private static final class Result {
+	    private final Object answer;
+	    private final Duration duration;
+	}
+	
+	@RequiredArgsConstructor
+	static final class Request {
 		private final Integer year;
 		private final Integer day;
 		private final List<String> inputs;
 		
-		public Request(final Supplier<LocalDate> dateSupplier, final String args[]) {
+		public static Request create(final LocalDate date, final String args[]) {
 			if (args == null || args.length < 3) {
 				throw new IllegalArgumentException("Missing args: year, day, input");
 			}
-			final LocalDate now = dateSupplier.get();
 			final Integer year = Integer.valueOf(args[0]);
-			if (year < 2015 || year > now.getYear()) {
+			if (year < 2015 || year > date.getYear()) {
 				throw new IllegalArgumentException("Invalid year");
 			}
-			this.year = year;
 			final Integer day = Integer.valueOf(args[1]);
-			if ((year == now.getYear() && now.getMonth() == Month.DECEMBER && day > now.getDayOfMonth())
+			if ((year == date.getYear() && date.getMonth() == Month.DECEMBER && day > date.getDayOfMonth())
 					|| day < 1 || day > 25) {
 				throw new IllegalArgumentException("Invalid day");
 			}
-			this.day = day;
-			this.inputs = Stream.iterate(2, i -> i + 1).limit(args.length - 2)
+			final List<String> inputs
+			        = Stream.iterate(2, i -> i + 1).limit(args.length - 2)
 							.map(i -> args[i])
 							.flatMap(string -> Stream.of(string.split("\\r?\\n")))
 							.collect(toList());
+			return new Request(year, day, inputs);
 		}
 	}
 	
+	@RequiredArgsConstructor
+	@Getter
 	static final class Response {
 		public static final Response EMPTY = new Response(null, null);
 		
-		private final Object part1;
-		private final Object part2;
+		private final Part part1;
+		private final Part part2;
 		
-		public Response(final Object part1, final Object part2) {
-			this.part1 = part1;
-			this.part2 = part2;
-		}
+		protected static Response create(
+		        final Result result1, final Result result2) {
+		    return new Response(
+		        new Part(result1.answer.toString(), result1.duration.toNanos()),
+		        new Part(result2.answer.toString(), result2.duration.toNanos()));
+        }
 
-		@Override
+        @Override
 		public String toString() {
-			return Stream.of(part1, part2)
-				.filter(Objects::nonNull)
-				.map(Object::toString)
-				.collect(joining(System.lineSeparator()));
+            return new Gson().toJson(this);
 		}
+        
+        @RequiredArgsConstructor
+        @Getter
+        public static final class Part {
+            private final String answer;
+            private final Long duration;
+        }
 	}
 	
 	interface ClassFactory {

@@ -1,4 +1,5 @@
 import importlib
+import time
 from . import Result
 from .plugin import Plugin
 from .config import config
@@ -13,6 +14,16 @@ class Py(Plugin):
                 in config.py["skip"]
             )
 
+        def run_part(part: int) -> Result:
+            if skip_part(part):
+                return Result.skipped()
+            else:
+                call = day_mod.part_1 if part == 1 else day_mod.part_2
+                start = time.time()
+                answer = call(inputs)
+                duration = (time.time() - start) * 1e9
+                return Result.ok(answer, duration)
+
         day_mod_name = config.py["day_format"].format(year=year, day=day)
         self.log.debug(day_mod_name)
         try:
@@ -20,14 +31,4 @@ class Py(Plugin):
         except ModuleNotFoundError:
             return Result.missing(), Result.missing()
         inputs = data.splitlines()
-        result_1 = (
-            Result.skipped()
-            if skip_part(1)
-            else Result.ok(day_mod.part_1(inputs))
-        )
-        result_2 = (
-            Result.skipped()
-            if skip_part(2)
-            else Result.ok(day_mod.part_2(inputs))
-        )
-        return result_1, result_2
+        return run_part(1), run_part(2)

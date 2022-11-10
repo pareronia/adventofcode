@@ -19,22 +19,9 @@ const unordered_map<string, Position3D> HEADING = {
     {"nw", Vector3D( -1,  0,  1)}
 };
 
-vector<string> split(const string& s, const string& delim) {
-    vector<string> ans;
-    uint start = 0;
-    int end = s.find(delim);
-    while (end != -1) {
-        ans.push_back(s.substr(start, end - start));
-        start = end + delim.size();
-        end = s.find(delim, start);
-    }
-    ans.push_back(s.substr(start, end - start));
-    return ans;
-}
-
 vector<Vector3D> parse(const vector<string>& input) {
     assert(input.size() == 1);
-    const auto& splits = split(input[0], ",");
+    const auto& splits = aoc::split(input[0], ",");
     vector<Vector3D> path;
     transform(splits.begin(), splits.end(), back_inserter(path),
             [](const string s) { return HEADING.at(s); });

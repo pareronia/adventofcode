@@ -31,11 +31,14 @@ public class RunServer {
 	private final RequestHandler requestHandler;
 	private ServerSocket server;
 
-	public static void main(String[] args) throws Exception {
-		new RunServer(5555, Runner.createRequestHandler()).start();
+	public static void main(final String[] args) throws Exception {
+		new RunServer(
+		        5555,
+		        Runner.createRequestHandler(new SystemUtils()))
+		    .start();
 	}
 	
-	public RunServer(int port, RequestHandler requestHandler) {
+	public RunServer(final int port, final RequestHandler requestHandler) {
 		this.port = port;
 		this.requestHandler = requestHandler;
 		log.setLevel(Level.WARNING);
@@ -62,7 +65,7 @@ public class RunServer {
 		return OK;
 	}
 
-	private void handleClientConnection(Socket socket) throws IOException {
+	private void handleClientConnection(final Socket socket) throws IOException {
 		final BufferedReader dis = new BufferedReader(
 				new InputStreamReader(new DataInputStream(socket.getInputStream())));
 		

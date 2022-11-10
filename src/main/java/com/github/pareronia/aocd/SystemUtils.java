@@ -29,6 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,14 @@ public class SystemUtils {
 	
 	public Optional<String> readFirstLineIfExists(final Path path) {
 		return readAllLinesIfExists(path).stream().findFirst();
+	}
+	
+	public LocalDate getLocalDate() {
+	    return LocalDate.now(Aocd.AOC_TZ);
+	}
+	
+	public long getSystemNanoTime() {
+	    return System.nanoTime();
 	}
 	
 	private List<String> readAlLines(final Path path) {

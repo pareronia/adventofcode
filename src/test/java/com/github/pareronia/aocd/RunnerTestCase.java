@@ -1,6 +1,5 @@
 package com.github.pareronia.aocd;
 
-import static java.util.Arrays.asList;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
@@ -10,89 +9,116 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Supplier;
 
+import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import com.github.pareronia.aocd.Runner.ClassFactory;
+import com.github.pareronia.aocd.Runner.Request;
 import com.github.pareronia.aocd.Runner.Response;
 
 public class RunnerTestCase {
+    
+    private SystemUtils systemUtils;
+    
+    @Before
+    public void setUp() {
+        systemUtils = mock(SystemUtils.class);
+    }
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void noArgs() throws Exception {
-		Runner.create(null, null).run(null);
+		Runner.create(systemUtils, null).run(createRequest(null, null));
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void missingArgs() throws Exception {
-		Runner.create(null, null).run(new String[] {"1", "2"});
+		Runner.create(systemUtils, null).run(createRequest(null, new String[] {"1", "2"}));
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void requestedYearBefore2015() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
-		Runner.create(dateSupplier, null).run(new String[] {"2014", "1", ""});
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.FEBRUARY, 7),
+	            new String[] {"2014", "1", ""});
+		Runner.create(systemUtils, null).run(request);
 	}
 
 	@Test(expected = IllegalArgumentException.class)
 	public void requestedYearAfterCurrent() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
-		Runner.create(dateSupplier, null).run(new String[] {"2022", "1", ""});
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.FEBRUARY, 7),
+	            new String[] {"2022", "1", ""});
+		Runner.create(systemUtils, null).run(request);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void requestedDayAfterCurrentInDecember() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.DECEMBER, 7);
-		Runner.create(dateSupplier, null).run(new String[] {"2021", "8", ""});
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.DECEMBER, 7),
+	            new String[] {"2021", "8", ""});
+		Runner.create(systemUtils, null).run(request);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void requestedDayLowerThan1() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
-		Runner.create(dateSupplier, null).run(new String[] {"2021", "0", ""});
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.FEBRUARY, 7),
+	            new String[] {"2021", "0", ""});
+		Runner.create(systemUtils, null).run(request);
 	}
 	
 	@Test(expected = IllegalArgumentException.class)
 	public void requestedDayHigherThan25() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
-		Runner.create(dateSupplier, null).run(new String[] {"2021", "31", ""});
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.FEBRUARY, 7),
+	            new String[] {"2021", "31", ""});
+		Runner.create(systemUtils, null).run(request);
 	}
 	
 	@Test
 	public void emptyResponseWhenClassNotFound() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.FEBRUARY, 7);
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.FEBRUARY, 7),
+	            new String[] {"2020", "1", ""});
 		final ClassFactory classFactory = mock(ClassFactory.class);
 		when(classFactory.getClass(Mockito.anyString()))
 				.thenThrow(new ClassNotFoundException());
+		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		
-		final Response response = Runner.create(dateSupplier, classFactory)
-				.run(new String[] {"2020", "1", ""});
-		
-		assertThat(response.toString(), is(""));
+		assertThat(response.toString(), is("{}"));
 	}
 
 	@Test
 	public void happy() throws Exception {
-		final Supplier<LocalDate> dateSupplier = () -> LocalDate.of(2021, Month.DECEMBER, 7);
-		final ClassFactory classFactory = className -> Stub.class;
+	    final Request request = createRequest(
+	            LocalDate.of(2021, Month.DECEMBER, 7),
+	            new String[] {
+                        "2020",
+                        "8",
+                        "line1" + System.lineSeparator() + "line2", "line3"});
+	    final ClassFactory classFactory = className -> Stub.class;
+		when(systemUtils.getLocalDate()).thenReturn(LocalDate.of(2021, Month.DECEMBER, 7));
+		when(systemUtils.getSystemNanoTime()).thenReturn(1_000L, 2_000L, 5_000L, 8_000L);
+		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		
-		final Response response = Runner.create(dateSupplier, classFactory)
-				.run(new String[] {
-						"2020",
-						"8",
-						"line1" + System.lineSeparator() + "line2", "line3"});
-		
-		assertThat(response.toString(), is("3" + System.lineSeparator() + "3"));
+		assertThat(response.toString(), is(
+		        "{\"part1\":"
+		        + "{\"answer\":\"3\",\"duration\":1000},"
+		        + "\"part2\":"
+		        + "{\"answer\":\"3\",\"duration\":3000}}"));
 	}
+    
+    private Request createRequest(final LocalDate date, final String[] args) {
+        return Request.create(date, args);
+    }
 	
 	private static final class Stub {
 	    private final List<String> strings;
 		
 		public Stub(final List<String> input) {
-			assertThat(input, is(asList("line1", "line2", "line3")));
-			this.strings = new ArrayList<>(input);
+			this.strings = new ArrayList<>(input == null ? List.of() : input);
 		}
 
 		@SuppressWarnings("unused")

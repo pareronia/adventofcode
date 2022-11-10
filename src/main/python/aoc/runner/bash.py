@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess  # nosec
 from . import Result
@@ -27,6 +28,10 @@ class Bash(Plugin):
                 text=True,
                 capture_output=True,
             )
-            return Result.ok(completed.stdout.strip())
+            result = json.loads(completed.stdout.strip())
+            return Result.ok(
+                result["part" + str(part)]["answer"],
+                result["part" + str(part)]["duration"],
+            )
 
         return run_part(1), run_part(2)

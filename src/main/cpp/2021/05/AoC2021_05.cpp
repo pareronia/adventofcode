@@ -9,25 +9,12 @@ using Cell = tuple<int, int>;
 #define Quartet(x1, y1, x2, y2) make_tuple(x1, y1, x2, y2)
 #define Cell(x, y) make_tuple(x, y)
 
-vector<string> split(const string& s, const string& delim) {
-    vector<string> ans;
-    uint start = 0;
-    int end = s.find(delim);
-    while (end != -1) {
-        ans.push_back(s.substr(start, end - start));
-        start = end + delim.size();
-        end = s.find(delim, start);
-    }
-    ans.push_back(s.substr(start, end - start));
-    return ans;
-}
-
 vector<Quartet> parse(const vector<string>& input) {
     vector<Quartet> ans;
     for (const string& line : input) {
-        const vector<string>& splits = split(line, " -> ");
-        const vector<string>& splits1 = split(splits[0], ",");
-        const vector<string>& splits2 = split(splits[1], ",");
+        const vector<string>& splits = aoc::split(line, " -> ");
+        const vector<string>& splits1 = aoc::split(splits[0], ",");
+        const vector<string>& splits2 = aoc::split(splits[1], ",");
         ans.push_back(Quartet(stoi(splits1[0]), stoi(splits1[1]),
                               stoi(splits2[0]), stoi(splits2[1])));
     }

@@ -25,13 +25,8 @@ ostream& operator <<(ostream& strm, const Step& step) {
     return strm;
 }
 
-vector<string> split(const string& s) {
-    istringstream iss(s);
-    return {istream_iterator<string>{iss}, istream_iterator<string>{}};
-}
-
 string getLastWord(const string& line) {
-    const vector<string>& splits = split(line);
+    const vector<string>& splits = aoc::split(line);
     const string& last = splits[splits.size() - 1];
     return last.substr(0, last.size() - 1);
 }
@@ -46,7 +41,7 @@ Step parseStep(const vector<string>& lines, const uint idx) {
 tuple<string, uint, unordered_map<string, State>> parse(const vector<string>& input) {
     const vector<vector<string>> blocks = aoc::toBlocks(input);
     const string start = getLastWord(blocks[0][0]);
-    const uint steps = stoi(split(blocks[0][1])[5]);
+    const uint steps = stoi(aoc::split(blocks[0][1])[5]);
     unordered_map<string, State> states;
     for (uint i = 1; i < blocks.size(); i++) {
         const vector<string>& block = blocks[i];

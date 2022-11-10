@@ -13,14 +13,9 @@ const vector<string> TEST6 = { "a ab abc abd abf abj" };
 const vector<string> TEST7 = { "iiii oiii ooii oooi oooo" };
 const vector<string> TEST8 = { "oiii ioii iioi iiio" };
 
-vector<string> split(const string& s) {
-    istringstream iss(s);
-    return {istream_iterator<string>{iss}, istream_iterator<string>{}};
-}
-
 bool hasNoDuplicateWords(const string &s) {
     map<string, uint> m;
-    for (const string &token : split(s)) {
+    for (const string &token : aoc::split(s)) {
         m[token]++;
     }
     return count_if(m.begin(), m.end(),
@@ -31,7 +26,7 @@ bool hasNoDuplicateWords(const string &s) {
 bool hasNoAnagrams(const string &s) {
     set<map<char, uint>> letterCounts;
     uint wordCount = 0;
-    for (const string &token : split(s)) {
+    for (const string &token : aoc::split(s)) {
         wordCount++;
         map<char, uint> m;
         for (auto i = token.begin(); i != token.end(); ++i) {

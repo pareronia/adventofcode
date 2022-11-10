@@ -1,4 +1,4 @@
-CC := g++
+CC := clang++
 CFLAGS := -Wall -std=c++17 -Ofast
 OBJ_DIR := ../../../../../build/cpp/obj
 AOC_OBJ_DIR := $(OBJ_DIR)/aoc
@@ -31,6 +31,6 @@ $(OBJS): $(SRCS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	$(RM) $(AOCD_OBJS) $(OBJS) $(TARGET)
+	$(RM) $(AOC_OBJS) $(AOCD_OBJS) $(OBJS) $(TARGET)
 
 .PHONY: all clean

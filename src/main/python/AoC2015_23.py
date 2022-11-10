@@ -23,7 +23,7 @@ def _build_program(inss: list[Instruction_]) -> Program:
         if ins.operation == "hlf":
             return Instruction.DIV(ins.operands[0], 2)
         elif ins.operation == "tpl":
-            return Instruction.MUL(ins.operands[0], 3)
+            return Instruction.MUL(ins.operands[0], "3")
         elif ins.operation == "inc":
             return Instruction.ADD(ins.operands[0], 1)
         elif ins.operation == "jmp":
