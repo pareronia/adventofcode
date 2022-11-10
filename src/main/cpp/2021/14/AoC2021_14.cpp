@@ -1,8 +1,4 @@
-#include "assert.h"
-#include <iostream>
-#include <string>
-#include <vector>
-#include <algorithm>
+#include <bits/stdc++.h>
 #include "../../aoc/aoc.hpp"
 #include "../../aocd/aocd.hpp"
 
@@ -31,13 +27,13 @@ const vector<string> TEST = {
 
 int64_t solve(const vector<string> &input, const int cycles) {
     const string start = input[0];
-    map<pair<char, char>, char> rules;
+    unordered_map<pair<char, char>, char> rules;
     for (unsigned int i = 2; i < input.size(); i++) {
         rules[make_pair(input[i][0], input[i][1])] = input[i].back();
     }
 
-    map<pair<char, char>, int64_t> pairCounters;
-    map<char, int64_t> elemCounters;
+    unordered_map<pair<char, char>, int64_t> pairCounters;
+    unordered_map<char, int64_t> elemCounters;
     for (unsigned int i = 0; i < start.size(); i++) {
         ++elemCounters[start[i]];
         if (i == 0) {
@@ -47,8 +43,8 @@ int64_t solve(const vector<string> &input, const int cycles) {
     }
 
     for (int i = 0; i < cycles; i++) {
-        map<pair<char, char>, int64_t> pairCounters2;
-        for (auto const [pair, count] : pairCounters) {
+        unordered_map<pair<char, char>, int64_t> pairCounters2;
+        for (const auto&[pair, count] : pairCounters) {
             const char elem = rules[pair];
             elemCounters[elem] += count;
             pairCounters2[make_pair(pair.first, elem)] += count;
@@ -57,7 +53,7 @@ int64_t solve(const vector<string> &input, const int cycles) {
         pairCounters = pairCounters2;
     }
 
-    auto [min_elem, max_elem] = minmax_element(
+    const auto&[min_elem, max_elem] = minmax_element(
             elemCounters.begin(), elemCounters.end(),
             [](const auto l, const auto r) {
                 return l.second < r.second;

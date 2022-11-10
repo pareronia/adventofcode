@@ -3,6 +3,15 @@
 
 #include <bits/stdc++.h>
 
+template<typename T1, typename T2>
+struct std::hash<std::pair<T1, T2>> {
+    std::size_t operator()(std::pair<T1, T2> const &p) const {
+        std::size_t h1 = std::hash<T1>{}(p.first);
+        std::size_t h2 = std::hash<T2>{}(p.second);
+        return h1 ^ (h2 << 1);
+    }
+};
+
 using sys_clock = std::chrono::system_clock;
 using sys_nanoseconds = std::chrono::duration<double, std::nano>;
 using namespace std;
