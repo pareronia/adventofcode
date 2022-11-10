@@ -98,3 +98,19 @@ TEST(test_aoc_grid, octantsNeighbours) {
             )
     );
 }
+
+TEST(test_aoc_grid, setValue) {
+    const vector<vector<int>> v({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    Grid<int> grid(v);
+    grid.setValue(Cell::at(2, 2), -1);
+    EXPECT_THAT(grid.get(Cell::at(2, 2)), Eq(-1));
+}
+
+TEST(test_aoc_grid, increment) {
+    const vector<vector<int>> v({{1, 2, 3}, {4, 5, 6}, {7, 8, 9}});
+    Grid<int> grid(v);
+    grid.increment(Cell::at(2, 2), -1);
+    EXPECT_THAT(grid.get(Cell::at(2, 2)), Eq(8));
+    grid.increment(Cell::at(2, 2));
+    EXPECT_THAT(grid.get(Cell::at(2, 2)), Eq(9));
+}

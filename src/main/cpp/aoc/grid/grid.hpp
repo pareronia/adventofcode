@@ -25,6 +25,8 @@ public:
     Grid(const vector<vector<T>>& cells);
     static Grid<int> from(const vector<string>& input);
     T get(const Cell& cell) const;
+    void setValue(const Cell& cell, T value);
+    void increment(const Cell& cell, uint amount = 1);
     int width() const;
     int height() const;
     long size() const;
@@ -75,6 +77,16 @@ Grid<T>::Grid(const vector<vector<T>>& cells) {
 template<typename T>
 T Grid<T>::get(const Cell& cell) const {
     return _cells[cell.row()][cell.col()];
+}
+
+template<typename T>
+void Grid<T>::increment(const Cell& cell, uint amount) {
+   _cells[cell.row()][cell.col()] += amount;
+}
+
+template<typename T>
+void Grid<T>::setValue(const Cell& cell, T value) {
+    _cells[cell.row()][cell.col()] = value;
 }
 
 template<typename T>
