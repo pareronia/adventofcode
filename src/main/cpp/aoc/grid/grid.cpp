@@ -39,3 +39,16 @@ Grid<int> Grid<int>::from(const vector<string>& input) {
     }
     return Grid<int>(v);
 }
+
+template<>
+Grid<char> Grid<char>::from(const vector<string>& input) {
+    vector<vector<char>> v;
+    for (const string& line: input) {
+        vector<char> vv;
+        for (const char c: line) {
+            vv.push_back(c);
+        }
+        v.push_back(vv);
+    }
+    return Grid<char>(v);
+}

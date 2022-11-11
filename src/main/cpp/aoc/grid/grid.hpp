@@ -23,16 +23,23 @@ class Grid {
     vector<vector<T>> _cells;
 public:
     Grid(const vector<vector<T>>& cells);
-    static Grid<int> from(const vector<string>& input);
+    static Grid<T> from(const vector<string>& input);
+    bool operator==(const Grid<T>& other) const;
     T get(const Cell& cell) const;
     void setValue(const Cell& cell, T value);
     void increment(const Cell& cell, uint amount = 1);
     int width() const;
     int height() const;
     long size() const;
+    bool isSquare() const;
     long countAllEqualTo(T value) const;
     unordered_set<Cell> capitalNeighbours(const Cell& cell) const;
     unordered_set<Cell> octantsNeighbours(const Cell& cell) const;
+    Grid<T> subGrid(const Cell& from, const Cell& to) const;
+    vector<vector<Grid<T>>> divide(const uint partSize) const;
+    static Grid<T> merge(const vector<vector<Grid<T>>>& grids);
+    Grid<T> flipHorizontally() const;
+    Grid<T> rotate() const;
     class iterator: public std::iterator<
                     std::input_iterator_tag,   // iterator_category
                     Cell,                      // value_type
@@ -62,16 +69,68 @@ public:
     };
     iterator begin() const { return iterator(*this, Cell::at(0, 0)); }
     iterator end() const { return iterator(*this, Cell::at(height(), 0)); }
+    class permutations: public std::iterator<
+                    std::input_iterator_tag,   // iterator_category
+                    Grid<T>,                      // value_type
+                    Grid<T>,                      // difference_type
+                    const Grid<T>*,               // pointer
+                    Grid<T>                       // reference
+                    >
+    {
+        Grid<T> grid;
+        uint cnt;
+    public:
+        explicit permutations(const Grid<T> _grid, uint _cnt)
+            : grid(_grid), cnt(_cnt) {}
+        permutations& operator++() {
+            cnt++;
+            if (cnt == 4) {
+                grid = grid.flipHorizontally();
+            } else {
+                grid = grid.rotate();
+            }
+            return *this;
+        }
+        permutations operator++(int) {
+            permutations retval = *this;
+            ++(*this);
+            return retval;
+        }
+        bool operator==(permutations other) const { return cnt == other.cnt; }
+        bool operator!=(permutations other) const { return !(*this == other); }
+        Grid<T> operator*() const { return grid; }
+    };
+    permutations permutations_begin() const {
+        validateIsSquare();
+        return permutations(*this, 0);
+    }
+    permutations permutations_end() const { return permutations(*this, 8); }
 protected:
     aoc::Range rowIndices() const;
     aoc::Range colIndices() const;
     unordered_set<Cell>
         neighbours(const Cell& cell, const set<pair<int, int>> deltas) const;
+    void validateIsSquare() const;
 };
 
 template<typename T>
 Grid<T>::Grid(const vector<vector<T>>& cells) {
     _cells = cells;
+}
+
+template<typename T>
+bool Grid<T>::operator==(const Grid<T>& other) const {
+    if (height() != other.height() || width() != other.width()) {
+        return false;
+    }
+    for (const int row : rowIndices()) {
+        for (const int col : colIndices()) {
+            if (_cells[row][col] != other.get(Cell::at(row, col))) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 template<typename T>
@@ -91,7 +150,7 @@ void Grid<T>::setValue(const Cell& cell, T value) {
 
 template<typename T>
 int Grid<T>::width() const {
-    return _cells[0].size();
+    return height() == 0 ? 0 : _cells[0].size();
 }
 
 template<typename T>
@@ -102,6 +161,18 @@ int Grid<T>::height() const {
 template<typename T>
 long Grid<T>::size() const {
     return width() * height();
+}
+
+template<typename T>
+bool Grid<T>::isSquare() const {
+    return width() == height();
+}
+
+template<typename T>
+void Grid<T>::validateIsSquare() const {
+    if (!isSquare()) {
+        throw "Grid should be square.";
+    }
 }
 
 template<typename T>
@@ -164,4 +235,100 @@ unordered_set<Cell> Grid<T>::octantsNeighbours(const Cell& cell) const {
     };
     return neighbours(cell, deltas);
 }
+
+template<typename T>
+Grid<T> Grid<T>::subGrid(const Cell& from, const Cell& to) const {
+    if (from.row() > to.row() || from.col() > to.col()) {
+        throw "Invalid coordinates";
+    }
+    const int endRow = min(to.row(), height());
+    const int endCol = min(to.col(), width());
+    const int height = endRow - from.row();
+    const int width = endCol - from.col();
+    vector<vector<T>> cells;
+    for (int r = from.row(), i = 0; r < endRow && i < height; r++, i++) {
+        vector<T> row;
+        for (int c = from.col(), j = 0; c < endCol && j < width; c++, j++) {
+            row.push_back(_cells[r][c]);
+        }
+        cells.push_back(row);
+    }
+    return Grid(cells);
+}
+
+template<typename T>
+vector<vector<Grid<T>>> Grid<T>::divide(const uint partSize) const {
+    validateIsSquare();
+    const uint parts = height() / partSize;
+    vector<vector<Grid<T>>> subGrids;
+    for (uint r = 0; r < parts; r++) {
+        vector<Grid<T>> row;
+        for (uint c = 0; c < parts; c++) {
+            const Grid<T> sub = subGrid(
+                    Cell::at(r * partSize, c * partSize),
+                    Cell::at((r + 1) * partSize, (c + 1) * partSize));
+            row.push_back(sub);
+        }
+        subGrids.push_back(row);
+    }
+    return subGrids;
+}
+
+template<typename T>
+Grid<T> Grid<T>::merge(const vector<vector<Grid<T>>>& grids) {
+    unordered_set<uint> heights, widths;
+    for (const vector<Grid<T>>& row : grids) {
+        for (const Grid<T>& grid : row) {
+            heights.insert(grid.height());
+            widths.insert(grid.width());
+        }
+    }
+    if (heights.size() > 1 || widths.size() > 1) {
+        throw "Grids should be same size";
+    }
+    vector<vector<T>> cells;
+    const uint fullHeight = grids.size() * grids[0][0].height();
+    const uint fullWidth = grids[0].size() * grids[0][0].width();
+    const uint height = grids[0][0].height();
+    const uint width = grids[0][0].width();
+    for (uint r = 0; r < fullHeight; r++) {
+        const auto rDiv = div((int) r, (int) height);
+        const int RR = rDiv.quot;
+        const int rr = rDiv.rem;
+        vector<T> row;
+        for (uint c = 0; c < fullWidth; c++) {
+            const auto cDiv = div((int) c, (int) width);
+            const int CC = cDiv.quot;
+            const int cc = cDiv.rem;
+            row.push_back(grids[RR][CC].get(Cell::at(rr, cc)));
+        }
+        cells.push_back(row);
+    }
+    return Grid(cells);
+}
+
+template<typename T>
+Grid<T> Grid<T>::flipHorizontally() const {
+    vector<vector<T>> cells;
+    for (int rr = height() - 1; rr >= 0; rr--) {
+        vector<T> row;
+        copy(_cells.at(rr).begin(), _cells.at(rr).end(), back_inserter(row));
+        cells.push_back(row);
+    }
+    return Grid(cells);
+}
+
+template<typename T>
+Grid<T> Grid<T>::rotate() const {
+    vector<vector<T>> cells;
+    for (int cc = 0; cc < width(); cc++) {
+        vector<T> row;
+        for (int rr = height() - 1; rr >= 0; rr--) {
+            row.push_back(get(Cell::at(rr, cc)));
+        }
+        cells.push_back(row);
+    }
+    return Grid(cells);
+}
+
 #endif
