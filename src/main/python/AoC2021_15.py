@@ -3,12 +3,14 @@
 # Advent of Code 2021 Day 15
 #
 
-from collections import defaultdict
 from collections.abc import Generator
-from queue import PriorityQueue
 from aoc import my_aocd
+from aoc.graph import a_star
 from aoc.grid import IntGrid
 import aocd
+
+START = (0, 0)
+Cell = tuple[int, int]
 
 
 def _parse(inputs: tuple[str]) -> IntGrid:
@@ -16,60 +18,41 @@ def _parse(inputs: tuple[str]) -> IntGrid:
 
 
 def _get_risk(grid: IntGrid, row: int, col: int) -> int:
-    value = grid.get_value_at(row % grid.get_height(),
-                              col % grid.get_width()) \
-            + row // grid.get_height() \
-            + col // grid.get_width()
+    value = (
+        grid.get_value_at(row % grid.get_height(), col % grid.get_width())
+        + row // grid.get_height()
+        + col // grid.get_width()
+    )
     while value > 9:
         value -= 9
     return value
 
 
-def _find_neighbours(grid: IntGrid, row: int, col: int, tiles: int) \
-        -> Generator[tuple[int, int]]:
-    return ((row + dr, col + dc)
-            for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
-            if row + dr >= 0
-            and row + dr < tiles * grid.get_height()
-            and col + dc >= 0
-            and col + dc < tiles * grid.get_width())
-
-
-def _find_least_risk_path(grid: IntGrid, tiles: int) -> list[tuple[int, int]]:
-    start = (0, 0)
-    end = (tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
-    q = PriorityQueue()
-    q.put((0, start))
-    best = defaultdict(lambda: 1E9)
-    best[start] = 0
-    seen = {start}
-    parent = {}
-    while not q.empty():
-        risk, cell = q.get()
-        if cell == end:
-            path = [end]
-            curr = end
-            while curr in parent:
-                curr = parent[curr]
-                path.append(curr)
-            return path
-        seen.add(cell)
-        c_total = best[cell]
-        for n in _find_neighbours(grid, *cell, tiles):
-            if n in seen:
-                continue
-            new_risk = c_total + _get_risk(grid, *n)
-            if new_risk < best[n]:
-                best[n] = new_risk
-                parent[n] = cell
-                q.put((new_risk, n))
-    raise RuntimeError("Unsolvable")
+def _find_neighbours(
+    grid: IntGrid, row: int, col: int, tiles: int, seen: set[Cell]
+) -> Generator[Cell]:
+    seen.add((row, col))
+    return (
+        (row + dr, col + dc)
+        for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
+        if (row + dr, col + dc) not in seen
+        and row + dr >= 0
+        and row + dr < tiles * grid.get_height()
+        and col + dc >= 0
+        and col + dc < tiles * grid.get_width()
+    )
 
 
 def _solve(grid: IntGrid, tiles: int) -> int:
-    return sum(_get_risk(grid, *c)
-               for c in _find_least_risk_path(grid, tiles)
-               if c != (0, 0))
+    seen = set[Cell]()
+    end = (tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
+    risk, _ = a_star(
+        START,
+        lambda cell: cell == end,
+        lambda cell: _find_neighbours(grid, *cell, tiles, seen),
+        lambda cell: _get_risk(grid, *cell),
+    )
+    return risk
 
 
 def part_1(inputs: tuple[str]) -> int:
@@ -111,5 +94,5 @@ def main() -> None:
     my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
