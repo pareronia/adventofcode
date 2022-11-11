@@ -4,6 +4,7 @@ cc_binary(
     deps = [
         "//src/main/cpp/aoc:aoc",
         "//src/main/cpp/aoc/grid:aoc_grid",
+        "//src/main/cpp/aoc/graph:aoc_graph",
         "//src/main/cpp/aocd:aocd",
     ],
 )
