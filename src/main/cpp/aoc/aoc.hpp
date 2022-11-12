@@ -49,8 +49,8 @@ namespace aoc {
             bool operator!=(iterator other) const {return !(*this == other);}
             reference operator*() const {return num;}
         };
-        iterator begin() {return iterator(from);}
-        iterator end() {return iterator(to >= from ? to + 1 : to - 1);}
+        iterator begin() const {return iterator(from);}
+        iterator end() const {return iterator(to >= from ? to + 1 : to - 1);}
     };
 }
 
