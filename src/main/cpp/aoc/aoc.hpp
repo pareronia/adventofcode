@@ -30,7 +30,17 @@ vector<string> split(const string& s, const string& delim);
 
 class Range {
     Range(const int from_, const int to_, const int step_)
-        : from(from_), to(to_), step(step_) {}
+        : from(from_), to(to_), step(step_) {
+        if (step == 0) {
+            throw "step should be != 0";
+        }
+        if (from < to && step < 0) {
+            throw "step should be > 0";
+        }
+        if (from > to && step > 0) {
+            throw "step should be < 0";
+        }
+    }
     const int from;
     const int to;
     const int step;

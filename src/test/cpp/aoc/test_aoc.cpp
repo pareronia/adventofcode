@@ -79,6 +79,23 @@ vector<int> collect(const Range& range) {
     return ans;
 }
 
+TEST(test_aoc, RangeCannotHaveZeroStep) {
+    EXPECT_ANY_THROW(Range::range(10, 20, 0));
+}
+
+TEST(test_aoc, RangeCannotHaveAscendingRangeToNegative) {
+    EXPECT_ANY_THROW(Range::range(-10));
+    EXPECT_ANY_THROW(Range::rangeClosed(-10));
+}
+
+TEST(test_aoc, RangeCannotHaveNegativeStepOnAscendingRange) {
+    EXPECT_ANY_THROW(Range::range(10, 20, -1));
+}
+
+TEST(test_aoc, RangeCannotHavePositiveStepOnDescendingRange) {
+    EXPECT_ANY_THROW(Range::range(20, 10, 1));
+}
+
 TEST(test_aoc, Range) {
     EXPECT_THAT(collect(Range::range(5)), Eq(vector<int>({0, 1, 2, 3, 4})));
     EXPECT_THAT(collect(Range::range(5, 5, 1)), IsEmpty());
@@ -93,6 +110,8 @@ TEST(test_aoc, Range) {
     EXPECT_THAT(collect(Range::range(4, 16, 2)),
                 Eq(vector<int>({4, 6, 8, 10, 12, 14})));
     EXPECT_THAT(collect(Range::range(4, -1, -1)),
+                Eq(vector<int>({4, 3, 2, 1, 0})));
+    EXPECT_THAT(collect(Range::rangeClosed(4, 0, -1)),
                 Eq(vector<int>({4, 3, 2, 1, 0})));
     EXPECT_THAT(collect(Range::rangeClosed(4, -1, -1)),
                 Eq(vector<int>({4, 3, 2, 1, 0, -1})));

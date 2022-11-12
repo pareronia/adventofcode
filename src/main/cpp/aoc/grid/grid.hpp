@@ -114,7 +114,9 @@ class Grid {
 
    protected:
     aoc::Range rowIndices() const;
+    aoc::Range rowIndicesReversed() const;
     aoc::Range colIndices() const;
+    aoc::Range colIndicesReversed() const;
     unordered_set<Cell> neighbours(const Cell& cell,
                                    const set<pair<int, int>> deltas) const;
     void validateIsSquare() const;
@@ -188,8 +190,18 @@ aoc::Range Grid<T>::rowIndices() const {
 }
 
 template <typename T>
+aoc::Range Grid<T>::rowIndicesReversed() const {
+    return aoc::Range::rangeClosed(height() - 1, 0, -1);
+}
+
+template <typename T>
 aoc::Range Grid<T>::colIndices() const {
     return aoc::Range::range(width());
+}
+
+template <typename T>
+aoc::Range Grid<T>::colIndicesReversed() const {
+    return aoc::Range::rangeClosed(width() - 1, 0, -1);
 }
 
 template <typename T>
@@ -266,9 +278,9 @@ vector<vector<Grid<T>>> Grid<T>::divide(const uint partSize) const {
     validateIsSquare();
     const uint parts = height() / partSize;
     vector<vector<Grid<T>>> subGrids;
-    for (uint r = 0; r < parts; r++) {
+    for (uint r : aoc::Range::range(parts)) {
         vector<Grid<T>> row;
-        for (uint c = 0; c < parts; c++) {
+        for (uint c : aoc::Range::range(parts)) {
             const Grid<T> sub =
                 subGrid(Cell::at(r * partSize, c * partSize),
                         Cell::at((r + 1) * partSize, (c + 1) * partSize));
@@ -296,12 +308,12 @@ Grid<T> Grid<T>::merge(const vector<vector<Grid<T>>>& grids) {
     const uint fullWidth = grids[0].size() * grids[0][0].width();
     const uint height = grids[0][0].height();
     const uint width = grids[0][0].width();
-    for (uint r = 0; r < fullHeight; r++) {
+    for (uint r : aoc::Range::range(fullHeight)) {
         const auto rDiv = div((int)r, (int)height);
         const int RR = rDiv.quot;
         const int rr = rDiv.rem;
         vector<T> row;
-        for (uint c = 0; c < fullWidth; c++) {
+        for (uint c : aoc::Range::range(fullWidth)) {
             const auto cDiv = div((int)c, (int)width);
             const int CC = cDiv.quot;
             const int cc = cDiv.rem;
@@ -315,7 +327,7 @@ Grid<T> Grid<T>::merge(const vector<vector<Grid<T>>>& grids) {
 template <typename T>
 Grid<T> Grid<T>::flipHorizontally() const {
     vector<vector<T>> cells;
-    for (int rr = height() - 1; rr >= 0; rr--) {
+    for (int rr : rowIndicesReversed()) {
         vector<T> row;
         copy(_cells.at(rr).begin(), _cells.at(rr).end(), back_inserter(row));
         cells.push_back(row);
@@ -326,9 +338,9 @@ Grid<T> Grid<T>::flipHorizontally() const {
 template <typename T>
 Grid<T> Grid<T>::rotate() const {
     vector<vector<T>> cells;
-    for (int cc = 0; cc < width(); cc++) {
+    for (int cc : colIndices()) {
         vector<T> row;
-        for (int rr = height() - 1; rr >= 0; rr--) {
+        for (int rr : rowIndicesReversed()) {
             row.push_back(get(Cell::at(rr, cc)));
         }
         cells.push_back(row);
