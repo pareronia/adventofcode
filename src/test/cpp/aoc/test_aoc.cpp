@@ -1,7 +1,9 @@
-#include <bits/stdc++.h>
+#include <string>
+#include <vector>
+
 #include "../../../main/cpp/aoc/aoc.hpp"
-#include "gtest/gtest.h"
 #include "gmock/gmock.h"
+#include "gtest/gtest.h"
 
 using namespace std;
 using namespace aoc;
@@ -63,7 +65,8 @@ TEST(test_aoc, splitOnToken) {
     EXPECT_THAT(split("a- b", "-"), Eq(vector<string>({"a", " b"})));
     EXPECT_THAT(split("a--b", "-"), Eq(vector<string>({"a", "", "b"})));
     EXPECT_THAT(split("a-b+c", "-"), Eq(vector<string>({"a", "b+c"})));
-    EXPECT_THAT(split("a1-->b-->2c$3", "-->"), Eq(vector<string>({"a1", "b", "2c$3"})));
+    EXPECT_THAT(split("a1-->b-->2c$3", "-->"),
+                Eq(vector<string>({"a1", "b", "2c$3"})));
     EXPECT_THAT(split("a", "-->"), Eq(vector<string>({"a"})));
     EXPECT_THAT(split("", "-->"), Eq(vector<string>({""})));
     EXPECT_ANY_THROW(split("aa", ""));
@@ -77,6 +80,26 @@ vector<int> collect(const Range& range) {
 }
 
 TEST(test_aoc, Range) {
-    EXPECT_THAT(collect(Range(0, 5)), Eq(vector<int>({0, 1, 2, 3, 4, 5})));
-    EXPECT_THAT(collect(Range(1, 6)), Eq(vector<int>({1, 2, 3, 4, 5, 6})));
+    EXPECT_THAT(collect(Range::range(5)), Eq(vector<int>({0, 1, 2, 3, 4})));
+    EXPECT_THAT(collect(Range::range(5, 5, 1)), IsEmpty());
+    EXPECT_THAT(collect(Range::range(5, 5, -1)), IsEmpty());
+    EXPECT_THAT(collect(Range::range(5, 6, 1)), Eq(vector<int>({5})));
+    EXPECT_THAT(collect(Range::range(5, 6, 2)), Eq(vector<int>({5})));
+    EXPECT_THAT(collect(Range::range(5, 7, 2)), Eq(vector<int>({5})));
+    EXPECT_THAT(collect(Range::range(5, 8, 2)), Eq(vector<int>({5, 7})));
+    EXPECT_THAT(collect(Range::range(1, 6)), Eq(vector<int>({1, 2, 3, 4, 5})));
+    EXPECT_THAT(collect(Range::range(4, 15, 2)),
+                Eq(vector<int>({4, 6, 8, 10, 12, 14})));
+    EXPECT_THAT(collect(Range::range(4, 16, 2)),
+                Eq(vector<int>({4, 6, 8, 10, 12, 14})));
+    EXPECT_THAT(collect(Range::range(4, -1, -1)),
+                Eq(vector<int>({4, 3, 2, 1, 0})));
+    EXPECT_THAT(collect(Range::rangeClosed(4, -1, -1)),
+                Eq(vector<int>({4, 3, 2, 1, 0, -1})));
+    EXPECT_THAT(collect(Range::rangeClosed(7)),
+                Eq(vector<int>({0, 1, 2, 3, 4, 5, 6, 7})));
+    EXPECT_THAT(collect(Range::rangeClosed(4, 13, 2)),
+                Eq(vector<int>({4, 6, 8, 10, 12})));
+    EXPECT_THAT(collect(Range::rangeClosed(4, 12, 2)),
+                Eq(vector<int>({4, 6, 8, 10, 12})));
 }

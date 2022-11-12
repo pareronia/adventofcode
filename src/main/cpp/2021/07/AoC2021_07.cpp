@@ -1,6 +1,10 @@
-#include <bits/stdc++.h>
+#include <assert.h>
+
+#include <algorithm>
+#include <functional>
+#include <numeric>
+
 #include "../../aoc/aoc.hpp"
-#include "../../aocd/aocd.hpp"
 
 using namespace std;
 
@@ -13,35 +17,25 @@ int solve(const vector<string>& input, const function<int(int, int)>& calc) {
     const vector<int>& nums = parse(input);
     const auto sum = [&nums, &calc](int a) {
         return accumulate(
-                nums.begin(), nums.end(),
-                0,
-                [&calc, a](const int x, const int b){ return x + calc(a, b); }
-        );
+            nums.begin(), nums.end(), 0,
+            [&calc, a](const int x, const int b) { return x + calc(a, b); });
     };
     const auto min_max = minmax_element(nums.begin(), nums.end());
-    auto range = aoc::Range(*min_max.first, *min_max.second);
+    auto range = aoc::Range::rangeClosed(*min_max.first, *min_max.second);
     return accumulate(
-            range.begin(), range.end(),
-            INT_MAX,
-            [&sum](const int y, const int a) { return min(y, sum(a)); }
-    );
+        range.begin(), range.end(), INT_MAX,
+        [&sum](const int y, const int a) { return min(y, sum(a)); });
 }
 
 int part1(const vector<string>& input) {
-    return solve(
-            input,
-            [](const int a, const int b) { return abs(a - b); }
-    );
+    return solve(input, [](const int a, const int b) { return abs(a - b); });
 }
 
 int part2(const vector<string>& input) {
-    return solve(
-            input,
-            [](const int a, const int b) {
-                const int diff = abs(a - b);
-                return (diff * (diff + 1)) / 2;
-            }
-    );
+    return solve(input, [](const int a, const int b) {
+        const int diff = abs(a - b);
+        return (diff * (diff + 1)) / 2;
+    });
 }
 
 const vector<string> TEST = {"16,1,2,0,4,2,7,1,2,14"};
