@@ -1,5 +1,6 @@
 package com.github.pareronia.aoc;
 
+import static com.github.pareronia.aoc.Range.range;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -82,6 +83,22 @@ public class Grid {
 	public Integer getMaxColIndex() {
 		return getWidth() - 1;
 	}
+
+	public Range rowIndices() {
+	    return Range.range(getHeight());
+	}
+	
+	public Range rowIndicesReversed() {
+	    return Range.rangeClosed(getHeight() - 1, 0, -1);
+	}
+	
+	public Range colIndices() {
+	    return Range.range(getWidth());
+	}
+	
+	public Range colIndicesReversed() {
+        return Range.rangeClosed(getWidth() - 1, 0, -1);
+    }
 	
 	public char[] getRow(final Integer row) {
 		validateRowIndex(row);
@@ -91,7 +108,7 @@ public class Grid {
 	public char[] getRowReversed(final Integer row) {
 		validateRowIndex(row);
 		final char[] column = new char[getWidth()];
-		for (int col = getMaxColIndex(); col >= 0; col--) {
+		for (final int col : colIndicesReversed()) {
 			column[getMaxColIndex() - col] = this.cells[row][col];
 		}
 		return column;
@@ -100,7 +117,7 @@ public class Grid {
 	public char[] getColumn(final Integer col) {
 		validateColumnIndex(col);
 		final char[] column = new char[getHeight()];
-		for (int row = 0; row < getHeight(); row++) {
+		for (final int row : rowIndices()) {
 			column[row] = this.cells[row][col];
 		}
 		return column;
@@ -109,7 +126,7 @@ public class Grid {
 	public char[] getColumnReversed(final Integer col) {
 		validateColumnIndex(col);
 		final char[] column = new char[getHeight()];
-		for (int row = getMaxRowIndex(); row >= 0; row--) {
+		for (final int row : rowIndicesReversed()) {
 			column[getMaxRowIndex() - row] = this.cells[row][col];
 		}
 		return column;
@@ -249,9 +266,9 @@ public class Grid {
 	
 	public Stream<Cell> findAllMatching(final Predicate<Character> test) {
 		final Builder<Cell> builder = Stream.builder();
-		for (int row = 0; row < getHeight(); row++) {
+		for (final int row : rowIndices()) {
 			final char[] cs = cells[row];
-			for (int col = 0; col < getWidth(); col++) {
+			for (final int col : colIndices()) {
 				if (test.test(cs[col])) {
 					builder.add(Cell.at(row, col));
 				}
@@ -270,8 +287,8 @@ public class Grid {
 	
 	public Grid replace(final char ch1, final char ch2) {
 		final char[][] cells = new char[getHeight()][getWidth()];
-		for (int row = 0; row < getHeight(); row++) {
-			for (int col = 0; col < getWidth(); col++) {
+		for (final int row : rowIndices()) {
+			for (final int col : colIndices()) {
 				cells[row][col] = this.cells[row][col] == ch1 ? ch2 : this.cells[row][col];
 			}
 		}
@@ -280,8 +297,8 @@ public class Grid {
 	
 	public Grid update(final Set<Cell> toUpdate, final char ch) {
 		final char[][] cells = new char[getHeight()][getWidth()];
-		for (int row = 0; row < getHeight(); row++) {
-			for (int col = 0; col < getWidth(); col++) {
+		for (final int row : rowIndices()) {
+			for (final int col : colIndices()) {
 			    if (toUpdate.contains(Cell.at(row, col))) {
 			        cells[row][col] = ch;
 			    } else {
@@ -319,8 +336,8 @@ public class Grid {
 	    validateIsSquare();
         final int parts = this.getHeight() / partSize;
         final Grid[][] subGrids = new Grid[parts][parts];
-        for (int r = 0; r < parts; r++) {
-            for (int c = 0; c < parts; c++) {
+        for (final int r : range(parts)) {
+            for (final int c : range(parts)) {
                 subGrids[r][c] = this.subGrid(
                         Cell.at(r * partSize, c * partSize),
                         Cell.at((r + 1) * partSize, (c + 1) * partSize));
@@ -343,9 +360,9 @@ public class Grid {
 	        throw new IllegalArgumentException("Grids should be same size");
 	    }
         final List<String> strings = new ArrayList<>();
-        for (int r = 0; r < grids.length; r++) {
+        for (final int r : range(grids.length)) {
             final List<List<String>> rowsList = new ArrayList<>();
-            for (int c = 0; c < grids[r].length; c++) {
+            for (final int c : range(grids[r].length)) {
                 rowsList.add(grids[r][c].getRowsAsStringList());
             }
             final MutableInt n = new MutableInt();
@@ -361,7 +378,7 @@ public class Grid {
 	
 	public Grid getWithEdgesRemoved() {
 		final char[][] cells = new char[getHeight() - 2][];
-		for (int row = 1; row < getMaxRowIndex(); row++) {
+		for (final int row : range(1, getMaxRowIndex(), 1)) {
 			cells[row - 1] = Arrays.copyOfRange(this.cells[row], 1, getWidth() - 1);
 		}
 		return new Grid(cells);
@@ -369,7 +386,7 @@ public class Grid {
 	
 	private char[] rollCharArray(final char[] oldChars, final Integer amount) {
 	    final char[] newChars = new char[oldChars.length];
-	    for (int col = 0; col < oldChars.length; col++) {
+	    for (final int col : range(oldChars.length)) {
 	        newChars[col] = oldChars[Math.floorMod(col - amount, oldChars.length)];
 	    }
 	    return newChars;
@@ -379,8 +396,8 @@ public class Grid {
 	    validateColumnIndex(colIndex);
 	    final char[] newCol = rollCharArray(getColumn(colIndex), amount);
 		final char[][] cells = new char[getHeight()][getWidth()];
-		for (int row = 0; row < getHeight(); row++) {
-			for (int col = 0; col < getWidth(); col++) {
+		for (final int row : rowIndices()) {
+			for (final int col : colIndices()) {
 			    if (col == colIndex) {
 			        cells[row][col] = newCol[row];
 			    } else {
@@ -394,7 +411,7 @@ public class Grid {
 	public Grid rollRow(final Integer rowIndex, final Integer amount) {
 	    validateRowIndex(rowIndex);
 		final char[][] cells = new char[getHeight()][];
-		for (int row = 0; row < getHeight(); row++) {
+		for (final int row : rowIndices()) {
 		    final char[] oldRow = this.cells[row];
 			if (row != rowIndex) {
 			    cells[row] = oldRow;
@@ -407,9 +424,9 @@ public class Grid {
 	
 	public Grid rotate() {
 		final char[][] cells = new char[getWidth()][];
-		for (int col = 0; col < getWidth(); col++) {
+		for (final int col : colIndices()) {
 			final char[] newRow = new char[getHeight()];
-			for (int row = getMaxRowIndex(); row >= 0; row--) {
+			for (final int row : rowIndicesReversed()) {
 				newRow[getMaxRowIndex() - row] = this.cells[row][col];
 			}
 			cells[col] = newRow;
@@ -419,7 +436,7 @@ public class Grid {
 	
 	public Grid flipHorizontally() {
 		final char[][] cells = new char[getWidth()][];
-		for (int row = getMaxRowIndex(); row >= 0; row--) {
+		for (final int row : rowIndicesReversed()) {
 			cells[getMaxRowIndex() - row] = this.cells[row];
 		}
 		return new Grid(cells);

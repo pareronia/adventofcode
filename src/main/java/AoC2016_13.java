@@ -1,3 +1,5 @@
+import static com.github.pareronia.aoc.Range.range;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -57,9 +59,9 @@ public final class AoC2016_13 extends AoCBase {
     
     private Grid createGrid(final Integer rows, final Integer cols) {
         final char[][] grid = new char[rows + 1][cols + 1];
-        for (int rr = 0; rr <= rows; rr++) {
+        for (final int rr : range(rows)) {
             final char[] newrow = new char[cols + 1];
-            for (int cc = 0; cc <= cols; cc++) {
+            for (final int cc : range(cols)) {
                 newrow[cc] = isOpenSpace(Position.of(cc, rr)) ? FLOOR : WALL;
             }
             grid[rr] = newrow;
