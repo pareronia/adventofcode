@@ -1,13 +1,15 @@
 package com.github.pareronia.aoc.graph;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -28,14 +30,7 @@ public class AStar {
         while (!q.isEmpty()) {
             final State<T> state = q.poll();
             if (end.test(state.node)) {
-                final Builder<T> builder = Stream.builder();
-                builder.add(state.node);
-                T curr = state.node;
-                while (parent.keySet().contains(curr)) {
-                    curr = parent.get(curr);
-                    builder.add(curr);
-                }
-                return new Result<>(builder.build(), state.cost);
+                break;
             }
             final long cTotal = best.getOrDefault(state.node, Long.MAX_VALUE);
             adjacent.apply(state.node)
@@ -48,7 +43,7 @@ public class AStar {
                     }
             });
         }
-        throw new IllegalStateException("Unsolvable");
+        return new Result<>(start, best, parent);
     }
 
     @RequiredArgsConstructor
@@ -63,10 +58,30 @@ public class AStar {
         }
     }
 
-    @RequiredArgsConstructor
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
     @Getter
-    public static final class Result<T> {
-        private final Stream<T> path;
-        private final long cost;
+    public static class Result<T> {
+        private final T source;
+        private final Map<T, Long> distances;
+        private final Map<T, T> paths;
+        
+        public long getDistance(final T v) {
+            return distances.get(v);
+        }
+
+        public List<T> getPath(final T v) {
+            final List<T> p = new ArrayList<>();
+            T parent = v;
+            if (v != this.source) {
+                while (parent != this.source) {
+                    p.add(0, parent);
+                    parent = this.paths.get(parent);
+                }
+                p.add(0, this.source);
+            } else {
+                p.add(this.source);
+            }
+            return p;
+        }
     }
 }

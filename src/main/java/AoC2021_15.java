@@ -65,11 +65,17 @@ public class AoC2021_15 extends AoCBase {
     }
     
     private int solve(final int tiles) {
-        return (int) runAStar(tiles).getCost();
+        final Cell end = Cell.at(
+                tiles * this.grid.getHeight() - 1,
+                tiles * this.grid.getWidth() - 1);
+        return (int) runAStar(tiles).getDistance(end);
     }
     
     private void visualize(final int tiles) {
-        final Set<Cell> path = runAStar(tiles).getPath().collect(toSet());
+        final Cell end = Cell.at(
+                tiles * this.grid.getHeight() - 1,
+                tiles * this.grid.getWidth() - 1);
+        final Set<Cell> path = runAStar(tiles).getPath(end).stream().collect(toSet());
         IntStream.range(0, tiles * this.grid.getHeight()).forEach(row -> {
             final String string = IntStream.range(0, tiles * this.grid.getWidth())
                 .mapToObj(col -> {

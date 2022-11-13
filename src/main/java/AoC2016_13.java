@@ -1,35 +1,22 @@
-import static com.github.pareronia.aoc.Range.range;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.graph.AStar;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2016_13 extends AoCBase {
 
     private static final char ONE = '1';
-    private static final char FLOOR = '.';
-    private static final char WALL = '#';
-    private static final Position START = Position.of(1, 1);
+    private static final Cell START = Cell.at(1, 1);
     
     private final transient Integer input;
-    private final transient Map<Position, Boolean> openSpaceCache;
+    private final transient Map<Cell, Boolean> openSpaceCache;
 
     private AoC2016_13(final List<String> inputs, final boolean debug) {
         super(debug);
@@ -46,10 +33,10 @@ public final class AoC2016_13 extends AoCBase {
         return new AoC2016_13(input, true);
     }
     
-    private boolean isOpenSpace(final Position position) {
-        return this.openSpaceCache.computeIfAbsent(position, pos -> {
-            final int x = position.getX();
-            final int y = position.getY();
+    private boolean isOpenSpace(final Cell cell) {
+        return this.openSpaceCache.computeIfAbsent(cell, pos -> {
+            final int x = cell.getRow();
+            final int y = cell.getCol();
             final int t = this.input + x * x + 3 * x + 2 * x * y + y + y * y;
             final long ones = Utils.asCharacterStream(Integer.toBinaryString(t))
                     .filter(c -> c == ONE).count();
@@ -57,122 +44,50 @@ public final class AoC2016_13 extends AoCBase {
         });
     }
     
-    private Grid createGrid(final Integer rows, final Integer cols) {
-        final char[][] grid = new char[rows + 1][cols + 1];
-        for (final int rr : range(rows)) {
-            final char[] newrow = new char[cols + 1];
-            for (final int cc : range(cols)) {
-                newrow[cc] = isOpenSpace(Position.of(cc, rr)) ? FLOOR : WALL;
-            }
-            grid[rr] = newrow;
-        }
-        return new Grid(grid);
+    private Stream<Cell> adjacent(final Cell c) {
+        return Headings.CAPITAL.stream()
+            .map(d -> Cell.at(c.getRow() + d.getX(), c.getCol() + d.getY()))
+            .filter(n -> n.getRow() >= 0)
+            .filter(n -> n.getCol() >= 0)
+            .filter(this::isOpenSpace);
     }
     
-    private Iterator<Position> neighbours(final Position pos) {
-        return Set.of(Position.of(pos.getX() + 1, pos.getY()),
-                Position.of(pos.getX() - 1, pos.getY()),
-                Position.of(pos.getX(), pos.getY() + 1),
-                Position.of(pos.getX(), pos.getY() - 1)).stream()
-            .filter(p -> p.getX() >= 0 && p.getY() >= 0)
-            .filter(this::isOpenSpace)
-            .iterator();
-    }
-
-    private ElementSet getDistance(final Position source, final Position destination) {
-        final ElementSet set = new ElementSet();
-        set.add(destination, 0);
-        final MutableInt size = new MutableInt(1);
-        for (int i = 0; i < size.getValue(); i++) {
-            final Element next = set.get(i);
-            if (next.getPosition().equals(source)) {
-                break;
-            }
-            neighbours(next.getPosition()).forEachRemaining(position -> {
-                if (!set.contains(position)) {
-                    set.add(position, next.cost + 1);
-                    size.setValue(set.size());
-                }
-            });
-        }
-        return set;
+    private AStar.Result<Cell> runAStar() {
+        return AStar.execute(
+                START,
+                cell -> false,
+                this::adjacent,
+                cell -> 1);
     }
     
-    private Optional<Integer> findStepsFromStart(final Position position) {
-        final ElementSet set = getDistance(START, position);
-        return set.find(START).map(Element::getCost);
+    private int getDistance(final Cell end) {
+        return (int) runAStar().getDistance(end);
     }
 
     @Override
     public Integer solvePart1() {
-        return findStepsFromStart(Position.of(31, 39))
-                .orElseThrow(() -> new IllegalStateException("Unsolvable"));
+        return getDistance(Cell.at(31, 39));
     }
 
     @Override
     public Integer solvePart2() {
-        log(() -> createGrid(51, 51));
-        return (int) Stream.iterate(0, x -> x <= 51, x -> x + 1)
-                .flatMap(x -> Stream.iterate(0, y -> y <= 51, y -> y + 1)
-                        .map(y -> Position.of(x, y))
-                        .filter(this::isOpenSpace)
-                        .map(this::findStepsFromStart)
-                        .filter(Optional::isPresent)
-                        .map(Optional::get))
-                .filter(c -> c <= 50)
+        return (int) runAStar()
+                .getDistances().values().stream()
+                .filter(v -> v <= 50)
                 .count();
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_13.createDebug(splitLines("10")).findStepsFromStart(Position.of(1, 1)).get() == 0;
-        assert AoC2016_13.createDebug(splitLines("10")).findStepsFromStart(Position.of(7, 4)).get() == 11;
+        assert AoC2016_13.createDebug(TEST).getDistance(Cell.at(1, 1)) == 0;
+        assert AoC2016_13.createDebug(TEST).getDistance(Cell.at(7, 4)) == 11;
         
-        final List<String> input = Aocd.getData(2016, 13);
-        lap("Part 1", () -> AoC2016_13.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_13.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 13);
+        final List<String> input = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", create(input)::solvePart1),
+            () -> lap("Part 2", create(input)::solvePart2)
+        );
     }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    @ToString(includeFieldNames = false)
-    private static final class Element {
-        @EqualsAndHashCode.Include
-        private final Integer x;
-        @EqualsAndHashCode.Include
-        private final Integer y;
-        @Getter
-        private final Integer cost;
-        
-        public Position getPosition() {
-            return Position.of(x, y);
-        }
-    }
-    
-    @ToString(includeFieldNames = false)
-    private static final class ElementSet {
-        private final List<Element> elements = new ArrayList<>();
-        
-        public void add(final Position position, final Integer cost) {
-            this.elements.add(new Element(position.getX(), position.getY(), cost));
-        }
-        
-        public boolean contains(final Position position) {
-            return this.elements.stream()
-                    .anyMatch(e -> e.x == position.getX() && e.y == position.getY());
-        }
-        
-        public Optional<Element> find(final Position position) {
-            return this.elements.stream()
-                    .filter(e -> e.x == position.getX() && e.y == position.getY())
-                    .findFirst();
-        }
-        
-        public int size() {
-            return this.elements.size();
-        }
-        
-        public Element get(final int index) {
-            return this.elements.get(index);
-        }
-    }
+    private static final List<String> TEST = splitLines("10");
 }
