@@ -1,5 +1,12 @@
 concepts:
     year:
+        - 2016:
+            day:
+                - 13:
+                    tags:
+                        - path finding
+                        - A*
+                        - binary
         - 2017:
             day:
                 - 1:
