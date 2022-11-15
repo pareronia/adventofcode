@@ -1,4 +1,3 @@
-#include <bits/stdc++.h>
 #include "../../../../main/cpp/aoc/grid/grid.hpp"
 #include "gtest/gtest.h"
 #include "gmock/gmock.h"
@@ -244,4 +243,15 @@ TEST(test_aoc_grid, permutations) {
         cnt++;
     }
     EXPECT_THAT(cnt, Eq(8));
+}
+
+TEST(test_aoc_grid, replace) {
+   const Grid<char> grid = Grid<char>::from({"XOX", "OXO", "XOX"});
+   EXPECT_THAT(grid.replace('X', 'Y'),
+               Eq(Grid<char>::from({"YOY", "OYO", "YOY"})));
+}
+
+TEST(test_aoc_grid, toString) {
+   const Grid<char> grid = Grid<char>::from({"XOX", "OXO", "XOX"});
+   EXPECT_THAT(grid.toString(), Eq("XOX\nOXO\nXOX"));
 }

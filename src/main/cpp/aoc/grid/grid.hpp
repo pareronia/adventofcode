@@ -1,6 +1,7 @@
 #ifndef _AOC_GRID_HPP_
 #define _AOC_GRID_HPP_
 
+#include <algorithm>
 #include <set>
 #include <string>
 #include <unordered_set>
@@ -31,8 +32,10 @@ class Grid {
     Grid(const vector<vector<T>>& cells);
     static Grid<T> from(const vector<string>& input);
     bool operator==(const Grid<T>& other) const;
+    string toString() const;
     T get(const Cell& cell) const;
     void setValue(const Cell& cell, T value);
+    Grid<T> replace(const T& from, const T& to) const;
     void increment(const Cell& cell, uint amount = 1);
     int width() const;
     int height() const;
@@ -143,6 +146,17 @@ bool Grid<T>::operator==(const Grid<T>& other) const {
 }
 
 template <typename T>
+struct std::hash<Grid<T>> {
+    std::size_t operator()(Grid<T> const& grid) const noexcept {
+        int result = 1;
+        for (const Cell& cell : grid) {
+            result = 31 * result + std::hash<T>{}(grid.get(cell));
+        }
+        return result;
+    }
+};
+
+template <typename T>
 T Grid<T>::get(const Cell& cell) const {
     return _cells[cell.row()][cell.col()];
 }
@@ -155,6 +169,20 @@ void Grid<T>::increment(const Cell& cell, uint amount) {
 template <typename T>
 void Grid<T>::setValue(const Cell& cell, T value) {
     _cells[cell.row()][cell.col()] = value;
+}
+
+template <typename T>
+Grid<T> Grid<T>::replace(const T& from, const T& to) const {
+    vector<vector<T>> cells;
+    for (int rr : rowIndices()) {
+        vector<T> row;
+        transform(_cells[rr].begin(), _cells[rr].end(), back_inserter(row),
+                  [&from, &to](const T& value) {
+                      return value == from ? to : value;
+                  });
+        cells.push_back(row);
+    }
+    return Grid(cells);
 }
 
 template <typename T>
