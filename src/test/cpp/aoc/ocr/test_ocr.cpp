@@ -16,6 +16,6 @@ TEST(test_aoc_ocr, convert6) {
         "*  * ***   **  **** *     *** *  *  ***  **  *  * ****  **  *    *  * ***   **    *  **** "
      });
 //clang-format on
-    const string& result = ocr::convert6(grid, '#', ' ');
+    const string& result = ocr::convert6(grid, '*', ' ');
     EXPECT_THAT(result, Eq("ABCEFGHIJKLOPRSUYZ"));
 }
