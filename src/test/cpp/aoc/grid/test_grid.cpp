@@ -251,7 +251,25 @@ TEST(test_aoc_grid, replace) {
                Eq(Grid<char>::from({"YOY", "OYO", "YOY"})));
 }
 
+TEST(test_aoc_grid, update) {
+   const Grid<char> grid = Grid<char>::from({"XOX", "OXO", "XOX"});
+   EXPECT_THAT(grid.update({Cell::at(0, 0), Cell::at(2, 2)}, '-'),
+               Eq(Grid<char>::from({"-OX", "OXO", "XO-"})));
+}
+
 TEST(test_aoc_grid, toString) {
    const Grid<char> grid = Grid<char>::from({"XOX", "OXO", "XOX"});
    EXPECT_THAT(grid.toString(), Eq("XOX\nOXO\nXOX"));
+}
+
+TEST(test_aoc_grid, rollRow) {
+   const Grid<char> grid = Grid<char>::from({"#.#....", "###....", ".#....."});
+   EXPECT_THAT(grid.rollRow(0, 4),
+               Eq(Grid<char>::from({"....#.#", "###....", ".#....."})));
+}
+
+TEST(test_aoc_grid, rollColumn) {
+   const Grid<char> grid = Grid<char>::from({"###....", "###....", "......."});
+   EXPECT_THAT(grid.rollColumn(1, 1),
+               Eq(Grid<char>::from({"#.#....", "###....", ".#....."})));
 }

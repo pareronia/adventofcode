@@ -56,3 +56,8 @@ string Grid<char>::toString() const {
                           return a + "\n" + string(b.begin(), b.end());
                       });
 }
+
+ostream& operator<<(ostream& strm, const Grid<char>& grid) {
+    strm << endl << grid.toString() << endl;
+    return strm;
+}

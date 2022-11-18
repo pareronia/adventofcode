@@ -5,6 +5,17 @@
 
 using namespace std;
 
+void aoc::printResult(const uint part, const pair<string, double>& result) {
+    cout << "Part " << part << ": " << result.first;
+    cout << ", took: " << result.second / 1000000 << " ms" << endl;
+}
+
+void aoc::jsonResult(const uint part, const pair<string, double>& result) {
+    cout << "{\"part" << part << "\":";
+    cout << "{\"answer\":\"" << result.first << "\",";
+    cout << "\"duration\":" << result.second << "}}" << endl;
+}
+
 vector<vector<string>> aoc::toBlocks(vector<string> lines) {
     vector<vector<string>> splits;
     vector<string> current_split;

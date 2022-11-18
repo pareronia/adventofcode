@@ -24,6 +24,15 @@ class Cell {
     friend ostream& operator<<(ostream& strm, const Cell& cell);
 };
 
+template <>
+struct std::hash<Cell> {
+    std::size_t operator()(Cell const& cell) const noexcept {
+        std::size_t h1 = std::hash<int>{}(cell.row());
+        std::size_t h2 = std::hash<int>{}(cell.col());
+        return h1 ^ (h2 << 1);
+    }
+};
+
 template <typename T>
 class Grid {
     vector<vector<T>> _cells;
@@ -32,14 +41,17 @@ class Grid {
     Grid(const vector<vector<T>>& cells);
     static Grid<T> from(const vector<string>& input);
     bool operator==(const Grid<T>& other) const;
+    friend ostream& operator<<(ostream& strm, const Grid<char>& grid);
     string toString() const;
     T get(const Cell& cell) const;
     void setValue(const Cell& cell, T value);
     Grid<T> replace(const T& from, const T& to) const;
+    Grid<T> update(const unordered_set<Cell>& toUpdate, const T to) const;
     void increment(const Cell& cell, uint amount = 1);
     int width() const;
     int height() const;
     long size() const;
+    vector<T> getColumn(const uint colIndex) const;
     bool isSquare() const;
     long countAllEqualTo(T value) const;
     unordered_set<Cell> capitalNeighbours(const Cell& cell) const;
@@ -49,6 +61,8 @@ class Grid {
     static Grid<T> merge(const vector<vector<Grid<T>>>& grids);
     Grid<T> flipHorizontally() const;
     Grid<T> rotate() const;
+    Grid<T> rollRow(const uint rowIndex, const int amount) const;
+    Grid<T> rollColumn(const uint colIndex, const int amount) const;
     class iterator
         : public std::iterator<std::input_iterator_tag,  // iterator_category
                                Cell,                     // value_type
@@ -123,6 +137,8 @@ class Grid {
     unordered_set<Cell> neighbours(const Cell& cell,
                                    const set<pair<int, int>> deltas) const;
     void validateIsSquare() const;
+    void validateRowIndex(const uint row) const;
+    void validateColumnIndex(const uint col) const;
 };
 
 template <typename T>
@@ -186,6 +202,23 @@ Grid<T> Grid<T>::replace(const T& from, const T& to) const {
 }
 
 template <typename T>
+Grid<T> Grid<T>::update(const unordered_set<Cell>& toUpdate, const T to) const {
+    vector<vector<T>> cells;
+    for (int rr : rowIndices()) {
+        vector<T> row;
+        for (int cc : colIndices()) {
+            if (toUpdate.find(Cell::at(rr, cc)) != toUpdate.end()) {
+                row.push_back(to);
+            } else {
+                row.push_back(_cells[rr][cc]);
+            }
+        }
+        cells.push_back(row);
+    }
+    return Grid(cells);
+}
+
+template <typename T>
 int Grid<T>::width() const {
     return height() == 0 ? 0 : _cells[0].size();
 }
@@ -201,6 +234,16 @@ long Grid<T>::size() const {
 }
 
 template <typename T>
+vector<T> Grid<T>::getColumn(uint colIndex) const {
+    validateColumnIndex(colIndex);
+    vector<T> column;
+    for (uint row : rowIndices()) {
+        column.push_back(_cells[row][colIndex]);
+    }
+    return column;
+}
+
+template <typename T>
 bool Grid<T>::isSquare() const {
     return width() == height();
 }
@@ -209,6 +252,20 @@ template <typename T>
 void Grid<T>::validateIsSquare() const {
     if (!isSquare()) {
         throw "Grid should be square.";
+    }
+}
+
+template <typename T>
+void Grid<T>::validateRowIndex(const uint row) const {
+    if (!rowIndices().contains(row)) {
+        throw "Invalid row index.";
+    }
+}
+
+template <typename T>
+void Grid<T>::validateColumnIndex(const uint col) const {
+    if (!colIndices().contains(col)) {
+        throw "Invalid col index.";
     }
 }
 
@@ -244,15 +301,6 @@ long Grid<T>::countAllEqualTo(const T value) const {
     }
     return ans;
 }
-
-template <>
-struct std::hash<Cell> {
-    std::size_t operator()(Cell const& cell) const noexcept {
-        std::size_t h1 = std::hash<int>{}(cell.row());
-        std::size_t h2 = std::hash<int>{}(cell.col());
-        return h1 ^ (h2 << 1);
-    }
-};
 
 template <typename T>
 unordered_set<Cell> Grid<T>::neighbours(
@@ -370,6 +418,49 @@ Grid<T> Grid<T>::rotate() const {
         vector<T> row;
         for (int rr : rowIndicesReversed()) {
             row.push_back(get(Cell::at(rr, cc)));
+        }
+        cells.push_back(row);
+    }
+    return Grid(cells);
+}
+
+constexpr int floor_mod(int dividend, int divisor) {
+    return [divisor, remainder = dividend % divisor] {
+        return remainder && ((remainder < 0) != (divisor < 0))
+                   ? remainder + divisor
+                   : remainder;
+    }();
+}
+
+template <typename T>
+constexpr vector<T> roll(const vector<T>& in, const int amount) {
+    vector<T> out;
+    for (uint col : aoc::Range::range(in.size())) {
+        out.push_back(in[floor_mod(col - amount, in.size())]);
+    }
+    return out;
+}
+
+template <typename T>
+Grid<T> Grid<T>::rollRow(const uint rowIndex, const int amount) const {
+    validateRowIndex(rowIndex);
+    vector<vector<T>> cells;
+    for (uint rr : rowIndices()) {
+        const vector<T>& oldRow = _cells[rr];
+        cells.push_back(rr != rowIndex ? oldRow : roll(oldRow, amount));
+    }
+    return Grid(cells);
+}
+
+template <typename T>
+Grid<T> Grid<T>::rollColumn(const uint colIndex, const int amount) const {
+    validateColumnIndex(colIndex);
+    const vector<T>& newCol = roll(getColumn(colIndex), amount);
+    vector<vector<T>> cells;
+    for (uint rr : rowIndices()) {
+        vector<T> row;
+        for (uint cc : colIndices()) {
+            row.push_back(cc == colIndex ? newCol[rr] : _cells[rr][cc]);
         }
         cells.push_back(row);
     }

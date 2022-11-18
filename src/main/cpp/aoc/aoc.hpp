@@ -5,6 +5,7 @@
 #include <climits>
 #include <iostream>
 #include <iterator>
+#include <string>
 #include <vector>
 
 #include "../aocd/aocd.hpp"
@@ -23,6 +24,8 @@ using sys_nanoseconds = std::chrono::duration<double, std::nano>;
 using namespace std;
 
 namespace aoc {
+void printResult(const uint part, const pair<string, double>& result);
+void jsonResult(const uint part, const pair<string, double>& result);
 vector<vector<string>> toBlocks(vector<string> lines);
 vector<int> getNumbers(const string s);
 vector<string> split(const string& s);
@@ -96,6 +99,7 @@ class Range {
     iterator end() const {
         return iterator(step, to, step > 0 ? -INT_MAX : INT_MAX);
     }
+    bool contains(const int value) { return from <= value && value < to; }
 };
 }  // namespace aoc
 
@@ -119,21 +123,45 @@ class Range {
             const uint part = stoi(argv[1]);                                   \
             vector<string> input;                                              \
             aocd::sys::getFileContent(argv[2], input);                         \
-            pair<string, double> response = main_part(part, input);            \
-            cout << "{\"part" << part << "\":";                                \
-            cout << "{\"answer\":\"" << response.first << "\",";               \
-            cout << "\"duration\":" << response.second << "}}" << endl;        \
+            aoc::jsonResult(part, main_part(part, input));                     \
         } else {                                                               \
             samples();                                                         \
                                                                                \
             const vector<string>& input =                                      \
                 aocd::puzzle::getInputData(Year, Day);                         \
-            pair<string, double> part_1 = main_part(1, input);                 \
-            cout << "Part 1: " << part_1.first;                                \
-            cout << ", took: " << part_1.second / 1000000 << " ms" << endl;    \
-            pair<string, double> part_2 = main_part(2, input);                 \
-            cout << "Part 2: " << part_2.first;                                \
-            cout << ", took: " << part_2.second / 1000000 << " ms" << endl;    \
+            const pair<string, double> part_1 = main_part(1, input);           \
+            aoc::printResult(1, part_1);                                       \
+            const pair<string, double> part_2 = main_part(2, input);           \
+            aoc::printResult(2, part_2);                                       \
+            return aocd::puzzle::check(Year, Day, part_1.first, part_2.first); \
+        }                                                                      \
+        return 0;                                                              \
+    }
+
+#define SMAIN(Year, Day)                                                       \
+    pair<string, double> main_part(const uint part,                            \
+                                   const vector<string>& input) {              \
+        const auto start = sys_clock::now();                                   \
+        const string answer = part == 1 ? part1(input) : part2(input);         \
+        const sys_nanoseconds duration = sys_clock::now() - start;             \
+        return make_pair(answer, duration.count());                            \
+    }                                                                          \
+                                                                               \
+    int main(int argc, char** argv) {                                          \
+        if (argc > 1) {                                                        \
+            const uint part = stoi(argv[1]);                                   \
+            vector<string> input;                                              \
+            aocd::sys::getFileContent(argv[2], input);                         \
+            aoc::jsonResult(part, main_part(part, input));                     \
+        } else {                                                               \
+            samples();                                                         \
+                                                                               \
+            const vector<string>& input =                                      \
+                aocd::puzzle::getInputData(Year, Day);                         \
+            const pair<string, double> part_1 = main_part(1, input);           \
+            aoc::printResult(1, part_1);                                       \
+            const pair<string, double> part_2 = main_part(2, input);           \
+            aoc::printResult(2, part_2);                                       \
             return aocd::puzzle::check(Year, Day, part_1.first, part_2.first); \
         }                                                                      \
         return 0;                                                              \
