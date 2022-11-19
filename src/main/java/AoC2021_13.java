@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Grid;
@@ -137,24 +138,26 @@ public class AoC2021_13 extends AoCBase {
         
         public Set<Position> applyTo(final Set<Position> positions) {
             if (this.xAxis) {
-                final Heading vector = Headings.WEST.get();
-                return positions.stream()
-                    .map(p -> p.translate(vector, amplitudeX(p)))
-                    .collect(toSet());
+                return apply(positions, Headings.WEST.get(), Position::getX);
             } else {
-                final Heading vector = Headings.SOUTH.get();
-                return positions.stream()
-                    .map(p -> p.translate(vector, amplitudeY(p)))
-                    .collect(toSet());
+                return apply(positions, Headings.SOUTH.get(), Position::getY);
             }
         }
         
-        private int amplitudeX(final Position p) {
-            return p.getX() > this.value ? 2 * (p.getX() - this.value) : 0;
+        private Set<Position> apply(
+                final Set<Position> positions,
+                final Heading vector,
+                final Function<Position, Integer> dim
+        ) {
+            return positions.stream()
+                    .map(p -> p.translate(vector, amplitude(p, dim)))
+                    .collect(toSet());
         }
-
-        private int amplitudeY(final Position p) {
-            return p.getY() > this.value ? 2 * (p.getY() - this.value)  : 0;
+        
+        private int amplitude(
+                final Position p, final Function<Position, Integer> dim) {
+            final int value = dim.apply(p);
+            return value > this.value ? 2 * (value - this.value) : 0;
         }
     }
 }
