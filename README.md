@@ -45,7 +45,7 @@
 | python3 | [✓](src/main/python/AoC2019_01.py) | [✓](src/main/python/AoC2019_02.py) | [✓](src/main/python/AoC2019_03.py) | [✓](src/main/python/AoC2019_04.py) |  | [✓](src/main/python/AoC2019_06.py) |  | [✓](src/main/python/AoC2019_08.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2019_01.java) | [✓](src/main/java/AoC2019_02.java) | [✓](src/main/java/AoC2019_03.java) | [✓](src/main/java/AoC2019_04.java) | [✓](src/main/java/AoC2019_05.java) | [✓](src/main/java/AoC2019_06.java) |  | [✓](src/main/java/AoC2019_08.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | bash |  |  |  |  |  |  |  | [✓](src/main/bash/AoC2019_08.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| c++ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| c++ |  |  |  |  |  |  |  | [✓](src/main/cpp/2019/08/AoC2019_08.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2019@ -->
 

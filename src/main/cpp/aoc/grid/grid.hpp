@@ -51,7 +51,8 @@ class Grid {
     int width() const;
     int height() const;
     long size() const;
-    vector<T> getColumn(const uint colIndex) const;
+    vector<T> getRow(const int rowIndex) const;
+    vector<T> getColumn(const int colIndex) const;
     bool isSquare() const;
     long countAllEqualTo(T value) const;
     unordered_set<Cell> capitalNeighbours(const Cell& cell) const;
@@ -128,17 +129,17 @@ class Grid {
         return permutations(*this, 0);
     }
     permutations permutations_end() const { return permutations(*this, 8); }
+    aoc::Range rowIndices() const;
+    aoc::Range colIndices() const;
 
    protected:
-    aoc::Range rowIndices() const;
     aoc::Range rowIndicesReversed() const;
-    aoc::Range colIndices() const;
     aoc::Range colIndicesReversed() const;
     unordered_set<Cell> neighbours(const Cell& cell,
                                    const set<pair<int, int>> deltas) const;
     void validateIsSquare() const;
-    void validateRowIndex(const uint row) const;
-    void validateColumnIndex(const uint col) const;
+    void validateRowIndex(const int row) const;
+    void validateColumnIndex(const int col) const;
 };
 
 template <typename T>
@@ -234,7 +235,13 @@ long Grid<T>::size() const {
 }
 
 template <typename T>
-vector<T> Grid<T>::getColumn(uint colIndex) const {
+vector<T> Grid<T>::getRow(int rowIndex) const {
+    validateRowIndex(rowIndex);
+    return vector<T>(_cells[rowIndex].begin(), _cells[rowIndex].end());
+}
+
+template <typename T>
+vector<T> Grid<T>::getColumn(int colIndex) const {
     validateColumnIndex(colIndex);
     vector<T> column;
     for (uint row : rowIndices()) {
@@ -256,14 +263,14 @@ void Grid<T>::validateIsSquare() const {
 }
 
 template <typename T>
-void Grid<T>::validateRowIndex(const uint row) const {
+void Grid<T>::validateRowIndex(const int row) const {
     if (!rowIndices().contains(row)) {
         throw "Invalid row index.";
     }
 }
 
 template <typename T>
-void Grid<T>::validateColumnIndex(const uint col) const {
+void Grid<T>::validateColumnIndex(const int col) const {
     if (!colIndices().contains(col)) {
         throw "Invalid col index.";
     }
