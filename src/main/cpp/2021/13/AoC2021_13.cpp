@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "../../aoc/aoc.hpp"
+#include "../../aoc/geometry/geometry.hpp"
 #include "../../aoc/grid/grid.hpp"
 #include "../../aoc/ocr/ocr.hpp"
 
@@ -17,27 +18,7 @@ using namespace std;
 const char FILL = '#';
 const char EMPTY = ' ';
 
-struct Position {
-    Position(const int x_, const int y_) : x(x_), y(y_) {}
-    Position operator=(const Position& other) const {
-        return Position(other.x, other.y);
-    }
-    bool operator==(const Position& other) const {
-        return x == other.x && y == other.y;
-    }
-
-    const int x;
-    const int y;
-};
-
-template <>
-struct std::hash<Position> {
-    std::size_t operator()(const Position& p) const {
-        return p.x + 31 * (p.y << 1);
-    }
-};
-
-using Heading = Position;
+using Heading = Vector;
 
 const Heading WEST = Heading(-1, 0);
 const Heading SOUTH = Heading(0, -1);
@@ -77,7 +58,7 @@ unordered_set<Position> Fold::apply(const unordered_set<Position>& positions,
     unordered_set<Position> np;
     for (const Position& p : positions) {
         const int a = amplitude(p, dim);
-        np.insert(Position(p.x + a * vector.x, p.y + a * vector.y));
+        np.insert(p.translate(vector, a));
     }
     return np;
 }
