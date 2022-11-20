@@ -49,14 +49,14 @@ public class RunServer {
 			this.server = new ServerSocket(port);
 			log.info("Server started");
 			log.info("Waiting for a client ...");
-			while (!server.isClosed()) {
-				try (final Socket socket = server.accept()) {
+			while (!this.server.isClosed()) {
+				try (final Socket socket = this.server.accept()) {
 					log.info("Client accepted");
 					handleClientConnection(socket);
 				}
 			}
 		} catch (final IOException e) {
-			if (!server.isClosed()) {
+			if (this.server == null || !this.server.isClosed()) {
 				log.log(Level.SEVERE, e.getMessage(), e);
 				return ERROR;
 			}
