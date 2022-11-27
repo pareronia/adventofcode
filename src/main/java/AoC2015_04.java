@@ -1,9 +1,10 @@
 import java.util.List;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.StringUtils;
 
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2015_04 extends AoCBase {
 
@@ -23,16 +24,29 @@ public final class AoC2015_04 extends AoCBase {
         return new AoC2015_04(input, true);
     }
     
-    private Integer findMd5StartingWithZeroes(final String seed, final Integer zeroes) {
-        final String target = StringUtils.repeat("0", zeroes);
-		int i = 0;
-		String val = seed;
-		while (!val.substring(0, zeroes).equals(target)) {
-			i++;
-			final String toHash = seed + String.valueOf(i);
-			val = DigestUtils.md5Hex(toHash);
+    private boolean checkZeroes(final byte[] digest, final int zeroes) {
+        int cnt = 0;
+        for (final int j : Range.range(zeroes / 2 + zeroes % 2)) {
+            final byte c = digest[j];
+            if ((c & 0xF0) == 0) {
+                cnt++;
+                if ((c & 0x0F) == 0) {
+                    cnt++;
+                    continue;
+                }
+            }
+            break;
+        }
+        return cnt == zeroes;
+    }
+    
+    private int findMd5StartingWithZeroes(final String seed, final int zeroes) {
+		for (int i = 1; ; i++) {
+			final byte[] digest = DigestUtils.md5(seed + String.valueOf(i));
+			if (checkZeroes(digest, zeroes)) {
+			    return i;
+			}
 		}
-		return i;
     }
     
     @Override
@@ -49,9 +63,12 @@ public final class AoC2015_04 extends AoCBase {
         assert AoC2015_04.createDebug(TEST1).solvePart1() == 609043;
         assert AoC2015_04.createDebug(TEST2).solvePart1() == 1048970;
 
-        final List<String> input = Aocd.getData(2015, 4);
-        lap("Part 1", () -> AoC2015_04.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_04.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2015, 4);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2015_04.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_04.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST1 = splitLines("abcdef");
