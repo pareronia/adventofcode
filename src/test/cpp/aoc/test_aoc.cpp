@@ -126,4 +126,7 @@ TEST(test_aoc, Range) {
     EXPECT_THAT(Range::range(0, 5).contains(0), IsTrue());
     EXPECT_THAT(Range::range(0, 5).contains(5), IsFalse());
     EXPECT_THAT(Range::rangeClosed(0, 5).contains(5), IsTrue());
+    EXPECT_THAT(collect(Range::range(0, 0)), Eq(vector<int>({})));
+    EXPECT_THAT(collect(Range::range(0, 1)), Eq(vector<int>({0})));
+    EXPECT_THAT(collect(Range::rangeClosed(0, 0)), Eq(vector<int>({0})));
 }

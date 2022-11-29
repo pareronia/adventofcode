@@ -55,7 +55,7 @@ class Range {
         return Range(from, to, step);
     }
     static Range rangeClosed(const int from, const int to, const int step = 1) {
-        return Range(from, from < to ? to + 1 : to - 1, step);
+        return Range(from, from <= to ? to + 1 : to - 1, step);
     }
     // member typedefs provided through inheriting from std::iterator
     class iterator
