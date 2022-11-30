@@ -25,11 +25,16 @@ package com.github.pareronia.aocd;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +95,25 @@ public class SystemUtils {
 	    return LocalDate.now(Aocd.AOC_TZ);
 	}
 	
+	public LocalDateTime getLocalDateTime() {
+	    return LocalDateTime.now(Aocd.AOC_TZ);
+	}
+	
 	public long getSystemNanoTime() {
 	    return System.nanoTime();
+	}
+	
+	public void getInput(final int year, final int day, final Path path) {
+	    final HttpClient http = HttpClient.newHttpClient();
+	    final HttpRequest request = HttpRequest.newBuilder()
+	            .uri(URI.create(String.format("https://adventofcode.com/%d/day/%d/input", year, day)))
+	            .header("Cookie", "session=" + getToken())
+	            .build();
+        try {
+            http.send(request, BodyHandlers.ofFile(path));
+        } catch (IOException | InterruptedException e) {
+			throw new AocdException(e);
+        }
 	}
 	
 	private List<String> readAlLines(final Path path) {

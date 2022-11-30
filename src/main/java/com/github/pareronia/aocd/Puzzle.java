@@ -24,6 +24,9 @@ SOFTWARE.
 package com.github.pareronia.aocd;
 
 import java.nio.file.Path;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -33,22 +36,28 @@ import org.apache.commons.lang3.StringUtils;
 public class Puzzle {
 	
 	private final SystemUtils systemUtils;
+	private final int year;
+	private final int day;
 	private final Path inputDataFile;
 	private final Path titleFile;
 	private final Path answer1File;
 	private final Path answer2File;
 	private final FailDecider failDecider;
+	private final LocalDateTime releaseTime;
 	private String title;
 	private String answer1;
 	private String answer2;
 
 	private Puzzle(final SystemUtils systemUtils, final Integer year, final Integer day, final User user, final Path aocdDir) {
 		this.systemUtils = systemUtils;
+		this.year = year;
+		this.day = day;
 		this.inputDataFile = user.getMemoDir().resolve(String.format("%d_%02d_input.txt", year, day));
 		this.titleFile = aocdDir.resolve("titles").resolve(String.format("%d_%02d.txt", year, day));
 		this.answer1File = user.getMemoDir().resolve(String.format("%d_%02da_answer.txt", year, day));
 		this.answer2File = user.getMemoDir().resolve(String.format("%d_%02db_answer.txt", year, day));
 		this.failDecider = new FailDecider();
+		this.releaseTime = LocalDate.of(year, Month.DECEMBER, day).atStartOfDay(Aocd.AOC_TZ).toLocalDateTime();
 	}
 
 	public static final Puzzle create(final Integer year, final Integer day) {
@@ -110,11 +119,23 @@ public class Puzzle {
 	}
 	
 	public List<String> getInputData() {
-		final List<String> inputData = systemUtils.readAllLinesIfExists(inputDataFile);
+		List<String> inputData = systemUtils.readAllLinesIfExists(inputDataFile);
+	    if (CollectionUtils.isEmpty(inputData)) {
+	        if (!isReleased()) {
+	            System.err.println("!! PUZZLE NOT YET RELEASED !!");
+	            return inputData;
+	        }
+	        systemUtils.getInput(year, day, inputDataFile);
+	        inputData = systemUtils.readAllLinesIfExists(inputDataFile);
+	    }
 	    if (CollectionUtils.isEmpty(inputData)) {
 	        System.err.println("!! INPUT DATA MISSING !!");
 	    }
 	    return inputData;
+	}
+	
+	boolean isReleased() {
+	    return !systemUtils.getLocalDateTime().isBefore(releaseTime);
 	}
 	
 	public static final class FailDecider {

@@ -12,6 +12,8 @@ import static org.mockito.Mockito.when;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -37,6 +39,22 @@ public class PuzzleTestCase {
 		final Path aocdDir = Paths.get("aocdDir");
 		
 		puzzle = Puzzle.create(systemUtils, 2015, 7, user, aocdDir);
+	}
+	
+	@Test
+	public void isReleased() {
+	    when(systemUtils.getLocalDateTime()).thenReturn(
+	            LocalDateTime.of(2015, Month.JANUARY, 1, 0, 0, 0),
+	            LocalDateTime.of(2015, Month.DECEMBER, 1, 0, 0, 0),
+	            LocalDateTime.of(2015, Month.DECEMBER, 6, 23, 59, 59),
+	            LocalDateTime.of(2015, Month.DECEMBER, 7, 0, 0, 0),
+	            LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0)
+	    );
+	    assertThat(puzzle.isReleased(), is(false));
+	    assertThat(puzzle.isReleased(), is(false));
+	    assertThat(puzzle.isReleased(), is(false));
+	    assertThat(puzzle.isReleased(), is(true));
+	    assertThat(puzzle.isReleased(), is(true));
 	}
 
     @Test
