@@ -1,5 +1,20 @@
 [Advent of Code](https://adventofcode.com)
 
+## 2022
+
+![](https://img.shields.io/badge/stars%20⭐-2-yellow)
+![](https://img.shields.io/badge/days%20completed-1-red)
+
+<!-- @BEGIN:ImplementationsTable:2022@ -->
+| | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
+| ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| python3 | [✓](src/main/python/AoC2022_01.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| java |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| bash |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| c++ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+<!-- @END:ImplementationsTable:2022@ -->
+
 ## 2021
 
 ![](https://img.shields.io/badge/2021%20stars%20⭐-50-yellow)
