@@ -65,3 +65,11 @@ concepts:
                         - int grid
                         - path finding
                         - A*
+        - 2022:
+            day:
+                - 1:
+                    tags:
+                        - sum
+                - 2:
+                    tags:
+                        - simulation
