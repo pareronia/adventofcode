@@ -130,7 +130,7 @@ unittest.cplusplus:
 	@$(BAZEL) test --test_output=errors $(CPP_TEST_ROOT)/...
 
 #: Run all unit tests
-unittest: unittest.py unittest.java unittest.cplusplus
+unittest: unittest.py unittest.java
 
 #: Run command line integration tests
 clitest:
