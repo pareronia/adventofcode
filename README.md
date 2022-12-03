@@ -11,7 +11,7 @@
 | python3 | [✓](src/main/python/AoC2022_01.py) | [✓](src/main/python/AoC2022_02.py) | [✓](src/main/python/AoC2022_03.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2022_01.java) | [✓](src/main/java/AoC2022_02.java) | [✓](src/main/java/AoC2022_03.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | bash | [✓](src/main/bash/AoC2022_01.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| c++ | [✓](src/main/cpp/2022/01/AoC2022_01.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| c++ | [✓](src/main/cpp/2022/01/AoC2022_01.cpp) |  | [✓](src/main/cpp/2022/03/AoC2022_03.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2022@ -->
 
