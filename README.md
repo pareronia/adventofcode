@@ -12,7 +12,7 @@
 | java | [✓](src/main/java/AoC2022_01.java) | [✓](src/main/java/AoC2022_02.java) | [✓](src/main/java/AoC2022_03.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | bash | [✓](src/main/bash/AoC2022_01.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ | [✓](src/main/cpp/2022/01/AoC2022_01.cpp) |  | [✓](src/main/cpp/2022/03/AoC2022_03.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| julia | [✓](src/main/julia/AoC2022_01.jl) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2022@ -->
 
 ## 2021
