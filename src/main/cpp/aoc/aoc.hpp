@@ -99,7 +99,14 @@ class Range {
     iterator end() const {
         return iterator(step, to, step > 0 ? -INT_MAX : INT_MAX);
     }
-    bool contains(const int value) { return from <= value && value < to; }
+    bool contains(const int value) const { return from <= value && value < to; }
+    bool contains(const Range& other) const {
+        return contains(other.from) && contains(other.to - 1);
+    }
+    bool isOverlappedBy(const Range& other) const {
+        return other.contains(from) || other.contains(to - 1) ||
+               contains(other.from);
+    }
 };
 }  // namespace aoc
 

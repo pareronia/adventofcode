@@ -9,8 +9,8 @@ using namespace std;
 using namespace aoc;
 using ::testing::Eq;
 using ::testing::IsEmpty;
-using ::testing::IsTrue;
 using ::testing::IsFalse;
+using ::testing::IsTrue;
 using ::testing::MatchesRegex;
 
 TEST(test_aoc, getNumbers) {
@@ -129,4 +129,19 @@ TEST(test_aoc, Range) {
     EXPECT_THAT(collect(Range::range(0, 0)), Eq(vector<int>({})));
     EXPECT_THAT(collect(Range::range(0, 1)), Eq(vector<int>({0})));
     EXPECT_THAT(collect(Range::rangeClosed(0, 0)), Eq(vector<int>({0})));
+    EXPECT_THAT(Range::rangeClosed(1, 4).contains(Range::rangeClosed(1, 4)),
+                IsTrue());
+    EXPECT_THAT(Range::rangeClosed(1, 4).contains(Range::rangeClosed(0, 4)),
+                IsFalse());
+    EXPECT_THAT(Range::rangeClosed(1, 4).contains(Range::rangeClosed(2, 3)),
+                IsTrue());
+    EXPECT_THAT(
+        Range::rangeClosed(1, 4).isOverlappedBy(Range::rangeClosed(0, 4)),
+        IsTrue());
+    EXPECT_THAT(
+        Range::rangeClosed(1, 4).isOverlappedBy(Range::rangeClosed(4, 5)),
+        IsTrue());
+    EXPECT_THAT(
+        Range::rangeClosed(1, 4).isOverlappedBy(Range::rangeClosed(6, 8)),
+        IsFalse());
 }
