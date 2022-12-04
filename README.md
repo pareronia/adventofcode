@@ -8,7 +8,7 @@
 <!-- @BEGIN:ImplementationsTable:2022@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| python3 | [✓](src/main/python/AoC2022_01.py) | [✓](src/main/python/AoC2022_02.py) | [✓](src/main/python/AoC2022_03.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| python3 | [✓](src/main/python/AoC2022_01.py) | [✓](src/main/python/AoC2022_02.py) | [✓](src/main/python/AoC2022_03.py) | [✓](src/main/python/AoC2022_04.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2022_01.java) | [✓](src/main/java/AoC2022_02.java) | [✓](src/main/java/AoC2022_03.java) | [✓](src/main/java/AoC2022_04.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | bash | [✓](src/main/bash/AoC2022_01.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ | [✓](src/main/cpp/2022/01/AoC2022_01.cpp) | [✓](src/main/cpp/2022/02/AoC2022_02.cpp) | [✓](src/main/cpp/2022/03/AoC2022_03.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
