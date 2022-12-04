@@ -15,7 +15,12 @@ import java.util.Optional;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 public class AoC2015_07 extends AoCBase {
 
@@ -23,16 +28,16 @@ public class AoC2015_07 extends AoCBase {
 
 	private final List<String> inputs;
 	
-	private AoC2015_07(List<String> input, boolean debug) {
+	private AoC2015_07(final List<String> input, final boolean debug) {
 		super(debug);
 		this.inputs = input;
 	}
 	
-	public static final AoC2015_07 create(List<String> input) {
+	public static final AoC2015_07 create(final List<String> input) {
 		return new AoC2015_07(input, false);
 	}
 
-	public static final AoC2015_07 createDebug(List<String> input) {
+	public static final AoC2015_07 createDebug(final List<String> input) {
 		return new AoC2015_07(input, true);
 	}
 	
@@ -62,7 +67,7 @@ public class AoC2015_07 extends AoCBase {
 		return Circuit.of(gates);
 	}
 	
-	int part1(String wire) {
+	int part1(final String wire) {
 		final Circuit circuit = parse();
 		log(circuit);
 		return circuit.getValue(wire);
@@ -81,7 +86,7 @@ public class AoC2015_07 extends AoCBase {
 		return circuit.getValue("a");
 	}
 	
-	public void visualize(OutputStream os) throws IOException {
+	public void visualize(final OutputStream os) throws IOException {
 		final Circuit circuit = parse();
 		final StringBuilder sb = new StringBuilder("digraph circuit {");
 		sb.append("rankdir=LR charset=UTF-8 ");
@@ -133,7 +138,7 @@ public class AoC2015_07 extends AoCBase {
 		IOUtils.write(sb.toString(), os, Charset.forName("UTF-8"));
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2015_07.createDebug(TEST).part1("x") == 123;
 		assert AoC2015_07.createDebug(TEST).part1("y") == 456;
 		assert AoC2015_07.createDebug(TEST).part1("d") == 72;
@@ -144,10 +149,12 @@ public class AoC2015_07 extends AoCBase {
 		assert AoC2015_07.createDebug(TEST).part1("i") == 65079;
 		assert AoC2015_07.createDebug(TEST).part1("j") == 65079;
 
-		final List<String> input = Aocd.getData(2015, 7);
-		
-		lap("Part 1", () -> AoC2015_07.create(input).solvePart1());
-		lap("Part 2", () -> AoC2015_07.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2015, 7);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2015_07.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2015_07.create(input)::solvePart2)
+		);
 		
 		AoC2015_07.create(TEST).visualize(System.out);
 		AoC2015_07.create(input).visualize(System.out);
@@ -165,62 +172,49 @@ public class AoC2015_07 extends AoCBase {
 			"i -> j"
 	);
 	
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 	private static final class Gate {
 
 		private enum Op { SET, NOT, AND, OR, LSHIFT, RSHIFT }
 		
+		@Getter
 		private final String name;
 		private final String in1;
 		private final String in2;
 		private final Op op;
 		private final Integer arg;
+		@Getter
 		private Integer result;
 		
-		private Gate(String name, String in1, String in2, Op op, Integer arg) {
-			this.name = name;
-			this.in1 = in1;
-			this.in2 = in2;
-			this.op = op;
-			this.arg = arg;
-		}
-		
-		public static Gate not(String name, String in) {
+		public static Gate not(final String name, final String in) {
 			return new Gate(name, in, null, Op.NOT, null);
 		}
 		
-		public static Gate and(String name, String in1, String in2) {
+		public static Gate and(final String name, final String in1, final String in2) {
 			return new Gate(name, in1, in2, Op.AND, null);
 		}
 		
-		public static Gate or(String name, String in1, String in2) {
+		public static Gate or(final String name, final String in1, final String in2) {
 			return new Gate(name, in1, in2, Op.OR, null);
 		}
 		
-		public static Gate lshift(String name, String in, String value) {
+		public static Gate lshift(final String name, final String in, final String value) {
 			final Integer arg = Integer.valueOf(value);
 			assert arg < BIT_SIZE : "Shifting more than 15 positions";
 			return new Gate(name, in, null, Op.LSHIFT, arg);
 		}
 		
-		public static Gate rshift(String name, String in, String value) {
+		public static Gate rshift(final String name, final String in, final String value) {
 			final Integer arg = Integer.valueOf(value);
 			assert arg < BIT_SIZE : "Shifting more than 15 positions";
 			return new Gate(name, in, null, Op.RSHIFT, arg);
 		}
 		
-		public static Gate set(String name, String in) {
+		public static Gate set(final String name, final String in) {
 			return new Gate(name, in, null, Op.SET, null);
 		}
 
-		public String getName() {
-			return name;
-		}
-
-		public Integer getResult() {
-			return result;
-		}
-
-		public Integer updateResult(Integer in1, Integer in2) {
+		public Integer updateResult(final Integer in1, final Integer in2) {
 			switch (this.op) {
 			case SET:
 				this.result = in1;
@@ -275,14 +269,12 @@ public class AoC2015_07 extends AoCBase {
 		}
 	}
 	
+	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+	@ToString
 	private static final class Circuit {
 		private final Map<String, Gate> gates;
 
-		private Circuit(Map<String, Gate> gates) {
-			this.gates = gates;
-		}
-		
-		public static Circuit of(Collection<Gate> gates) {
+		public static Circuit of(final Collection<Gate> gates) {
 			return new Circuit(requireNonNull(gates).stream()
 								.collect(toMap(Gate::getName, identity())));
 		}
@@ -291,25 +283,25 @@ public class AoC2015_07 extends AoCBase {
 			return this.gates.values();
 		}
 		
-		public Gate getGate(String name) {
+		public Gate getGate(final String name) {
 			return this.gates.get(requireNonNull(name));
 		}
 		
-		public void setGate(String name, Gate gate) {
+		public void setGate(final String name, final Gate gate) {
 			this.gates.put(requireNonNull(name), requireNonNull(gate));
 		}
 		
-		public Optional<Gate> getGateIn1(String name) {
+		public Optional<Gate> getGateIn1(final String name) {
 			final Gate gate = this.getGate(name);
 			return Optional.ofNullable(gate.in1).map(this::getGate);
 		}
 		
-		public Optional<Gate> getGateIn2(String name) {
+		public Optional<Gate> getGateIn2(final String name) {
 			final Gate gate = this.getGate(name);
 			return Optional.ofNullable(gate.in2).map(this::getGate);
 		}
 		
-		public int getValue(String name) {
+		public int getValue(final String name) {
 			assert name != null && !name.isEmpty(): "name is empty";
 			if (StringUtils.isNumeric(name)) {
 				final int out = Integer.valueOf(name);
@@ -324,11 +316,6 @@ public class AoC2015_07 extends AoCBase {
 			final Integer in1 = getValue(gate.in1);
 			final Integer in2 = gate.in2 != null ? getValue(gate.in2) : null;
 			return gate.updateResult(in1, in2);
-		}
-
-		@Override
-		public String toString() {
-			return "Circuit [gates=" + gates + "]";
 		}
 	}
 }

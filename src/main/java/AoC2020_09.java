@@ -1,11 +1,10 @@
-import static com.github.pareronia.aoc.Utils.max;
-import static com.github.pareronia.aoc.Utils.min;
 import static java.util.stream.Collectors.summingLong;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LongSummaryStatistics;
 import java.util.Set;
 
 import org.apache.commons.lang3.Range;
@@ -16,20 +15,20 @@ public class AoC2020_09 extends AoCBase {
 	
 	private final List<Long> numbers;
 	
-	private AoC2020_09(List<String> input, boolean debug) {
+	private AoC2020_09(final List<String> input, final boolean debug) {
 		super(debug);
 		this.numbers = input.stream().map(Long::valueOf).collect(toList());
 	}
 	
-	public static AoC2020_09 create(List<String> input) {
+	public static AoC2020_09 create(final List<String> input) {
 		return new AoC2020_09(input, false);
 	}
 
-	public static AoC2020_09 createDebug(List<String> input) {
+	public static AoC2020_09 createDebug(final List<String> input) {
 		return new AoC2020_09(input, true);
 	}
 	
-	private boolean containsTwoSummands(List<Long> numbers, Long sum) {
+	private boolean containsTwoSummands(final List<Long> numbers, final Long sum) {
 		final Set<Long> seen = new HashSet<>();
 		for (final Long n1 : numbers) {
 			seen.add(n1);
@@ -41,7 +40,7 @@ public class AoC2020_09 extends AoCBase {
 		return false;
 	}
 	
-	private Long findInvalidNumber(Integer windowSize) {
+	private Long findInvalidNumber(final Integer windowSize) {
 		final Range<Integer> range = Range.between(windowSize, this.numbers.size());
 		for (int i = range.getMinimum(); i < range.getMaximum(); i++) {
 			final Long number = this.numbers.get(i);
@@ -58,7 +57,7 @@ public class AoC2020_09 extends AoCBase {
 		return findInvalidNumber(25);
 	}
 	
-	private List<List<Long>> collectAllSublistsBeforeTargetWithMinimumSize2(Integer targetPos) {
+	private List<List<Long>> collectAllSublistsBeforeTargetWithMinimumSize2(final Integer targetPos) {
 		final List<Long> window = this.numbers.subList(0, targetPos);
 		final ArrayList<List<Long>> sublists = new ArrayList<>();
 		for (int i = 0; i <= window.size(); i++) {
@@ -72,7 +71,7 @@ public class AoC2020_09 extends AoCBase {
 		return sublists;
 	}
 	
-	private Long findWeakness(Integer windowSize) {
+	private Long findWeakness(final Integer windowSize) {
 		final long target = findInvalidNumber(windowSize);
 		final List<List<Long>> sublists
 				= collectAllSublistsBeforeTargetWithMinimumSize2(this.numbers.indexOf(target));
@@ -83,8 +82,10 @@ public class AoC2020_09 extends AoCBase {
 			throw new RuntimeException("Unsolvable");
 		}
 		final List<Long> subListWithSumEqualToTarget = sublistsWithSumEqualToTarget.get(0);
-		return min(subListWithSumEqualToTarget.stream())
-				+ max(subListWithSumEqualToTarget.stream());
+		final LongSummaryStatistics stats = subListWithSumEqualToTarget.stream()
+		        .mapToLong(Long::valueOf)
+		        .summaryStatistics();
+		return stats.getMin() + stats.getMax();
 	}
 
 	@Override
@@ -92,7 +93,7 @@ public class AoC2020_09 extends AoCBase {
 		return findWeakness(25);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_09.createDebug(TEST).findInvalidNumber(5) == 127;
 		assert AoC2020_09.createDebug(TEST).findWeakness(5) == 62;
 

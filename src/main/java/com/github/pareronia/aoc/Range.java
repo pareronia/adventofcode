@@ -47,10 +47,7 @@ public class Range implements Iterable<Integer> {
     }
     
     public Stream<Integer> stream() {
-        final Iterator<Integer> iterator = iterator();
-        return Stream.generate(() -> null)
-                .takeWhile(x -> iterator.hasNext())
-                .map(x -> iterator.next());
+        return Utils.stream(iterator());
     }
     
     public IntStream intStream() {
