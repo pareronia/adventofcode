@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <string>
+#include <functional>
 #include <vector>
 
 #include "../../aoc/aoc.hpp"
