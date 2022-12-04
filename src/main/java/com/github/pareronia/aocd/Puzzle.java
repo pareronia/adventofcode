@@ -33,10 +33,14 @@ import java.util.concurrent.Callable;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import lombok.Getter;
+
 public class Puzzle {
 	
 	private final SystemUtils systemUtils;
+	@Getter
 	private final int year;
+	@Getter
 	private final int day;
 	private final Path inputDataFile;
 	private final Path titleFile;
@@ -78,14 +82,14 @@ public class Puzzle {
 	    final String[] fails = new String[2];
         final String answer1 = getAnswer1();
 	    final V1 result1 = part1.call();
-        if (failDecider.fail(answer1, result1)) {
+        if (failDecider.fail(answer1, result1) == FailDecider.Status.FAIL) {
             fails[0] = String.format(
                          "%sPart 1: Expected: '%s', got '%s'",
                          System.lineSeparator(), answer1, result1);
         }
         final String answer2 = getAnswer2();
 	    final V2 result2 = part2.call();
-        if (failDecider.fail(answer2, result2)) {
+        if (failDecider.fail(answer2, result2) == FailDecider.Status.FAIL) {
             fails[1] = String.format(
                         "%sPart 2: Expected: '%s', got '%s'",
                         System.lineSeparator(), answer2, result2);
@@ -139,11 +143,13 @@ public class Puzzle {
 	}
 	
 	public static final class FailDecider {
+	    public enum Status { OK, FAIL, UNKNOWN }
 	    
-	    public <V> boolean fail(final String answer, final V result) {
-	        return StringUtils.isNotEmpty(answer)
-	                && result != null
-	                && !answer.equals(String.valueOf(result));
+	    public <V> Status fail(final String answer, final V result) {
+	        if (StringUtils.isEmpty(answer) || result == null) {
+	            return Status.UNKNOWN;
+	        }
+	        return answer.equals(String.valueOf(result)) ? Status.OK : Status.FAIL;
 	    }
 	}
 }

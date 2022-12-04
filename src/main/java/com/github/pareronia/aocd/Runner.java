@@ -16,7 +16,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class Runner {
+class Runner {
 
 	public static void main(final String[] args) throws Exception {
 	    final SystemUtils systemUtils = new SystemUtils();
@@ -33,7 +33,7 @@ public class Runner {
 		};
 	}
 
-	private static Runner create(final SystemUtils systemUtils) {
+	static Runner create(final SystemUtils systemUtils) {
 		return new Runner(systemUtils,
 						  className -> Class.forName(className));
 	}

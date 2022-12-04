@@ -30,6 +30,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,6 +41,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -112,6 +115,19 @@ public class SystemUtils {
         try {
             http.send(request, BodyHandlers.ofFile(path));
         } catch (IOException | InterruptedException e) {
+			throw new AocdException(e);
+        }
+	}
+	
+	public Stream<String> getAllSolutions() {
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(
+                Path.of("src", "main", "java"), "AoC????_??.java")) {
+	        final Builder<String> builder = Stream.builder();
+	        ds.iterator().forEachRemaining(path ->
+	            builder.add(path.getFileName().toString()
+	                            .substring(0, "AoCyyyy_dd".length())));
+	        return builder.build();
+        } catch (final IOException e) {
 			throw new AocdException(e);
         }
 	}
