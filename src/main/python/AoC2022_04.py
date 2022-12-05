@@ -8,61 +8,29 @@ from __future__ import annotations
 
 import re
 from typing import Callable
-from typing import NamedTuple
 
 import aocd
 from aoc import my_aocd
 
 
-class Range(NamedTuple):
-    minimum: int
-    maximum: int
-
-    def contains(self, n: int) -> bool:
-        return self.minimum <= n <= self.maximum
-
-    def contains_range(self, other: Range) -> bool:
-        return self.contains(other.minimum) and self.contains(other.maximum)
-
-    def is_overlapped_by(self, other: Range) -> bool:
-        return (
-            other.contains(self.minimum)
-            or other.contains(self.maximum)
-            or self.contains(other.minimum)
-        )
-
-
-def _solve(
-    inputs: tuple[str], f: Callable[[tuple[Range, Range]], bool]
-) -> int:
+def _solve(inputs: tuple[str], f: Callable[[set[int], set[int]], bool]) -> int:
     return sum(
-        1
-        for _ in (
-            filter(
-                lambda nums: f(
-                    Range(nums[0], nums[1]), Range(nums[2], nums[3])
-                ),
-                map(
-                    lambda line: [int(n) for n in re.findall(r"[0-9]+", line)],
-                    inputs,
-                ),
-            )
+        f(
+            set(range(n1, n2 + 1)),
+            set(range(n3, n4 + 1)),
+        )
+        for n1, n2, n3, n4 in (
+            (int(n) for n in re.findall(r"[0-9]+", line)) for line in inputs
         )
     )
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _solve(
-        inputs,
-        lambda range1, range2: range1.contains_range(range2)
-        or range2.contains_range(range1),
-    )
+    return _solve(inputs, lambda s1, s2: s1.issubset(s2) or s2.issubset(s1))
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return _solve(
-        inputs, lambda range1, range2: range1.is_overlapped_by(range2)
-    )
+    return _solve(inputs, lambda s1, s2: not s1.isdisjoint(s2))
 
 
 TEST = """\
