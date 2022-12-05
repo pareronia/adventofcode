@@ -1,9 +1,12 @@
+import static com.github.pareronia.aoc.Range.range;
+import static com.github.pareronia.aoc.Range.rangeClosed;
+import static com.github.pareronia.aoc.Utils.last;
+import static com.github.pareronia.aoc.Utils.toAString;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.regex.MatchResult;
-import java.util.regex.Pattern;
 
 import org.eclipse.collections.api.tuple.Triplet;
 import org.eclipse.collections.impl.tuple.Tuples;
@@ -12,46 +15,31 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.RequiredArgsConstructor;
+
 public class AoC2022_05 extends AoCBase {
     
-    private final List<Deque<Character>> stacks;
-    private final List<Triplet<Integer>> moves;
+    private final RearrangementProcedure procedure;
     
     private AoC2022_05(final List<String> input, final boolean debug) {
         super(debug);
-        this.stacks = new ArrayList<>();
-        this.moves = new ArrayList<>();
+        final List<Deque<Character>> stacks = new ArrayList<>();
+        final List<Triplet<Integer>> moves = new ArrayList<>();
         final List<List<String>> blocks = toBlocks(input);
-        final String nums = blocks.get(0).get(blocks.get(0).size() - 1).replaceAll("(\\[\\]])", "").strip();
-        final int height = blocks.get(0).size() - 1;
-        final int size = Integer.parseInt(String.valueOf(nums.charAt(nums.length() - 1)));
-        for (int i = 0; i < size; i++) {
-            this.stacks.add(new ArrayDeque<>());
-        }
-        for (int i = height - 1; i >= 0; i--) {
-            final char[] line = blocks.get(0).get(i).toCharArray();
-            for (int j = 1; j <= size * 4; j += 4) {
-                if (line[j] != ' ') {
-                    stacks.get(j / 4).addLast(line[j]);
-                }
-            }
-        }
-        this.stacks.forEach(this::log);
-        
-        for (final String s : blocks.get(1)) {
-           final int[] n = numbers(s);
-           this.moves.add(Tuples.triplet(n[0], n[1], n[2]));
-        }
-        this.moves.forEach(this::log);
-    }
-    
-    private static final Pattern REGEX = Pattern.compile("[0-9]+");
-    
-    private final int[] numbers(final String string) {
-        return REGEX.matcher(string).results()
-                .map(MatchResult::group)
-                .mapToInt(Integer::parseInt)
-                .toArray();
+        final String nums = last(blocks.get(0)).replaceAll("\\s", "");
+        final int size = Integer.parseInt(String.valueOf(last(nums)));
+        range(size).forEach(i -> stacks.add(new ArrayDeque<>()));
+        rangeClosed(blocks.get(0).size() - 2, 0, -1).forEach(i -> {
+            final String line = blocks.get(0).get(i);
+            range(line.length()).intStream()
+                .filter(j -> j % 4 == 1)
+                .filter(j -> line.charAt(j) != ' ')
+                .forEach(j -> stacks.get(j / 4).addLast(line.charAt(j)));
+        });
+        blocks.get(1).stream()
+            .map(Utils::naturalNumbers)
+            .forEach(n -> moves.add(Tuples.triplet(n[0], n[1], n[2])));
+        this.procedure = new RearrangementProcedure(stacks, moves);
     }
     
     public static final AoC2022_05 create(final List<String> input) {
@@ -62,42 +50,35 @@ public class AoC2022_05 extends AoCBase {
         return new AoC2022_05(input, true);
     }
     
-    @Override
-    public String solvePart1() {
-        for (final Triplet<Integer> move : this.moves) {
-            log("move");
+    private String simulateProcedureFor(final CrateMover crateMover) {
+        for (final Triplet<Integer> move : this.procedure.moves) {
             final int from = move.getTwo() - 1;
             final int to = move.getThree() - 1;
-            for (int i = 0; i < move.getOne(); i++) {
-                this.stacks.get(to).addLast(this.stacks.get(from).removeLast());
-            }
-            this.stacks.forEach(this::log);
+            final Deque<Character> tmp = new ArrayDeque<>();
+            range(move.getOne()).forEach(i -> {
+                final Character crate = this.procedure.stacks.get(from).removeLast();
+                if (crateMover == CrateMover.CM_9000) {
+                    tmp.addLast(crate);
+                } else {
+                    tmp.addFirst(crate);
+                }
+            });
+            tmp.forEach(this.procedure.stacks.get(to)::addLast);
         }
-        final String ans = this.stacks.stream()
+        final String ans = this.procedure.stacks.stream()
             .map(Deque::peekLast)
-            .collect(Utils.toAString());
-        log(ans);
+            .collect(toAString());
         return ans;
+    }
+    
+    @Override
+    public String solvePart1() {
+        return simulateProcedureFor(CrateMover.CM_9000);
     }
 
     @Override
     public String solvePart2() {
-        for (final Triplet<Integer> move : this.moves) {
-            log("move");
-            final int from = move.getTwo() - 1;
-            final int to = move.getThree() - 1;
-            final Deque<Character> tmp = new ArrayDeque<>();
-            for (int i = 0; i < move.getOne(); i++) {
-                tmp.addFirst(this.stacks.get(from).removeLast());
-            }
-            tmp.forEach(this.stacks.get(to)::addLast);
-            this.stacks.forEach(this::log);
-        }
-        final String ans = this.stacks.stream()
-            .map(Deque::peekLast)
-            .collect(Utils.toAString());
-        log(ans);
-        return ans;
+        return simulateProcedureFor(CrateMover.CM_9001);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -113,14 +94,22 @@ public class AoC2022_05 extends AoCBase {
     }
 
     private static final List<String> TEST = splitLines(
-          "    [D]    \r\n"
-        + "[N] [C]    \r\n"
-        + "[Z] [M] [P]\r\n"
-        + " 1   2   3 \r\n"
-        + "\r\n"
-        + "move 1 from 2 to 1\r\n"
-        + "move 3 from 1 to 3\r\n"
-        + "move 2 from 2 to 1\r\n"
-        + "move 1 from 1 to 2"
+        "    [D]    \r\n" +
+        "[N] [C]    \r\n" +
+        "[Z] [M] [P]\r\n" +
+        " 1   2   3 \r\n" +
+        "\r\n" +
+        "move 1 from 2 to 1\r\n" +
+        "move 3 from 1 to 3\r\n" +
+        "move 2 from 2 to 1\r\n" +
+        "move 1 from 1 to 2"
     );
+    
+    @RequiredArgsConstructor
+    private static final class RearrangementProcedure {
+        private final List<Deque<Character>> stacks;
+        private final List<Triplet<Integer>> moves;
+    }
+    
+    private enum CrateMover { CM_9000, CM_9001 }
 }
