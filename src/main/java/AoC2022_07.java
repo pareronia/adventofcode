@@ -11,53 +11,37 @@ import java.util.Map;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2022_07 extends AoCBase {
     
     private static final String ROOT = "/";
     
-    private final Map<String, Node> nodes;
+    private final Map<String, Integer> sizes;
     
     private AoC2022_07(final List<String> input, final boolean debug) {
         super(debug);
-        this.nodes = new HashMap<>();
-        final Deque<String> path = new ArrayDeque<>();
-        path.addLast(ROOT);
-        Node curr = new Node(ROOT, null, 0);
-        nodes.put(ROOT, curr);
-        for (final String line : input.subList(1, input.size())) {
-            if (line.equals("$ ls")) {
-                continue;
-            } else if (line.startsWith("$ cd ")) {
+        final Deque<String> path = new ArrayDeque<>(List.of(ROOT));
+        this.sizes = new HashMap<>(Map.of(ROOT, 0));
+        input.stream().skip(1).forEach(line -> {
+            if (line.startsWith("$ cd ")) {
                 final String name = line.substring("$ cd ".length());
                 if (name.equals("..")) {
-                    curr = curr.parent;
                     path.removeLast();
                 } else {
                     path.addLast(name);
-                    curr = nodes.get(path.stream().collect(joining("/")));
                 }
-            } else {
+            } else if (!line.startsWith("$")) {
                 final String[] splits = line.split(" ");
-                final int size;
-                if (splits[0].equals("dir")) {
-                    size = 0;
-                } else {
-                    size = Integer.parseInt(splits[0]);
+                if (!splits[0].equals("dir")) {
+                    final int size = Integer.parseInt(splits[0]);
+                    final List<String> parts = new ArrayList<>();
+                    path.stream().takeWhile(p -> !p.equals(splits[1])).forEach(p -> {
+                        parts.add(p);
+                        final String pp = parts.stream().collect(joining("/"));
+                        sizes.merge(pp, size, Integer::sum);
+                    });
                 }
-                path.addLast(splits[1]);
-                final String name = path.stream().collect(joining("/"));
-                final Node node = new Node(name, curr, size);
-                curr.addChild(node);
-                assert !nodes.containsKey(name);
-                nodes.put(name, node);
-                path.removeLast();
             }
-        }
-        log("nodes: " + nodes);
+        });
     }
     
     public static final AoC2022_07 create(final List<String> input) {
@@ -68,38 +52,17 @@ public class AoC2022_07 extends AoCBase {
         return new AoC2022_07(input, true);
     }
     
-    private int getSize(final Map<String, Integer> map, final Node node) {
-        if (node.children.isEmpty()) {
-            return node.size;
-        } else if (map.containsKey(node.name)) {
-            return map.get(node.name);
-        }
-        final int size = node.children.stream()
-                .mapToInt(n -> getSize(map, n))
-                .sum();
-        map.put(node.name, size);
-        return size;
-    }
-
-    private Map<String, Integer> directoriesWithSizes() {
-        final Map<String, Integer> map = new HashMap<>();
-        getSize(map, nodes.get(ROOT));
-        return map;
-    }
-    
     @Override
     public Integer solvePart1() {
-        return directoriesWithSizes().values().stream()
+        return this.sizes.values().stream()
                 .filter(s -> s <= 100_000)
                 .collect(summingInt(Integer::valueOf));
     }
 
     @Override
     public Integer solvePart2() {
-        final Map<String, Integer> map = directoriesWithSizes();
-        final int total = map.get(ROOT);
-        final int wanted = 30_000_000 - (70_000_000 - total);
-        return map.values().stream()
+        final int wanted = 30_000_000 - (70_000_000 - this.sizes.get(ROOT));
+        return this.sizes.values().stream()
                 .filter(v -> v >= wanted)
                 .sorted()
                 .findFirst().orElseThrow();
@@ -142,20 +105,4 @@ public class AoC2022_07 extends AoCBase {
         "5626152 d.ext\r\n" +
         "7214296 k"
     );
-    
-    @RequiredArgsConstructor
-    @ToString(onlyExplicitlyIncluded = true)
-    private static final class Node {
-        @ToString.Include
-        @Getter
-        private final String name;
-        private final Node parent;
-        @ToString.Include
-        private final int size;
-        private final List<Node> children = new ArrayList<>();
-        
-        public void addChild(final Node node) {
-            this.children.add(node);
-        }
-    }
 }
