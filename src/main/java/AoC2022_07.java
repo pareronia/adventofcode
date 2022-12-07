@@ -1,12 +1,13 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.summingInt;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -19,9 +20,9 @@ public class AoC2022_07 extends AoCBase {
     
     private AoC2022_07(final List<String> input, final boolean debug) {
         super(debug);
-        final Deque<String> path = new ArrayDeque<>(List.of(ROOT));
-        this.sizes = new HashMap<>(Map.of(ROOT, 0));
-        input.stream().skip(1).forEach(line -> {
+        final Deque<String> path = new ArrayDeque<>();
+        this.sizes = new HashMap<>();
+        for (final String line : input.subList(1, input.size())) {
             if (line.startsWith("$ cd ")) {
                 final String name = line.substring("$ cd ".length());
                 if (name.equals("..")) {
@@ -31,17 +32,19 @@ public class AoC2022_07 extends AoCBase {
                 }
             } else if (!line.startsWith("$")) {
                 final String[] splits = line.split(" ");
+                final int size;
                 if (!splits[0].equals("dir")) {
-                    final int size = Integer.parseInt(splits[0]);
-                    final List<String> parts = new ArrayList<>();
-                    path.stream().takeWhile(p -> !p.equals(splits[1])).forEach(p -> {
-                        parts.add(p);
-                        final String pp = parts.stream().collect(joining("/"));
-                        sizes.merge(pp, size, Integer::sum);
+                    size = Integer.parseInt(splits[0]);
+                    final List<String> list = path.stream().collect(toList());
+                    IntStream.rangeClosed(0, list.size()).forEach(i -> {
+                        final String pp = IntStream.range(0, i)
+                                .mapToObj(list::get)
+                                .collect(joining("/"));
+                        sizes.merge(ROOT + pp, size, Integer::sum);
                     });
                 }
             }
-        });
+        }
     }
     
     public static final AoC2022_07 create(final List<String> input) {
@@ -61,7 +64,8 @@ public class AoC2022_07 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        final int wanted = 30_000_000 - (70_000_000 - this.sizes.get(ROOT));
+        final int total = this.sizes.get(ROOT);
+        final int wanted = 30_000_000 - (70_000_000 - total);
         return this.sizes.values().stream()
                 .filter(v -> v >= wanted)
                 .sorted()
