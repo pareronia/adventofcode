@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Set;
 
-import org.apache.commons.lang3.Range;
-
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 
 public class AoC2020_09 extends AoCBase {
@@ -41,7 +40,7 @@ public class AoC2020_09 extends AoCBase {
 	}
 	
 	private Long findInvalidNumber(final Integer windowSize) {
-		final Range<Integer> range = Range.between(windowSize, this.numbers.size());
+		final Range range = Range.between(windowSize, this.numbers.size());
 		for (int i = range.getMinimum(); i < range.getMaximum(); i++) {
 			final Long number = this.numbers.get(i);
 			final List<Long> searchWindow = this.numbers.subList(i - windowSize, i);

@@ -12,8 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.Range;
-
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Builder;
@@ -128,7 +127,7 @@ public class AoC2020_16 extends AoCBase {
 	private static final class Rule {
 	    private final String field;
 	    @Singular
-	    private final Set<Range<Integer>> validRanges;
+	    private final Set<Range> validRanges;
 	    
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));

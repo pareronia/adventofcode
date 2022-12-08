@@ -11,10 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.Range;
-
 import com.github.pareronia.aoc.IterTools;
-import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.game_of_life.GameOfLife.Type;
 
 public final class InfiniteGrid implements Type {
@@ -24,7 +22,7 @@ public final class InfiniteGrid implements Type {
     @Override
     public Set<List<Integer>> cells(final Set<List<Integer>> alive) {
         final int dim = alive.iterator().next().size();
-        final List<Range<Integer>> ranges =
+        final List<Range> ranges =
             IntStream.iterate(dim - 1, i -> i >= 0, i -> i - 1)
                 .mapToObj(i -> expand(i, alive))
                 .collect(toUnmodifiableList());
@@ -41,7 +39,7 @@ public final class InfiniteGrid implements Type {
                 .count();
     }
 
-    private Range<Integer> expand(final int idx, final Set<List<Integer>> alive) {
+    private Range expand(final int idx, final Set<List<Integer>> alive) {
         final IntSummaryStatistics stats = alive.stream()
                 .mapToInt(a -> a.get(idx))
                 .summaryStatistics();
@@ -53,7 +51,7 @@ public final class InfiniteGrid implements Type {
     }
     
     private Set<List<Integer>> getNeighbours(final List<Integer> cell) {
-        final List<Range<Integer>> ranges = new ArrayList<>();
+        final List<Range> ranges = new ArrayList<>();
         final List<Integer> zeroes = new ArrayList<>();
         for (int i = 0; i < cell.size(); i++) {
             ranges.add(Range.between(-1, 1));
@@ -70,9 +68,9 @@ public final class InfiniteGrid implements Type {
     }
     
     @SuppressWarnings("unchecked")
-    private Set<List<Integer>> product(final List<Range<Integer>> ranges) {
+    private Set<List<Integer>> product(final List<Range> ranges) {
         final Iterator<Integer>[] iterators = ranges.stream()
-            .map(Utils::iterator)
+            .map(Range::iterator)
             .toArray(Iterator[]::new);
         return IterTools.product(iterators);
     }

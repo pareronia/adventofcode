@@ -8,9 +8,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.Range;
 import org.apache.commons.lang3.StringUtils;
 
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 
 import lombok.Builder;
@@ -20,20 +20,20 @@ public class AoC2020_04 extends AoCBase {
 	
 	private final Set<Passport> passports;
 	
-	private AoC2020_04(List<String> input, boolean debug) {
+	private AoC2020_04(final List<String> input, final boolean debug) {
 		super(debug);
 		this.passports = parse(input);
 	}
 	
-	public static AoC2020_04 create(List<String> input) {
+	public static AoC2020_04 create(final List<String> input) {
 		return new AoC2020_04(input, false);
 	}
 
-	public static AoC2020_04 createDebug(List<String> input) {
+	public static AoC2020_04 createDebug(final List<String> input) {
 		return new AoC2020_04(input, true);
 	}
 	
-	private Set<Passport> parse(List<String> inputs) {
+	private Set<Passport> parse(final List<String> inputs) {
 		final Function<List<String>, Passport> buildPassport = block -> {
 			final Passport.PassportBuilder passportBuilder = Passport.builder();
 			final Consumer<String> applyField = field -> {
@@ -67,11 +67,11 @@ public class AoC2020_04 extends AoCBase {
 		return countValid(Passport::isValid2);
 	}
 
-	private long countValid(Predicate<Passport> predicate) {
+	private long countValid(final Predicate<Passport> predicate) {
 		return this.passports.stream().filter(predicate).count();
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_04.createDebug(TEST).solvePart1() == 10;
 		assert AoC2020_04.createDebug(TEST).solvePart2() == 6;
 		
