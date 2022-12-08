@@ -1,6 +1,8 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
@@ -28,77 +30,58 @@ public class AoC2022_08 extends AoCBase {
         return Integer.parseInt(String.valueOf(grid.getValueAt(cell)));
     }
     
-    @Override
-    public Integer solvePart1() {
-        int ans = 2 * (grid.getHeight() + grid.getWidth()) - 4;
+    public Set<Stream<Cell>> capitalDirections(final Cell cell) {
+        return Set.of(grid.getCellsN(cell), grid.getCellsE(cell), grid.getCellsS(cell), grid.getCellsW(cell));
+    }
+    
+    public Stream<Cell> ignoringBorders() {
+        final Stream.Builder<Cell> builder = Stream.builder();
         for (int rr = 1; rr <= grid.getMaxRowIndex() - 1; rr++) {
             for (int cc = 1; cc <= grid.getMaxColIndex() - 1; cc++) {
-                final Cell cell = Cell.at(rr, cc);
-                final int val = value(cell);
-                if (grid.getCellsN(cell).allMatch(c -> value(c) < val)
-                        || grid.getCellsE(cell).allMatch(c -> value(c) < val)
-                        || grid.getCellsS(cell).allMatch(c -> value(c) < val)
-                        || grid.getCellsW(cell).allMatch(c -> value(c) < val)) {
-                    ans++;
-                }
+                builder.add(Cell.at(rr, cc));
             }
         }
-        return ans;
+        return builder.build();
+    }
+    
+    private boolean visibleFromOutside(final Cell cell) {
+        final int val = value(cell);
+        for (final Stream<Cell> direction : capitalDirections(cell)) {
+            if (direction.allMatch(c -> value(c) < val)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    private Integer viewingDistance(final Stream<Cell> direction, final int val) {
+        int n = 0;
+        boolean stop = false;
+        for (final Cell c : direction.collect(toList())) {
+            if (stop) {
+                break;
+            }
+            n++;
+            stop = value(c) >= val;
+        }
+        return n;
+    }
+    
+    private Integer scenicScore(final Cell cell) {
+        return capitalDirections(cell).stream()
+                .map(direction -> viewingDistance(direction, value(cell)))
+                .reduce(1, (a, b) -> a * b);
+    }
+    
+    @Override
+    public Integer solvePart1() {
+        final int ans = 2 * (grid.getHeight() + grid.getWidth()) - 4;
+        return (int) (ans + ignoringBorders().filter(this::visibleFromOutside).count());
     }
 
     @Override
-    public Long solvePart2() {
-        long ans = 0;
-        for (int rr = 1; rr <= grid.getMaxRowIndex() - 1; rr++) {
-            for (int cc = 1; cc <= grid.getMaxColIndex() - 1; cc++) {
-                final Cell cell = Cell.at(rr, cc);
-                log(cell);
-                final int val = value(cell);
-                int n = 0;
-                boolean stop = false;
-                for (final Cell c : grid.getCellsN(cell).collect(toList())) {
-                    if (stop) {
-                        break;
-                    }
-                    n++;
-                    stop = value(c) >= val;
-                }
-                log(n);
-                stop = false;
-                int w = 0;
-                for (final Cell c : grid.getCellsW(cell).collect(toList())) {
-                    if (stop) {
-                        break;
-                    }
-                    w++;
-                    stop = value(c) >= val;
-                }
-                log(w);
-                stop = false;
-                int e = 0;
-                for (final Cell c : grid.getCellsE(cell).collect(toList())) {
-                    if (stop) {
-                        break;
-                    }
-                    e++;
-                    stop = value(c) >= val;
-                }
-                log(e);
-                stop = false;
-                int s = 0;
-                for (final Cell c : grid.getCellsS(cell).collect(toList())) {
-                    if (stop) {
-                        break;
-                    }
-                    s++;
-                    stop = value(c) >= val;
-                }
-                log(s);
-                ans = Math.max(n * e * s * w, ans);
-            }
-        }
-        log(ans);
-        return ans;
+    public Integer solvePart2() {
+        return ignoringBorders().mapToInt(this::scenicScore).max().getAsInt();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -114,10 +97,10 @@ public class AoC2022_08 extends AoCBase {
     }
 
     private static final List<String> TEST = splitLines(
-          "30373\r\n"
-        + "25512\r\n"
-        + "65332\r\n"
-        + "33549\r\n"
-        + "35390"
+        "30373\r\n" +
+        "25512\r\n" +
+        "65332\r\n" +
+        "33549\r\n" +
+        "35390"
     );
 }
