@@ -3,6 +3,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
@@ -37,6 +38,14 @@ public final class IntGrid {
     public int size() {
         return this.getHeight() * this.getWidth();
     }
+	
+	public Integer getMaxRowIndex() {
+		return getHeight() - 1;
+	}
+	
+	public Integer getMaxColIndex() {
+		return getWidth() - 1;
+	}
     
     public int getValue(final IntGrid.Cell c) {
         return this.values[c.getRow()][c.getCol()];
@@ -59,7 +68,27 @@ public final class IntGrid {
         }
         return builder.build();
     }
-    
+
+    public Stream<Cell> getCellsN(final Cell cell) {
+        return IntStream.iterate(cell.getRow() - 1, i -> i >= 0, i -> i - 1)
+                .mapToObj(i -> Cell.at(i, cell.getCol()));
+    }
+
+	public Stream<Cell> getCellsE(final Cell cell) {
+	    return IntStream.iterate(cell.getCol() + 1, i -> i < this.getWidth(), i -> i + 1)
+	            .mapToObj(i -> Cell.at(cell.getRow(), i));
+	}
+	
+	public Stream<Cell> getCellsS(final Cell cell) {
+	    return IntStream.iterate(cell.getRow() + 1, i -> i < this.getHeight(), i -> i + 1)
+	            .mapToObj(i -> Cell.at(i, cell.getCol()));
+	}
+	
+	public Stream<Cell> getCellsW(final Cell cell) {
+	    return IntStream.iterate(cell.getCol() - 1, i -> i >= 0, i -> i - 1)
+	            .mapToObj(i -> Cell.at(cell.getRow(), i));
+	}
+	
     public Stream<Cell> findAllMatching(final Predicate<Integer> test) {
         final Builder<Cell> builder = Stream.builder();
         for (int row = 0; row < getHeight(); row++) {

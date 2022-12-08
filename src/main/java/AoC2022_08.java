@@ -4,18 +4,18 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
-import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.IntGrid;
+import com.github.pareronia.aoc.IntGrid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2022_08 extends AoCBase {
     
-    private final Grid grid;
+    private final IntGrid grid;
     
     private AoC2022_08(final List<String> input, final boolean debug) {
         super(debug);
-        this.grid = Grid.from(input);
+        this.grid = IntGrid.from(input);
     }
     
     public static final AoC2022_08 create(final List<String> input) {
@@ -26,32 +26,24 @@ public class AoC2022_08 extends AoCBase {
         return new AoC2022_08(input, true);
     }
     
-    private int value(final Cell cell) {
-        return Integer.parseInt(String.valueOf(grid.getValueAt(cell)));
-    }
-    
     public Set<Stream<Cell>> capitalDirections(final Cell cell) {
-        return Set.of(grid.getCellsN(cell), grid.getCellsE(cell), grid.getCellsS(cell), grid.getCellsW(cell));
+        return Set.of(
+            grid.getCellsN(cell), grid.getCellsE(cell),
+            grid.getCellsS(cell), grid.getCellsW(cell));
     }
     
     public Stream<Cell> ignoringBorders() {
-        final Stream.Builder<Cell> builder = Stream.builder();
-        for (int rr = 1; rr <= grid.getMaxRowIndex() - 1; rr++) {
-            for (int cc = 1; cc <= grid.getMaxColIndex() - 1; cc++) {
-                builder.add(Cell.at(rr, cc));
-            }
-        }
-        return builder.build();
+        return grid.getCells()
+                .filter(cell -> 1 <= cell.getRow())
+                .filter(cell -> cell.getRow() < grid.getMaxRowIndex())
+                .filter(cell -> 1 <= cell.getCol())
+                .filter(cell -> cell.getCol() < grid.getMaxColIndex());
     }
     
     private boolean visibleFromOutside(final Cell cell) {
-        final int val = value(cell);
-        for (final Stream<Cell> direction : capitalDirections(cell)) {
-            if (direction.allMatch(c -> value(c) < val)) {
-                return true;
-            }
-        }
-        return false;
+        final int val = grid.getValue(cell);
+        return capitalDirections(cell).stream()
+                .anyMatch(dir -> dir.allMatch(c -> grid.getValue(c) < val));
     }
     
     private Integer viewingDistance(final Stream<Cell> direction, final int val) {
@@ -62,14 +54,14 @@ public class AoC2022_08 extends AoCBase {
                 break;
             }
             n++;
-            stop = value(c) >= val;
+            stop = grid.getValue(c) >= val;
         }
         return n;
     }
     
     private Integer scenicScore(final Cell cell) {
         return capitalDirections(cell).stream()
-                .map(direction -> viewingDistance(direction, value(cell)))
+                .map(direction -> viewingDistance(direction, grid.getValue(cell)))
                 .reduce(1, (a, b) -> a * b);
     }
     
