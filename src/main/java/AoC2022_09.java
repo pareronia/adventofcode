@@ -1,21 +1,41 @@
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Vector;
+import com.github.pareronia.aoc.navigation.Heading;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2022_09 extends AoCBase {
     
-    private final List<String> input;
+    private static final Map<String, Heading> MOVES = Map.of(
+            "U", Headings.NORTH.get(),
+            "D", Headings.SOUTH.get(),
+            "L", Headings.WEST.get(),
+            "R", Headings.EAST.get()
+    );
+    
+    private final List<Heading> moves;
     
     private AoC2022_09(final List<String> input, final boolean debug) {
         super(debug);
-        this.input = input;
+        this.moves = input.stream()
+            .flatMap(line -> {
+                final String[] splits = line.split(" ");
+                final Heading[] h = new Heading[Integer.parseInt(splits[1])];
+                Arrays.fill(h, MOVES.get(splits[0]));
+                return Arrays.stream(h);
+            })
+            .collect(toList());
     }
     
     public static final AoC2022_09 create(final List<String> input) {
@@ -26,128 +46,53 @@ public class AoC2022_09 extends AoCBase {
         return new AoC2022_09(input, true);
     }
     
-    private Cell catchup(final Cell head, final Cell tail) {
-        final int dr = head.getRow() - tail.getRow();
-        final int dc = head.getCol() - tail.getCol();
-        if (Math.abs(dr) > 1 || Math.abs(dc) > 1) {
-            return Cell.at(
-                tail.getRow() + (dr < 0 ? - 1 : dr > 0 ? 1 : 0),
-                tail.getCol() + (dc < 0 ? - 1 : dc > 0 ? 1 : 0));
+    void printRope(final Position[] rope) {
+        log(Arrays.stream(rope)
+            .map(r -> String.format("(%d,%d)", r.getX(), r.getY()))
+            .collect(joining(" ")));
+    }
+    
+    private Position catchup(final Position head, final Position tail) {
+        final int dx = head.getX() - tail.getX();
+        final int dy = head.getY() - tail.getY();
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+            final Vector move = Vector.of(
+                dx < 0 ? - 1 : dx > 0 ? 1 : 0,
+                dy < 0 ? - 1 : dy > 0 ? 1 : 0);
+            return tail.translate(move);
         }
         return tail;
+    }
+
+    private void moveRope(final Position[] rope, final Heading move) {
+        rope[0] = rope[0].translate(move);
+        Range.range(1, rope.length, 1).forEach(j ->
+                rope[j] = catchup(rope[j - 1], rope[j]));
+        printRope(rope);
+    }
+    
+    private int solve(final int size) {
+        final Position[] rope = new Position[size];
+        Arrays.fill(rope, Position.of(0, 0));
+        final Set<Position> seen = this.moves.stream()
+            .map(move -> {
+                moveRope(rope, move);
+                return rope[rope.length - 1];
+            })
+            .collect(toSet());
+        log(seen.size());
+        log(seen);
+        return seen.size();
     }
     
     @Override
     public Integer solvePart1() {
-        Cell head = Cell.at(0,  0);
-        Cell tail = Cell.at(0,  0);
-        log(String.format("H: %s, T: %s", head, tail));
-        final Set<Cell> seen = new HashSet<>();
-        seen.add(tail);
-        for (final String line : this.input) {
-            log(line);
-            final String[] splits = line.split(" ");
-            final String dir = splits[0];
-            final int amount = Integer.parseInt(splits[1]);
-            if ("U".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    head = Cell.at(head.getRow() - 1, head.getCol());
-                    tail = catchup(head, tail);
-                    log(String.format("H: %s, T: %s", head, tail));
-                    seen.add(tail);
-                }
-            }
-            if ("D".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    head = Cell.at(head.getRow() + 1, head.getCol());
-                    tail = catchup(head, tail);
-                    log(String.format("H: %s, T: %s", head, tail));
-                    seen.add(tail);
-                }
-            }
-            if ("L".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    head = Cell.at(head.getRow(), head.getCol() - 1);
-                    tail = catchup(head, tail);
-                    log(String.format("H: %s, T: %s", head, tail));
-                    seen.add(tail);
-                }
-            }
-            if ("R".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    head = Cell.at(head.getRow(), head.getCol() + 1);
-                    tail = catchup(head, tail);
-                    log(String.format("H: %s, T: %s", head, tail));
-                    seen.add(tail);
-                }
-            }
-        }
-        log(seen.size());
-        log(seen);
-        return seen.size();
+        return solve(2);
     }
 
     @Override
     public Integer solvePart2() {
-        final Cell[] rope = new Cell[10];
-        Arrays.fill(rope, Cell.at(0, 0));
-        final Set<Cell> seen = new HashSet<>();
-        seen.add(rope[9]);
-        for (final String line : this.input) {
-            log(line);
-            final String[] splits = line.split(" ");
-            final String dir = splits[0];
-            final int amount = Integer.parseInt(splits[1]);
-            if ("U".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    rope[0] = Cell.at(rope[0].getRow() - 1, rope[0].getCol());
-                    for (int j = 1; j <= 9; j++) {
-                        rope[j] = catchup(rope[j - 1], rope[j]);
-                    }
-                    printRope(rope);
-                    seen.add(rope[9]);
-                }
-            }
-            if ("D".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    rope[0] = Cell.at(rope[0].getRow() + 1, rope[0].getCol());
-                    for (int j = 1; j <= 9; j++) {
-                        rope[j] = catchup(rope[j - 1], rope[j]);
-                    }
-                    printRope(rope);
-                    seen.add(rope[9]);
-                }
-            }
-            if ("L".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    rope[0] = Cell.at(rope[0].getRow(), rope[0].getCol() - 1);
-                    for (int j = 1; j <= 9; j++) {
-                        rope[j] = catchup(rope[j - 1], rope[j]);
-                    }
-                    printRope(rope);
-                    seen.add(rope[9]);
-                }
-            }
-            if ("R".equals(dir)) {
-                for (int i = 0; i < amount; i++) {
-                    rope[0] = Cell.at(rope[0].getRow(), rope[0].getCol() + 1);
-                    for (int j = 1; j <= 9; j++) {
-                        rope[j] = catchup(rope[j - 1], rope[j]);
-                    }
-                    printRope(rope);
-                    seen.add(rope[9]);
-                }
-            }
-        }
-        log(seen.size());
-        log(seen);
-        return seen.size();
-    }
-    
-    void printRope(final Cell[] rope) {
-        log(Arrays.stream(rope)
-            .map(r -> String.format("(%d,%d)", r.getRow(), r.getCol()))
-            .collect(joining(" ")));
+        return solve(10);
     }
 
     public static void main(final String[] args) throws Exception {
