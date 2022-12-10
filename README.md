@@ -12,7 +12,7 @@
 | java | [✓](src/main/java/AoC2022_01.java) | [✓](src/main/java/AoC2022_02.java) | [✓](src/main/java/AoC2022_03.java) | [✓](src/main/java/AoC2022_04.java) | [✓](src/main/java/AoC2022_05.java) | [✓](src/main/java/AoC2022_06.java) | [✓](src/main/java/AoC2022_07.java) | [✓](src/main/java/AoC2022_08.java) | [✓](src/main/java/AoC2022_09.java) | [✓](src/main/java/AoC2022_10.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | bash | [✓](src/main/bash/AoC2022_01.sh) | [✓](src/main/bash/AoC2022_02.sh) | [✓](src/main/bash/AoC2022_03.sh) | [✓](src/main/bash/AoC2022_04.sh) |  | [✓](src/main/bash/AoC2022_06.sh) |  |  |  | [✓](src/main/bash/AoC2022_10.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ | [✓](src/main/cpp/2022/01/AoC2022_01.cpp) | [✓](src/main/cpp/2022/02/AoC2022_02.cpp) | [✓](src/main/cpp/2022/03/AoC2022_03.cpp) | [✓](src/main/cpp/2022/04/AoC2022_04.cpp) |  | [✓](src/main/cpp/2022/06/AoC2022_06.cpp) |  |  | [✓](src/main/cpp/2022/09/AoC2022_09.cpp) | [✓](src/main/cpp/2022/10/AoC2022_10.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| julia | [✓](src/main/julia/AoC2022_01.jl) | [✓](src/main/julia/AoC2022_02.jl) | [✓](src/main/julia/AoC2022_03.jl) | [✓](src/main/julia/AoC2022_04.jl) |  | [✓](src/main/julia/AoC2022_06.jl) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| julia | [✓](src/main/julia/AoC2022_01.jl) | [✓](src/main/julia/AoC2022_02.jl) | [✓](src/main/julia/AoC2022_03.jl) | [✓](src/main/julia/AoC2022_04.jl) |  | [✓](src/main/julia/AoC2022_06.jl) |  |  |  | [✓](src/main/julia/AoC2022_10.jl) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2022@ -->
 
 ## 2021
