@@ -64,11 +64,7 @@ public class AoC2022_10 extends AoCBase {
     }
     
     private char draw(final int cycles, final int x) {
-        if (Range.rangeClosed(x - 1, x + 1, 1).contains(cycles % 40)) {
-            return FILL;
-        } else {
-            return EMPTY;
-        }
+        return Math.abs(x - cycles % 40) <= 1 ? FILL : EMPTY;
     }
     
     private List<String> getPixels() {
@@ -89,7 +85,9 @@ public class AoC2022_10 extends AoCBase {
 
     @Override
     public String solvePart2() {
-        return OCR.convert6(Grid.from(getPixels()), FILL, EMPTY);
+        final List<String> pixels = getPixels();
+        pixels.forEach(this::log);
+        return OCR.convert6(Grid.from(pixels), FILL, EMPTY);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -107,7 +105,7 @@ public class AoC2022_10 extends AoCBase {
         final List<String> inputData = puzzle.getInputData();
         puzzle.check(
             () -> lap("Part 1", AoC2022_10.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2022_10.create(inputData)::solvePart2)
+            () -> lap("Part 2", AoC2022_10.createDebug(inputData)::solvePart2)
         );
     }
 
