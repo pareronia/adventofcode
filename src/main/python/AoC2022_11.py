@@ -7,78 +7,61 @@
 import math
 import re
 from collections import defaultdict
+from typing import Callable
 from typing import NamedTuple
 
 import aocd
 from aoc import my_aocd
-from aoc.common import log
-
-MOD = 1_000_000_007
 
 
 class Monkey(NamedTuple):
     items: list[int]
-    operation: str
-    test: tuple[int, int, int]
+    operation: Callable[[int], int]
+    test: int
+    throw: tuple[int, int]
 
 
-def _parse(inputs: tuple[str]) -> dict[int, Monkey]:
-    monkeys = dict()
-    for i, block in enumerate(my_aocd.to_blocks(inputs)):
-        items = [int(n) for n in re.findall(r"\d+", block[1])]
-        operation = " ".join(block[2].split()[-2:])
-        if operation.endswith("old"):
-            operation = "** 2"
+def _parse(inputs: tuple[str]) -> list[Monkey]:
+    def parse_monkey(block: list[str]) -> Monkey:
+        items = [int(n) for n in re.findall(r"[0-9]+", block[1])]
+        operation = eval("lambda old: " + block[2].split("=")[1])  # nosec
         test = int(block[3].split()[-1])
         true = int(block[4].split()[-1])
         false = int(block[5].split()[-1])
-        monkeys[i] = Monkey(items, operation, (test, true, false))
-    return monkeys
+        return Monkey(items, operation, test, (false, true))
+
+    return [parse_monkey(block) for block in my_aocd.to_blocks(inputs)]
 
 
-def _round(monkeys: dict, counter: dict, manage: str) -> dict:
-    for i in monkeys:
-        monkey = monkeys[i]
-        while monkey.items:
-            item = monkey.items.pop(0)
-            counter[i] += 1
-            level = eval(  # nosec
-                "(" + str(item) + monkey.operation + ")" + manage
-            )
-            test, true, false = monkey.test
-            if level % test == 0:
-                monkeys[true].items.append(level)
-            else:
-                monkeys[false].items.append(level)
-    return monkeys
+def _round(
+    monkeys: list[Monkey],
+    counter: dict[int, int],
+    manage: Callable[[int], int],
+):
+    for i, monkey in enumerate(monkeys):
+        for item in monkey.items:
+            level = manage(monkey.operation(item))
+            monkeys[monkey.throw[level % monkey.test == 0]].items.append(level)
+        counter[i] += len(monkey.items)
+        monkey.items.clear()
+
+
+def _solve(monkeys: list[Monkey], rounds: int, manage: str) -> int:
+    counter = defaultdict[int, int](int)
+    for _ in range(rounds):
+        _round(monkeys, counter, manage)
+    return math.prod(sorted(counter.values())[-2:])
 
 
 def part_1(inputs: tuple[str]) -> int:
     monkeys = _parse(inputs)
-    counter = defaultdict(int)
-    log(monkeys)
-    for _ in range(20):
-        monkeys = _round(monkeys, counter, " // 3")
-    log(monkeys)
-    log(counter)
-    top = [v for k, v in sorted(counter.items(), key=lambda item: item[1])]
-    log(top[-2:])
-    ans = top[-2] * top[-1]
-    return ans
+    return _solve(monkeys, 20, lambda x: x // 3)
 
 
 def part_2(inputs: tuple[str]) -> int:
     monkeys = _parse(inputs)
-    counter = defaultdict(int)
-    mod = math.prod(monkeys[i].test[0] for i in monkeys)
-    for i in range(1, 10_001):
-        monkeys = _round(monkeys, counter, " % " + str(mod))
-        if i == 1 or i == 20 or i % 1_000 == 0:
-            log(i)
-            log(counter)
-    top = [v for k, v in sorted(counter.items(), key=lambda item: item[1])]
-    ans = top[-2] * top[-1]
-    return ans
+    mod = math.prod(monkey.test for monkey in monkeys)
+    return _solve(monkeys, 10_000, lambda x: x % mod)
 
 
 TEST = """\
