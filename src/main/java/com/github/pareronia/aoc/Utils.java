@@ -54,6 +54,10 @@ public class Utils {
         return Objects.requireNonNull(list).get(list.size() - 1);
     }
     
+    public static <T> T last(final T[] list) {
+        return Objects.requireNonNull(list)[list.length - 1];
+    }
+    
     public static char last(final String string) {
         return Objects.requireNonNull(string).charAt(string.length() - 1);
     }
