@@ -249,6 +249,7 @@ def run_for(
         userpad = len(max(plugins.keys(), key=len))
     if datasets:
         datasetpad = len(max(datasets, key=len))
+    total_time = 0
     for year, day, plugin, dataset in it:
         if year == aoc_now.year and day > aoc_now.day:
             continue
@@ -273,6 +274,7 @@ def run_for(
             else (result_a.duration + result_b.duration) / 1e9
         )
         runtime = format_time(time, timeout)
+        total_time += time
         line = "   ".join([runtime, progress])
         if result_a.is_missing and hide_missing:
             continue
@@ -301,6 +303,8 @@ def run_for(
                     answer = answer.ljust(30)
                 line += f"   {icon} part {part}: {answer}"
         print(line)
+    print()
+    print("Total run time: {:8.4f}s".format(total_time))
     return n_incorrect
 
 
