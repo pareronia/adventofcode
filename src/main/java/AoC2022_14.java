@@ -1,16 +1,23 @@
+import static com.github.pareronia.aoc.Utils.toAString;
+import static java.util.stream.Collectors.toList;
+
 import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2022_14 extends AoCBase {
     
-    private static final Position START = Position.of(500, 0);
+    private static final Position SOURCE = Position.of(500, 0);
+    private static final char START = '+';
+    private static final char EMPTY = ' ';
+    private static final char ROCK = '▒';
+    private static final char SAND = 'o';
 
     private final Set<Position> rocks;
     private final int minX;
@@ -22,30 +29,22 @@ public class AoC2022_14 extends AoCBase {
         this.rocks = new HashSet<>();
         for (final String line : input) {
             final String[] splits = line.split(" -> ");
-            Range.range(1, splits.length, 1).forEach(i -> {
+            IntStream.range(1, splits.length).forEach(i -> {
                 final String[] splits1 = splits[i - 1].split(",");
                 final String[] splits2 = splits[i].split(",");
-                final int x1 = Integer.parseInt(splits1[0]);
-                final int y1 = Integer.parseInt(splits1[1]);
-                final int x2 = Integer.parseInt(splits2[0]);
-                final int y2 = Integer.parseInt(splits2[1]);
-                if (x1 == x2) {
-                    if (y1 < y2) {
-                        Range.rangeClosed(y1, y2, 1).forEach(y ->
-                            this.rocks.add(Position.of(x1, y)));
-                    } else {
-                        Range.rangeClosed(y2, y1, 1).forEach(y ->
-                            this.rocks.add(Position.of(x1, y)));
-                    }
-                } else {
-                    if (x1 < x2) {
-                        Range.rangeClosed(x1, x2, 1).forEach(x ->
-                            this.rocks.add(Position.of(x, y1)));
-                    } else {
-                        Range.rangeClosed(x2, x1, 1).forEach(x ->
-                            this.rocks.add(Position.of(x, y1)));
-                    }
-                }
+                final List<Integer> xs = List.of(splits1, splits2).stream()
+                        .map(a -> a[0])
+                        .map(Integer::parseInt)
+                        .sorted()
+                        .collect(toList());
+                final List<Integer> ys = List.of(splits1, splits2).stream()
+                        .map(a -> a[1])
+                        .map(Integer::parseInt)
+                        .sorted()
+                        .collect(toList());
+                IntStream.rangeClosed(xs.get(0), xs.get(1)).forEach(x ->
+                    IntStream.rangeClosed(ys.get(0), ys.get(1)).forEach(y ->
+                        this.rocks.add(Position.of(x,  y))));
             });
         }
         final IntSummaryStatistics stats = this.rocks.stream()
@@ -54,9 +53,6 @@ public class AoC2022_14 extends AoCBase {
         this.minX = stats.getMin();
         this.maxX = stats.getMax();
         this.maxY = this.rocks.stream().mapToInt(Position::getY).max().getAsInt();
-        log(this.rocks.size());
-        log(this.rocks);
-        log(String.format("maxY: %d", maxY));
     }
     
     public static final AoC2022_14 create(final List<String> input) {
@@ -68,7 +64,7 @@ public class AoC2022_14 extends AoCBase {
     }
     
     Position drop(final Set<Position> sand, final int maxY) {
-        Position curr = START;
+        Position curr = SOURCE;
         while (true) {
             final Position p = curr;
             final Position down = Position.of(curr.getX(), curr.getY() + 1);
@@ -89,34 +85,64 @@ public class AoC2022_14 extends AoCBase {
         }
     }
     
-    private int solve(final int maxY) {
+    private Set<Position> solve(final int maxY) {
         final Set<Position> sand = new HashSet<>();
-        int ans = 0;
         while (true) {
             final Position p = drop(sand, maxY);
-            log(p);
             if (p == null) {
                 break;
             }
             sand.add(p);
-            ans++;
-            if (p.equals(START)) {
+            if (p.equals(SOURCE)) {
                 break;
             }
         }
-        return ans;
+        return sand;
+    }
+    
+    void draw(final Set<Position> sand) {
+        if (!this.debug) {
+            return;
+        }
+        final IntSummaryStatistics statsX = this.rocks.stream()
+            .mapToInt(Position::getX)
+            .summaryStatistics();
+        final IntSummaryStatistics statsY = this.rocks.stream()
+            .mapToInt(Position::getY)
+            .summaryStatistics();
+        IntStream.rangeClosed(SOURCE.getY(), statsY.getMax()).forEach(y -> {
+            final String line = IntStream.rangeClosed(statsX.getMin(), statsX.getMax())
+                    .mapToObj(x -> {
+                        final Position pos = Position.of(x, y);
+                        if (this.rocks.contains(pos)) {
+                            return ROCK;
+                        } else if (sand.contains(pos)) {
+                            return SAND;
+                        } else if (SOURCE.equals(pos)) {
+                            return START;
+                        }
+                        return EMPTY;
+                    })
+                    .collect(toAString());
+            log(line);
+        });
     }
     
     @Override
     public Integer solvePart1() {
-        return solve(this.maxY);
+        final Set<Position> sand = solve(this.maxY);
+        draw(sand);
+        return sand.size();
     }
 
     @Override
     public Integer solvePart2() {
-        Range.rangeClosed(minX - 500, maxX + 500, 1)
-            .forEach(x -> this.rocks.add(Position.of(x, this.maxY + 2)));
-        return solve(this.maxY + 2);
+        final int max = this.maxY + 2;
+        IntStream.rangeClosed(minX - max, maxX + max)
+            .forEach(x -> this.rocks.add(Position.of(x, max)));
+        final Set<Position> sand = solve(max);
+        draw(sand);
+        return sand.size();
     }
 
     public static void main(final String[] args) throws Exception {
