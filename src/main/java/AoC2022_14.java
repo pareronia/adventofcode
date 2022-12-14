@@ -114,7 +114,7 @@ public class AoC2022_14 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        Range.rangeClosed(minX - 100, maxX + 100, 1)
+        Range.rangeClosed(minX - 500, maxX + 500, 1)
             .forEach(x -> this.rocks.add(Position.of(x, this.maxY + 2)));
         return solve(this.maxY + 2);
     }
