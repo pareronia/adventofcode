@@ -62,9 +62,17 @@ public class Utils {
         return Objects.requireNonNull(string).charAt(string.length() - 1);
     }
     
-    private static final Pattern REGEX = Pattern.compile("[0-9]+");
+    private static final Pattern REGEX_N = Pattern.compile("[0-9]+");
     public static final int[] naturalNumbers(final String string) {
-        return REGEX.matcher(string).results()
+        return REGEX_N.matcher(string).results()
+                .map(MatchResult::group)
+                .mapToInt(Integer::parseInt)
+                .toArray();
+    }
+    
+    private static final Pattern REGEX_Z = Pattern.compile("-?[0-9]+");
+    public static final int[] integerNumbers(final String string) {
+        return REGEX_Z.matcher(string).results()
                 .map(MatchResult::group)
                 .mapToInt(Integer::parseInt)
                 .toArray();
