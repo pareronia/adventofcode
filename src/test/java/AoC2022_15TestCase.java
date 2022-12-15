@@ -1,7 +1,7 @@
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 
-import java.util.List;
+import java.util.Deque;
 import java.util.Set;
 
 import org.apache.commons.lang3.Range;
@@ -16,7 +16,7 @@ public class AoC2022_15TestCase {
             Range.between(8, 11)
         );
         
-        final List<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
+        final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
         assertThat(result, contains(Range.between(1, 6), Range.between(8, 11)));
     }
@@ -28,7 +28,7 @@ public class AoC2022_15TestCase {
                 Range.between(5, 11)
                 );
         
-        final List<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
+        final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
         assertThat(result, contains(Range.between(1, 11)));
     }
@@ -42,7 +42,7 @@ public class AoC2022_15TestCase {
                 Range.between(15, 21)
                 );
         
-        final List<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
+        final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
         assertThat(result, contains(Range.between(1, 11), Range.between(15, 21)));
     }
@@ -59,7 +59,7 @@ public class AoC2022_15TestCase {
                 Range.between(12, 12)
                 );
         
-        final List<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
+        final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
         assertThat(result, contains(Range.between(-2, 24)));
     }
