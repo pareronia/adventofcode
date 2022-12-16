@@ -1,21 +1,16 @@
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.collections4.SetUtils.intersection;
 
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import org.apache.commons.collections4.SetUtils;
 
 import com.github.pareronia.aoc.graph.AStar;
 import com.github.pareronia.aoc.graph.AStar.Result;
@@ -28,33 +23,47 @@ import lombok.ToString;
 
 public class AoC2022_16 extends AoCBase {
     
-    private final Map<String, Integer> nodes;
-    private final Map<String, Set<String>> edges;
-    private final int maxFlow;
-    private final List<String> usableValves;
+    private final String[] valves;
+    private final int[] rates;
+    private final Set<Integer>[] tunnels;
+    private int start;
     
+    @SuppressWarnings("unchecked")
     private AoC2022_16(final List<String> input, final boolean debug) {
         super(debug);
-        this.nodes = new HashMap<>();
-        this.edges = new HashMap<>();
-        for (String line : input) {
-            line = line.replaceAll("[,;]", "");
+        final int size = input.size();
+        this.valves = new String[size];
+        this.rates = new int[size];
+        this.tunnels = new Set[size];
+        final Map<String, Set<String>> edges = new HashMap<>();
+        final Map<String, Integer> map = new HashMap<>();
+        for (int i = 0; i < size; i++) {
+            final String line = input.get(i).replaceAll("[,;]", "");
             final String[] splits = line.split(" ");
             final String name = splits[1];
+            if ("AA".equals(name)) {
+                this.start = i;
+            }
+            valves[i] = name;
+            map.put(name, i);
             final int rate = Integer.parseInt(splits[4].split("=")[1]);
-            nodes.put(name, rate);
-            IntStream.range(9, splits.length).mapToObj(i -> splits[i])
+            rates[i] = rate;
+            IntStream.range(9, splits.length).mapToObj(j -> splits[j])
                 .forEach(v -> edges.computeIfAbsent(name, k -> new HashSet<>()).add(v));
         }
-        this.maxFlow = nodes.values().stream().mapToInt(Integer::valueOf).sum();
-        this.usableValves = new ArrayList<>(List.of("AA"));
-        this.nodes.keySet().stream()
-                .filter(k -> this.nodes.get(k) > 0)
-                .forEach(this.usableValves::add);
-        log(this.nodes);
-        log(this.edges);
-        log(this.maxFlow);
-        log("usableValves: " + this.usableValves);
+        edges.entrySet().forEach(e -> {
+            final int idx = map.get(e.getKey());
+            this.tunnels[idx] = e.getValue().stream().map(map::get).collect(toSet());
+        });
+        log(() -> "valves: " + IntStream.range(0, this.valves.length)
+                .mapToObj(i -> String.format("%d: %s", i, this.valves[i]))
+                .collect(joining(", ")));
+        log(() -> "rates: " + IntStream.range(0, this.rates.length)
+                .mapToObj(i -> String.format("%d: %s", i, this.rates[i]))
+                .collect(joining(", ")));
+        log(() -> "tunnels: " + IntStream.range(0, this.tunnels.length)
+                .mapToObj(i -> String.format("%d: %s", i, this.tunnels[i]))
+                .collect(joining(", ")));
     }
     
     public static final AoC2022_16 create(final List<String> input) {
@@ -70,129 +79,84 @@ public class AoC2022_16 extends AoCBase {
         private final int[][] distances;
         private final int maxTime;
         private final Flow current = new Flow();
-        private Result best = new Result(0, Set.of());
-        private final Map<Set<String>, Integer> bestPerUsed = new HashMap<>();
+        private final Map<Set<Integer>, Integer> bestPerUsed = new HashMap<>();
         
-        public void dfs(final String start, final int time) {
-            final int start_idx = usableValves.indexOf(start);
-            final Set<String> used = current.getUsed();
-            final Stream<String> rest = usableValves.stream()
-                    .filter(v -> !v.equals("AA"))
-                    .filter(v -> !used.contains(v));
+        public void dfs(final int start, final int time) {
+            final Set<Integer> used = current.getUsed();
+            final IntStream rest = IntStream.range(0, valves.length)
+                    .filter(i -> rates[i] > 0)
+                    .filter(i-> !used.contains(i));
             rest.forEach(valve -> {
                 int newTime = time + 1;
-                final int valve_idx = usableValves.indexOf(valve);
-                newTime += distances[start_idx][valve_idx];
+                newTime += distances[start][valve];
                 if (newTime < maxTime) {
-                    current.add(valve, nodes.get(valve), newTime);
+                    current.add(valve, rates[valve], newTime);
                     dfs(valve, newTime);
                     current.removeLast();
                 }
             });
-            final Result result = new Result(current.getTotal(maxTime), used);
-            if (best.compareTo(result) < 0) {
-                best = result;
-            }
-            bestPerUsed.put(used, Math.max(bestPerUsed.getOrDefault(used, 0), result.pressureRelease));
-//            bestPerUsed.merge(used, result.pressureRelease, Math::max);
-        }
-        
-        @RequiredArgsConstructor
-        private final class Result implements Comparable<Result> {
-            private final int pressureRelease;
-            private final Set<String> valves;
-
-            @Override
-            public int compareTo(final Result other) {
-                return Integer.compare(pressureRelease, other.pressureRelease);
-            }
+            bestPerUsed.merge(used, current.getTotal(maxTime), Math::max);
         }
     }
 
     private int[][] getDistances() {
-        final int size = this.usableValves.size();
+        final int[] relevantValves = IntStream.range(0, this.valves.length)
+                .filter(i -> this.rates[i] > 0 || i == this.start)
+                .toArray();
+        final int size = valves.length;
         final int[][] distances = new int[size][size];
-        for (int i = 0; i < size; i++) {
-            final Result<String> result = AStar.execute(
-                    this.usableValves.get(i),
+        for (final int i : relevantValves) {
+            final Result<Integer> result = AStar.execute(
+                    i,
                     v -> false,
-                    v -> this.edges.get(v).stream(),
+                    v -> this.tunnels[v].stream(),
                     v -> 1);
-            for (int j = 0; j < size; j++) {
-               final String dst = this.usableValves.get(j);
-               distances[i][j] = (int) result.getDistance(dst);
+            for (final int j : relevantValves) {
+                distances[i][j] = (int) result.getDistance(j);
             }
         }
-        log(() -> "    " + this.usableValves.stream().collect(joining(" | ")));
-        IntStream.range(0, distances.length).forEach(i -> {
-            log(() -> this.usableValves.get(i) + "  "
-                    + Arrays.stream(distances[i])
-                            .mapToObj(d -> String.format("%02d", d))
+        log(() -> "    " + Arrays.stream(relevantValves)
+                .mapToObj(i -> this.valves[i]).collect(joining(" | ")));
+        Arrays.stream(relevantValves).forEach(i -> {
+            log(() -> this.valves[i] + "  "
+                    + Arrays.stream(relevantValves)
+                            .mapToObj(j -> String.format("%2d", distances[i][j]))
                             .collect(joining(" | ")));
         });
         return distances;
     }
-    
-    private void testFlow() {
-        final Flow flow1 = new Flow();
-        flow1.add("DD", 20, 2);
-        flow1.add("BB", 13, 5);
-        flow1.add("JJ", 21, 9);
-        flow1.add("HH", 22, 17);
-        flow1.add("EE", 3, 21);
-        flow1.add("CC", 2, 24);
-        assert flow1.getTotal(30) == 1651;
-        final Flow flow2 = new Flow();
-        flow2.add("DD", 20, 1);
-        flow2.add("BB", 13, 4);
-        flow2.add("JJ", 21, 8);
-        flow2.add("EE", 3, 13);
-        flow2.add("HH", 22, 17);
-        flow2.add("CC", 2, 23);
-        assert flow2.getTotal(30) == 1731;
-    }
-    
+
     @Override
     public Integer solvePart1() {
         final int[][] distances = getDistances();
         final DFS dfs = new DFS(distances, 30);
-        dfs.dfs("AA", 0);
-        final int ans = dfs.best.pressureRelease;
-        log(ans);
-        return ans;
+        dfs.dfs(this.start, 0);
+        return dfs.bestPerUsed.values().stream()
+                .mapToInt(Integer::valueOf)
+                .max().orElseThrow();
     }
 
     @Override
     public Integer solvePart2() {
         final int[][] distances = getDistances();
-        final DFS dfs = new DFS(distances, 26);
-        dfs.dfs("AA", 0);
-        final List<Entry<Set<String>, Integer>> sorted = dfs.bestPerUsed.entrySet().stream()
-                .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
-                .collect(toList());
-        int ans = 0;
-        for (final Entry<Set<String>, Integer> entry1 : sorted) {
-            for (final Entry<Set<String>, Integer> entry2 : sorted) {
-                if (entry1.equals(entry2)) {
-                    continue;
-                }
-                if (SetUtils.intersection(entry1.getKey(), entry2.getKey()).isEmpty()) {
-                    ans = Math.max(entry1.getValue() + entry2.getValue(), ans);
-                }
-            }
-        }
-        return ans;
+        final DFS dfs2 = new DFS(distances, 26);
+        dfs2.dfs(this.start, 0);
+        return dfs2.bestPerUsed.entrySet().stream()
+            .flatMapToInt(e1 -> dfs2.bestPerUsed.entrySet().stream()
+                .filter(e2 -> !e2.equals(e1))
+                .filter(e2 -> intersection(e1.getKey(), e2.getKey()).isEmpty())
+                .mapToInt(e2 -> e1.getValue() + e2.getValue()))
+            .max().orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
-        AoC2022_16.createDebug(TEST).testFlow();
         assert AoC2022_16.createDebug(TEST).solvePart1() == 1651;
         assert AoC2022_16.createDebug(TEST).solvePart2() == 1707;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 16);
         final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", AoC2022_16.createDebug(inputData)::solvePart1),
+            () -> lap("Part 1", AoC2022_16.create(inputData)::solvePart1),
             () -> lap("Part 2", AoC2022_16.create(inputData)::solvePart2)
         );
     }
@@ -214,9 +178,9 @@ public class AoC2022_16 extends AoCBase {
     private final static class Flow {
         private final Deque<Step> steps = new ArrayDeque<>();
         
-        public void add(final String name, final int rate, final int time) {
-            assert !getUsed().contains(name);
-            this.steps.addLast(new Step(name, rate, time));
+        public void add(final int valve, final int rate, final int time) {
+            assert !getUsed().contains(valve);
+            this.steps.addLast(new Step(valve, rate, time));
         }
         
         public void removeLast() {
@@ -229,7 +193,7 @@ public class AoC2022_16 extends AoCBase {
                 .sum();
         }
         
-        public Set<String> getUsed() {
+        public Set<Integer> getUsed() {
             return steps.stream().map(Step::getValve).collect(toSet());
         }
         
@@ -237,7 +201,7 @@ public class AoC2022_16 extends AoCBase {
         @ToString
         private static final class Step {
             @Getter
-            private final String valve;
+            private final int valve;
             @Getter
             private final int rate;
             private final int since;
