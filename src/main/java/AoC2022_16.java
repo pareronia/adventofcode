@@ -1,4 +1,5 @@
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayDeque;
@@ -9,11 +10,12 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.mutable.MutableInt;
+import org.apache.commons.collections4.SetUtils;
 
 import com.github.pareronia.aoc.graph.AStar;
 import com.github.pareronia.aoc.graph.AStar.Result;
@@ -65,29 +67,45 @@ public class AoC2022_16 extends AoCBase {
     
     @RequiredArgsConstructor
     private final class DFS {
-        private final int maxTime = 30;
         private final int[][] distances;
+        private final int maxTime;
         private final Flow current = new Flow();
+        private Result best = new Result(0, Set.of());
+        private final Map<Set<String>, Integer> bestPerUsed = new HashMap<>();
         
-        public int dfs(final String start, final int time) {
-//            log(current.getTotal(maxTime) + " "  + current);
+        public void dfs(final String start, final int time) {
             final int start_idx = usableValves.indexOf(start);
             final Set<String> used = current.getUsed();
             final Stream<String> rest = usableValves.stream()
                     .filter(v -> !v.equals("AA"))
                     .filter(v -> !used.contains(v));
-            final MutableInt max = new MutableInt(0);
             rest.forEach(valve -> {
                 int newTime = time + 1;
                 final int valve_idx = usableValves.indexOf(valve);
                 newTime += distances[start_idx][valve_idx];
                 if (newTime < maxTime) {
                     current.add(valve, nodes.get(valve), newTime);
-                    max.setValue(Math.max(max.getValue(), dfs(valve, newTime)));
+                    dfs(valve, newTime);
                     current.removeLast();
                 }
             });
-            return Math.max(current.getTotal(maxTime), max.getValue());
+            final Result result = new Result(current.getTotal(maxTime), used);
+            if (best.compareTo(result) < 0) {
+                best = result;
+            }
+            bestPerUsed.put(used, Math.max(bestPerUsed.getOrDefault(used, 0), result.pressureRelease));
+//            bestPerUsed.merge(used, result.pressureRelease, Math::max);
+        }
+        
+        @RequiredArgsConstructor
+        private final class Result implements Comparable<Result> {
+            private final int pressureRelease;
+            private final Set<String> valves;
+
+            @Override
+            public int compareTo(final Result other) {
+                return Integer.compare(pressureRelease, other.pressureRelease);
+            }
         }
     }
 
@@ -137,20 +155,39 @@ public class AoC2022_16 extends AoCBase {
     @Override
     public Integer solvePart1() {
         final int[][] distances = getDistances();
-        final int ans = new DFS(distances).dfs("AA", 0);
+        final DFS dfs = new DFS(distances, 30);
+        dfs.dfs("AA", 0);
+        final int ans = dfs.best.pressureRelease;
         log(ans);
         return ans;
     }
 
     @Override
     public Integer solvePart2() {
-        return 0;
+        final int[][] distances = getDistances();
+        final DFS dfs = new DFS(distances, 26);
+        dfs.dfs("AA", 0);
+        final List<Entry<Set<String>, Integer>> sorted = dfs.bestPerUsed.entrySet().stream()
+                .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
+                .collect(toList());
+        int ans = 0;
+        for (final Entry<Set<String>, Integer> entry1 : sorted) {
+            for (final Entry<Set<String>, Integer> entry2 : sorted) {
+                if (entry1.equals(entry2)) {
+                    continue;
+                }
+                if (SetUtils.intersection(entry1.getKey(), entry2.getKey()).isEmpty()) {
+                    ans = Math.max(entry1.getValue() + entry2.getValue(), ans);
+                }
+            }
+        }
+        return ans;
     }
 
     public static void main(final String[] args) throws Exception {
         AoC2022_16.createDebug(TEST).testFlow();
         assert AoC2022_16.createDebug(TEST).solvePart1() == 1651;
-        assert AoC2022_16.createDebug(TEST).solvePart2() == 0;
+        assert AoC2022_16.createDebug(TEST).solvePart2() == 1707;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 16);
         final List<String> inputData = puzzle.getInputData();
