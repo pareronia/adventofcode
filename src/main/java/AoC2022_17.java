@@ -136,11 +136,11 @@ public class AoC2022_17 extends AoCBase {
             .map(shape -> new Rock(shape.idx, shape.shape).move(Vector.of(2, stack.getTop() + 3)))
             .forEach(rock -> fall(rock, stack, jetSupplier));
         final int ans = stack.getTop();
-        System.out.println(ans);
-        System.out.println(this.cnt);
-        System.out.println(this.states.size());
-        this.states.entrySet().stream().filter(e -> e.getValue().size() > 1)
-                .forEach(System.out::println);
+//        System.out.println(ans);
+//        System.out.println(this.cnt);
+//        System.out.println(this.states.size());
+//        this.states.entrySet().stream().filter(e -> e.getValue().size() > 1)
+//                .forEach(System.out::println);
         return ans;
     }
     
@@ -170,13 +170,13 @@ public class AoC2022_17 extends AoCBase {
         }
         final List<Cycle> cycles = this.states.get(state);
         final int loopsize = 1725;//cycles.get(1).cycle - cycles.get(0).cycle;
-        System.out.println("loopsize: " + loopsize);
+//        System.out.println("loopsize: " + loopsize);
         final int diff = 2728;//cycles.get(1).top - cycles.get(0).top;
-        System.out.println("diff: " + diff);
+//        System.out.println("diff: " + diff);
         final long loops = Math.floorDiv(1_000_000_000_000L - drops, loopsize);
-        System.out.println("loops: " + loops);
+//        System.out.println("loops: " + loops);
         final long left = 1_000_000_000_000L - (drops + loops * loopsize);
-        System.out.println("left: " + left);
+//        System.out.println("left: " + left);
         for (int i = 0; i < left; i++) {
             final Shape shape = shapeSupplier.get();
             final Rock rock = new Rock(shape.idx, shape.shape)
@@ -185,13 +185,13 @@ public class AoC2022_17 extends AoCBase {
         }
         final int topTail = stack.getTop();
         final long ans = topTail + loops * diff;
-        System.out.println(ans);
+//        System.out.println(ans);
         return ans;
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2022_17.create(TEST).solvePart1() == 3068;
-//        assert AoC2022_17.create(TEST).solvePart2() == 1_514_285_714_288L;
+        assert AoC2022_17.create(TEST).solvePart2() == 1_514_285_714_288L;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 17);
         final List<String> inputData = puzzle.getInputData();
