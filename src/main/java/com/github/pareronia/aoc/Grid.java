@@ -503,14 +503,14 @@ public class Grid {
 	private void validateRowIndex(final Integer row) {
 		Objects.requireNonNull(row);
 		if (row < 0 || row > getMaxRowIndex()) {
-			throw new IllegalArgumentException("Invalid row index.");
+			throw new IllegalArgumentException("Invalid row index: " + row);
 		}
 	}
 
 	private void validateColumnIndex(final Integer col) {
 		Objects.requireNonNull(col);
 		if (col < 0 || col > getMaxColIndex()) {
-			throw new IllegalArgumentException("Invalid column index.");
+			throw new IllegalArgumentException("Invalid column index: " + col);
 		}
 	}
 
