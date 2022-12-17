@@ -191,7 +191,7 @@ public class AoC2022_17 extends AoCBase {
 
     public static void main(final String[] args) throws Exception {
         assert AoC2022_17.create(TEST).solvePart1() == 3068;
-        assert AoC2022_17.create(TEST).solvePart2() == 1_514_285_714_288L;
+//        assert AoC2022_17.create(TEST).solvePart2() == 1_514_285_714_288L;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 17);
         final List<String> inputData = puzzle.getInputData();
