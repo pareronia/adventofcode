@@ -1,17 +1,16 @@
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Vector;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
@@ -23,39 +22,36 @@ import lombok.ToString;
 
 public class AoC2022_17 extends AoCBase {
     
-    private static final Grid[] ROCKS = new Grid[] {
-        Grid.from(List.of(
-                "####")),
-        Grid.from(List.of(
-                ".#.",
-                "###",
-                ".#.")),
-        Grid.from(List.of(
-                "..#",
-                "..#",
-                "###")),
-        Grid.from(List.of(
-                "#",
-                "#",
-                "#",
-                "#")),
-        Grid.from(List.of(
-                "##",
-                "##")),
-    };
+    private static final Set<Position> FLOOR = IntStream.rangeClosed(0, 6)
+            .mapToObj(x -> Position.of(x, -1)).collect(toSet());
+            
+    private static final List<Set<Position>> SHAPES = List.of(
+        // ####
+        Set.of(Position.of(0, 0), Position.of(1, 0), Position.of(2, 0), Position.of(3, 0)),
+        //  #
+        // ###
+        //  #
+        Set.of(Position.of(1, 2), Position.of(0, 1), Position.of(1, 1), Position.of(2, 1), Position.of(1, 0)),
+        //   #
+        //   #
+        // ###
+        Set.of(Position.of(2, 2), Position.of(2, 1), Position.of(0, 0), Position.of(1, 0), Position.of(2, 0)),
+        // #
+        // #
+        // #
+        // #
+        Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(0, 2), Position.of(0, 3)),
+        // ##
+        // ##
+        Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(1, 0), Position.of(1, 1))
+    );
 
     private final List<Heading> jets;
     
     private AoC2022_17(final List<String> input, final boolean debug) {
         super(debug);
         this.jets = Utils.asCharacterStream(input.get(0))
-            .map(c -> {
-                if (c == '>') {
-                    return Headings.EAST.get();
-                } else {
-                    return Headings.WEST.get();
-                }
-            })
+            .map(c -> c== '>' ? Headings.EAST.get() : Headings.WEST.get())
             .collect(toList());
     }
     
@@ -67,80 +63,59 @@ public class AoC2022_17 extends AoCBase {
         return new AoC2022_17(input, true);
     }
     
-    private int topMost(final Deque<Rock> stack) {
-        return stack.stream().flatMap(Rock::get)
-            .mapToInt(Position::getY)
-            .max().orElseThrow();
-    }
-    
-    private void draw(final Deque<Rock> stack) {
+    private void draw(final Stack stack) {
         if (!this.debug) {
             return;
         }
-        final Set<Position> positions = stack.stream().flatMap(Rock::get).collect(toSet());
-        final int max = positions.stream()
-            .mapToInt(Position::getY)
-            .max().orElseThrow();
+        final int max = stack.top;
         for (int y = max; y >= 0; y--) {
             final int they = y;
             log(IntStream.rangeClosed(0, 7)
-                .mapToObj(x -> positions.contains(Position.of(x, they)) ? '#' : ' ')
+                .mapToObj(x -> stack.contains(Position.of(x, they)) ? '#' : ' ')
                 .collect(Utils.toAString()));
         }
     }
     
-    private boolean hit(final Deque<Rock> stack, final Rock rock) {
-        final Set<Position> positions = rock.get().collect(toSet());
-        return stack.stream()
-                .flatMap(r -> r.get())
-                .anyMatch(positions::contains);
-    }
-    
-    private void fall(final Rock rock, final Deque<Rock> stack, final JetSupplier jetSupplier) {
-        int cnt = 0;
+    private void fall(
+            final Rock start, final Stack stack, final JetSupplier jetSupplier) {
+        log(start);
+        Rock rock = start;
         while (true) {
-            assert cnt++ < 10_000;
             final Heading jet = jetSupplier.get();
             log("move " + jet.toString());
-            rock.move(jet);
-            if (rock.leftMost() < 0 || rock.rightMost() > 6) {
+            Rock moved = rock.move(jet);
+            if (!moved.insideX(0, 6)) {
                 log("hit side: undo");
-                rock.move(jet.rotate(180));
-            } else if (hit(stack, rock)) {
+            } else if (stack.overlappedBy(moved)) {
                 log("hit stack: undo");
-                rock.move(jet.rotate(180));
+            } else {
+                rock = moved;
             }
             log("move down");
-            rock.move(Headings.SOUTH.get());
-            if (rock.bottomMost() < 0) {
-                log("hit bottom: undo");
-                rock.move(Headings.NORTH.get());
-                break;
-            } else if (hit(stack, rock)) {
+            moved = rock.move(Headings.SOUTH.get());
+            if (stack.overlappedBy(moved)) {
                 log("hit stack: undo");
-                rock.move(Headings.NORTH.get());
                 break;
             }
+            rock = moved;
         }
-        stack.addFirst(rock);
+        log("add to stack");
+        stack.add(rock);
         draw(stack);
+    }
+    
+    private int solve1(final int count) {
+        final Stack stack = new Stack(FLOOR);
+        final JetSupplier jetSupplier = new JetSupplier(this.jets);
+        Stream.generate(new ShapeSupplier()).limit(count)
+            .map(shape -> new Rock(shape).move(Vector.of(2, stack.top + 3)))
+            .forEach(rock -> fall(rock, stack, jetSupplier));
+        return stack.top;
     }
     
     @Override
     public Integer solvePart1() {
-        final Deque<Rock> stack = new ArrayDeque<>();
-        final JetSupplier jetSupplier = new JetSupplier(this.jets);
-        Stream.generate(new RockSupplier()).limit(2022)
-            .map(g -> {
-                final Position p = stack.isEmpty()
-                    ? Position.of(2, 3)
-                    : Position.of(2, topMost(stack) + 4);
-                return new Rock(g, p);
-            })
-            .forEach(rock -> fall(rock, stack, jetSupplier));
-        final int ans = topMost(stack) + 1;
-        System.out.println(ans);
-        return ans;
+        return solve1(2022);
     }
 
     @Override
@@ -164,49 +139,58 @@ public class AoC2022_17 extends AoCBase {
         ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
     );
     
-    @AllArgsConstructor
-    @ToString(onlyExplicitlyIncluded = true)
-    private static final class Rock {
-        private static final char EMPTY = '.';
-        private final Grid shape;
-        @ToString.Include
-        private Position position;
+    private static final class Stack {
+        private final Set<Position> positions;
+        private int top;
         
-        public Stream<Position> get() {
-            return this.shape.findAllMatching(ch -> ch != EMPTY)
-                .map(cell -> Position.of(
-                        this.position.getX() + cell.getCol(),
-                        this.position.getY() + this.shape.getMaxRowIndex() - cell.getRow()));
+        public Stack(final Set<Position> positions) {
+            this.positions = new HashSet<>(positions);
+        }
+
+        public void add(final Rock rock) {
+            rock.blocks().forEach(p -> {
+                this.positions.add(p);
+                this.top = Math.max(top, p.getY() + 1);
+            });
         }
         
-        @ToString.Include
-        public String grid() {
-            return System.lineSeparator() + this.shape.toString();
+        public boolean overlappedBy(final Rock rock) {
+            return rock.blocks().anyMatch(this.positions::contains);
         }
         
-        public int bottomMost() {
-            return this.position.getY();
-        }
-        
-        public int leftMost() {
-            return this.position.getX();
-        }
-        
-        public int rightMost() {
-            return this.position.getX() + this.shape.getMaxColIndex();
-        }
-        
-        public void move(final Heading heading) {
-            this.position = this.position.translate(heading);
+        public boolean contains(final Position p) {
+            return this.positions.contains(p);
         }
     }
     
-    private static final class RockSupplier implements Supplier<Grid> {
+    @AllArgsConstructor
+    @ToString
+    private static final class Rock {
+        private final Set<Position> shape;
+        
+        public Rock move(final Vector vector) {
+            final Set<Position> newShape = blocks()
+                    .map(p -> p.translate(vector))
+                    .collect(toSet());
+            return new Rock(newShape);
+        }
+        
+        public boolean insideX(final int startInclusive, final int endInclusive) {
+            return blocks().mapToInt(Position::getX)
+                    .allMatch(x -> startInclusive <= x && x <= endInclusive);
+        }
+        
+        private Stream<Position> blocks() {
+            return this.shape.stream();
+        }
+    }
+    
+    private static final class ShapeSupplier implements Supplier<Set<Position>> {
         private int idx = 0;
-
+        
         @Override
-        public Grid get() {
-            return ROCKS[idx++ % 5];
+        public Set<Position> get() {
+            return SHAPES.get(idx++ % 5);
         }
     }
     
