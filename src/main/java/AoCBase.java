@@ -13,6 +13,7 @@ import com.github.pareronia.aocd.Puzzle;
 public abstract class AoCBase {
 
 	protected final boolean debug;
+	protected boolean trace;
 	
 	protected static Puzzle puzzle(final Class<? extends AoCBase> klass) {
 	   final String[] split = klass.getSimpleName().substring("AoC".length()).split("_");
@@ -69,7 +70,11 @@ public abstract class AoCBase {
 		this.debug = debug;
 	}
 	
-	public Object warmUp() {
+	public void setTrace(final boolean trace) {
+        this.trace = trace;
+    }
+
+    public Object warmUp() {
 	    return 0L;
 	}
 	
@@ -88,8 +93,22 @@ public abstract class AoCBase {
 		System.out.println(obj);
 	}
 
+	protected void trace(final Object obj) {
+		if (!trace) {
+			return;
+		}
+		System.out.println(obj);
+	}
+
 	protected void log(final Supplier<Object> supplier) {
 		if (!debug) {
+			return;
+		}
+		System.out.println(supplier.get());
+	}
+
+	protected void trace(final Supplier<Object> supplier) {
+		if (!trace) {
 			return;
 		}
 		System.out.println(supplier.get());
