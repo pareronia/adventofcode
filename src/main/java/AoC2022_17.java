@@ -27,12 +27,14 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
-// TODO: needs a lot of cleanup, part 2 loop size visually derived
+// TODO: needs more cleanup
 public class AoC2022_17 extends AoCBase {
     
+    private static final int OFFSET_X = 2;
+    private static final int OFFSET_Y = 3;
+    private static final int LOOP_TRESHOLD = 2_500;
     private static final Set<Position> FLOOR = IntStream.rangeClosed(0, 6)
             .mapToObj(x -> Position.of(x, -1)).collect(toSet());
-            
     private static final List<Set<Position>> SHAPES = List.of(
         // ####
         Set.of(Position.of(0, 0), Position.of(1, 0), Position.of(2, 0), Position.of(3, 0)),
@@ -71,87 +73,74 @@ public class AoC2022_17 extends AoCBase {
         return new AoC2022_17(input, true);
     }
     
+    public static final AoC2022_17 createTrace(final List<String> input) {
+        final AoC2022_17 puzzle = new AoC2022_17(input, true);
+        puzzle.setTrace(true);
+        return puzzle;
+    }
+    
 //    private void draw(final Stack stack) {
-//        if (!this.debug) {
+//        if (!this.trace) {
 //            return;
 //        }
 //        final int max = stack.top;
 //        for (int y = max; y >= 0; y--) {
 //            final int they = y;
-//            log(IntStream.rangeClosed(0, 7)
+//            trace(IntStream.rangeClosed(0, 7)
 //                .mapToObj(x -> stack.contains(Position.of(x, they)) ? '#' : ' ')
 //                .collect(Utils.toAString()));
 //        }
 //    }
 //
-    int cnt;
     Map<State, List<Cycle>> states;
     
-    private State fall(
-            final Rock start, final Stack stack, final JetSupplier jetSupplier) {
-        log(start);
+    private State drop(
+            final int dropIndex,
+            final Stack stack,
+            final ShapeSupplier shapeSupplier,
+            final JetSupplier jetSupplier
+    ) {
+        final Shape shape = shapeSupplier.get();
+        final Rock start = new Rock(shape.idx, shape.shape)
+                .move(Vector.of(OFFSET_X, stack.getTop() + OFFSET_Y));
+        trace(() -> start);
         Rock rock = start;
         State state;
         int cnt = 0;
         while (true) {
-            assert cnt++ < 10000;
-            final Heading jet = jetSupplier.get();
             state = new State(rock.idx, stack.getTopRows(20));
-            if (cnt == 1) {
+            if (cnt++ == 1) {
                 this.states.computeIfAbsent(state, k -> new ArrayList<>())
-                    .add(new Cycle(this.cnt++, stack.getTop()));
+                    .add(new Cycle(dropIndex, stack.getTop()));
             }
-            log("move " + jet.toString());
+            final Heading jet = jetSupplier.get();
+            trace(() -> "move " + jet.toString());
             Rock moved = rock.move(jet);
             if (!moved.insideX(0, 6)) {
-                log("hit side: undo");
+                trace(() -> "hit side: undo");
             } else if (stack.overlappedBy(moved)) {
 //                assert stack.overlappedBy2(moved);
-                log("hit stack: undo");
+                trace(() -> "hit stack: undo");
             } else {
                 rock = moved;
             }
-            log("move down");
+            trace(() -> "move down");
             moved = rock.move(Headings.SOUTH.get());
             if (stack.overlappedBy(moved)) {
 //                assert stack.overlappedBy2(moved);
-                log("hit stack: undo");
+                trace(() -> "hit stack: undo");
                 break;
             }
             rock = moved;
         }
-        log("add to stack");
+        trace(() -> "add to stack");
         stack.add(rock);
 //        assert stack.top == stack.getTops().values().stream().mapToInt(Integer::valueOf).max().orElse(0) + 1;
 //        draw(stack);
         return state;
     }
-    
-    private int solve1(final int count) {
-        this.cnt = 0;
-        this.states = new HashMap<>();
-        final Stack stack = new Stack(FLOOR);
-        final JetSupplier jetSupplier = new JetSupplier(this.jets);
-        Stream.generate(new ShapeSupplier()).limit(count)
-            .map(shape -> new Rock(shape.idx, shape.shape).move(Vector.of(2, stack.getTop() + 3)))
-            .forEach(rock -> fall(rock, stack, jetSupplier));
-        final int ans = stack.getTop();
-//        System.out.println(ans);
-//        System.out.println(this.cnt);
-//        System.out.println(this.states.size());
-//        this.states.entrySet().stream().filter(e -> e.getValue().size() > 1)
-//                .forEach(System.out::println);
-        return ans;
-    }
-    
-    @Override
-    public Integer solvePart1() {
-        return solve1(2022);
-    }
 
-    @Override
-    public Long solvePart2() {
-        this.cnt = 0;
+    private Long solve(final long requestedDrops) {
         this.states = new HashMap<>();
         final Stack stack = new Stack(FLOOR);
         final JetSupplier jetSupplier = new JetSupplier(this.jets);
@@ -159,39 +148,42 @@ public class AoC2022_17 extends AoCBase {
         int drops = 0;
         State state;
         while (true) {
-            final Shape shape = shapeSupplier.get();
-            final Rock rock = new Rock(shape.idx, shape.shape)
-                    .move(Vector.of(2, stack.getTop() + 3));
-            state = fall(rock, stack, jetSupplier);
-            drops++;
-            if (this.states.getOrDefault(state, List.of()).size() > 1) {
+            state = drop(drops++, stack, shapeSupplier, jetSupplier);
+            if (drops == requestedDrops) {
+                return (long) stack.getTop();
+            }
+            if (drops >= LOOP_TRESHOLD
+                    && this.states.getOrDefault(state, List.of()).size() > 1) {
                 break;
             }
         }
+        log("drops: " + drops);
         final List<Cycle> cycles = this.states.get(state);
-        final int loopsize = 1725;//cycles.get(1).cycle - cycles.get(0).cycle;
-//        System.out.println("loopsize: " + loopsize);
-        final int diff = 2728;//cycles.get(1).top - cycles.get(0).top;
-//        System.out.println("diff: " + diff);
-        final long loops = Math.floorDiv(1_000_000_000_000L - drops, loopsize);
-//        System.out.println("loops: " + loops);
-        final long left = 1_000_000_000_000L - (drops + loops * loopsize);
-//        System.out.println("left: " + left);
+        final int loopsize = cycles.get(1).cycle - cycles.get(0).cycle;
+        log("loopsize: " + loopsize);
+        final int diff = cycles.get(1).top - cycles.get(0).top;
+        log("diff: " + diff);
+        final long loops = Math.floorDiv(requestedDrops - drops, loopsize);
+        final long left = requestedDrops - (drops + loops * loopsize);
         for (int i = 0; i < left; i++) {
-            final Shape shape = shapeSupplier.get();
-            final Rock rock = new Rock(shape.idx, shape.shape)
-                    .move(Vector.of(2, stack.getTop() + 3));
-            fall(rock, stack, jetSupplier);
+            drop(drops++, stack, shapeSupplier, jetSupplier);
         }
-        final int topTail = stack.getTop();
-        final long ans = topTail + loops * diff;
-//        System.out.println(ans);
-        return ans;
+        return stack.getTop() + loops * diff;
+    }
+    
+    @Override
+    public Long solvePart1() {
+        return solve(2022L);
+    }
+    
+    @Override
+    public Long solvePart2() {
+        return solve(1_000_000_000_000L);
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2022_17.create(TEST).solvePart1() == 3068;
-//        assert AoC2022_17.create(TEST).solvePart2() == 1_514_285_714_288L;
+        assert AoC2022_17.createDebug(TEST).solvePart1() == 3068;
+        assert AoC2022_17.createDebug(TEST).solvePart2() == 1_514_285_714_288L;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 17);
         final List<String> inputData = puzzle.getInputData();
