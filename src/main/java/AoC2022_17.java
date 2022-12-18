@@ -32,7 +32,7 @@ public class AoC2022_17 extends AoCBase {
     
     private static final int OFFSET_X = 2;
     private static final int OFFSET_Y = 3;
-    private static final int LOOP_TRESHOLD = 2_500;
+    private static final int LOOP_TRESHOLD = 3_000;
     private static final Set<Position> FLOOR = IntStream.rangeClosed(0, 6)
             .mapToObj(x -> Position.of(x, -1)).collect(toSet());
     private static final List<Set<Position>> SHAPES = List.of(
