@@ -1,7 +1,9 @@
 package com.github.pareronia.aoc.geometry3d;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsInAnyOrder;
 
 import org.junit.Test;
 
@@ -63,5 +65,34 @@ public class CuboidTestCase {
                                 Cuboid.of(-2, -1, -2, -1 , -2, -1))
                 .isPresent(),
             is(false));
+    }
+    
+    @Test
+    public void testContains() {
+        final Cuboid cuboid = Cuboid.of(0, 2, 0, 2, 0, 2);
+        assertThat(cuboid.contains(Position3D.of(-1, 0, 0)), is(false));
+        assertThat(cuboid.contains(Position3D.of(0, 0, 0)), is(true));
+        assertThat(cuboid.contains(Position3D.of(0, 1, 1)), is(true));
+        assertThat(cuboid.contains(Position3D.of(2, 1, 1)), is(true));
+        assertThat(cuboid.contains(Position3D.of(2, 2, 3)), is(false));
+    }
+    
+    @Test
+    public void testPositionStream() {
+        final Cuboid cuboid = Cuboid.of(0, 2, 0, 1, 0, 1);
+        assertThat(cuboid.positions().collect(toSet()), containsInAnyOrder(
+            Position3D.of(0, 0, 0),
+            Position3D.of(0, 0, 1),
+            Position3D.of(0, 1, 0),
+            Position3D.of(0, 1, 1),
+            Position3D.of(1, 0, 0),
+            Position3D.of(1, 0, 1),
+            Position3D.of(1, 1, 0),
+            Position3D.of(1, 1, 1),
+            Position3D.of(2, 0, 0),
+            Position3D.of(2, 0, 1),
+            Position3D.of(2, 1, 0),
+            Position3D.of(2, 1, 1)
+        ));
     }
 }
