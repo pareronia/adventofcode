@@ -1,23 +1,27 @@
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
+/**
+ * Very slow on part1, OOM on part2 after about 40 min...
+ */
 public class AoC2022_19 extends AoCBase {
     
     private final List<Blueprint> blueprints;
+    private final Map<Material, Integer> maxSpend;
     
     private AoC2022_19(final List<String> input, final boolean debug) {
         super(debug);
@@ -38,7 +42,20 @@ public class AoC2022_19 extends AoCBase {
                 return new Blueprint(id, Set.of(robot1, robot2, robot3, robot4));
             })
             .collect(toList());
-        log(this.blueprints);
+//        log(this.blueprints);
+        this.maxSpend = new HashMap<>();
+        for (final Blueprint blueprint : this.blueprints) {
+            for (final Material material : Material.values()) {
+                if (material == Material.GEODE) {
+                    continue;
+                }
+                final int max = blueprint.robots.stream()
+                        .mapToInt(r -> r.getCosts().getOrDefault(material, 0))
+                        .max().orElseThrow();
+                this.maxSpend.merge(material, max, Math::max);
+            }
+        }
+        log(this.maxSpend);
     }
     
     public static final AoC2022_19 create(final List<String> input) {
@@ -55,50 +72,82 @@ public class AoC2022_19 extends AoCBase {
         return puzzle;
     }
     
-    private final class DFS {
-        private final int maxTime;
-        private final Factory factory;
-        private int best = 0;
-        
-        public DFS(final Blueprint blueprint, final int maxTime) {
-            this.factory = new Factory(blueprint);
-            this.maxTime = maxTime;
+    @RequiredArgsConstructor
+    @EqualsAndHashCode
+    private static final class State {
+        private final int timeLeft;
+        private final Map<Material, Integer> factory;
+        private final Map<Material, Integer> inventory;
+    }
+    
+    private int dfs(final Blueprint blueprint, final Map<State, Integer> seen, final State state) {
+        trace(() -> "timeLeft: " + state.timeLeft);
+        trace(() -> "inventory: " + state.inventory);
+        trace(() -> "factory: " + state.factory);
+        final int geodes = state.inventory.getOrDefault(Material.GEODE, 0);
+        if (geodes >= 7) {
+//            log(() -> String.format("timeLeft / geodes: %d / %d", state.timeLeft, geodes));
+        }
+        if (state.timeLeft <= 0) {
+//            log("Hey");
+            return geodes;
+        }
+        if (seen.containsKey(state)) {
+//            log("seen");
+            return seen.get(state);
         }
 
-        public void dfs(final int time) {
-            trace("time: " + time);
-            for (int i = Material.values().length - 1; i >= 0; i--) {
-                final Material material = Material.values()[i];
-                trace(() -> "Material:" + material);
-                final Map<Material, Integer> costs = this.factory.blueprint.getCosts(material);
-                if (!costs.keySet().stream().allMatch(m -> this.factory.hasCapacity(m))) {
-                    trace("No capacity");
+        int max = geodes + state.factory.getOrDefault(Material.GEODE, 0) * state.timeLeft;
+        
+        for (final Material material : Material.values()) {
+            trace(() -> "Material:" + material);
+            if (material != Material.GEODE && state.factory.getOrDefault(material, 0) >= this.maxSpend.get(material)) {
+                trace("Enough bots already");
+                continue;
+            }
+            
+            boolean botAvailable = true;
+            int timeToBuild = 0;
+            final Map<Material, Integer> spent = new HashMap<>();
+            for (final Material botm : blueprint.getCosts(material).keySet()) {
+                if (!state.factory.containsKey(botm)) {
+                    botAvailable = false;
+                    break;
+                }
+                final int cost = blueprint.getCosts(material).get(botm);
+                spent.put(botm, cost);
+                final int required = Math.max(0, cost - state.inventory.getOrDefault(botm, 0));
+                final int bots = state.factory.get(botm);
+                final int bottime = (required + bots - 1) / bots;
+                timeToBuild = Math.max(timeToBuild, bottime);
+                assert timeToBuild >= 0;
+            }
+            if (botAvailable) {
+                final int newTimeLeft = state.timeLeft - timeToBuild - 1;
+                if (newTimeLeft <= 0) {
                     continue;
                 }
-                int newTime = time + this.factory.timeToNextRobot(material, time);
-                if (newTime + 1 < maxTime) {
-                    int steps = 0;
-                    for (final Entry<Material, Integer> e : costs.entrySet()) {
-                        trace(() -> String.format("Spending %d %s", e.getValue(), e.getKey()));
-                        this.factory.spend(e.getKey(), e.getValue(), time);
-                        steps++;
-                    }
-                    newTime = newTime + 1;
-                    trace(() -> String.format("Adding %s robot", material));
-                    this.factory.add(material, newTime);
-                    steps++;
-                    dfs(newTime);
-                    for (int j = 0; j < steps; j++) {
-                        this.factory.removeLast();
-                    }
-                } else {
-                    trace("No time left");
+                final HashMap<Material, Integer> newInventory = new HashMap<>(state.inventory);
+                final HashMap<Material, Integer> newFactory = new HashMap<>(state.factory);
+                for (final Material fm : state.factory.keySet()) {
+                    newInventory.merge(fm, (timeToBuild + 1) * newFactory.get(fm), Integer::sum);
                 }
+                for (final Material sm : spent.keySet()) {
+                    assert newInventory.containsKey(sm);
+                    newInventory.merge(sm, -spent.get(sm), Integer::sum);
+                }
+                newFactory.merge(material, 1, Integer::sum);
+                for (final Material mm : EnumSet.of(Material.ORE, Material.CLAY, Material.OBSIDIAN)) {
+                    final int maxNeeded = this.maxSpend.get(mm) * newTimeLeft;
+                    newInventory.computeIfPresent(mm, (k, v) -> Math.min(v, maxNeeded));
+                }
+                assert newTimeLeft < state.timeLeft;
+                final State newState = new State(newTimeLeft, newFactory, newInventory);
+                max = Math.max(max, dfs(blueprint, seen, newState));
             }
-            this.best = Math.max(
-                    this.best,
-                    this.factory.getTotal(Material.GEODE, maxTime));
         }
+        seen.put(state, max);
+        return max;
     }
     
     @Override
@@ -106,28 +155,36 @@ public class AoC2022_19 extends AoCBase {
         int ans = 0;
         for (final Blueprint blueprint : this.blueprints) {
             log("Blueprint: " + blueprint.id);
-            final DFS dfs = new DFS(this.blueprints.get(blueprint.id - 1), 24);
-            dfs.dfs(0);
-            log("best: " + dfs.best);
-            ans += blueprint.id * dfs.best;
+            final State start = new State(24, new HashMap<>(Map.of(Material.ORE, 1)), new HashMap<>());
+            final int result = dfs(blueprint, new HashMap<>(), start);
+            log(result);
+            ans += blueprint.id * result;
         }
         return ans;
     }
 
     @Override
     public Integer solvePart2() {
-        return 0;
+        int ans = 1;
+        for (final Blueprint blueprint : this.blueprints.subList(0, Math.min(this.blueprints.size(), 3))) {
+            log("Blueprint: " + blueprint.id);
+            final State start = new State(32, new HashMap<>(Map.of(Material.ORE, 1)), new HashMap<>());
+            final int result = dfs(blueprint, new HashMap<>(), start);
+            log(result);
+            ans *= result;
+        }
+        return ans;
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2022_19.createDebug(TEST).solvePart1() == 33;
-        assert AoC2022_19.createDebug(TEST).solvePart2() == 0;
+//        assert AoC2022_19.createDebug(TEST).solvePart1() == 33;
+//        assert AoC2022_19.createDebug(TEST).solvePart2() == 62;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 19);
         final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", AoC2022_19.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2022_19.create(inputData)::solvePart2)
+            () -> lap("Part 1", AoC2022_19.createDebug(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2022_19.createDebug(inputData)::solvePart2)
         );
     }
 
@@ -165,71 +222,6 @@ public class AoC2022_19 extends AoCBase {
                 .filter(robot -> robot.type == material)
                 .map(Robot::getCosts)
                 .findFirst().orElseThrow();
-        }
-        
-        public Robot getRobot(final Material material) {
-            return this.robots.stream().filter(r -> r.type == material)
-                    .findFirst().orElseThrow();
-        }
-    }
-    
-    private static final class Factory {
-        private final Blueprint blueprint;
-        private final Deque<Step> steps = new ArrayDeque<>();
-        
-        protected Factory(final Blueprint blueprint) {
-            this.blueprint = blueprint;
-            this.steps.addLast(new Step(Material.ORE, 1, 0));
-        }
-
-        public void add(final Material material, final int time) {
-            this.steps.addLast(new Step(material, 1, time));
-        }
-        
-        public void spend(final Material material, final int amount, final int time) {
-            this.steps.addLast(new Step(material, -amount, time));
-        }
-        
-        public void removeLast() {
-            this.steps.removeLast();
-        }
-
-        public int getTotal(final Material material, final int time) {
-            return this.steps.stream()
-                .filter(step -> step.material == material)
-                .mapToInt(step -> {
-                    if (step.amount < 0) {
-                        return step.amount;
-                    } else {
-                        return (time - step.time) * step.amount;
-                    }
-                })
-                .sum();
-        }
-        
-        public boolean hasCapacity(final Material material) {
-            return this.steps.stream().anyMatch(step -> step.amount > 0 && step.material == material);
-        }
-        
-        public int timeToNextRobot(final Material material, final int now) {
-            final Map<Material, Integer> costs = this.blueprint.getCosts(material);
-            int time = now;
-            while (true) {
-                final int theTime = time;
-                if (costs.keySet().stream()
-                        .allMatch(m -> getTotal(m, theTime) >= costs.get(m))) {
-                    break;
-                }
-                time++;
-            }
-            return time - now;
-        }
-
-        @RequiredArgsConstructor
-        private static final class Step {
-            private final Material material;
-            private final int amount;
-            private final int time;
         }
     }
 }
