@@ -1,61 +1,25 @@
-import static java.util.stream.Collectors.toList;
-
-import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 /**
- * Very slow on part1, OOM on part2 after about 40 min...
+ * Thx to https://github.com/joshuaruegge/adventofcode/blob/645d9b0f8cdc2891ae23cec44920c2522d09a731/advent/aoc2022/Day19.java
  */
 public class AoC2022_19 extends AoCBase {
     
-    private final List<Blueprint> blueprints;
-    private final Map<Material, Integer> maxSpend;
+    private final int[][] bp;
     
     private AoC2022_19(final List<String> input, final boolean debug) {
         super(debug);
-        this.blueprints = input.stream()
-            .map(line -> {
-                final int[] nums = Utils.integerNumbers(line);
-                final int id = nums[0];
-                final Robot robot1
-                    = new Robot(Material.ORE, Map.of(Material.ORE, nums[1]));
-                final Robot robot2
-                    = new Robot(Material.CLAY, Map.of(Material.ORE, nums[2]));
-                final Robot robot3
-                    = new Robot(Material.OBSIDIAN,
-                        Map.of(Material.ORE, nums[3], Material.CLAY, nums[4]));
-                final Robot robot4
-                    = new Robot(Material.GEODE,
-                        Map.of(Material.ORE, nums[5], Material.OBSIDIAN, nums[6]));
-                return new Blueprint(id, Set.of(robot1, robot2, robot3, robot4));
-            })
-            .collect(toList());
-//        log(this.blueprints);
-        this.maxSpend = new HashMap<>();
-        for (final Blueprint blueprint : this.blueprints) {
-            for (final Material material : Material.values()) {
-                if (material == Material.GEODE) {
-                    continue;
-                }
-                final int max = blueprint.robots.stream()
-                        .mapToInt(r -> r.getCosts().getOrDefault(material, 0))
-                        .max().orElseThrow();
-                this.maxSpend.merge(material, max, Math::max);
+        this.bp = new int[input.size()][6];
+        for (int i = 0; i < input.size(); i++) {
+            final int[] nums = Utils.naturalNumbers(input.get(i));
+            for (int j = 1; j <= 6; j++) {
+                bp[i][j - 1] = nums[j];
             }
         }
-        log(this.maxSpend);
     }
     
     public static final AoC2022_19 create(final List<String> input) {
@@ -66,99 +30,63 @@ public class AoC2022_19 extends AoCBase {
         return new AoC2022_19(input, true);
     }
     
-    public static final AoC2022_19 createTrace(final List<String> input) {
-        final AoC2022_19 puzzle = new AoC2022_19(input, true);
-        puzzle.setTrace(true);
-        return puzzle;
-    }
-    
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class State {
-        private final int timeLeft;
-        private final Map<Material, Integer> factory;
-        private final Map<Material, Integer> inventory;
-    }
-    
-    private int dfs(final Blueprint blueprint, final Map<State, Integer> seen, final State state) {
-        trace(() -> "timeLeft: " + state.timeLeft);
-        trace(() -> "inventory: " + state.inventory);
-        trace(() -> "factory: " + state.factory);
-        final int geodes = state.inventory.getOrDefault(Material.GEODE, 0);
-        if (geodes >= 7) {
-//            log(() -> String.format("timeLeft / geodes: %d / %d", state.timeLeft, geodes));
+    private int solve(final int maxTime, final int time, int gbest, final int[] cost, final int o, final int c, final int ob, final int g, final int or, final int cr, final int obr, final int gr) {
+        if (time == maxTime) {
+            gbest = Math.max(gbest, g);
+            return g;
         }
-        if (state.timeLeft <= 0) {
-//            log("Hey");
-            return geodes;
-        }
-        if (seen.containsKey(state)) {
-//            log("seen");
-            return seen.get(state);
-        }
-
-        int max = geodes + state.factory.getOrDefault(Material.GEODE, 0) * state.timeLeft;
         
-        for (final Material material : Material.values()) {
-            trace(() -> "Material:" + material);
-            if (material != Material.GEODE && state.factory.getOrDefault(material, 0) >= this.maxSpend.get(material)) {
-                trace("Enough bots already");
-                continue;
-            }
-            
-            boolean botAvailable = true;
-            int timeToBuild = 0;
-            final Map<Material, Integer> spent = new HashMap<>();
-            for (final Material botm : blueprint.getCosts(material).keySet()) {
-                if (!state.factory.containsKey(botm)) {
-                    botAvailable = false;
-                    break;
-                }
-                final int cost = blueprint.getCosts(material).get(botm);
-                spent.put(botm, cost);
-                final int required = Math.max(0, cost - state.inventory.getOrDefault(botm, 0));
-                final int bots = state.factory.get(botm);
-                final int bottime = (required + bots - 1) / bots;
-                timeToBuild = Math.max(timeToBuild, bottime);
-                assert timeToBuild >= 0;
-            }
-            if (botAvailable) {
-                final int newTimeLeft = state.timeLeft - timeToBuild - 1;
-                if (newTimeLeft <= 0) {
-                    continue;
-                }
-                final HashMap<Material, Integer> newInventory = new HashMap<>(state.inventory);
-                final HashMap<Material, Integer> newFactory = new HashMap<>(state.factory);
-                for (final Material fm : state.factory.keySet()) {
-                    newInventory.merge(fm, (timeToBuild + 1) * newFactory.get(fm), Integer::sum);
-                }
-                for (final Material sm : spent.keySet()) {
-                    assert newInventory.containsKey(sm);
-                    newInventory.merge(sm, -spent.get(sm), Integer::sum);
-                }
-                newFactory.merge(material, 1, Integer::sum);
-                for (final Material mm : EnumSet.of(Material.ORE, Material.CLAY, Material.OBSIDIAN)) {
-                    final int maxNeeded = this.maxSpend.get(mm) * newTimeLeft;
-                    newInventory.computeIfPresent(mm, (k, v) -> Math.min(v, maxNeeded));
-                }
-                assert newTimeLeft < state.timeLeft;
-                final State newState = new State(newTimeLeft, newFactory, newInventory);
-                max = Math.max(max, dfs(blueprint, seen, newState));
-            }
+        final int timeLeft = maxTime - time;
+        final int maxg = g + gr * timeLeft;
+        if (maxg < gbest) {
+            return 0;
         }
-        seen.put(state, max);
-        return max;
+        
+        final int no = o + or;
+        final int nc = c + cr;
+        final int nob = ob + obr;
+        final int ng = g + gr;
+        
+        // always build g robot
+        if (o >= cost[4] && ob >= cost[5]) {
+            return solve(maxTime, time + 1, gbest, cost, no - cost[4], nc, nob - cost[5], ng, or, cr, obr, gr + 1);
+        }
+        // build ob robot ?
+        // ** without this check: runs very fast and correct for main input, fast and incorrect part 1 for alt input
+        // ** with this check: runs slower but correct for main input and alternate input
+        if (cr >= cost[3] && obr < cost[5] && // **
+                o >= cost[2] && c >= cost[3]) {
+            return solve(maxTime, time + 1, gbest, cost, no - cost[2], nc - cost[3], nob, ng, or, cr, obr + 1, gr);
+        }
+        
+        int best = 0;
+        if (obr < cost[5] && o >= cost[2] && c >= cost[3]) {
+            final int ans = solve(maxTime, time + 1, gbest, cost, no - cost[2], nc - cost[3], nob, ng, or, cr, obr + 1, gr);
+            best = Math.max(best, ans);
+        }
+        if (cr < cost[3] && o >= cost[1]) {
+            final int ans = solve(maxTime, time + 1, gbest, cost, no - cost[1], nc, nob, ng, or, cr + 1, obr, gr);
+            best = Math.max(best, ans);
+        }
+        if (or < 4 && o >= cost[0]) {
+            final int ans = solve(maxTime, time + 1, gbest, cost, no - cost[0], nc, nob, ng, or + 1, cr, obr, gr);
+            best = Math.max(best, ans);
+        }
+        if (o <= 4) {
+            final int ans = solve(maxTime, time + 1, gbest, cost, no, nc, nob, ng, or, cr, obr, gr);
+            best = Math.max(best, ans);
+        }
+        return best;
     }
     
     @Override
     public Integer solvePart1() {
         int ans = 0;
-        for (final Blueprint blueprint : this.blueprints) {
-            log("Blueprint: " + blueprint.id);
-            final State start = new State(24, new HashMap<>(Map.of(Material.ORE, 1)), new HashMap<>());
-            final int result = dfs(blueprint, new HashMap<>(), start);
-            log(result);
-            ans += blueprint.id * result;
+        for (int i = 0; i < this.bp.length; i++) {
+            log("Blueprint " + (i + 1));
+            final int res = solve(24, 0, 0, this.bp[i], 0, 0, 0, 0, 1, 0, 0, 0);
+            log(res);
+            ans += (i + 1) * res;
         }
         return ans;
     }
@@ -166,19 +94,18 @@ public class AoC2022_19 extends AoCBase {
     @Override
     public Integer solvePart2() {
         int ans = 1;
-        for (final Blueprint blueprint : this.blueprints.subList(0, Math.min(this.blueprints.size(), 3))) {
-            log("Blueprint: " + blueprint.id);
-            final State start = new State(32, new HashMap<>(Map.of(Material.ORE, 1)), new HashMap<>());
-            final int result = dfs(blueprint, new HashMap<>(), start);
-            log(result);
-            ans *= result;
+        for (int i = 0; i < Math.min(this.bp.length, 3); i++) {
+            log("Blueprint " + (i + 1));
+            final int res = solve(32, 0, 0, this.bp[i], 0, 0, 0, 0, 1, 0, 0, 0);
+            log(res);
+            ans *= res;
         }
         return ans;
     }
 
     public static void main(final String[] args) throws Exception {
-//        assert AoC2022_19.createDebug(TEST).solvePart1() == 33;
-//        assert AoC2022_19.createDebug(TEST).solvePart2() == 62;
+        assert AoC2022_19.createDebug(TEST).solvePart1() == 33;
+        assert AoC2022_19.createDebug(TEST).solvePart2() == 56 * 62;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 19);
         final List<String> inputData = puzzle.getInputData();
@@ -200,28 +127,4 @@ public class AoC2022_19 extends AoCBase {
         + " Each obsidian robot costs 3 ore and 8 clay."
         + " Each geode robot costs 3 ore and 12 obsidian."
     );
-    
-    private enum Material { ORE, CLAY, OBSIDIAN, GEODE }
-    
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Robot {
-        private final Material type;
-        @Getter
-        private final Map<Material, Integer> costs;
-    }
-    
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Blueprint {
-        private final int id;
-        private final Set<Robot> robots;
-        
-        public Map<Material, Integer> getCosts(final Material material) {
-            return this.robots.stream()
-                .filter(robot -> robot.type == material)
-                .map(Robot::getCosts)
-                .findFirst().orElseThrow();
-        }
-    }
 }
