@@ -62,20 +62,24 @@ def _do_mix(pos, zero) -> None:
     for i in range(size):
         to_move = pos[i]
         clog(lambda: f"to_move: {to_move.num}")
-        amount = to_move.num
-        if amount == 0:
+        if to_move.num == 0:
             log("Nothing to do")
             continue
-        move_to = to_move
-        to_move.next.prev = to_move.prev
-        to_move.prev.next = to_move.next
-        if amount > 0:
-            for j in range(amount % (size - 1)):
+        if to_move.num > 0:
+            move_to = to_move.prev
+            amount = to_move.num % (size - 1)
+            to_move.next.prev = to_move.prev
+            to_move.prev.next = to_move.next
+            for j in range(amount):
                 move_to = move_to.next
             clog(lambda: f"move to: {move_to.num}")
             _do_move(to_move, move_to)
         else:
-            for j in range(abs(amount) % (size - 1) + 1):
+            move_to = to_move.next
+            amount = abs(to_move.num) % (size - 1) + 1
+            to_move.next.prev = to_move.prev
+            to_move.prev.next = to_move.next
+            for j in range(amount):
                 move_to = move_to.prev
             clog(lambda: f"move to: {move_to.num}")
             _do_move(to_move, move_to)
