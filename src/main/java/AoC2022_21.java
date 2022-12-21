@@ -7,8 +7,7 @@ import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 /**
- * TODO semi-manual solution, needs work to handle other inputs
- *
+ * TODO binary search solution, try calculated solution
  */
 public class AoC2022_21 extends AoCBase {
     
@@ -48,50 +47,64 @@ public class AoC2022_21 extends AoCBase {
         }
         throw new IllegalStateException("Unsolvable");
     }
+
+    private long solveFor(final String term, final long humn) {
+        this.input.put("humn", String.valueOf(humn));
+        return solve(this.input, term);
+    }
+    
+    private long findLowest(final String lhterm, final long start, final long rhs) {
+        long val = start;
+        while (true) {
+            val--;
+            final long _lhs = solveFor(lhterm, val);
+            if (_lhs != rhs) {
+                break;
+            }
+        }
+        return ++val;
+    }
+    
+    private long solve2(final boolean decreasing) {
+        final String[] splits = this.input.get("root").split(" ");
+        final long rhs = solve(this.input, splits[2]);
+        final String lhterm = splits[0];
+        long a = 0;
+        long b = rhs * 4;
+        while (true) {
+            final long mid = (a + b) / 2;
+            final long lhs = solveFor(lhterm, mid);
+            if (lhs == rhs) {
+                return findLowest(lhterm, mid, rhs);
+            } else if (lhs > rhs) {
+                a = decreasing ? mid + 1 : a;
+                b = decreasing ? b : mid;
+            } else {
+                a = decreasing ? a : mid + 1;
+                b = decreasing ? mid : b;
+            }
+        }
+    }
     
     @Override
     public Long solvePart1() {
         return solve(this.input, "root");
     }
-
-    // rhs: 31522134274080
-    // lhs: 72750855862928
-    // diff = 41228721588848
-    // 5000 -> 72750855862928 - 72750855798976 = 63952
-    // 10000 -> 72750855798976 - 72750855734976 = 64000
-    // diff / 64000 = 644198774.82575
+    
     @Override
     public Long solvePart2() {
-        final String root = this.input.get("root");
-        this.input.remove("root");
-        final String[] splits = root.split(" ");
-        long ans = 644198774L * 5000;
-        final long rhs = solve(this.input, splits[2]);
-        log(String.format("rhs: %s", rhs));
-        int cnt = 0;
-        while (true) {
-            assert cnt++ < 5000;
-            if (ans % 1000 == 0) {
-                log(cnt);
-            }
-            this.input.put("humn", String.valueOf(ans));
-            final long lhs = solve(this.input, splits[0]);
-            if (lhs == rhs) {
-                return ans;
-            }
-            ans++;
-        }
+        return solve2(true);
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2022_21.createDebug(TEST).solvePart1() == 152;
-//        assert AoC2022_21.createDebug(TEST).solvePart2() == 301;
+        assert AoC2022_21.createDebug(TEST).solve2(false) == 301;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 21);
         final List<String> inputData = puzzle.getInputData();
         puzzle.check(
             () -> lap("Part 1", AoC2022_21.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2022_21.createDebug(inputData)::solvePart2)
+            () -> lap("Part 2", AoC2022_21.create(inputData)::solvePart2)
         );
     }
 
