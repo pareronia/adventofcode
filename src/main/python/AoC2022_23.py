@@ -22,6 +22,7 @@ SW = (1, -1)
 SE = (1, 1)
 W = (0, -1)
 E = (0, 1)
+ALL_DIRS = {N, NE, E, SE, S, SW, W, NW}
 DIRS = {N: {N, NE, NW}, S: {S, SE, SW}, W: {W, NW, SW}, E: {E, NE, SE}}
 
 
@@ -59,10 +60,7 @@ def _calculate_moves(
 ) -> dict[Tile, list[Tile]]:
     moves = defaultdict(list[Tile])
     for r, c in elves:
-        if all(
-            (r + dr, c + dc) not in elves
-            for dr, dc in {N, NE, E, SE, S, SW, W, NW}
-        ):
+        if all((r + dr, c + dc) not in elves for dr, dc in ALL_DIRS):
             continue
         for d in order:
             if all((r + dr, c + dc) not in elves for dr, dc in DIRS[d]):
@@ -93,12 +91,7 @@ def part_1(inputs: tuple[str]) -> int:
         _draw(elves)
         log(order)
     min_r, min_c, max_r, max_c = _bounds(elves)
-    return sum(
-        1
-        for c in range(min_c, max_c + 1)
-        for r in range(min_r, max_r + 1)
-        if (r, c) not in elves
-    )
+    return (max_r - min_r + 1) * (max_c - min_c + 1) - len(elves)
 
 
 def part_2(inputs: tuple[str]) -> int:
