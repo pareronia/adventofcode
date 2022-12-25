@@ -6,61 +6,37 @@
 
 import aocd
 from aoc import my_aocd
-from aoc.common import log
+
+DECODE = {"0": 0, "1": 1, "2": 2, "-": -1, "=": -2}
+ENCODE = {
+    0: ("0", 0),
+    1: ("1", 0),
+    2: ("2", 0),
+    3: ("=", 1),
+    4: ("-", 1),
+    5: ("0", 1),
+}
 
 
-def part_1(inputs: tuple[str]) -> int:
-    total = 0
-    for line in inputs:
-        log(line)
-        subtotal = 0
-        for i, digit in enumerate(line[::-1]):
-            log(digit)
-            if digit in {"0", "1", "2"}:
-                subtotal += int(digit) * 5 ** i
-            elif digit == "-":
-                subtotal -= 5 ** i
-            elif digit == "=":
-                subtotal -= 2 * 5 ** i
-        log(f" -> {subtotal}")
-        total += subtotal
-    log(f"total: {total}")
-    if total == 0:
-        return "0"
-    ans = []
-    divs = []
+def part_1(inputs: tuple[str]) -> str:
+    total = sum(
+        sum(DECODE[digit] * 5**i for i, digit in enumerate(line[::-1]))
+        for line in inputs
+    )
+    ans = ""
     while total:
-        log(total)
-        digit = int(total % 5)
-        log(digit)
-        divs.append(digit)
-        total //= 5
-    log(f"divs: {divs}")
-    carry = None
-    for div in divs:
-        if carry is not None:
-            div += carry
-        if div in {0, 1, 2}:
-            ans.insert(0, str(div))
-            carry = None
-        elif div == 5:
-            ans.insert(0, "0")
-            carry = 1
-        elif div == 4:
-            ans.insert(0, "-")
-            carry = 1
-        elif div == 3:
-            ans.insert(0, "=")
-            carry = 1
-    log(f"ans: {ans}")
-    return "".join(ans)
+        digit, carry = ENCODE[total % 5]
+        ans += digit
+        total = total // 5 + carry
+    return ans[::-1]
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return None
+def part_2(inputs: tuple[str]) -> None:
+    return
 
 
-TEST = """\
+TEST = tuple(
+    """\
 1=-0-2
 12111
 2=0=
@@ -75,6 +51,10 @@ TEST = """\
 1=
 122
 """.splitlines()
+)
+TEST1 = tuple(["1=11-2"])
+TEST2 = tuple(["1-0---0"])
+TEST3 = tuple(["1121-1110-1=0"])
 
 
 def main() -> None:
@@ -82,6 +62,9 @@ def main() -> None:
     my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == "2=-1=0"
+    assert part_1(TEST1) == "1=11-2"
+    assert part_1(TEST2) == "1-0---0"
+    assert part_1(TEST3) == "1121-1110-1=0"
     assert part_2(TEST) is None
 
     inputs = my_aocd.get_input_data(puzzle, 119)
