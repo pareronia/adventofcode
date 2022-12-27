@@ -8,14 +8,9 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import org.eclipse.collections.api.tuple.Triplet;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.RequiredArgsConstructor;
 
 public class AoC2022_05 extends AoCBase {
     
@@ -23,8 +18,8 @@ public class AoC2022_05 extends AoCBase {
     
     private AoC2022_05(final List<String> input, final boolean debug) {
         super(debug);
-        final List<Deque<Character>> stacks = new ArrayList<>();
-        final List<Triplet<Integer>> moves = new ArrayList<>();
+        final var stacks = new ArrayList<Deque<Character>>();
+        final var moves = new ArrayList<Move>();
         final List<List<String>> blocks = toBlocks(input);
         final String nums = last(blocks.get(0)).replaceAll("\\s", "");
         final int size = Integer.parseInt(String.valueOf(last(nums)));
@@ -38,7 +33,7 @@ public class AoC2022_05 extends AoCBase {
         });
         blocks.get(1).stream()
             .map(Utils::naturalNumbers)
-            .forEach(n -> moves.add(Tuples.triplet(n[0], n[1], n[2])));
+            .forEach(n -> moves.add(new Move(n[0], n[1], n[2])));
         this.procedure = new RearrangementProcedure(stacks, moves);
     }
     
@@ -51,12 +46,12 @@ public class AoC2022_05 extends AoCBase {
     }
     
     private String simulateProcedureFor(final CrateMover crateMover) {
-        for (final Triplet<Integer> move : this.procedure.moves) {
-            final int from = move.getTwo() - 1;
-            final int to = move.getThree() - 1;
-            final Deque<Character> tmp = new ArrayDeque<>();
-            range(move.getOne()).forEach(i -> {
-                final Character crate = this.procedure.stacks.get(from).removeLast();
+        for (final var move : this.procedure.moves) {
+            final int from = move.from - 1;
+            final int to = move.to - 1;
+            final var tmp = new ArrayDeque<Character>();
+            range(move.amount).forEach(i -> {
+                final var crate = this.procedure.stacks.get(from).removeLast();
                 if (crateMover == CrateMover.CM_9000) {
                     tmp.addLast(crate);
                 } else {
@@ -93,23 +88,23 @@ public class AoC2022_05 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "    [D]    \r\n" +
-        "[N] [C]    \r\n" +
-        "[Z] [M] [P]\r\n" +
-        " 1   2   3 \r\n" +
-        "\r\n" +
-        "move 1 from 2 to 1\r\n" +
-        "move 3 from 1 to 3\r\n" +
-        "move 2 from 2 to 1\r\n" +
-        "move 1 from 1 to 2"
-    );
+    private static final List<String> TEST = splitLines("""
+            [D]    \s
+        [N] [C]    \s
+        [Z] [M] [P]\s
+         1   2   3 \s
+         
+        move 1 from 2 to 1
+        move 3 from 1 to 3
+        move 2 from 2 to 1
+        move 1 from 1 to 2
+        """);
     
-    @RequiredArgsConstructor
-    private static final class RearrangementProcedure {
-        private final List<Deque<Character>> stacks;
-        private final List<Triplet<Integer>> moves;
-    }
+    private static final record Move (int amount, int from, int to) { }
+    private static final record RearrangementProcedure(
+        List<Deque<Character>> stacks,
+        List<Move> moves
+    ) { }
     
     private enum CrateMover { CM_9000, CM_9001 }
 }

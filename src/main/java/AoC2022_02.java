@@ -2,14 +2,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
 
 public class AoC2022_02 extends AoCBase {
     private static final String ROCK = "rock";
@@ -57,22 +51,22 @@ public class AoC2022_02 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final Map<Pair<String, String>, String> outcomes = Map.of(
-            Tuples.pair(ROCK, ROCK), DRAW,
-            Tuples.pair(ROCK, SCISSORS), LOSS,
-            Tuples.pair(ROCK, PAPER), WIN,
-            Tuples.pair(SCISSORS, ROCK), WIN,
-            Tuples.pair(SCISSORS, SCISSORS), DRAW,
-            Tuples.pair(SCISSORS, PAPER), LOSS,
-            Tuples.pair(PAPER, ROCK), LOSS,
-            Tuples.pair(PAPER, SCISSORS), WIN,
-            Tuples.pair(PAPER, PAPER), DRAW
+        final Map<Pair, String> outcomes = Map.of(
+            Pair.of(ROCK, ROCK), DRAW,
+            Pair.of(ROCK, SCISSORS), LOSS,
+            Pair.of(ROCK, PAPER), WIN,
+            Pair.of(SCISSORS, ROCK), WIN,
+            Pair.of(SCISSORS, SCISSORS), DRAW,
+            Pair.of(SCISSORS, PAPER), LOSS,
+            Pair.of(PAPER, ROCK), LOSS,
+            Pair.of(PAPER, SCISSORS), WIN,
+            Pair.of(PAPER, PAPER), DRAW
         );
 
         return solve((col1, col2) -> {
             final String play = SHAPES.get(col1);
             final String response = SHAPES.get(col2);
-            final String outcome = outcomes.get(Tuples.pair(play, response));
+            final String outcome = outcomes.get(Pair.of(play, response));
             return new ResponseAndOutcome(response, outcome);
         } );
     }
@@ -80,21 +74,21 @@ public class AoC2022_02 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final Map<String,String> outcomes = Map.of("X", LOSS, "Y", DRAW, "Z", WIN);
-        final Map<Pair<String, String>, String> responses = Map.of(
-                Tuples.pair(ROCK, LOSS), SCISSORS,
-                Tuples.pair(ROCK, DRAW), ROCK,
-                Tuples.pair(ROCK, WIN), PAPER,
-                Tuples.pair(PAPER, LOSS), ROCK,
-                Tuples.pair(PAPER, DRAW), PAPER,
-                Tuples.pair(PAPER, WIN), SCISSORS,
-                Tuples.pair(SCISSORS, LOSS), PAPER,
-                Tuples.pair(SCISSORS, DRAW), SCISSORS,
-                Tuples.pair(SCISSORS, WIN), ROCK);
+        final Map<Pair, String> responses = Map.of(
+                Pair.of(ROCK, LOSS), SCISSORS,
+                Pair.of(ROCK, DRAW), ROCK,
+                Pair.of(ROCK, WIN), PAPER,
+                Pair.of(PAPER, LOSS), ROCK,
+                Pair.of(PAPER, DRAW), PAPER,
+                Pair.of(PAPER, WIN), SCISSORS,
+                Pair.of(SCISSORS, LOSS), PAPER,
+                Pair.of(SCISSORS, DRAW), SCISSORS,
+                Pair.of(SCISSORS, WIN), ROCK);
        
         return solve((col1, col2) -> {
             final String play = SHAPES.get(col1);
             final String outcome = outcomes.get(col2);
-            final String response = responses.get(Tuples.pair(play, outcome));
+            final String response = responses.get(Pair.of(play, outcome));
             return new ResponseAndOutcome(response, outcome);
         });
     }
@@ -111,16 +105,17 @@ public class AoC2022_02 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "A Y\r\n" +
-        "B X\r\n" +
-        "C Z"
-    );
+    private static final List<String> TEST = splitLines("""
+        A Y
+        B X
+        C Z
+        """);
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class ResponseAndOutcome {
-        private final String response;
-        private final String outcome;
+    private static final record ResponseAndOutcome(
+            String response, String outcome) { }
+    private static final record Pair(String first, String second) {
+        static final Pair of(final String first, final String second) {
+            return new Pair(first, second);
+        }
     }
 }

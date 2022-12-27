@@ -3,7 +3,6 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
@@ -13,12 +12,9 @@ import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_10 extends AoCBase {
     private static final char FILL = '▒';
     private static final char EMPTY = ' ';
-
     
     private final List<String> input;
     
@@ -36,11 +32,11 @@ public class AoC2022_10 extends AoCBase {
     }
     
     private Stream<State> program() {
-        final MutableInt cycles = new MutableInt(0);
-        final MutableInt x = new MutableInt(1);
-        final Builder<State> builder = Stream.builder();
+        final var cycles = new MutableInt(0);
+        final var x = new MutableInt(1);
+        final var builder = Stream.<State>builder();
         this.input.forEach(line -> {
-            final String[] splits = line.split(" ");
+            final var splits = line.split(" ");
             if (splits[0].equals("noop")) {
                 builder.add(new State(cycles.getValue(), x.getValue()));
                 cycles.increment();
@@ -56,11 +52,7 @@ public class AoC2022_10 extends AoCBase {
     }
     
     private int check(final int cycles, final int x) {
-        if (cycles % 40 == 20) {
-            return x * cycles;
-        } else {
-            return 0;
-        }
+        return cycles % 40 == 20 ? x * cycles : 0;
     }
     
     private char draw(final int cycles, final int x) {
@@ -109,158 +101,154 @@ public class AoC2022_10 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "addx 15\r\n" +
-        "addx -11\r\n" +
-        "addx 6\r\n" +
-        "addx -3\r\n" +
-        "addx 5\r\n" +
-        "addx -1\r\n" +
-        "addx -8\r\n" +
-        "addx 13\r\n" +
-        "addx 4\r\n" +
-        "noop\r\n" +
-        "addx -1\r\n" +
-        "addx 5\r\n" +
-        "addx -1\r\n" +
-        "addx 5\r\n" +
-        "addx -1\r\n" +
-        "addx 5\r\n" +
-        "addx -1\r\n" +
-        "addx 5\r\n" +
-        "addx -1\r\n" +
-        "addx -35\r\n" +
-        "addx 1\r\n" +
-        "addx 24\r\n" +
-        "addx -19\r\n" +
-        "addx 1\r\n" +
-        "addx 16\r\n" +
-        "addx -11\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 21\r\n" +
-        "addx -15\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx -3\r\n" +
-        "addx 9\r\n" +
-        "addx 1\r\n" +
-        "addx -3\r\n" +
-        "addx 8\r\n" +
-        "addx 1\r\n" +
-        "addx 5\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx -36\r\n" +
-        "noop\r\n" +
-        "addx 1\r\n" +
-        "addx 7\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 2\r\n" +
-        "addx 6\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 7\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "addx -13\r\n" +
-        "addx 13\r\n" +
-        "addx 7\r\n" +
-        "noop\r\n" +
-        "addx 1\r\n" +
-        "addx -33\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 2\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 8\r\n" +
-        "noop\r\n" +
-        "addx -1\r\n" +
-        "addx 2\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "addx 17\r\n" +
-        "addx -9\r\n" +
-        "addx 1\r\n" +
-        "addx 1\r\n" +
-        "addx -3\r\n" +
-        "addx 11\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx -13\r\n" +
-        "addx -19\r\n" +
-        "addx 1\r\n" +
-        "addx 3\r\n" +
-        "addx 26\r\n" +
-        "addx -30\r\n" +
-        "addx 12\r\n" +
-        "addx -1\r\n" +
-        "addx 3\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx -9\r\n" +
-        "addx 18\r\n" +
-        "addx 1\r\n" +
-        "addx 2\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 9\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx -1\r\n" +
-        "addx 2\r\n" +
-        "addx -37\r\n" +
-        "addx 1\r\n" +
-        "addx 3\r\n" +
-        "noop\r\n" +
-        "addx 15\r\n" +
-        "addx -21\r\n" +
-        "addx 22\r\n" +
-        "addx -6\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "addx 2\r\n" +
-        "addx 1\r\n" +
-        "noop\r\n" +
-        "addx -10\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "addx 20\r\n" +
-        "addx 1\r\n" +
-        "addx 2\r\n" +
-        "addx 2\r\n" +
-        "addx -6\r\n" +
-        "addx -11\r\n" +
-        "noop\r\n" +
-        "noop\r\n" +
-        "noop"
-    );
+    private static final List<String> TEST = splitLines("""
+        addx 15
+        addx -11
+        addx 6
+        addx -3
+        addx 5
+        addx -1
+        addx -8
+        addx 13
+        addx 4
+        noop
+        addx -1
+        addx 5
+        addx -1
+        addx 5
+        addx -1
+        addx 5
+        addx -1
+        addx 5
+        addx -1
+        addx -35
+        addx 1
+        addx 24
+        addx -19
+        addx 1
+        addx 16
+        addx -11
+        noop
+        noop
+        addx 21
+        addx -15
+        noop
+        noop
+        addx -3
+        addx 9
+        addx 1
+        addx -3
+        addx 8
+        addx 1
+        addx 5
+        noop
+        noop
+        noop
+        noop
+        noop
+        addx -36
+        noop
+        addx 1
+        addx 7
+        noop
+        noop
+        noop
+        addx 2
+        addx 6
+        noop
+        noop
+        noop
+        noop
+        noop
+        addx 1
+        noop
+        noop
+        addx 7
+        addx 1
+        noop
+        addx -13
+        addx 13
+        addx 7
+        noop
+        addx 1
+        addx -33
+        noop
+        noop
+        noop
+        addx 2
+        noop
+        noop
+        noop
+        addx 8
+        noop
+        addx -1
+        addx 2
+        addx 1
+        noop
+        addx 17
+        addx -9
+        addx 1
+        addx 1
+        addx -3
+        addx 11
+        noop
+        noop
+        addx 1
+        noop
+        addx 1
+        noop
+        noop
+        addx -13
+        addx -19
+        addx 1
+        addx 3
+        addx 26
+        addx -30
+        addx 12
+        addx -1
+        addx 3
+        addx 1
+        noop
+        noop
+        noop
+        addx -9
+        addx 18
+        addx 1
+        addx 2
+        noop
+        noop
+        addx 9
+        noop
+        noop
+        noop
+        addx -1
+        addx 2
+        addx -37
+        addx 1
+        addx 3
+        noop
+        addx 15
+        addx -21
+        addx 22
+        addx -6
+        addx 1
+        noop
+        addx 2
+        addx 1
+        noop
+        addx -10
+        noop
+        noop
+        addx 20
+        addx 1
+        addx 2
+        addx 2
+        addx -6
+        addx -11
+        noop
+        noop
+        noop
+        """);
     
-    @RequiredArgsConstructor
-    private static final class State {
-        private final int cycles;
-        private final int x;
-    }
+    private static final record State(int cycles, int x) { }
 }

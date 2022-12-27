@@ -16,7 +16,7 @@ public abstract class AoCBase {
 	protected boolean trace;
 	
 	protected static Puzzle puzzle(final Class<? extends AoCBase> klass) {
-	   final String[] split = klass.getSimpleName().substring("AoC".length()).split("_");
+	   final var split = klass.getSimpleName().substring("AoC".length()).split("_");
 	   return Aocd.puzzle(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
 	}
 	
@@ -47,7 +47,7 @@ public abstract class AoCBase {
 
 	protected static <V> V lap(final String prefix, final Callable<V> callable) throws Exception {
 	    final long timerStart = System.nanoTime();
-	    final V answer = callable.call();
+	    final var answer = callable.call();
 	    final long timeSpent = (System.nanoTime() - timerStart) / 1000;
 	    double time;
 	    String unit;

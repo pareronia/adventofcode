@@ -50,8 +50,8 @@ public class AoC2022_03 extends AoCBase {
                 .map(i -> {
                     final String line = input.get(i);
                     final int cuttoff = line.length() / 2;
-                    final Set<Character> s1 = toSet(line.substring(0, cuttoff));
-                    final Set<Character> s2 = toSet(line.substring(cuttoff));
+                    final var s1 = toSet(line.substring(0, cuttoff));
+                    final var s2 = toSet(line.substring(cuttoff));
                     return priority(intersection(s1, s2).iterator().next());
                 })
                 .sum();
@@ -61,9 +61,9 @@ public class AoC2022_03 extends AoCBase {
     public Integer solvePart2() {
         return Range.range(0, this.input.size(), 3).intStream()
                 .map(i -> {
-                    final Set<Character> s1 = toSet(this.input.get(i));
-                    final Set<Character> s2 = toSet(this.input.get(i + 1));
-                    final Set<Character> s3 = toSet(this.input.get(i + 2));
+                    final var s1 = toSet(this.input.get(i));
+                    final var s2 = toSet(this.input.get(i + 1));
+                    final var s3 = toSet(this.input.get(i + 2));
                     return priority(intersection(s1, s2, s3).iterator().next());
                 })
                 .sum();
@@ -81,12 +81,12 @@ public class AoC2022_03 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "vJrwpWtwJgWrhcsFMMfFFhFp\r\n" +
-        "jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\r\n" +
-        "PmmdzqPrVvPwwTWBwg\r\n" +
-        "wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\r\n" +
-        "ttgJtRGJQctTZtZT\r\n" +
-        "CrZsJsPPZsGzwwsLwLmpwMDw"
-    );
+    private static final List<String> TEST = splitLines("""
+        vJrwpWtwJgWrhcsFMMfFFhFp
+        jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL
+        PmmdzqPrVvPwwTWBwg
+        wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn
+        ttgJtRGJQctTZtZT
+        CrZsJsPPZsGzwwsLwLmpwMDw
+        """);
 }

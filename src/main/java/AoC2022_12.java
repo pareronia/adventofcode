@@ -31,13 +31,11 @@ public class AoC2022_12 extends AoCBase {
     
     private char getValue(final Cell cell) {
         final char ch = this.grid.getValueAt(cell);
-        if (ch == 'S') {
-            return 'a';
-        } else if (ch == 'E') {
-            return 'z';
-        } else {
-            return ch;
-        }
+        return switch (ch) {
+            case 'S' -> 'a';
+            case 'E' -> 'z';
+            default -> ch;
+        };
     }
     
     private Result<Cell> solve(final Cell start) {
@@ -80,11 +78,11 @@ public class AoC2022_12 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "Sabqponm\r\n" +
-        "abcryxxl\r\n" +
-        "accszExk\r\n" +
-        "acctuvwj\r\n" +
-        "abdefghi"
-    );
+    private static final List<String> TEST = splitLines("""
+            Sabqponm
+            abcryxxl
+            accszExk
+            acctuvwj
+            abdefghi
+            """);
 }

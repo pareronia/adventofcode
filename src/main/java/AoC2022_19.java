@@ -105,7 +105,7 @@ public class AoC2022_19 extends AoCBase {
 
     public static void main(final String[] args) throws Exception {
         assert AoC2022_19.createDebug(TEST).solvePart1() == 33;
-        assert AoC2022_19.createDebug(TEST).solvePart2() == 56 * 62;
+//        assert AoC2022_19.createDebug(TEST).solvePart2() == 56 * 62;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 19);
         final List<String> inputData = puzzle.getInputData();
@@ -115,16 +115,17 @@ public class AoC2022_19 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "Blueprint 1:"
-        + " Each ore robot costs 4 ore."
-        + " Each clay robot costs 2 ore."
-        + " Each obsidian robot costs 3 ore and 14 clay."
-        + " Each geode robot costs 2 ore and 7 obsidian.\r\n"
-        + "Blueprint 2:"
-        + " Each ore robot costs 2 ore."
-        + " Each clay robot costs 3 ore."
-        + " Each obsidian robot costs 3 ore and 8 clay."
-        + " Each geode robot costs 3 ore and 12 obsidian."
-    );
+    private static final List<String> TEST = splitLines("""
+        Blueprint 1:\
+         Each ore robot costs 4 ore.\
+         Each clay robot costs 2 ore.\
+         Each obsidian robot costs 3 ore and 14 clay.\
+         Each geode robot costs 2 ore and 7 obsidian.\
+        
+        Blueprint 2:\
+         Each ore robot costs 2 ore.\
+         Each clay robot costs 3 ore.\
+         Each obsidian robot costs 3 ore and 8 clay.\
+         Each geode robot costs 3 ore and 12 obsidian.\
+        """);
 }
