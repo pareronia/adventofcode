@@ -9,8 +9,6 @@ import java.util.stream.IntStream;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_20 extends AoCBase {
     
     private static final long ENCRYPTION_KEY = 811589153L;
@@ -33,7 +31,7 @@ public class AoC2022_20 extends AoCBase {
         if (!this.debug) {
             return;
         }
-        final List<Long> lst = new ArrayList<>();
+        final var lst = new ArrayList<Long>();
         Num tmp = zero;
         do {
             lst.add(tmp.num);
@@ -44,7 +42,7 @@ public class AoC2022_20 extends AoCBase {
     
     private long solve(final int rounds, final long factor) {
         final int size = this.numbers.size();
-        final List<Num> nums = IntStream.range(0, size)
+        final var nums = IntStream.range(0, size)
                 .mapToLong(i -> factor * this.numbers.get(i))
                 .mapToObj(Num::new)
                 .collect(toList());
@@ -109,21 +107,24 @@ public class AoC2022_20 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "1\r\n" +
-        "2\r\n" +
-        "-3\r\n" +
-        "3\r\n" +
-        "-2\r\n" +
-        "0\r\n" +
-        "4"
-    );
+    private static final List<String> TEST = splitLines("""
+        1
+        2
+        -3
+        3
+        -2
+        0
+        4
+        """);
     
-    @RequiredArgsConstructor
     private static final class Num {
         private final long num;
         private Num next;
         private Num prev;
+
+        public Num(final long num) {
+            this.num = num;
+        }
         
         public void remove() {
             this.prev.next = this.next;

@@ -6,37 +6,31 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
-
-import org.eclipse.collections.api.tuple.Twin;
-import org.eclipse.collections.impl.tuple.Tuples;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_23 extends AoCBase {
     
     private static final char ELF = '#';
     private static final char GROUND = '.';
-    private static final Twin<Integer> N = Tuples.twin(-1, 0);
-    private static final Twin<Integer> NW = Tuples.twin(-1, -1);
-    private static final Twin<Integer> NE = Tuples.twin(-1, 1);
-    private static final Twin<Integer> S = Tuples.twin(1, 0);
-    private static final Twin<Integer> SW = Tuples.twin(1, -1);
-    private static final Twin<Integer> SE = Tuples.twin(1, 1);
-    private static final Twin<Integer> W = Tuples.twin(0, -1);
-    private static final Twin<Integer> E = Tuples.twin(0, 1);
-    private static final Set<Twin<Integer>> ALL_DIRS = Set.of(
+    private static final Direction N = Direction.of(-1, 0);
+    private static final Direction NW = Direction.of(-1, -1);
+    private static final Direction NE = Direction.of(-1, 1);
+    private static final Direction S = Direction.of(1, 0);
+    private static final Direction SW = Direction.of(1, -1);
+    private static final Direction SE = Direction.of(1, 1);
+    private static final Direction W = Direction.of(0, -1);
+    private static final Direction E = Direction.of(0, 1);
+    private static final Set<Direction> ALL_DIRS = Set.of(
             N, NE, E, SE, S, SW, W, NW);
-    private static final Map<Twin<Integer>, Set<Twin<Integer>>> DIRS = Map.of(
+    private static final Map<Direction, Set<Direction>> DIRS = Map.of(
             N, Set.of(N, NW, NE),
             S, Set.of(S, SW, SE),
             W, Set.of(W, NW, SW),
@@ -60,9 +54,9 @@ public class AoC2022_23 extends AoCBase {
     }
     
     private Bounds getBounds(final Set<Cell> elves) {
-        final IntSummaryStatistics statsRow = elves.stream()
+        final var statsRow = elves.stream()
                 .mapToInt(Cell::getRow).summaryStatistics();
-        final IntSummaryStatistics statsCol = elves.stream()
+        final var statsCol = elves.stream()
                 .mapToInt(Cell::getCol).summaryStatistics();
         return new Bounds(
             statsRow.getMin(), statsRow.getMax(),
@@ -74,7 +68,7 @@ public class AoC2022_23 extends AoCBase {
         if (!this.debug) {
             return;
         }
-        final Bounds bounds = getBounds(elves);
+        final var bounds = getBounds(elves);
         IntStream.rangeClosed(bounds.minRow, bounds.maxRow).forEach(r -> {
             log(IntStream.rangeClosed(bounds.minCol, bounds.maxCol)
                     .mapToObj(c -> elves.contains(Cell.at(r, c)) ? ELF : GROUND)
@@ -82,15 +76,15 @@ public class AoC2022_23 extends AoCBase {
         });
     }
     
-    private Cell add(final Cell cell, final Twin<Integer> dir) {
+    private Cell add(final Cell cell, final Direction dir) {
         return Cell.at(
-                cell.getRow() + dir.getOne(), cell.getCol() + dir.getTwo());
+                cell.getRow() + dir.row, cell.getCol() + dir.col);
     }
     
     private boolean allNotOccupied(
             final Set<Cell> elves,
             final Cell elf,
-            final Set<Twin<Integer>> directions
+            final Set<Direction> directions
     ) {
         return directions.stream()
                 .map(dir -> add(elf, dir))
@@ -98,14 +92,14 @@ public class AoC2022_23 extends AoCBase {
     }
     
     private Map<Cell, List<Cell>> calculateMoves(
-            final Set<Cell> elves, final Deque<Twin<Integer>> order
+            final Set<Cell> elves, final Deque<Direction> order
     ) {
-        final Map<Cell, List<Cell>> moves = new HashMap<>();
-        for (final Cell elf : elves) {
+        final var moves = new HashMap<Cell, List<Cell>>();
+        for (final var elf : elves) {
             if (allNotOccupied(elves, elf, ALL_DIRS)) {
                 continue;
             }
-            for (final Twin<Integer> d : order) {
+            for (final var d : order) {
                 if (allNotOccupied(elves, elf, DIRS.get(d))) {
                     final Cell n = add(elf, d);
                     moves.computeIfAbsent(n, k -> new ArrayList<>()).add(elf);
@@ -129,16 +123,16 @@ public class AoC2022_23 extends AoCBase {
 
     @Override
     public Integer solvePart1() {
-        final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Twin<Integer>> order = new ArrayDeque<>(List.of(N, S, W, E));
+        final var elves = new HashSet<>(this.input);
+        final var order = new ArrayDeque<>(List.of(N, S, W, E));
         IntStream.range(0, 10).forEach(i -> {
             log("Round " + (i + 1));
-            final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);
+            final var moves = calculateMoves(elves, order);
             executeMoves(elves, moves);
             draw(elves);
             order.addLast(order.pollFirst());
         });
-        final Bounds bounds = getBounds(elves);
+        final var bounds = getBounds(elves);
         return (bounds.maxRow - bounds.minRow + 1)
                 * (bounds.maxCol - bounds.minCol + 1)
                 - elves.size();
@@ -146,11 +140,11 @@ public class AoC2022_23 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Twin<Integer>> order = new ArrayDeque<>(List.of(N, S, W, E));
+        final var elves = new HashSet<>(this.input);
+        final var order = new ArrayDeque<>(List.of(N, S, W, E));
         int cnt = 1;
         while (true) {
-            final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);
+            final var moves = calculateMoves(elves, order);
             if (moves.size() == 0) {
                 return cnt;
             }
@@ -172,21 +166,29 @@ public class AoC2022_23 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "....#..\r\n" +
-        "..###.#\r\n" +
-        "#...#.#\r\n" +
-        ".#...##\r\n" +
-        "#.###..\r\n" +
-        "##.#.##\r\n" +
-        ".#..#.."
-    );
+    private static final List<String> TEST = splitLines("""
+        ....#..
+        ..###.#
+        #...#.#
+        .#...##
+        #.###..
+        ##.#.##
+        .#..#..
+        """);
 
-    @RequiredArgsConstructor
-    private static final class Bounds {
-        private final int minRow;
-        private final int maxRow;
-        private final int minCol;
-        private final int maxCol;
+    private static final record Direction (
+            int row,
+            int col
+    ) {
+        public static Direction of(final int row, final int col) {
+            return new Direction(row, col);
+        }
+    }
+    private static final record Bounds (
+            int minRow,
+            int maxRow,
+            int minCol,
+            int maxCol
+    ) {
     }
 }

@@ -27,17 +27,17 @@ public class AoC2022_13 extends AoCBase {
         return new AoC2022_13(input, true);
     }
     
-    @SuppressWarnings("unchecked")
-    private int compare(final Object lhs, final Object rhs) {
-        if (lhs instanceof Number && rhs instanceof Number) {
-            return ((Number) lhs).intValue() - ((Number) rhs).intValue();
-        } else if (lhs instanceof List && rhs instanceof Number) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private int compare(final Object _lhs, final Object _rhs) {
+        if (_lhs instanceof final Number lhs && _rhs instanceof final Number rhs) {
+            return lhs.intValue() - rhs.intValue();
+        } else if (_lhs instanceof final List lhs && _rhs instanceof final Number rhs) {
             return compare(lhs, List.of(rhs));
-        } else if (lhs instanceof Number && rhs instanceof List) {
+        } else if (_lhs instanceof final Number lhs && _rhs instanceof final List rhs) {
             return compare(List.of(lhs), rhs);
-        } else if (lhs instanceof List && rhs instanceof List) {
-            final List<Object> lst1 = (List<Object>) lhs;
-            final List<Object> lst2 = (List<Object>) rhs;
+        } else if (_lhs instanceof final List lhs && _rhs instanceof final List rhs) {
+            final List<Object> lst1 = lhs;
+            final List<Object> lst2 = rhs;
             for (int i = 0; i < lst1.size(); i++) {
                final Object n1 = lst1.get(i);
                final Object n2;
@@ -66,8 +66,8 @@ public class AoC2022_13 extends AoCBase {
         final List<List<String>> blocks = toBlocks(this.input);
         return IntStream.rangeClosed(1, blocks.size())
                 .filter(i ->  {
-                    final List<?> lhs = parse(blocks.get(i - 1).get(0));
-                    final List<?> rhs = parse(blocks.get(i - 1).get(1));
+                    final var lhs = parse(blocks.get(i - 1).get(0));
+                    final var rhs = parse(blocks.get(i - 1).get(1));
                     return compare(lhs, rhs) <= 0;
                 })
                 .sum();
@@ -79,7 +79,7 @@ public class AoC2022_13 extends AoCBase {
                 .filter(line -> !line.isEmpty())
                 .map(this::parse)
                 .collect(toList());
-        final Set<List<Integer>> dividers = Set.of(List.of(2), List.of(6));
+        final var dividers = Set.of(List.of(2), List.of(6));
         dividers.forEach(packets::add);
         Collections.sort(packets, (p1, p2) -> compare(p1, p2));
         return (int) LongStream.rangeClosed(1, packets.size())
@@ -99,29 +99,29 @@ public class AoC2022_13 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "[1,1,3,1,1]\r\n" +
-        "[1,1,5,1,1]\r\n" +
-        "\r\n" +
-        "[[1],[2,3,4]]\r\n" +
-        "[[1],4]\r\n" +
-        "\r\n" +
-        "[9]\r\n" +
-        "[[8,7,6]]\r\n" +
-        "\r\n" +
-        "[[4,4],4,4]\r\n" +
-        "[[4,4],4,4,4]\r\n" +
-        "\r\n" +
-        "[7,7,7,7]\r\n" +
-        "[7,7,7]\r\n" +
-        "\r\n" +
-        "[]\r\n" +
-        "[3]\r\n" +
-        "\r\n" +
-        "[[[]]]\r\n" +
-        "[[]]\r\n" +
-        "\r\n" +
-        "[1,[2,[3,[4,[5,6,7]]]],8,9]\r\n" +
-        "[1,[2,[3,[4,[5,6,0]]]],8,9]"
-    );
+    private static final List<String> TEST = splitLines("""
+            [1,1,3,1,1]
+            [1,1,5,1,1]
+            
+            [[1],[2,3,4]]
+            [[1],4]
+            
+            [9]
+            [[8,7,6]]
+            
+            [[4,4],4,4]
+            [[4,4],4,4,4]
+            
+            [7,7,7,7]
+            [7,7,7]
+            
+            []
+            [3]
+            
+            [[[]]]
+            [[]]
+            
+            [1,[2,[3,[4,[5,6,7]]]],8,9]
+            [1,[2,[3,[4,[5,6,0]]]],8,9]
+            """);
 }

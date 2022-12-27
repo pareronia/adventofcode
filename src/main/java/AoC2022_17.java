@@ -5,10 +5,12 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -22,10 +24,7 @@ import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 // TODO: needs more cleanup
 public class AoC2022_17 extends AoCBase {
@@ -102,15 +101,15 @@ public class AoC2022_17 extends AoCBase {
             final ShapeSupplier shapeSupplier,
             final JetSupplier jetSupplier
     ) {
-        final Shape shape = shapeSupplier.get();
-        final Rock start = new Rock(shape.idx, shape.shape)
+        final var shape = shapeSupplier.get();
+        final var start = new Rock(shape.idx, shape.shape)
                 .move(Vector.of(OFFSET_X, stack.getTop() + OFFSET_Y));
         trace(() -> start);
         Rock rock = start;
         State state;
         int cnt = 0;
         while (true) {
-            final Heading jet = jetSupplier.get();
+            final var jet = jetSupplier.get();
             state = new State(rock.idx, stack.getTopsNormalised(), jet);
             if (cnt++ == 1) {
                 this.states.computeIfAbsent(state, k -> new ArrayList<>())
@@ -140,9 +139,9 @@ public class AoC2022_17 extends AoCBase {
     }
 
     private Long solve(final long requestedDrops) {
-        final Stack stack = new Stack(FLOOR);
-        final JetSupplier jetSupplier = new JetSupplier(this.jets);
-        final ShapeSupplier shapeSupplier = new ShapeSupplier();
+        final var stack = new Stack(FLOOR);
+        final var jetSupplier = new JetSupplier(this.jets);
+        final var shapeSupplier = new ShapeSupplier();
         int drops = 0;
         State state;
         while (true) {
@@ -246,11 +245,7 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @AllArgsConstructor
-    @ToString
-    private static final class Rock {
-        private final int idx;
-        private final Set<Position> shape;
+    private static final record Rock(int idx, Set<Position> shape) {
         
         public Rock move(final Vector vector) {
             final Set<Position> newShape = blocks()
@@ -269,11 +264,7 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Shape {
-        private final int idx;
-        private final Set<Position> shape;
-    }
+    private static final record Shape(int idx, Set<Position> shape) { }
     
     private static final class ShapeSupplier implements Supplier<Shape> {
         private int idx = 0;
@@ -296,19 +287,33 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    @ToString
-    private static final class State {
-        private final int shape;
-        private final int[] tops;
-        private final Heading jet;
+    private static final record State(int shape, int[] tops, Heading jet) {
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Arrays.hashCode(tops);
+            result = prime * result + Objects.hash(jet, shape);
+            return result;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final State other = (State) obj;
+            return Objects.equals(jet, other.jet)
+                    && shape == other.shape && Arrays.equals(tops, other.tops);
+        }
     }
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Cycle {
-        private final int cycle;
-        private final int top;
-    }
+    private static final record Cycle(int cycle, int top) { }
 }

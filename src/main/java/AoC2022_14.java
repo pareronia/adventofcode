@@ -2,7 +2,6 @@ import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.stream.Collectors.toList;
 
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -28,16 +27,16 @@ public class AoC2022_14 extends AoCBase {
         super(debug);
         this.rocks = new HashSet<>();
         for (final String line : input) {
-            final String[] splits = line.split(" -> ");
+            final var splits = line.split(" -> ");
             IntStream.range(1, splits.length).forEach(i -> {
-                final String[] splits1 = splits[i - 1].split(",");
-                final String[] splits2 = splits[i].split(",");
-                final List<Integer> xs = List.of(splits1, splits2).stream()
+                final var splits1 = splits[i - 1].split(",");
+                final var splits2 = splits[i].split(",");
+                final var xs = List.of(splits1, splits2).stream()
                         .map(a -> a[0])
                         .map(Integer::parseInt)
                         .sorted()
                         .collect(toList());
-                final List<Integer> ys = List.of(splits1, splits2).stream()
+                final var ys = List.of(splits1, splits2).stream()
                         .map(a -> a[1])
                         .map(Integer::parseInt)
                         .sorted()
@@ -47,8 +46,7 @@ public class AoC2022_14 extends AoCBase {
                         this.rocks.add(Position.of(x,  y))));
             });
         }
-        final IntSummaryStatistics stats = this.rocks.stream()
-                .mapToInt(Position::getX)
+        final var stats = this.rocks.stream().mapToInt(Position::getX)
                 .summaryStatistics();
         this.minX = stats.getMin();
         this.maxX = stats.getMax();
@@ -66,11 +64,11 @@ public class AoC2022_14 extends AoCBase {
     Position drop(final Set<Position> sand, final int maxY) {
         Position curr = SOURCE;
         while (true) {
-            final Position p = curr;
-            final Position down = Position.of(curr.getX(), curr.getY() + 1);
-            final Position downLeft = Position.of(curr.getX() - 1, curr.getY() + 1);
-            final Position downRight = Position.of(curr.getX() + 1, curr.getY() + 1);
-            for (final Position test : List.of(down, downLeft, downRight)) {
+            final var p = curr;
+            final var down = Position.of(curr.getX(), curr.getY() + 1);
+            final var downLeft = Position.of(curr.getX() - 1, curr.getY() + 1);
+            final var downRight = Position.of(curr.getX() + 1, curr.getY() + 1);
+            for (final var test : List.of(down, downLeft, downRight)) {
                 if (!this.rocks.contains(test) && !sand.contains(test)) {
                     curr = test;
                     break;
@@ -86,7 +84,7 @@ public class AoC2022_14 extends AoCBase {
     }
     
     private Set<Position> solve(final int maxY) {
-        final Set<Position> sand = new HashSet<>();
+        final var sand = new HashSet<Position>();
         while (true) {
             final Position p = drop(sand, maxY);
             if (p == null) {
@@ -104,14 +102,12 @@ public class AoC2022_14 extends AoCBase {
         if (!this.debug) {
             return;
         }
-        final IntSummaryStatistics statsX = this.rocks.stream()
-            .mapToInt(Position::getX)
+        final var statsX = this.rocks.stream().mapToInt(Position::getX)
             .summaryStatistics();
-        final IntSummaryStatistics statsY = this.rocks.stream()
-            .mapToInt(Position::getY)
+        final var statsY = this.rocks.stream().mapToInt(Position::getY)
             .summaryStatistics();
         IntStream.rangeClosed(SOURCE.getY(), statsY.getMax()).forEach(y -> {
-            final String line = IntStream.rangeClosed(statsX.getMin(), statsX.getMax())
+            final var line = IntStream.rangeClosed(statsX.getMin(), statsX.getMax())
                     .mapToObj(x -> {
                         final Position pos = Position.of(x, y);
                         if (this.rocks.contains(pos)) {
@@ -157,8 +153,8 @@ public class AoC2022_14 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "498,4 -> 498,6 -> 496,6\r\n" +
-        "503,4 -> 502,4 -> 502,9 -> 494,9"
-    );
+    private static final List<String> TEST = splitLines("""
+        498,4 -> 498,6 -> 496,6
+        503,4 -> 502,4 -> 502,9 -> 494,9
+        """);
 }
