@@ -15,11 +15,6 @@ import java.util.stream.Stream;
 import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
-import lombok.Singular;
-import lombok.ToString;
-
 public class AoC2020_16 extends AoCBase {
     
     private final Set<Rule> rules;
@@ -39,11 +34,11 @@ public class AoC2020_16 extends AoCBase {
 	}
 
     private final Rule parseRule(final String s) {
-        final String[] splits1 = s.split(": ");
-        final Rule.RuleBuilder builder = Rule.builder();
+        final var splits1 = s.split(": ");
+        final var builder = Rule.builder();
         builder.field(splits1[0]);
-        for (final String split : splits1[1].split(" or ")) {
-            final String[] splits3 = split.split("-");
+        for (final var split : splits1[1].split(" or ")) {
+            final var splits3 = split.split("-");
             final int start = Integer.parseInt(splits3[0]);
             final int end = Integer.parseInt(splits3[1]);
             builder.validRange(Range.between(start, end));
@@ -93,50 +88,65 @@ public class AoC2020_16 extends AoCBase {
 	    );
 	}
 	
-	private static final List<String> TEST1 = splitLines(
-			"class: 1-3 or 5-7\r\n"    +
-			"row: 6-11 or 33-44\r\n"   +
-			"seat: 13-40 or 45-50\r\n" +
-			"\r\n"                     +
-			"your ticket:\r\n"         +
-			"7,1,14\r\n"               +
-			"\r\n"                     +
-			"nearby tickets:\r\n"      +
-			"7,3,47\r\n"               +
-			"40,4,50\r\n"              +
-			"55,2,20\r\n"              +
-			"38,6,12"
-	);
-	private static final List<String> TEST2 = splitLines(
-			"departure date: 0-1 or 4-19\r\n"    +
-			"departure time: 0-5 or 8-19\r\n"    +
-			"departure track: 0-13 or 16-19\r\n" +
-			"\r\n"                               +
-			"your ticket:\r\n"                   +
-			"11,12,13\r\n"                       +
-			"\r\n"                               +
-			"nearby tickets:\r\n"                +
-			"3,9,18\r\n"                         +
-			"15,1,5\r\n"                         +
-			"5,14,9"
-	);
+	private static final List<String> TEST1 = splitLines("""
+            class: 1-3 or 5-7
+            row: 6-11 or 33-44
+            seat: 13-40 or 45-50
+            
+            your ticket:
+            7,1,14
+            
+            nearby tickets:
+            7,3,47
+            40,4,50
+            55,2,20
+            38,6,12
+            """);
+	private static final List<String> TEST2 = splitLines("""
+            departure date: 0-1 or 4-19
+            departure time: 0-5 or 8-19
+            departure track: 0-13 or 16-19
+            
+            your ticket:
+            11,12,13
+            
+            nearby tickets:
+            3,9,18
+            15,1,5
+            5,14,9
+            """);
 	
-	@RequiredArgsConstructor
-	@Builder
-	@ToString
-	private static final class Rule {
-	    private final String field;
-	    @Singular
-	    private final Set<Range> validRanges;
+	private static final record Rule(String field, Set<Range> validRanges) {
 	    
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));
 	    }
+	    
+	    public static RuleBuilder builder() {
+	        return new RuleBuilder();
+	    }
+	    
+	    private static final class RuleBuilder {
+	        private String field;
+	        private final Set<Range> validRanges = new HashSet<>();
+	        
+	        public Rule build() {
+	            return new Rule(this.field, this.validRanges);
+	        }
+	        
+	        public RuleBuilder field(final String field) {
+	            this.field = field;
+	            return this;
+	        }
+	        
+	        public RuleBuilder validRange(final Range validRange) {
+	            this.validRanges.add(validRange);
+	            return this;
+	        }
+	    }
 	}
 	
-	@RequiredArgsConstructor
-    private static final class Ticket {
-        private final List<Integer> values;
+    private static final record Ticket(List<Integer> values) {
         
         public boolean invalid(final Set<Rule> rules) {
             return this.values.stream()
@@ -154,15 +164,9 @@ public class AoC2020_16 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Match {
-        private final Rule rule;
-        private final int idx;
-    }
+    private static final record Match(Rule rule, int idx) { }
     
-    @RequiredArgsConstructor
-    private static final class Matches {
-        private final Map<Rule, Set<Integer>> matches;
+    private static final record Matches(Map<Rule, Set<Integer>> matches) {
     
         private static boolean matchColumn(final List<Ticket> tickets,
                                            final int column, final Rule rule) {
