@@ -1,17 +1,15 @@
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.toSet;
 
+import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.tuple.Pair;
 
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
@@ -21,47 +19,53 @@ import com.github.pareronia.aocd.Puzzle;
 
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2022_24 extends AoCBase {
-    private final List<Blizzard> blizzards;
+    private static final Set<Heading> DIRS = Set.of(
+        Headings.NORTH.get(), Headings.EAST.get(), Headings.SOUTH.get(),
+        Headings.WEST.get(), Heading.of(0, 0)
+    );
+    private static final Map<Character, Heading> BLIZZARD_DIRS = Map.of(
+        '^', Headings.NORTH.get(), '>', Headings.EAST.get(),
+        'v', Headings.SOUTH.get(), '<', Headings.WEST.get()
+    );
+    
+    private final Map<Integer, Set<Position>> blizzardsByTime;
     private final Position start;
     private final Position end;
     private final int width;
     private final int height;
+    private final int period;
     
     private AoC2022_24(final List<String> input, final boolean debug) {
         super(debug);
         this.width = input.get(0).length() - 2;
         this.height = input.size() - 2;
+        this.period = height * (width /
+            BigInteger.valueOf(height).gcd(BigInteger.valueOf(width)).intValue());
         this.start = Position.of(0, height);
         this.end = Position.of(width - 1, -1);
-        this.blizzards = new ArrayList<>();
+        final List<Blizzard> blizzards = new ArrayList<>();
         IntStream.range(0, input.size()).forEach(y -> {
-            IntStream.range(0, input.get(y).length()).forEach(x -> {
-                final Position position = Position.of(x - 1,  height - y);
-                final Heading heading;
+            for (int x = 0; x < input.get(y).length(); x++) {
                 final char ch = input.get(y).charAt(x);
-                if (ch == '>') {
-                    heading = Headings.EAST.get();
-                    this.blizzards.add(new Blizzard(position, heading));
-                } else if (ch == 'v') {
-                    heading = Headings.SOUTH.get();
-                    this.blizzards.add(new Blizzard(position, heading));
-                } else if (ch == '<') {
-                    heading = Headings.WEST.get();
-                    this.blizzards.add(new Blizzard(position, heading));
-                } else if (ch == '^') {
-                    heading = Headings.NORTH.get();
-                    this.blizzards.add(new Blizzard(position, heading));
+                if (ch != '.' && ch != '#') {
+                    final Position position = Position.of(x - 1,  height - y);
+                    blizzards.add(new Blizzard(position, BLIZZARD_DIRS.get(ch)));
                 }
-            });
+            }
         });
+        this.blizzardsByTime = IntStream.range(0, this.period).boxed()
+            .collect(toMap(
+                i -> i,
+                i -> blizzards.stream()
+                        .map(b -> b.at(i, this.width, this.height))
+                        .collect(toSet())));
         log("width: " + this.width);
         log("height: " + this.height);
+        log("period: " + this.period);
         log("start: " + this.start);
         log("end: " + this.end);
-        draw(this.blizzards.stream().map(b -> b.position).collect(toList()));
     }
     
     public static final AoC2022_24 create(final List<String> input) {
@@ -72,38 +76,17 @@ public class AoC2022_24 extends AoCBase {
         return new AoC2022_24(input, true);
     }
     
-    private void draw(final List<Position> positions) {
-        for (int y = this.height - 1; y >= 0; y--) {
-            final StringBuilder sb = new StringBuilder();
-            for (int x = 0; x < this.width; x++) {
-                if (positions.contains(Position.of(x, y))) {
-                    sb.append('*');
-                } else {
-                    sb.append('.');
-                }
-            }
-            log(sb.toString());
-        }
-        log("");
+    private boolean isBlizzard(final Position position, final int time) {
+        return this.blizzardsByTime.get(time % this.period).contains(position);
     }
-    
-    private final Map<Pair<Position, Integer>, Boolean> blizzardCache = new HashMap<>();
-    
-    private boolean isBlizzard(final Position position, final int tick) {
-        final Pair<Position, Integer> key = Pair.of(position, tick);
-        if (this.blizzardCache.containsKey(key)) {
-            return this.blizzardCache.get(key);
-        }
-        final boolean isBlizzard = this.blizzards.stream()
-                .map(b -> b.at(tick, this.width, this.height))
-                .anyMatch(position::equals);
-        this.blizzardCache.put(key, isBlizzard);
-        return isBlizzard;
+
+    private boolean inBounds(final Position p) {
+        return 0 <= p.getX() && p.getX() < this.width
+            && 0 <= p.getY() && p.getY() < this.height;
     }
     
     @RequiredArgsConstructor
     @EqualsAndHashCode
-    @ToString
     private static final class State {
         private final int time;
         private final Position position;
@@ -113,32 +96,26 @@ public class AoC2022_24 extends AoCBase {
         final Deque<State> q = new ArrayDeque<>();
         q.add(new State(startTime, start));
         final Set<State> seen = new HashSet<>();
-        int cnt = 0;
         while (!q.isEmpty()) {
-            assert cnt < 5_000_000;
-            cnt++;
             final State state = q.poll();
             if (state.position.equals(end)) {
                 log("time: " + state.time);
-                log("cnt: " + cnt);
                 return state.time;
             }
-            Stream.concat(Headings.CAPITAL.stream().map(Headings::get), Set.of(Heading.of(0, 0)).stream())
-                .map(state.position::translate)
-                .filter(p -> p.equals(start) || p.equals(end)
-                        || (0 <= p.getX() && p.getX() < this.width
-                            && 0 <= p.getY() && p.getY() < this.height))
-                .forEach(n -> {
-                    if (!isBlizzard(n, state.time + 1)) {
-                        final State newState = new State(state.time + 1, n);
-                        if (!seen.contains(newState)) {
-                            seen.add(newState);
-                            q.add(newState);
-                        }
+            final int nextTime = state.time + 1;
+            for (final Heading d : DIRS) {
+                final Position n = state.position.translate(d);
+                if (n.equals(start) || n.equals(end)
+                        || inBounds(n) && !isBlizzard(n, nextTime)
+                ) {
+                    final State newState = new State(nextTime, n);
+                    if (!seen.contains(newState)) {
+                        seen.add(newState);
+                        q.add(newState);
                     }
-                });
+                }
+            }
         }
-        log("cnt: " + cnt);
         throw new IllegalStateException("Unsolvable");
     }
 
@@ -177,27 +154,25 @@ public class AoC2022_24 extends AoCBase {
     );
     
     @RequiredArgsConstructor
-    @ToString
-    @EqualsAndHashCode
     private static final class Blizzard {
         private final Position position;
         private final Heading heading;
         
         public Position at(final int tick, final int width, final int height) {
-            int amount;
-            if (horizontal()) {
-                amount = tick % width;
-            } else {
-                amount = tick % height;
-            }
-            final Position newPosition = this.position.translate(this.heading, amount);
-            final Position pp = Position.of((width + newPosition.getX()) % width, (height + newPosition.getY()) % height);
-            assert 0 <= pp.getX() && pp.getX() < width && 0 <= pp.getY() && pp.getY() < height;
+            final int amount = horizontal() ? tick % width : tick % height;
+            final Position newPosition
+                    = this.position.translate(this.heading, amount);
+            final Position pp = Position.of(
+                    (width + newPosition.getX()) % width,
+                    (height + newPosition.getY()) % height);
+            assert 0 <= pp.getX() && pp.getX() < width
+                    && 0 <= pp.getY() && pp.getY() < height;
             return pp;
         }
         
         private boolean horizontal() {
-            return this.heading.equals(Headings.EAST.get()) || this.heading.equals(Headings.WEST.get());
+            return this.heading.equals(Headings.EAST.get())
+                    || this.heading.equals(Headings.WEST.get());
         }
     }
 }
