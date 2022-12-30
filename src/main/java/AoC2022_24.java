@@ -95,11 +95,16 @@ public class AoC2022_24 extends AoCBase {
         final Deque<State> q = new ArrayDeque<>();
         q.add(new State(startTime, start));
         final Set<State> seen = new HashSet<>();
+        int time = -1;
         while (!q.isEmpty()) {
             final State state = q.poll();
             if (state.position.equals(end)) {
                 log("time: " + state.time);
                 return state.time;
+            }
+            if (time < state.time) {
+                time = state.time;
+                seen.clear();
             }
             final int nextTime = state.time + 1;
             for (final Heading d : DIRS) {
