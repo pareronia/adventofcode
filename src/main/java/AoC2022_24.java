@@ -1,6 +1,3 @@
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
-
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -11,6 +8,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
@@ -30,7 +28,7 @@ public class AoC2022_24 extends AoCBase {
         'v', Headings.SOUTH.get(), '<', Headings.WEST.get()
     );
     
-    private final Map<Integer, Set<Position>> blizzardsByTime;
+    private final boolean[][][] blizzardsByTime;
     private final Position start;
     private final Position end;
     private final int width;
@@ -55,12 +53,13 @@ public class AoC2022_24 extends AoCBase {
                 }
             }
         });
-        this.blizzardsByTime = IntStream.range(0, this.period).boxed()
-            .collect(toMap(
-                i -> i,
-                i -> blizzards.stream()
-                        .map(b -> b.at(i, this.width, this.height))
-                        .collect(toSet())));
+        this.blizzardsByTime = new boolean[this.period][this.width][this.height];
+        for (final int i : Range.range(this.period)) {
+            for (final Blizzard blizzard : blizzards) {
+                final Position b = blizzard.at(i, this.width, this.height);
+                this.blizzardsByTime[i][b.getX()][b.getY()] = true;
+            }
+        }
         log("width: " + this.width);
         log("height: " + this.height);
         log("period: " + this.period);
@@ -77,7 +76,7 @@ public class AoC2022_24 extends AoCBase {
     }
     
     private boolean isBlizzard(final Position position, final int time) {
-        return this.blizzardsByTime.get(time % this.period).contains(position);
+        return this.blizzardsByTime[time % this.period][position.getX()][position.getY()];
     }
 
     private boolean inBounds(final Position p) {
