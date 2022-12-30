@@ -1,6 +1,5 @@
 #include <assert.h>
 
-#include <algorithm>
 #include <deque>
 #include <numeric>
 #include <string>
@@ -119,6 +118,7 @@ int solve(const Valley& valley, const Position& start, const Position& end,
     deque<State> q;
     q.push_back(State(start, startTime));
     unordered_set<State> seen;
+    int currTime = -1;
     while (q.size() > 0) {
         const State& state = q.front();
         q.pop_front();
@@ -127,6 +127,10 @@ int solve(const Valley& valley, const Position& start, const Position& end,
         const int time = get<2>(state);
         if (x == end.first && y == end.second) {
             return time;
+        }
+        if (currTime < time) {
+            currTime = time;
+            seen.clear();
         }
         const int nextTime = time + 1;
         for (const Direction& d : ALL_DIRS) {
