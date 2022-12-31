@@ -65,7 +65,7 @@ public class AoC2022_15 extends AoCBase {
     }
     
     private long solve2(final int max) {
-        for (int y = 0; y <= max; y++) {
+        for (int y = max; y >= 0; y--) {
             final Deque<Range<Integer>> ranges = getRanges(y);
             for (int x = 0; x <= max; x++) {
                 for (final Range<Integer> merged : ranges) {
