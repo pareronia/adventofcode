@@ -1,9 +1,9 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.SetUtils.intersection;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -143,8 +143,7 @@ public class AoC2022_16 extends AoCBase {
         dfs2.dfs(this.start, 0);
         return dfs2.bestPerUsed.entrySet().stream()
             .flatMapToInt(e1 -> dfs2.bestPerUsed.entrySet().stream()
-                .filter(e2 -> !e2.equals(e1))
-                .filter(e2 -> intersection(e1.getKey(), e2.getKey()).isEmpty())
+                .filter(e2 -> Collections.disjoint(e1.getKey(), e2.getKey()))
                 .mapToInt(e2 -> e1.getValue() + e2.getValue()))
             .max().orElseThrow();
     }
