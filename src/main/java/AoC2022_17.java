@@ -32,8 +32,10 @@ public class AoC2022_17 extends AoCBase {
     
     private static final int OFFSET_X = 2;
     private static final int OFFSET_Y = 3;
+    private static final int WIDTH = 7;
+    private static final int KEEP_ROWS = 40;
     private static final int LOOP_TRESHOLD = 3_000;
-    private static final Set<Position> FLOOR = IntStream.rangeClosed(0, 6)
+    private static final Set<Position> FLOOR = IntStream.range(0, WIDTH)
             .mapToObj(x -> Position.of(x, -1)).collect(toSet());
     private static final List<Set<Position>> SHAPES = List.of(
         // ####
@@ -57,12 +59,14 @@ public class AoC2022_17 extends AoCBase {
     );
 
     private final List<Heading> jets;
+    private final Map<State, List<Cycle>> states;
     
     private AoC2022_17(final List<String> input, final boolean debug) {
         super(debug);
         this.jets = Utils.asCharacterStream(input.get(0))
             .map(c -> c== '>' ? Headings.EAST.get() : Headings.WEST.get())
             .collect(toList());
+        this.states = new HashMap<>();
     }
     
     public static final AoC2022_17 create(final List<String> input) {
@@ -79,21 +83,19 @@ public class AoC2022_17 extends AoCBase {
         return puzzle;
     }
     
-//    private void draw(final Stack stack) {
-//        if (!this.trace) {
-//            return;
-//        }
-//        final int max = stack.top;
-//        for (int y = max; y >= 0; y--) {
-//            final int they = y;
-//            trace(IntStream.rangeClosed(0, 7)
-//                .mapToObj(x -> stack.contains(Position.of(x, they)) ? '#' : ' ')
-//                .collect(Utils.toAString()));
-//        }
-//    }
-//
-    Map<State, List<Cycle>> states;
-    
+    private void draw(final Stack stack) {
+        if (!this.trace) {
+            return;
+        }
+        final int max = stack.top;
+        for (int y = max; y >= max - KEEP_ROWS; y--) {
+            final int they = y;
+            trace(IntStream.rangeClosed(0, 7)
+                .mapToObj(x -> stack.contains(Position.of(x, they)) ? '#' : ' ')
+                .collect(Utils.toAString()));
+        }
+    }
+
     private State drop(
             final int dropIndex,
             final Stack stack,
@@ -108,18 +110,17 @@ public class AoC2022_17 extends AoCBase {
         State state;
         int cnt = 0;
         while (true) {
-            state = new State(rock.idx, stack.getTopRows(20));
+            final Heading jet = jetSupplier.get();
+            state = new State(rock.idx, stack.getTopsNormalised(), jet);
             if (cnt++ == 1) {
                 this.states.computeIfAbsent(state, k -> new ArrayList<>())
                     .add(new Cycle(dropIndex, stack.getTop()));
             }
-            final Heading jet = jetSupplier.get();
             trace(() -> "move " + jet.toString());
             Rock moved = rock.move(jet);
-            if (!moved.insideX(0, 6)) {
+            if (!moved.insideX(0, WIDTH)) {
                 trace(() -> "hit side: undo");
             } else if (stack.overlappedBy(moved)) {
-//                assert stack.overlappedBy2(moved);
                 trace(() -> "hit stack: undo");
             } else {
                 rock = moved;
@@ -127,7 +128,6 @@ public class AoC2022_17 extends AoCBase {
             trace(() -> "move down");
             moved = rock.move(Headings.SOUTH.get());
             if (stack.overlappedBy(moved)) {
-//                assert stack.overlappedBy2(moved);
                 trace(() -> "hit stack: undo");
                 break;
             }
@@ -135,13 +135,11 @@ public class AoC2022_17 extends AoCBase {
         }
         trace(() -> "add to stack");
         stack.add(rock);
-//        assert stack.top == stack.getTops().values().stream().mapToInt(Integer::valueOf).max().orElse(0) + 1;
-//        draw(stack);
+        draw(stack);
         return state;
     }
 
     private Long solve(final long requestedDrops) {
-        this.states = new HashMap<>();
         final Stack stack = new Stack(FLOOR);
         final JetSupplier jetSupplier = new JetSupplier(this.jets);
         final ShapeSupplier shapeSupplier = new ShapeSupplier();
@@ -198,7 +196,7 @@ public class AoC2022_17 extends AoCBase {
     );
     
     private static final class Stack {
-        private final Set<Position> positions;
+        private Set<Position> positions;
         private final Map<Integer, Integer> tops;
         private int top;
         
@@ -209,15 +207,17 @@ public class AoC2022_17 extends AoCBase {
         
         public int getTop() {
             return top;
-//            return this.tops.values().stream()
-//                    .mapToInt(Integer::valueOf)
-//                    .max().orElse(0) + 1;
         }
         
+        public int[] getTopsNormalised() {
+            return IntStream.range(0, WIDTH)
+                .map(i -> this.top - this.tops.get(i))
+                .toArray();
+        }
+
         public Set<Position> getTopRows(final int n) {
             return this.positions.stream()
                     .filter(p -> p.getY() > top - n)
-                    .map(p -> Position.of(p.getX(), p.getY() - (top - n)))
                     .collect(toSet());
         }
 
@@ -227,33 +227,23 @@ public class AoC2022_17 extends AoCBase {
                 this.positions.add(p);
                 this.top = Math.max(top, p.getY() + 1);
             });
+            this.positions = getTopRows(KEEP_ROWS);
         }
         
         public boolean overlappedBy(final Rock rock) {
             return rock.blocks().anyMatch(this.positions::contains);
-//            return rock.blocks()
-//                    .anyMatch(b -> b.getY() <= this.tops.get(b.getX()));
         }
         
-        public boolean overlappedBy2(final Rock rock) {
-            return !rock.blocks()
-                    .allMatch(b -> b.getY() > this.tops.get(b.getX()));
-        }
-        
-        public Map<Integer, Integer> getTops() {
-            return tops;
-        }
-
         public Map<Integer, Integer> getTops(final Set<Position> positions) {
             return positions.stream()
                 .collect(groupingBy(
                     Position::getX,
                     mapping(p -> p.getY(), reducing(Integer.MIN_VALUE, Math::max))));
         }
-//
-//        public boolean contains(final Position p) {
-//            return this.positions.contains(p);
-//        }
+
+        public boolean contains(final Position p) {
+            return this.positions.contains(p);
+        }
     }
     
     @AllArgsConstructor
@@ -269,9 +259,9 @@ public class AoC2022_17 extends AoCBase {
             return new Rock(this.idx, newShape);
         }
         
-        public boolean insideX(final int startInclusive, final int endInclusive) {
+        public boolean insideX(final int startInclusive, final int endExclusive) {
             return blocks().mapToInt(Position::getX)
-                    .allMatch(x -> startInclusive <= x && x <= endInclusive);
+                    .allMatch(x -> startInclusive <= x && x < endExclusive);
         }
         
         private Stream<Position> blocks() {
@@ -290,7 +280,7 @@ public class AoC2022_17 extends AoCBase {
         
         @Override
         public Shape get() {
-            final int index = idx++ % 5;
+            final int index = idx++ % SHAPES.size();
             return new Shape(index, SHAPES.get(index));
         }
     }
@@ -311,7 +301,8 @@ public class AoC2022_17 extends AoCBase {
     @ToString
     private static final class State {
         private final int shape;
-        private final Set<Position> top;
+        private final int[] tops;
+        private final Heading jet;
     }
     
     @RequiredArgsConstructor
