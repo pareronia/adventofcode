@@ -64,6 +64,10 @@ public class Puzzle {
 		this.releaseTime = LocalDate.of(year, Month.DECEMBER, day).atStartOfDay(Aocd.AOC_TZ).toLocalDateTime();
 	}
 
+	public static final Puzzle create(final Integer year, final Integer day, final String name) {
+	    return create(year, day, User.getUser(name));
+	}
+
 	public static final Puzzle create(final Integer year, final Integer day) {
 		return create(year, day, User.getDefaultUser());
 	}

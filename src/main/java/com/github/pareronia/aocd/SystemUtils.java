@@ -83,6 +83,15 @@ public class SystemUtils {
         }
 	}
 
+	@SuppressWarnings("unchecked")
+    public Map<String, String> getTokens() {
+	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("tokens.json"))) {
+	        return new Gson().fromJson(reader, Map.class);
+        } catch (final IOException e) {
+			throw new AocdException(e);
+        }
+	}
+
 	public List<String> readAllLinesIfExists(final Path path) {
  		if (Files.notExists(Objects.requireNonNull(path))) {
 			return Collections.emptyList();

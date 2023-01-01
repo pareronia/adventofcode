@@ -43,4 +43,8 @@ public class Aocd {
 	public static Puzzle puzzle(final Integer year, final Integer day) {
 		return Puzzle.create(year, day);
 	}
+
+	public static Puzzle puzzle(final Integer year, final Integer day, final String name) {
+	    return Puzzle.create(year, day, name);
+	}
 }
