@@ -1,10 +1,7 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -17,9 +14,7 @@ import com.github.pareronia.aoc.graph.AStar.Result;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2022_16 extends AoCBase {
     
@@ -55,13 +50,13 @@ public class AoC2022_16 extends AoCBase {
             final int idx = map.get(e.getKey());
             this.tunnels[idx] = e.getValue().stream().map(map::get).collect(toSet());
         });
-        log(() -> "valves: " + IntStream.range(0, this.valves.length)
+        trace(() -> "valves: " + IntStream.range(0, this.valves.length)
                 .mapToObj(i -> String.format("%d: %s", i, this.valves[i]))
                 .collect(joining(", ")));
-        log(() -> "rates: " + IntStream.range(0, this.rates.length)
+        trace(() -> "rates: " + IntStream.range(0, this.rates.length)
                 .mapToObj(i -> String.format("%d: %s", i, this.rates[i]))
                 .collect(joining(", ")));
-        log(() -> "tunnels: " + IntStream.range(0, this.tunnels.length)
+        trace(() -> "tunnels: " + IntStream.range(0, this.tunnels.length)
                 .mapToObj(i -> String.format("%d: %s", i, this.tunnels[i]))
                 .collect(joining(", ")));
     }
@@ -78,24 +73,29 @@ public class AoC2022_16 extends AoCBase {
     private final class DFS {
         private final int[][] distances;
         private final int maxTime;
-        private final Flow current = new Flow();
-        private final Map<Set<Integer>, Integer> bestPerUsed = new HashMap<>();
+        private final Map<Long, Integer> bestPerUsed = new HashMap<>();
+        private long used = 0L;
+        private int maxFlow = 0;
+        private int cnt = 0;
         
         public void dfs(final int start, final int time) {
-            final Set<Integer> used = current.getUsed();
-            final IntStream rest = IntStream.range(0, valves.length)
-                    .filter(i -> rates[i] > 0)
-                    .filter(i-> !used.contains(i));
-            rest.forEach(valve -> {
-                int newTime = time + 1;
-                newTime += distances[start][valve];
-                if (newTime < maxTime) {
-                    current.add(valve, rates[valve], newTime);
-                    dfs(valve, newTime);
-                    current.removeLast();
+            cnt++;
+            for (int i = 0; i < valves.length; i++) {
+                final long idx = 1L << i;
+                if (rates[i] == 0 || (used & idx) != 0) {
+                    continue;
                 }
-            });
-            bestPerUsed.merge(used, current.getTotal(maxTime), Math::max);
+                final int newTime = time + 1 + distances[start][i];
+                if (newTime < maxTime) {
+                    final int flow = rates[i] * (maxTime - newTime);
+                    maxFlow += flow;
+                    used += idx;
+                    dfs(i, newTime);
+                    used -= idx;
+                    maxFlow -= flow;
+                }
+            }
+            bestPerUsed.merge(used, maxFlow, Math::max);
         }
     }
 
@@ -115,10 +115,10 @@ public class AoC2022_16 extends AoCBase {
                 distances[i][j] = (int) result.getDistance(j);
             }
         }
-        log(() -> "    " + Arrays.stream(relevantValves)
+        trace(() -> "    " + Arrays.stream(relevantValves)
                 .mapToObj(i -> this.valves[i]).collect(joining(" | ")));
         Arrays.stream(relevantValves).forEach(i -> {
-            log(() -> this.valves[i] + "  "
+            trace(() -> this.valves[i] + "  "
                     + Arrays.stream(relevantValves)
                             .mapToObj(j -> String.format("%2d", distances[i][j]))
                             .collect(joining(" | ")));
@@ -131,6 +131,7 @@ public class AoC2022_16 extends AoCBase {
         final int[][] distances = getDistances();
         final DFS dfs = new DFS(distances, 30);
         dfs.dfs(this.start, 0);
+        log("dfs: " + dfs.cnt);
         return dfs.bestPerUsed.values().stream()
                 .mapToInt(Integer::valueOf)
                 .max().orElseThrow();
@@ -139,11 +140,12 @@ public class AoC2022_16 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final int[][] distances = getDistances();
-        final DFS dfs2 = new DFS(distances, 26);
-        dfs2.dfs(this.start, 0);
-        return dfs2.bestPerUsed.entrySet().stream()
-            .flatMapToInt(e1 -> dfs2.bestPerUsed.entrySet().stream()
-                .filter(e2 -> Collections.disjoint(e1.getKey(), e2.getKey()))
+        final DFS dfs = new DFS(distances, 26);
+        dfs.dfs(this.start, 0);
+        log("dfs: " + dfs.cnt);
+        return dfs.bestPerUsed.entrySet().stream()
+            .flatMapToInt(e1 -> dfs.bestPerUsed.entrySet().stream()
+                .filter(e2 -> (e1.getKey() & e2.getKey()) == 0)
                 .mapToInt(e2 -> e1.getValue() + e2.getValue()))
             .max().orElseThrow();
     }
@@ -172,38 +174,4 @@ public class AoC2022_16 extends AoCBase {
         "Valve II has flow rate=0; tunnels lead to valves AA, JJ\r\n" +
         "Valve JJ has flow rate=21; tunnel leads to valve II"
     );
-    
-    @ToString
-    private final static class Flow {
-        private final Deque<Step> steps = new ArrayDeque<>();
-        
-        public void add(final int valve, final int rate, final int time) {
-            assert !getUsed().contains(valve);
-            this.steps.addLast(new Step(valve, rate, time));
-        }
-        
-        public void removeLast() {
-            this.steps.removeLast();
-        }
-        
-        public int getTotal(final int time) {
-            return steps.stream()
-                .mapToInt(s -> s.rate * (time - s.since))
-                .sum();
-        }
-        
-        public Set<Integer> getUsed() {
-            return steps.stream().map(Step::getValve).collect(toSet());
-        }
-        
-        @RequiredArgsConstructor
-        @ToString
-        private static final class Step {
-            @Getter
-            private final int valve;
-            @Getter
-            private final int rate;
-            private final int since;
-        }
-    }
 }
