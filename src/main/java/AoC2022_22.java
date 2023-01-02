@@ -1,6 +1,8 @@
+import static com.github.pareronia.aoc.Utils.asCharacterStream;
 import static com.github.pareronia.aoc.Utils.last;
 import static java.util.stream.Collectors.toList;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -15,7 +17,7 @@ import lombok.ToString;
 
 public class AoC2022_22 extends AoCBase {
 
-    private enum Direction { NORTH, EAST, SOUTH, WEST };
+    private enum Direction { NORTH, EAST, SOUTH, WEST }
 
     private static final Pattern REGEX = Pattern.compile("([LR])([0-9]+)");
     private static final Map<Direction, Delta> DIRS = Map.of(
@@ -34,6 +36,7 @@ public class AoC2022_22 extends AoCBase {
     
     private final List<String> grid;
     private final List<Move> moves;
+    private final Cell start;
     
     private AoC2022_22(final List<String> input, final boolean debug) {
         super(debug);
@@ -43,6 +46,11 @@ public class AoC2022_22 extends AoCBase {
             .map(r -> new Move(r.group(1), Integer.parseInt(r.group(2))))
             .collect(toList());
         trace(this.moves);
+        this.start = Cell.at(
+            0,
+            IntStream.range(0, this.grid.get(0).length())
+                .filter(i -> this.grid.get(0).charAt(i) != ' ')
+                .findFirst().orElseThrow());
     }
     
     public static final AoC2022_22 create(final List<String> input) {
@@ -62,11 +70,12 @@ public class AoC2022_22 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final int size = this.grid.size() / 3;
-        int row = 0;
-        int col = 2 * size;
+        int row = this.start.getRow();
+        int col = this.start.getCol();
         trace(Cell.at(row, col));
         Direction facing = Direction.NORTH;
+        final Map<Integer, List<Integer>> rowsCache = new HashMap<>();
+        final Map<Integer, List<Integer>> colsCache = new HashMap<>();
         for (final Move move : this.moves) {
             facing = TURNS.get(move.turn).get(facing);
             for (int i = 0; i < move.steps; i++) {
@@ -74,21 +83,23 @@ public class AoC2022_22 extends AoCBase {
                 int rr = row + d.dr;
                 int cc = col + d.dc;
                 if (facing == Direction.NORTH || facing == Direction.SOUTH) {
-                    final int theCol = col;
-                    final List<Integer> rows = IntStream.range(0, this.grid.size())
-                        .filter(r -> theCol < this.grid.get(r).length())
-                        .filter(r -> this.grid.get(r).charAt(theCol) != ' ')
-                        .boxed().collect(toList());
+                    final List<Integer> rows = rowsCache.computeIfAbsent(
+                            col ,
+                            c -> IntStream.range(0, this.grid.size())
+                                .filter(r -> c < this.grid.get(r).length())
+                                .filter(r -> this.grid.get(r).charAt(c) != ' ')
+                                .boxed().collect(toList()));
                     if (rr < rows.get(0)) {
                         rr = last(rows);
                     } else if (rr > last(rows)) {
                         rr = rows.get(0);
                     }
                 } else {
-                    final int theRow = row;
-                    final List<Integer> cols = IntStream.range(0, this.grid.get(row).length())
-                        .filter(c -> this.grid.get(theRow).charAt(c) != ' ')
-                        .boxed().collect(toList());
+                    final List<Integer> cols = colsCache.computeIfAbsent(
+                            row,
+                            r -> IntStream.range(0, this.grid.get(r).length())
+                                .filter(c -> this.grid.get(r).charAt(c) != ' ')
+                                .boxed().collect(toList()));
                     if (cc < cols.get(0)) {
                         cc = last(cols);
                     } else if (cc > last(cols)) {
@@ -107,9 +118,107 @@ public class AoC2022_22 extends AoCBase {
         return ans(row, col, facing);
     }
     
+    //  cube layout:  |1|2|
+    //                |3|
+    //              |4|5|
+    //              |6|
     @Override
     public Integer solvePart2() {
-        return 0;
+        final long area = this.grid.stream()
+            .flatMap(line -> asCharacterStream(line).filter(ch -> ch != ' '))
+            .count();
+        final int size = (int) Math.sqrt(area / 6);
+        int row = this.start.getRow();
+        int col = this.start.getCol();
+        Direction facing = Direction.NORTH;
+        for (final Move move : this.moves) {
+            facing = TURNS.get(move.turn).get(facing);
+            for (int i = 0; i < move.steps; i++) {
+                final Delta d = DIRS.get(facing);
+                int rr = row + d.dr;
+                int cc = col + d.dc;
+                Direction ff = facing;
+                if (rr < 0 && size <= cc && cc < 2 * size && ff == Direction.NORTH) {
+                    // top edge 1
+                    rr = cc + 2 * size;
+                    cc = 0;
+                    ff = Direction.EAST;
+                } else if (cc < size && 0 <= rr && rr < size && ff == Direction.WEST) {
+                    // left edge 1
+                    rr = 3 * size - 1 - rr;
+                    cc = 0;
+                    ff = Direction.EAST;
+                } else if (rr < 0 && 2 * size <= cc && cc < 3 * size && ff == Direction.NORTH) {
+                    // top edge 2
+                    rr = 4 * size - 1;
+                    cc -= 2 * size;
+                    ff = Direction.NORTH;
+                } else if (cc == 3 * size && 0 <= rr && rr < size && ff == Direction.EAST) {
+                    // right edge 2
+                    rr = 3 * size - 1 - rr;
+                    cc = 2 * size - 1;
+                    ff = Direction.WEST;
+                } else if (rr == size && 2 * size <= cc && cc < 3 * size && ff == Direction.SOUTH) {
+                    // bottom edge 2
+                    rr = cc - size;
+                    cc = 2 * size - 1;
+                    ff = Direction.WEST;
+                } else if (cc < size && size <= rr && rr < 2 * size && ff == Direction.WEST) {
+                    // left edge 3
+                    cc = rr - size;
+                    rr = 2 * size;
+                    ff = Direction.SOUTH;
+                } else if (cc == 2 * size && size <= rr && rr < 2 * size && ff == Direction.EAST) {
+                    // right edge 3
+                    cc = rr + size;
+                    rr = size - 1;
+                    ff = Direction.NORTH;
+                } else if (cc < 0 && 2 * size <= rr && rr < 3 * size && ff == Direction.WEST) {
+                    // left edge 4
+                    rr = 3 * size - 1 - rr;
+                    cc = size;
+                    ff = Direction.EAST;
+                } else if (rr < 2 * size && 0 <= cc && cc < size && ff ==  Direction.NORTH) {
+                    // top edge 4
+                    rr = cc + size;
+                    cc = size;
+                    ff = Direction.EAST;
+                } else if (cc == 2 * size && 2 * size <= rr && rr < 3 * size && ff == Direction.EAST) {
+                    // right edge 5
+                    rr = 3 * size - 1 - rr;
+                    cc = 3 * size - 1;
+                    ff = Direction.WEST;
+                } else if (rr == 3 * size && size <= cc && cc < 2 * size && ff == Direction.SOUTH) {
+                    // bottom edge 5
+                    rr = 2 * size + cc;
+                    cc = size - 1;
+                    ff = Direction.WEST;
+                } else if (cc < 0 && 3 * size <= rr && rr < 4 * size && ff == Direction.WEST) {
+                    // left edge 6
+                    cc = rr - 2 * size;
+                    rr = 0;
+                    ff = Direction.SOUTH;
+                } else if (cc == size && 3 * size <= rr && rr < 4 * size && ff == Direction.EAST) {
+                    // right edge 6
+                    cc = rr - 2 * size;
+                    rr = 3 * size - 1;
+                    ff = Direction.NORTH;
+                } else if (rr == 4 * size && 0 <= cc && cc < size && ff == Direction.SOUTH) {
+                    // bottom edge 6
+                    rr = 0;
+                    cc += 2 * size;
+                    ff = Direction.SOUTH;
+                }
+                if (this.grid.get(rr).charAt(cc) == WALL) {
+                    break;
+                } else {
+                    row = rr;
+                    col = cc;
+                    facing = ff;
+                }
+            }
+        }
+        return ans(row, col, facing);
     }
 
     public static void main(final String[] args) throws Exception {
