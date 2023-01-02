@@ -8,6 +8,7 @@
 import re
 
 import aocd
+
 from aoc import my_aocd
 from aoc.common import log
 
@@ -28,16 +29,19 @@ def _parse(inputs: tuple[str]) -> tuple[list[str], list[tuple[str, int]]]:
 
 
 def _ans(r: int, c: int, facing: str) -> int:
-    f = (
-        0
-        if facing == "E"
-        else 1
-        if facing == "S"
-        else 2
-        if facing == "W"
-        else 3
+    return 1000 * (r + 1) + 4 * (c + 1) + "ESWN".index(facing)
+
+
+def _get_rows(grid: list[str], col: int) -> tuple[int, ...]:
+    return tuple(
+        r
+        for r, line in enumerate(grid)
+        if col < len(line) and line[col] != " "
     )
-    return 1000 * (r + 1) + 4 * (c + 1) + f
+
+
+def _get_cols(grid: list[str], row: int) -> tuple[int, ...]:
+    return tuple(c for c, _ in enumerate(grid[row]) if _ != " ")
 
 
 def part_1(inputs: tuple[str]) -> int:
@@ -47,6 +51,8 @@ def part_1(inputs: tuple[str]) -> int:
     log(start)
     r, c = start
     facing = "N"
+    rows_cache = dict[int, tuple[int, ...]]()
+    cols_cache = dict[int, tuple[int, ...]]()
     for turn, steps in moves:
         facing = TURNS[turn][facing]
         for i in range(steps):
@@ -54,31 +60,25 @@ def part_1(inputs: tuple[str]) -> int:
             rr = r + dr
             cc = c + dc
             if facing == "N" or facing == "S":
-                rows = [
-                    r
-                    for r, _ in enumerate(
-                        row[c] for row in [row for row in grid if c < len(row)]
-                    )
-                    if _ != " "
-                ]
+                if c not in rows_cache:
+                    rows_cache[c] = _get_rows(grid, c)
+                rows = rows_cache[c]
                 if rr < rows[0]:
                     rr = rows[-1]
                 elif rr > rows[-1]:
                     rr = rows[0]
-                if grid[rr][cc] == "#":
-                    break
-                else:
-                    r, c = rr, cc
-            elif facing == "E" or facing == "W":
-                cols = [c for c, _ in enumerate(grid[r]) if _ != " "]
+            else:
+                if r not in cols_cache:
+                    cols_cache[r] = _get_cols(grid, r)
+                cols = cols_cache[r]
                 if cc < cols[0]:
                     cc = cols[-1]
                 elif cc > cols[-1]:
                     cc = cols[0]
-                if grid[rr][cc] == "#":
-                    break
-                else:
-                    r, c = rr, cc
+            if grid[rr][cc] == "#":
+                break
+            else:
+                r, c = rr, cc
             log((r, c))
     return _ans(r, c, facing)
 
