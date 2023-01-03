@@ -1,11 +1,12 @@
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.graph.AStar;
-import com.github.pareronia.aoc.graph.AStar.Result;
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -17,8 +18,10 @@ public class AoC2022_12 extends AoCBase {
     private AoC2022_12(final List<String> input, final boolean debug) {
         super(debug);
         this.grid = Grid.from(input);
-        log(this.grid);
-        this.end = this.grid.findAllMatching(c -> c == 'E').findFirst().orElseThrow();
+        trace(this.grid);
+        this.end = this.grid.findAllMatching(c -> c == 'E')
+                    .findFirst().orElseThrow();
+        trace("end: " + this.end);
     }
     
     public static final AoC2022_12 create(final List<String> input) {
@@ -40,32 +43,23 @@ public class AoC2022_12 extends AoCBase {
         }
     }
     
-    private Result<Cell> solve(final Cell start) {
-        log("start:" + start);
-        log("end: " + this.end);
+    private int solve(final Set<Character> endPoints) {
+        final Predicate<Cell> isEnd = cell ->
+                endPoints.contains(this.grid.getValueAt(cell));
         final Function<Cell, Stream<Cell>> adjacent = cell ->
                 this.grid.getCapitalNeighbours(cell)
-                        .filter(n -> getValue(n) - getValue(cell) <= 1);
-        final Function<Cell, Integer> cost = cell -> 1;
-        return AStar.execute(start, cell -> cell.equals(this.end), adjacent, cost);
+                        .filter(n -> getValue(cell) - getValue(n) <= 1);
+        return BFS.execute(this.end, isEnd, adjacent);
     }
     
     @Override
     public Integer solvePart1() {
-        final Cell start = this.grid.findAllMatching(c -> c == 'S')
-                .findFirst().orElseThrow();
-        final Result<Cell> result = solve(start);
-        return (int) result.getDistance(end);
+        return solve(Set.of('S'));
     }
 
     @Override
     public Integer solvePart2() {
-        return (int) this.grid.findAllMatching(c -> c == 'S' || c == 'a')
-            .peek(this::log)
-            .map(this::solve)
-            .filter(result -> result.getDistances().containsKey(this.end))
-            .mapToLong(result -> result.getDistance(this.end))
-            .min().orElseThrow();
+        return solve(Set.of('S', 'a'));
     }
 
     public static void main(final String[] args) throws Exception {
