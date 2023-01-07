@@ -1,17 +1,17 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.tuple.Pair;
 
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -44,22 +44,12 @@ public final class AoC2017_24 extends AoCBase {
     }
         
     private Set<Bridge> getBridges() {
-        final Set<Bridge> bridges = new HashSet<>();
-        final Deque<Bridge> q = new ArrayDeque<>();
-        q.add(new Bridge(Set.of(), 0, 0));
-        while (!q.isEmpty()) {
-            final Bridge b = q.poll();
-            this.components.stream()
-                .filter(c -> c.hasPort(b.getLast()))
-                .filter(c -> !b.contains(c))
-                .map(c -> b.extend(c))
-                .filter(nb -> !bridges.contains(nb))
-                .forEach(nb -> {
-                    bridges.add(nb);
-                    q.add(nb);
-                });
-        }
-        return bridges;
+        final Function<Bridge, Stream<Bridge>> adjacent
+            = bridge -> this.components.stream()
+                .filter(c -> c.hasPort(bridge.getLast()))
+                .filter(c -> !bridge.contains(c))
+                .map(c -> bridge.extend(c));
+        return BFS.floodFill(new Bridge(Set.of(), 0, 0), adjacent);
     }
     
     @Override

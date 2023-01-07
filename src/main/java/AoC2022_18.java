@@ -1,17 +1,17 @@
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.collections4.SetUtils.disjunction;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.geometry3d.Cuboid;
 import com.github.pareronia.aoc.geometry3d.Position3D;
 import com.github.pareronia.aoc.geometry3d.Vector3D;
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -66,30 +66,18 @@ public class AoC2022_18 extends AoCBase {
     }
 
     private Set<Position3D> findOutside(final Bounds bounds) {
+        final Position3D start = Position3D.of(
+                bounds.minX - 1, bounds.minY - 1, bounds.minZ - 1);
         final Cuboid searchSpace = Cuboid.of(
             bounds.minX - 1, bounds.maxX + 1,
             bounds.minY - 1, bounds.maxY + 1,
             bounds.minZ - 1, bounds.maxZ + 1);
-        final Set<Position3D> outside = new HashSet<>();
-        final Position3D start = Position3D.of(
-                bounds.minX - 1, bounds.minY - 1, bounds.minZ - 1);
-        final Set<Position3D> seen = new HashSet<>(Set.of(start));
-        final Deque<Position3D> q = new ArrayDeque<>(Set.of(start));
-        while (!q.isEmpty()) {
-            final Position3D pos = q.poll();
-            if (cubes.contains(pos)) {
-                continue;
-            }
-            outside.add(pos);
-            for (final Vector3D d : DIRECTIONS) {
-                final Position3D n = pos.translate(d);
-                if (searchSpace.contains(n) && !seen.contains(n)) {
-                    q.add(n);
-                    seen.add(n);
-                }
-            }
-        }
-        return outside;
+        final Function<Position3D, Stream<Position3D>> adjacent =
+            pos -> DIRECTIONS.stream()
+                    .map(pos::translate)
+                    .filter(searchSpace::contains)
+                    .filter(n -> !this.cubes.contains(n));
+        return BFS.floodFill(start, adjacent);
     }
     
     private Set<Position3D> findInside(final Bounds bounds) {

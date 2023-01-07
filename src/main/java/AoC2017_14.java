@@ -1,17 +1,16 @@
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aoc.knothash.KnotHash;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -43,20 +42,10 @@ public final class AoC2017_14 extends AoCBase {
     }
     
     private Set<Cell> findRegion(final Grid grid, final Cell start) {
-        final Set<Cell> seen = new HashSet<>();
-        final Deque<Cell> q = new ArrayDeque<>();
-        q.add(start);
-        while (!q.isEmpty()) {
-            final Cell cell = q.poll();
-            grid.getCapitalNeighbours(cell)
-                .filter(n -> grid.getValueAt(n) == ON)
-                .filter(n -> !seen.contains(n))
-                .forEach(n -> {
-                    q.add(n);
-                    seen.add(n);
-                });
-        }
-        return seen;
+        final Function<Cell, Stream<Cell>> adjacent =
+                cell -> grid.getCapitalNeighbours(cell)
+                            .filter(n -> grid.getValueAt(n) == ON);
+        return BFS.floodFill(start, adjacent);
     }
     
     @Override

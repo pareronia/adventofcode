@@ -34,6 +34,24 @@ public final class BFS {
         throw new IllegalStateException("Unsolvable");
     }
 
+    public static <T> Set<T> floodFill(
+            final T start,
+            final Function<T, Stream<T>> adjacent
+    ) {
+        final Deque<T> q = new ArrayDeque<>(Set.of(start));
+        final Set<T> seen = new HashSet<>(Set.of(start));
+        while (!q.isEmpty()) {
+            final T node = q.poll();
+            adjacent.apply(node)
+                .filter(n -> !seen.contains(n))
+                .forEach(n -> {
+                    seen.add(n);
+                    q.add(n);
+                });
+        }
+        return seen;
+    }
+
     @RequiredArgsConstructor
     private static final class State<T> {
         private final T node;
