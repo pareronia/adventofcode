@@ -3,7 +3,6 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.SetUtils.unmodifiableSet;
 import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsIterator;
 
@@ -15,9 +14,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import org.apache.commons.collections4.SetUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -137,10 +136,10 @@ public class AoC2015_21 extends AoCBase {
 
 	public static void main(final String[] args) throws Exception {
         final Puzzle puzzle = Aocd.puzzle(2015, 21);
-		
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_21.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_21.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2015_21.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_21.create(inputData)::solvePart2)
         );
 	}
 	
@@ -222,8 +221,8 @@ public class AoC2015_21 extends AoCBase {
 					.collect(toList());
 			final Set<Set<ShopItem>> ringCombinations = new HashSet<>();
 			combinationsIterator(rings.size(), 2).forEachRemaining(indices -> {
-				ringCombinations.add(	unmodifiableSet(rings.get(indices[0]),
-														rings.get(indices[1])));
+				ringCombinations.add(
+				    Set.of(rings.get(indices[0]), rings.get(indices[1])));
 			});
 			final Set<Set<ShopItem>> ringSingletons = rings.stream()
 					.map(Collections::singleton)

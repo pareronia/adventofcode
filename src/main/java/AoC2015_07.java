@@ -12,7 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.pareronia.aocd.Puzzle;
@@ -135,7 +134,7 @@ public class AoC2015_07 extends AoCBase {
 			sb.append("];");
 		}
 		sb.append("}").append(System.lineSeparator());
-		IOUtils.write(sb.toString(), os, Charset.forName("UTF-8"));
+		os.write(sb.toString().getBytes(Charset.forName("UTF-8")));
 	}
 	
 	public static void main(final String[] args) throws Exception {

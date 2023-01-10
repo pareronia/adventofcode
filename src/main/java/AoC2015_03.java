@@ -1,5 +1,3 @@
-import static org.apache.commons.collections4.ListUtils.union;
-
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -9,6 +7,7 @@ import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2015_03 extends AoCBase {
 
@@ -49,15 +48,11 @@ public final class AoC2015_03 extends AoCBase {
         nav.drift(heading, 1);
     }
     
-    private Integer countUniquePositions(final List<Position> positions) {
-        return (int) positions.stream().distinct().count();
-    }
-    
     @Override
     public Integer solvePart1() {
         final NavigationWithHeading nav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
         Utils.asCharacterStream(this.input).forEach(ch -> addNavigationInstruction(nav, ch));
-        return countUniquePositions(nav.getVisitedPositions(true));
+        return (int) nav.getVisitedPositions(true).stream().distinct().count();
     }
 
     @Override
@@ -68,7 +63,10 @@ public final class AoC2015_03 extends AoCBase {
                 .forEach(i -> addNavigationInstruction(santaNav, this.input.charAt(i)));
         Stream.iterate(1, i -> i < this.input.length(), i -> i + 2)
                 .forEach(i -> addNavigationInstruction(robotNav, this.input.charAt(i)));
-        return countUniquePositions(union(santaNav.getVisitedPositions(true), robotNav.getVisitedPositions(true)));
+        return (int) Stream.concat(
+                santaNav.getVisitedPositions(true).stream(),
+                robotNav.getVisitedPositions(true).stream())
+            .distinct().count();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -79,9 +77,12 @@ public final class AoC2015_03 extends AoCBase {
         assert AoC2015_03.createDebug(TEST2).solvePart2() == 3;
         assert AoC2015_03.createDebug(TEST3).solvePart2() == 11;
 
-        final List<String> input = Aocd.getData(2015, 3);
-        lap("Part 1", () -> AoC2015_03.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_03.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2015, 3);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2015_03.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_03.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST1 = splitLines(">");

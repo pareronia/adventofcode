@@ -4,10 +4,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
-import java.util.stream.StreamSupport;
 
-import org.apache.commons.collections4.iterators.PermutationIterator;
-
+import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -39,16 +37,16 @@ public class AoC2015_13 extends AoCBase {
     }
     
     private int solve() {
-        final Iterable<List<String>> permutations = () -> new PermutationIterator<>(AoC2015_13.this.diners);
-        return StreamSupport.stream(permutations.spliterator(), false)
-                .mapToInt(ds -> IntStream.range(0, ds.size())
-                            .map(i -> {
-                                final String d1 = ds.get(i);
-                                final String d2 = ds.get((i + 1) % ds.size());
-                                return this.seatings.get(d1 + "-" + d2) + this.seatings.get(d2 + "-" + d1);
-                            })
-                            .sum())
-                .max().orElseThrow();
+        return IterTools.permutations(this.diners)
+            .mapToInt(ds ->
+                IntStream.range(0, ds.size())
+                    .map(i -> {
+                        final String d1 = ds.get(i);
+                        final String d2 = ds.get((i + 1) % ds.size());
+                        return this.seatings.get(d1 + "-" + d2) + this.seatings.get(d2 + "-" + d1);
+                    })
+                    .sum())
+            .max().orElseThrow();
     }
 
     @Override
@@ -70,9 +68,10 @@ public class AoC2015_13 extends AoCBase {
         assert AoC2015_13.createDebug(TEST).solvePart1() == 330;
 
         final Puzzle puzzle = Aocd.puzzle(2015, 13);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_13.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_13.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2015_13.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_13.create(inputData)::solvePart2)
         );
     }
     

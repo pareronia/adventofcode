@@ -3,7 +3,6 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.ListUtils.intersection;
 import static org.eclipse.collections.impl.tuple.Tuples.pair;
 
 import java.util.ArrayList;
@@ -132,9 +131,10 @@ public final class AoC2016_11 extends AoCBase {
         assert AoC2016_11.createDebug(TEST).solvePart1() == 11;
 
         final Puzzle puzzle = Aocd.puzzle(2016, 11);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2016_11.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2016_11.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2016_11.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_11.create(inputData)::solvePart2)
         );
     }
     
@@ -326,7 +326,9 @@ public final class AoC2016_11 extends AoCBase {
                 final List<String> chipsOnFloor,
                 final List<String> gennysOnFloor) {
             final List<State> states = new ArrayList<>();
-            for (final String match : intersection(chipsOnFloor, gennysOnFloor)) {
+            final List<String> intersection = new ArrayList<>(chipsOnFloor);
+            intersection.retainAll(gennysOnFloor);
+            for (final String match : intersection) {
                 states.add(withChipsTo(List.of(match), floor + 1)
                         .withGennysTo(List.of(match), floor + 1)
                         .withElevator(floor + 1)

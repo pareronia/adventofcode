@@ -8,8 +8,7 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.iterators.PermutationIterator;
-
+import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -61,7 +60,7 @@ public class AoC2015_15 extends AoCBase {
         if (amounts.stream().mapToInt(Integer::intValue).sum() != 100) {
             return;
         }
-        new PermutationIterator<>(amounts).forEachRemaining(builder::add);
+        IterTools.permutations(amounts, builder::add);
     }
     
     private Stream<List<Integer>> generateMeasures() {
@@ -126,9 +125,10 @@ public class AoC2015_15 extends AoCBase {
         assert AoC2015_15.createDebug(TEST).solvePart2() == 57_600_000;
 
         final Puzzle puzzle = Aocd.puzzle(2015, 15);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_15.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_15.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2015_15.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_15.create(inputData)::solvePart2)
         );
     }
     

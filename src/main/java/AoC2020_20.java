@@ -1,6 +1,6 @@
+import static com.github.pareronia.aoc.SetUtils.union;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.CollectionUtils.union;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,27 +24,28 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_20 extends AoCBase {
 	
 	private final TileSet tileSet;
 	private final Logger logger;
 	
-	private AoC2020_20(List<String> input, boolean debug) {
+	private AoC2020_20(final List<String> input, final boolean debug) {
 		super(debug);
 		this.logger = obj -> log(() -> obj);
 		this.tileSet = parse(input);
 	}
 
-	public static final AoC2020_20 create(List<String> input) {
+	public static final AoC2020_20 create(final List<String> input) {
 		return new AoC2020_20(input, false);
 	}
 
-	public static final AoC2020_20 createDebug(List<String> input) {
+	public static final AoC2020_20 createDebug(final List<String> input) {
 		return new AoC2020_20(input, true);
 	}
 	
-	private TileSet parse(List<String> inputs) {
+	private TileSet parse(final List<String> inputs) {
 		final Set<Tile> tiles = toBlocks(inputs).stream()
 				.map(block -> {
 					Integer id = null;
@@ -100,17 +101,20 @@ public class AoC2020_20 extends AoCBase {
 		return octothorps - 15 * nessies.size();
 	}
 
-	private void print(Grid image) {
+	private void print(final Grid image) {
 		image.getRowsAsStrings().forEach(this::log);
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_20.createDebug(splitLines(TEST)).solvePart1() == 20899048083289L;
 		assert AoC2020_20.createDebug(splitLines(TEST)).solvePart2() == 273L;
 		
-		final List<String> input = Aocd.getData(2020, 20);
-		lap("Part 1", () -> AoC2020_20.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_20.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2020, 20);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2020_20.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2020_20.create(inputData)::solvePart2)
+        );
 	}
 
 	private static final String TEST =
@@ -226,12 +230,12 @@ public class AoC2020_20 extends AoCBase {
 		private final Integer id;
 		private final Grid grid;
 		
-		public Tile(Integer id, List<String> grid) {
+		public Tile(final Integer id, final List<String> grid) {
 			this.id = id;
 			this.grid = Grid.from(grid);
 		}
 		
-		public Tile(Integer id, Grid grid) {
+		public Tile(final Integer id, final Grid grid) {
 			this.id = id;
 			this.grid = grid;
 		}
@@ -260,7 +264,7 @@ public class AoC2020_20 extends AoCBase {
 			return this.grid.getRightEdge();
 		}
 		
-		private char[] getRow(int row)  {
+		private char[] getRow(final int row)  {
 			return this.grid.getRow(row);
 		}
 		
@@ -281,7 +285,7 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		public Iterator<Tile> getAllPermutations() {
-			return new Iterator<Tile>() {
+			return new Iterator<>() {
 				final Iterator<Grid> inner = Tile.this.getGrid().getPermutations();
 				
 				@Override
@@ -312,7 +316,7 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (this == obj) {
 				return true;
 			}
@@ -329,7 +333,7 @@ public class AoC2020_20 extends AoCBase {
 		private final Tile[][] placedTiles;
 		private final Logger logger;
 	
-		public TileSet(Set<Tile> tiles, Logger logger) {
+		public TileSet(final Set<Tile> tiles, final Logger logger) {
 			this.tiles = tiles;
 			this.logger = logger;
 			this.placedTiles = new Tile[Math.sqrt(tiles.size())][Math.sqrt(tiles.size())];
@@ -339,11 +343,11 @@ public class AoC2020_20 extends AoCBase {
 			return this.tiles;
 		}
 		
-		private void log(Object object) {
+		private void log(final Object object) {
 			this.logger.log(object);
 		}
 		
-		private void placeTile(Tile tile, int row, int col) {
+		private void placeTile(final Tile tile, final int row, final int col) {
 			placedTiles[row][col] = tile;
 			tiles.remove(tile);
 		}
@@ -383,7 +387,7 @@ public class AoC2020_20 extends AoCBase {
 			}
 		}
 		
-		private Set<char[]> getEdgesForMatching(Tile tile) {
+		private Set<char[]> getEdgesForMatching(final Tile tile) {
 			if (ArrayUtils.contains(placedTiles, tile)) {
 				return tile.getAllEdges();
 			} else {
@@ -391,7 +395,7 @@ public class AoC2020_20 extends AoCBase {
 			}
 		}
 		
-		private boolean haveCommonEdge(Tile tile1, Tile tile2) {
+		private boolean haveCommonEdge(final Tile tile1, final Tile tile2) {
 			return getEdgesForMatching(tile1).stream()
 				.flatMap(edge1 -> getEdgesForMatching(tile2).stream()
 									.map(edge2 -> Pair.of(edge1, edge2)))
@@ -484,11 +488,11 @@ public class AoC2020_20 extends AoCBase {
 	
 	private static final class Math {
 		
-		public static long prod(Collection<Integer> numbers) {
+		public static long prod(final Collection<Integer> numbers) {
 			return numbers.stream().map(Integer::longValue).reduce(1L, (a, b) -> a * b);
 		}
 		
-		public static int sqrt(int number) {
+		public static int sqrt(final int number) {
 			return Double.valueOf(java.lang.Math.sqrt(number)).intValue();
 		}
 	}
@@ -497,7 +501,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		private static final char NESSIE_CHAR = '\u2592';
 
-		public static List<Pair<Integer,Integer>> findNessies(Grid grid) {
+		public static List<Pair<Integer,Integer>> findNessies(final Grid grid) {
 			final List<Pair<Integer, Integer>> nessies = new ArrayList<>();
 			for (int i = 1; i < grid.getHeight(); i++) {
 				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.getRowAsString(i));
@@ -515,7 +519,7 @@ public class AoC2020_20 extends AoCBase {
 			return nessies;
 		}
 		
-		public static Grid markNessies(List<Pair<Integer, Integer>> nessies, Grid gridIn) {
+		public static Grid markNessies(final List<Pair<Integer, Integer>> nessies, final Grid gridIn) {
 			final List<String> grid = gridIn.getRowsAsStringList();
 			for (final Pair<Integer, Integer> nessie : nessies) {
 				final int idx = nessie.getRight();
@@ -558,30 +562,30 @@ public class AoC2020_20 extends AoCBase {
 	
 	static final class TileMatcher {
 		
-		private static Predicate<AoC2020_20.Tile> rightSide(Tile tile) {
+		private static Predicate<AoC2020_20.Tile> rightSide(final Tile tile) {
 			return t -> Arrays.equals(tile.getRightEdge(), t.getLeftEdge());
 		}
 		
-		private static Predicate<AoC2020_20.Tile> bottomSide(Tile tile) {
+		private static Predicate<AoC2020_20.Tile> bottomSide(final Tile tile) {
 			return t -> Arrays.equals(tile.getBottomEdge(), t.getTopEdge());
 		}
 		
-		public static Optional<Tile> findRightSideMatch(Tile tile, Set<Tile> tiles) {
+		public static Optional<Tile> findRightSideMatch(final Tile tile, final Set<Tile> tiles) {
 			return findMatch(tile, tiles, rightSide(tile));
 		}
 		
-		public static Optional<Tile> findBottomSideMatch(Tile tile, Set<Tile> tiles) {
+		public static Optional<Tile> findBottomSideMatch(final Tile tile, final Set<Tile> tiles) {
 			return findMatch(tile, tiles, bottomSide(tile));
 		}
 		
-		private static Optional<Tile> findMatch(Tile tile, Set<Tile> tiles, Predicate<AoC2020_20.Tile> matcher) {
+		private static Optional<Tile> findMatch(final Tile tile, final Set<Tile> tiles, final Predicate<AoC2020_20.Tile> matcher) {
 			return tiles.stream()
 				.flatMap(t -> asStream(t.getAllPermutations()))
 				.filter(matcher)
 				.findAny();
 		}
 	    
-		private static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
+		private static <T> Stream<T> asStream(final Iterator<T> sourceIterator) {
 	        final Iterable<T> iterable = () -> sourceIterator;
 	        return StreamSupport.stream(iterable.spliterator(), false);
 	    }

@@ -30,7 +30,6 @@ import java.time.Month;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import lombok.Getter;
@@ -128,7 +127,7 @@ public class Puzzle {
 	
 	public List<String> getInputData() {
 		List<String> inputData = systemUtils.readAllLinesIfExists(inputDataFile);
-	    if (CollectionUtils.isEmpty(inputData)) {
+	    if (inputData.isEmpty()) {
 	        if (!isReleased()) {
 	            System.err.println("!! PUZZLE NOT YET RELEASED !!");
 	            return inputData;
@@ -136,7 +135,7 @@ public class Puzzle {
 	        systemUtils.getInput(year, day, inputDataFile);
 	        inputData = systemUtils.readAllLinesIfExists(inputDataFile);
 	    }
-	    if (CollectionUtils.isEmpty(inputData)) {
+	    if (inputData.isEmpty()) {
 	        System.err.println("!! INPUT DATA MISSING !!");
 	    }
 	    return inputData;

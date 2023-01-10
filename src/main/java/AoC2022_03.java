@@ -3,9 +3,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.SetUtils;
-
 import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;

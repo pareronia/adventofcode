@@ -1,5 +1,5 @@
+import static com.github.pareronia.aoc.SetUtils.disjunction;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.SetUtils.disjunction;
 
 import java.util.Arrays;
 import java.util.IntSummaryStatistics;

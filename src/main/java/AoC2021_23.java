@@ -10,8 +10,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.IntStream;
-
-import org.apache.commons.collections4.ListUtils;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
@@ -155,8 +154,8 @@ public class AoC2021_23 extends AoCBase {
 
         final Puzzle puzzle = Aocd.puzzle(2021, 23);
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_23.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_23.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_23.create(puzzle.getInputData())::solvePart1),
+            () -> lap("Part 2", AoC2021_23.create(puzzle.getInputData())::solvePart2)
         );
     }
 
@@ -370,7 +369,10 @@ public class AoC2021_23 extends AoCBase {
         }
         
         public List<Move> moves() {
-            return ListUtils.union(movesFromHallway(), movesToHallway());
+            return Stream.concat(
+                    movesFromHallway().stream(),
+                    movesToHallway().stream())
+                .collect(toList());
         }
 
         private List<MoveToHallway> movesToHallway() {

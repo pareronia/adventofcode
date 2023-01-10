@@ -17,15 +17,16 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.collections4.iterators.PermutationIterator;
 import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.impl.tuple.Tuples;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -151,7 +152,7 @@ public final class AoC2016_24 extends AoCBase {
         final List<Character> poiKeysWithoutStart = poiKeys.stream()
                 .filter(c -> c != START)
                 .collect(toList());
-        new PermutationIterator<>(poiKeysWithoutStart).forEachRemaining(l -> {
+        IterTools.permutations(poiKeysWithoutStart).forEach(l -> {
             l.add(0, START);
             int total = 0;
             for (int i = 0; i < l.size() - 1; i++) {
@@ -176,10 +177,13 @@ public final class AoC2016_24 extends AoCBase {
         assert AoC2016_24.createDebug(TEST).solvePart1() == 14;
         assert AoC2016_24.createDebug(TEST).solveAlt() == 14;
 
-        final List<String> input = Aocd.getData(2016, 24);
-        lap("Part 1", () -> AoC2016_24.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_24.create(input).solvePart2());
-        lap("Part 1 alt", () -> AoC2016_24.create(input).solveAlt());
+        final Puzzle puzzle = Aocd.puzzle(2016, 24);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_24.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_24.create(inputData)::solvePart2)
+        );
+        lap("Part 1 alt", AoC2016_24.create(inputData)::solveAlt);
     }
     
     private static final List<String> TEST = splitLines(

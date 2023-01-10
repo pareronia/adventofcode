@@ -1,14 +1,16 @@
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.CollectionUtils.intersection;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import org.eclipse.collections.api.tuple.Pair;
 import org.eclipse.collections.impl.tuple.Tuples;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Value;
 
@@ -19,22 +21,22 @@ public class AoC2019_03 extends AoCBase {
     private final Wire wire1;
     private final Wire wire2;
 
-    private AoC2019_03(List<String> input, boolean debug) {
+    private AoC2019_03(final List<String> input, final boolean debug) {
         super(debug);
         final Pair<Wire, Wire> wires = parse(input);
         this.wire1 = wires.getOne();
         this.wire2 = wires.getTwo();
     }
 
-    public static AoC2019_03 create(List<String> input) {
+    public static AoC2019_03 create(final List<String> input) {
         return new AoC2019_03(input, false);
     }
 
-    public static AoC2019_03 createDebug(List<String> input) {
+    public static AoC2019_03 createDebug(final List<String> input) {
         return new AoC2019_03(input, true);
     }
 
-    private List<Pair<String, Integer>> toInstructions(String input) {
+    private List<Pair<String, Integer>> toInstructions(final String input) {
         return Stream.of(input.split(","))
             .map(ins -> {
                 final String direction = ins.substring(0, 1);
@@ -44,7 +46,7 @@ public class AoC2019_03 extends AoCBase {
             .collect(toList());
     }
 
-    private Wire toWire(List<Pair<String, Integer>> instructions) {
+    private Wire toWire(final List<Pair<String, Integer>> instructions) {
         final List<Coordinate> wireCoordinates = new ArrayList<>();
         Coordinate start = ORIGIN;
         for (final Pair<String, Integer> instruction : instructions) {
@@ -76,28 +78,32 @@ public class AoC2019_03 extends AoCBase {
         return new Wire(wireCoordinates);
     }
     
-    private Pair<Wire,Wire> parse(List<String> inputs) {
+    private Pair<Wire,Wire> parse(final List<String> inputs) {
         assert inputs.size() == 2;
         final Wire wire1 = toWire(toInstructions(inputs.get(0)));
         final Wire wire2 = toWire(toInstructions(inputs.get(1)));
         return Tuples.pair(wire1, wire2);
     }
-
+    
     @Override
     public Integer solvePart1() {
-        return intersection(wire1.getCoordinates(), wire2.getCoordinates()).stream()
-                .map(c -> c.manhattanDistance(ORIGIN))
-                .reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
+        final Set<Coordinate> coords1 = new HashSet<>(wire1.getCoordinates());
+        return wire2.getCoordinates().stream()
+                .filter(coords1::contains)
+                .mapToInt(c -> c.manhattanDistance(ORIGIN))
+                .min().getAsInt();
     }
 
     @Override
     public Integer solvePart2() {
-        return intersection(wire1.getCoordinates(), wire2.getCoordinates()).stream()
-                .map(c -> wire1.steps(c) + wire2.steps(c))
-                .reduce(Integer.MAX_VALUE, (a, b) -> a < b ? a : b);
+        final Set<Coordinate> coords1 = new HashSet<>(wire1.getCoordinates());
+        return wire2.getCoordinates().stream()
+                .filter(coords1::contains)
+                .mapToInt(c -> wire1.steps(c) + wire2.steps(c))
+                .min().getAsInt();
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         assert AoC2019_03.createDebug(TEST1).solvePart1() == 6;
         assert AoC2019_03.createDebug(TEST2).solvePart1() == 159;
         assert AoC2019_03.createDebug(TEST3).solvePart1() == 135;
@@ -105,9 +111,12 @@ public class AoC2019_03 extends AoCBase {
         assert AoC2019_03.createDebug(TEST2).solvePart2() == 610;
         assert AoC2019_03.createDebug(TEST3).solvePart2() == 410;
 
-        final List<String> input = Aocd.getData(2019, 3);
-        lap("Part 1", () -> AoC2019_03.create(input).solvePart1());
-        lap("Part 2", () -> AoC2019_03.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2019, 3);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2019_03.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2019_03.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST1 = splitLines(
@@ -128,11 +137,11 @@ public class AoC2019_03 extends AoCBase {
         private final Integer x;
         private final Integer y;
         
-        public static Coordinate of(Integer x, Integer y) {
+        public static Coordinate of(final Integer x, final Integer y) {
             return new Coordinate(x, y);
         }
         
-        public Integer manhattanDistance(Coordinate from) {
+        public Integer manhattanDistance(final Coordinate from) {
             return Math.abs(this.x - from.x) + Math.abs(this.y - from.y);
         }
     }
@@ -141,7 +150,7 @@ public class AoC2019_03 extends AoCBase {
     private static final class Wire {
        private final List<Coordinate> coordinates;
        
-       public Integer steps(Coordinate coord) {
+       public Integer steps(final Coordinate coord) {
            return this.getCoordinates().indexOf(coord) + 1;
        }
     }
