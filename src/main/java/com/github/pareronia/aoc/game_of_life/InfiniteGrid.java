@@ -15,7 +15,7 @@ import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.game_of_life.GameOfLife.Type;
 
-public final class InfiniteGrid implements Type {
+public final class InfiniteGrid implements Type<List<Integer>> {
     private final Map<List<Integer>, Set<List<Integer>>> neighboursCache
             = new HashMap<>();
     

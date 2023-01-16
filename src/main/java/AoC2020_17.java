@@ -43,20 +43,21 @@ public class AoC2020_17 extends AoCBase {
 	    return List.of(0, 0, row, col);
 	}
 	
-	private GameOfLife parse(
+	@SuppressWarnings("unchecked")
+    private GameOfLife<List<Integer>> parse(
 	        final BiFunction<Integer, Integer, List<Integer>> cellFactory
 	) {
 	    final Grid grid = new Grid(this.input);
 	    final Set<List<Integer>> on = grid.getAllEqualTo(ON)
 	        .map(cell -> cellFactory.apply(cell.getRow(), cell.getCol()))
 	        .collect(toSet());
-	    return new GameOfLife(new InfiniteGrid(), GameOfLife.classicRules, on);
+	    return new GameOfLife<>(new InfiniteGrid(), GameOfLife.classicRules, on);
 	}
 	
 	private int solve(
 	        final BiFunction<Integer, Integer, List<Integer>> cellFactory
 	) {
-        GameOfLife gol = parse(cellFactory);
+        GameOfLife<List<Integer>> gol = parse(cellFactory);
         for (int i = 0; i < GENERATIONS; i++) {
             gol = gol.nextGeneration();
         }
