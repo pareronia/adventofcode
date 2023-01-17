@@ -1,5 +1,4 @@
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -68,41 +67,18 @@ public class AoC2020_24 extends AoCBase {
 	    return buildFloor().size();
 	}
 	
-	public Integer solvePart2_alt() {
+	@Override
+	public Integer solvePart2() {
 	    GameOfLife<Tile> gol = new GameOfLife<>(new HexGrid(), new Rules(), buildFloor());
         for (int i = 0; i < 100; i++) {
             gol = gol.nextGeneration();
         }
         return gol.getAlive().size();
 	}
-
-	@Override
-	public Integer solvePart2() {
-	    Set<Tile> floor = buildFloor();
-	    for (int i = 0; i < 100; i++) {
-	        final Map<Tile, Integer> neighbourCounts = new HashMap<>();
-	        for (final Tile tile : floor) {
-	            for (final Direction d : DIRS.values()) {
-	                final Tile n = Tile.at(tile.q + d.q, tile.r + d.r);
-	                neighbourCounts.merge(n, 1, Integer::sum);
-	            }
-	        }
-	        final Set<Tile> newFloor = new HashSet<>();
-	        for (final Tile tile : neighbourCounts.keySet()) {
-                final int cnt = neighbourCounts.get(tile);
-                if (cnt == 2 || (cnt == 1 && floor.contains(tile))) {
-                    newFloor.add(tile);
-                }
-            }
-	        floor = newFloor;
-	    }
-	    return floor.size();
-	}
 	
 	public static void main(final String[] args) throws Exception {
 		assert AoC2020_24.createDebug(TEST).solvePart1() == 10;
 		assert AoC2020_24.createDebug(TEST).solvePart2() == 2208;
-		assert AoC2020_24.createDebug(TEST).solvePart2_alt() == 2208;
 		
         final Puzzle puzzle = Puzzle.create(2020, 24);
         final List<String> input = puzzle.getInputData();
@@ -153,17 +129,15 @@ public class AoC2020_24 extends AoCBase {
 	private static final class HexGrid implements GameOfLife.Type<Tile> {
 
         @Override
-        public Set<Tile> cells(final Set<Tile> alive) {
-            return alive.stream()
-                .flatMap(cell -> DIRS.values().stream().map(d -> Tile.at(cell.q + d.q, cell.r + d.r)))
-                .collect(toSet());
-        }
-
-        @Override
-        public long getNeighbourCount(final Tile cell, final Set<Tile> alive) {
-            return DIRS.values().stream()
-                    .filter(d -> alive.contains(Tile.at(cell.q + d.q, cell.r + d.r)))
-                    .count();
+        public Map<Tile, Long> getNeighbourCounts(final Set<Tile> alive) {
+	        final Map<Tile, Long> neighbourCounts = new HashMap<>();
+	        for (final Tile tile : alive) {
+	            for (final Direction d : DIRS.values()) {
+	                final Tile n = Tile.at(tile.q + d.q, tile.r + d.r);
+	                neighbourCounts.merge(n, 1L, Long::sum);
+	            }
+	        }
+            return neighbourCounts;
         }
 	}
 	

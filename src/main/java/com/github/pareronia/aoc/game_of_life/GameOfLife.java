@@ -1,8 +1,10 @@
 package com.github.pareronia.aoc.game_of_life;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import lombok.Getter;
@@ -23,21 +25,15 @@ public class GameOfLife<T> {
     }
 
     public GameOfLife<T> nextGeneration() {
-        final Set<T> newAlive =
-            this.type.cells(this.alive).stream()
-                .filter(this::isAlive)
-                .collect(toUnmodifiableSet());
+        final Set<T> newAlive = this.type.getNeighbourCounts(this.alive).entrySet().stream()
+                .filter(e -> this.rules.alive(e.getKey(), e.getValue(), this.alive))
+                .map(Entry::getKey)
+                .collect(toSet());
         return this.withAlive(newAlive);
     }
-    
-    private boolean isAlive(final T cell) {
-        final long cnt = this.type.getNeighbourCount(cell, this.alive);
-        return this.rules.alive(cell, cnt, this.alive);
-    }
-    
+
     public interface Type<T> {
-        Set<T> cells(Set<T> alive);
-        long getNeighbourCount(T cell, Set<T> alive);
+        Map<T, Long> getNeighbourCounts(Set<T> alive);
     }
     
     public interface Rules<T> {
