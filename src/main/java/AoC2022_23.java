@@ -12,11 +12,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import org.eclipse.collections.api.tuple.Twin;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.geometry.Vector;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -26,17 +24,17 @@ public class AoC2022_23 extends AoCBase {
     
     private static final char ELF = '#';
     private static final char GROUND = '.';
-    private static final Twin<Integer> N = Tuples.twin(-1, 0);
-    private static final Twin<Integer> NW = Tuples.twin(-1, -1);
-    private static final Twin<Integer> NE = Tuples.twin(-1, 1);
-    private static final Twin<Integer> S = Tuples.twin(1, 0);
-    private static final Twin<Integer> SW = Tuples.twin(1, -1);
-    private static final Twin<Integer> SE = Tuples.twin(1, 1);
-    private static final Twin<Integer> W = Tuples.twin(0, -1);
-    private static final Twin<Integer> E = Tuples.twin(0, 1);
-    private static final Set<Twin<Integer>> ALL_DIRS = Set.of(
+    private static final Vector N = Vector.of(-1, 0);
+    private static final Vector NW = Vector.of(-1, -1);
+    private static final Vector NE = Vector.of(-1, 1);
+    private static final Vector S = Vector.of(1, 0);
+    private static final Vector SW = Vector.of(1, -1);
+    private static final Vector SE = Vector.of(1, 1);
+    private static final Vector W = Vector.of(0, -1);
+    private static final Vector E = Vector.of(0, 1);
+    private static final Set<Vector> ALL_DIRS = Set.of(
             N, NE, E, SE, S, SW, W, NW);
-    private static final Map<Twin<Integer>, Set<Twin<Integer>>> DIRS = Map.of(
+    private static final Map<Vector, Set<Vector>> DIRS = Map.of(
             N, Set.of(N, NW, NE),
             S, Set.of(S, SW, SE),
             W, Set.of(W, NW, SW),
@@ -82,15 +80,15 @@ public class AoC2022_23 extends AoCBase {
         });
     }
     
-    private Cell add(final Cell cell, final Twin<Integer> dir) {
+    private Cell add(final Cell cell, final Vector dir) {
         return Cell.at(
-                cell.getRow() + dir.getOne(), cell.getCol() + dir.getTwo());
+                cell.getRow() + dir.getX(), cell.getCol() + dir.getY());
     }
     
     private boolean allNotOccupied(
             final Set<Cell> elves,
             final Cell elf,
-            final Set<Twin<Integer>> directions
+            final Set<Vector> directions
     ) {
         return directions.stream()
                 .map(dir -> add(elf, dir))
@@ -98,14 +96,14 @@ public class AoC2022_23 extends AoCBase {
     }
     
     private Map<Cell, List<Cell>> calculateMoves(
-            final Set<Cell> elves, final Deque<Twin<Integer>> order
+            final Set<Cell> elves, final Deque<Vector> order
     ) {
         final Map<Cell, List<Cell>> moves = new HashMap<>();
         for (final Cell elf : elves) {
             if (allNotOccupied(elves, elf, ALL_DIRS)) {
                 continue;
             }
-            for (final Twin<Integer> d : order) {
+            for (final Vector d : order) {
                 if (allNotOccupied(elves, elf, DIRS.get(d))) {
                     final Cell n = add(elf, d);
                     moves.computeIfAbsent(n, k -> new ArrayList<>()).add(elf);
@@ -130,7 +128,7 @@ public class AoC2022_23 extends AoCBase {
     @Override
     public Integer solvePart1() {
         final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Twin<Integer>> order = new ArrayDeque<>(List.of(N, S, W, E));
+        final Deque<Vector> order = new ArrayDeque<>(List.of(N, S, W, E));
         IntStream.range(0, 10).forEach(i -> {
             log("Round " + (i + 1));
             final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);
@@ -147,7 +145,7 @@ public class AoC2022_23 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Twin<Integer>> order = new ArrayDeque<>(List.of(N, S, W, E));
+        final Deque<Vector> order = new ArrayDeque<>(List.of(N, S, W, E));
         int cnt = 1;
         while (true) {
             final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);

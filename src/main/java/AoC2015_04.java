@@ -1,8 +1,7 @@
 import java.util.List;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
 import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -42,7 +41,7 @@ public final class AoC2015_04 extends AoCBase {
     
     private int findMd5StartingWithZeroes(final String seed, final int zeroes) {
 		for (int i = 1; ; i++) {
-			final byte[] digest = DigestUtils.md5(seed + String.valueOf(i));
+			final byte[] digest = MD5.md5(seed + String.valueOf(i));
 			if (checkZeroes(digest, zeroes)) {
 			    return i;
 			}

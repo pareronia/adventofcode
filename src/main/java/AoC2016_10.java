@@ -8,10 +8,8 @@ import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Data;
 import lombok.Value;
@@ -22,60 +20,53 @@ public class AoC2016_10 extends AoCBase {
 	private final List<Input> inputs;
 	private final Map<Integer, Integer> outputs;
 	
-	private AoC2016_10(List<String> inputs, boolean debug) {
+	private AoC2016_10(final List<String> inputs, final boolean debug) {
 		super(debug);
-		final Pair<Set<Bot>, List<Input>> pair = parse(inputs);
-		this.bots = pair.getOne();
-		this.inputs = pair.getTwo();
+        this.bots = new HashSet<>();
+        this.inputs = new ArrayList<>();
 		this.outputs = new HashMap<>();
-	}
-	
-	private Pair<Set<Bot>, List<Input>> parse(List<String> strings) {
-	    final Set<Bot> bots = new HashSet<>();
-	    final List<Input> inputs = new ArrayList<>();
-	    for (final String string : strings) {
-	        if (string.startsWith("value ")) {
-	            final String[] splits
-	                = string.substring("value ".length()).split(" goes to bot ");
-	            final Integer value = Integer.valueOf(splits[0]);
+        for (final String string : inputs) {
+            if (string.startsWith("value ")) {
+                final String[] splits
+                    = string.substring("value ".length()).split(" goes to bot ");
+                final Integer value = Integer.valueOf(splits[0]);
                 final Integer toBot = Integer.valueOf(splits[1]);
-                inputs.add(new Input(value, toBot));
-	        } else if (string.startsWith("bot ")) {
-	            final String[] splits
-	                = string.substring("bot ".length()).split(" ");
-	            final Integer bot = Integer.valueOf(splits[0]);
-	            final String typeLo = splits[4];
-	            final Integer outLo = (typeLo.equals("bot") ? 0 : 1000)
-	                                        + Integer.valueOf(splits[5]);
-	            final String typeHi = splits[9];
-	            final Integer outHi = (typeHi.equals("bot") ? 0 : 1000)
-	                                        + Integer.valueOf(splits[10]);
-	            bots.add(new Bot(bot, outLo, outHi));
-	        } else {
-	            throw new IllegalArgumentException("Invalid input");
-	        }
+                this.inputs.add(new AoC2016_10.Input(value, toBot));
+            } else if (string.startsWith("bot ")) {
+                final String[] splits
+                    = string.substring("bot ".length()).split(" ");
+                final Integer bot = Integer.valueOf(splits[0]);
+                final String typeLo = splits[4];
+                final Integer outLo = (typeLo.equals("bot") ? 0 : 1000)
+                                            + Integer.valueOf(splits[5]);
+                final String typeHi = splits[9];
+                final Integer outHi = (typeHi.equals("bot") ? 0 : 1000)
+                                            + Integer.valueOf(splits[10]);
+                this.bots.add(new AoC2016_10.Bot(bot, outLo, outHi));
+            } else {
+                throw new IllegalArgumentException("Invalid input");
+            }
         }
-	    log(inputs);
-	    log(bots);
-	    return Tuples.pair(bots, inputs);
+        log(this.inputs);
+        log(this.bots);
 	}
 	
-	public static final AoC2016_10 create(List<String> input) {
+	public static final AoC2016_10 create(final List<String> input) {
 		return new AoC2016_10(input, false);
 	}
 
-	public static final AoC2016_10 createDebug(List<String> input) {
+	public static final AoC2016_10 createDebug(final List<String> input) {
 		return new AoC2016_10(input, true);
 	}
 	
-	private Bot findBot(Integer number) {
+	private Bot findBot(final Integer number) {
 	    return bots.stream()
 	            .filter(b -> b.getNumber().equals(number))
 	            .findFirst()
 	            .orElseThrow();
 	}
 	
-	private void output(Integer number, Integer value) {
+	private void output(final Integer number, final Integer value) {
 	    outputs.put(number, value);
 	}
 	
@@ -86,7 +77,7 @@ public class AoC2016_10 extends AoCBase {
         }
     }
 
-	private Integer solvePart1(Integer first, Integer second) {
+	private Integer solvePart1(final Integer first, final Integer second) {
 	    run();
 	    return bots.stream()
 	            .filter(b -> b.getCompares().contains(Set.of(first, second)))
@@ -109,13 +100,16 @@ public class AoC2016_10 extends AoCBase {
 		        .reduce(1, (a, b) -> a * b);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2016_10.createDebug(TEST).solvePart1(2, 5) == 2;
 		assert AoC2016_10.createDebug(TEST).solvePart2() == 30;
 		
-		final List<String> input = Aocd.getData(2016, 10);
-		lap("Part 1", () -> AoC2016_10.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_10.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 10);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_10.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_10.create(inputData)::solvePart2)
+        );
 	}
 
 	private static final List<String> TEST = splitLines(
@@ -136,9 +130,9 @@ public class AoC2016_10 extends AoCBase {
 	    private Set<Set<Integer>> compares = new HashSet<>();
 	    
 	    public void receive(
-	            Integer value,
-	            Function<Integer, Bot> botLookup,
-	            BiConsumer<Integer, Integer> output
+	            final Integer value,
+	            final Function<Integer, Bot> botLookup,
+	            final BiConsumer<Integer, Integer> output
 	    ) {
 	       this.values.add(value);
 	       if (this.values.size() == 2) {

@@ -8,13 +8,11 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import org.eclipse.collections.api.tuple.Triplet;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 public class AoC2022_05 extends AoCBase {
@@ -24,7 +22,7 @@ public class AoC2022_05 extends AoCBase {
     private AoC2022_05(final List<String> input, final boolean debug) {
         super(debug);
         final List<Deque<Character>> stacks = new ArrayList<>();
-        final List<Triplet<Integer>> moves = new ArrayList<>();
+        final List<Move> moves = new ArrayList<>();
         final List<List<String>> blocks = toBlocks(input);
         final String nums = last(blocks.get(0)).replaceAll("\\s", "");
         final int size = Integer.parseInt(String.valueOf(last(nums)));
@@ -38,7 +36,7 @@ public class AoC2022_05 extends AoCBase {
         });
         blocks.get(1).stream()
             .map(Utils::naturalNumbers)
-            .forEach(n -> moves.add(Tuples.triplet(n[0], n[1], n[2])));
+            .forEach(n -> moves.add(new Move(n[0], n[1], n[2])));
         this.procedure = new RearrangementProcedure(stacks, moves);
     }
     
@@ -51,7 +49,7 @@ public class AoC2022_05 extends AoCBase {
     }
     
     private String simulateProcedureFor(final CrateMover crateMover) {
-        for (final Triplet<Integer> move : this.procedure.moves) {
+        for (final Move move : this.procedure.moves) {
             final int from = move.getTwo() - 1;
             final int to = move.getThree() - 1;
             final Deque<Character> tmp = new ArrayDeque<>();
@@ -106,9 +104,17 @@ public class AoC2022_05 extends AoCBase {
     );
     
     @RequiredArgsConstructor
+    @Getter
+    private static final class Move {
+        private final int one;
+        private final int two;
+        private final int three;
+    }
+    
+    @RequiredArgsConstructor
     private static final class RearrangementProcedure {
         private final List<Deque<Character>> stacks;
-        private final List<Triplet<Integer>> moves;
+        private final List<Move> moves;
     }
     
     private enum CrateMover { CM_9000, CM_9001 }

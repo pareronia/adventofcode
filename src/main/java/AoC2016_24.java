@@ -17,9 +17,6 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.IterTools;
@@ -30,6 +27,7 @@ import com.github.pareronia.aocd.Puzzle;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 public final class AoC2016_24 extends AoCBase {
@@ -136,16 +134,24 @@ public final class AoC2016_24 extends AoCBase {
         }
         return dist;
     }
+    
+    @RequiredArgsConstructor(staticName = "of")
+    @EqualsAndHashCode
+    @ToString
+    private static final class FromTo {
+        private final char from;
+        private final char to;
+    }
         
     public Integer solveAlt() {
         final List<Character> poiKeys = List.copyOf(this.pois.keySet());
-        final Map<Pair<Character, Character>, Integer> distances = new HashMap<>();
+        final Map<FromTo, Integer> distances = new HashMap<>();
         combinationsIterator(poiKeys.size(), 2).forEachRemaining(a -> {
             final Character from = poiKeys.get(a[0]);
             final Character to = poiKeys.get(a[1]);
             final Path path = findPath(from, to);
-            distances.put(Tuples.pair(from, to), path.getLength());
-            distances.put(Tuples.pair(to, from), path.getLength());
+            distances.put(FromTo.of(from, to), path.getLength());
+            distances.put(FromTo.of(to, from), path.getLength());
         });
         log(distances);
         final List<Integer> totals = new ArrayList<>();
@@ -156,7 +162,7 @@ public final class AoC2016_24 extends AoCBase {
             l.add(0, START);
             int total = 0;
             for (int i = 0; i < l.size() - 1; i++) {
-                total += distances.get(Tuples.pair(l.get(i), l.get(i + 1)));
+                total += distances.get(FromTo.of(l.get(i), l.get(i + 1)));
             }
             totals.add(total);
         });

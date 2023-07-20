@@ -3,7 +3,6 @@ import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.collections.impl.tuple.Tuples.pair;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,7 +16,6 @@ import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.CombinatoricsUtils;
-import org.eclipse.collections.api.tuple.Pair;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -25,6 +23,7 @@ import com.github.pareronia.aocd.Puzzle;
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import lombok.With;
@@ -71,33 +70,27 @@ public final class AoC2016_11 extends AoCBase {
         return new AoC2016_11(input, true);
     }
     
-    private Integer scoreStep(final Pair<Integer, State> p) {
-        final Integer numberOfSteps = p.getOne();
-        final State state = p.getTwo();
-        return -state.getDiff() * numberOfSteps;
-    }
-    
     private Integer solve(final State initialState) {
         Integer numberOfSteps = 0;
-        final PriorityQueue<Pair<Integer, State>> steps
-                = new PriorityQueue<>(comparing(this::scoreStep));
-        steps.add(pair(0, initialState));
+        final PriorityQueue<Step> steps
+                = new PriorityQueue<>(comparing(Step::score));
+        steps.add(Step.of(0, initialState));
         final Set<Integer> seen = new HashSet<>();
         seen.add(initialState.equivalentState());
         int cnt = 0;
         while (!steps.isEmpty()) {
-            final Pair<Integer, State> step = steps.poll();
+            final Step step = steps.poll();
             cnt++;
-            final State state = step.getTwo();
+            final State state = step.state;
             if (state.isDestination()) {
-                numberOfSteps = step.getOne();
+                numberOfSteps = step.numberOfSteps;
                 break;
             }
             state.moves().stream()
                     .filter(m -> !seen.contains(m.equivalentState()))
                     .forEach(m -> {
                         seen.add(m.equivalentState());
-                        steps.add(pair(step.getOne() + 1, m));
+                        steps.add(Step.of(step.numberOfSteps + 1, m));
                     });
         }
         log(cnt);
@@ -389,6 +382,16 @@ public final class AoC2016_11 extends AoCBase {
                 }
             }
             return true;
+        }
+    }
+    
+    @RequiredArgsConstructor(staticName = "of")
+    private static final class Step {
+        private final int numberOfSteps;
+        private final State state;
+        
+        public int score() {
+            return -state.getDiff() * numberOfSteps;
         }
     }
 }

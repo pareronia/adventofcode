@@ -5,11 +5,12 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2016_14 extends AoCBase {
     
@@ -18,33 +19,33 @@ public class AoC2016_14 extends AoCBase {
     private final String salt;
     private final Map<Integer, String> table = new HashMap<>();
 
-	private AoC2016_14(List<String> inputs, boolean debug) {
+	private AoC2016_14(final List<String> inputs, final boolean debug) {
 		super(debug);
 		assert inputs.size() == 1;
 		this.salt = inputs.get(0);
 	}
 	
-	public static final AoC2016_14 create(List<String> input) {
+	public static final AoC2016_14 create(final List<String> input) {
 		return new AoC2016_14(input, false);
 	}
 
-	public static final AoC2016_14 createDebug(List<String> input) {
+	public static final AoC2016_14 createDebug(final List<String> input) {
 		return new AoC2016_14(input, true);
 	}
 	
-	private String calculateMD5(String salt, Integer stretch, Integer index) {
+	private String calculateMD5(final String salt, final Integer stretch, final Integer index) {
 	    String toHash = salt + String.valueOf(index);
 	    for (int i = 0; i < 1 + stretch; i++) {
-	        toHash = DigestUtils.md5Hex(toHash);
+	        toHash = MD5.md5Hex(toHash);
 	    }
 	    return toHash;
 	}
 	
-	private String getMD5(String salt, Integer stretch, Integer index) {
+	private String getMD5(final String salt, final Integer stretch, final Integer index) {
 	   return this.table.computeIfAbsent(index, i -> calculateMD5(salt, stretch, i));
 	}
 	
-	private Optional<String> findTriplet(String string) {
+	private Optional<String> findTriplet(final String string) {
 	    return Optional.of(string)
 	            .map(TRIPLET::matcher)
 	            .filter(Matcher::find)
@@ -79,13 +80,16 @@ public class AoC2016_14 extends AoCBase {
 	    return solve(2016);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2016_14.createDebug(TEST).solvePart1() == 22728;
 		assert AoC2016_14.createDebug(TEST).solvePart2() == 22551;
 		
-		final List<String> input = Aocd.getData(2016, 14);
-		lap("Part 1", () -> AoC2016_14.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_14.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 14);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_14.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_14.create(inputData)::solvePart2)
+        );
 	}
 
 	private static final List<String> TEST = splitLines("abc");

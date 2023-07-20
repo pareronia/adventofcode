@@ -4,13 +4,13 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
+
+import lombok.RequiredArgsConstructor;
 
 public final class AoC2017_03 extends AoCBase {
 
@@ -29,9 +29,15 @@ public final class AoC2017_03 extends AoCBase {
     public static AoC2017_03 createDebug(final List<String> input) {
         return new AoC2017_03(input, true);
     }
+    
+    @RequiredArgsConstructor(staticName = "of")
+    private static final class HeadingAndPeriod {
+        private final Heading heading;
+        private final int period;
+    }
 
     private static class CoordinateSupplier implements Supplier<Position> {
-        private final Function<Integer, Pair<Heading, Integer>>
+        private final Function<Integer, HeadingAndPeriod>
                 headingsAndPeriods = new Function<>() {
                     private final List<Headings> directions = List.of(
                             Headings.EAST, Headings.NORTH,
@@ -39,30 +45,30 @@ public final class AoC2017_03 extends AoCBase {
                     private final int[] periods = { 1, 1, 2, 2 };
 
                     @Override
-                    public Pair<Heading, Integer> apply(final Integer t) {
+                    public HeadingAndPeriod apply(final Integer t) {
                         final int idx = t % 4;
                         final int period = periods[idx];
                         periods[idx] = period + 2;
                         final Headings pair = directions.get(idx);
-                        return Tuples.pair(pair.get(), period);
+                        return HeadingAndPeriod.of(pair.get(), period);
                     }
         };
         private int x;
         private int y;
         private int k;
-        private Pair<Heading, Integer> headingAndPeriod
+        private HeadingAndPeriod headingAndPeriod
                 = headingsAndPeriods.apply(k);
         private int j;
 
         @Override
         public Position get() {
-            if (j == headingAndPeriod.getTwo()) {
+            if (j == headingAndPeriod.period) {
                 k++;
                 headingAndPeriod = headingsAndPeriods.apply(k);
                 j = 0;
             }
-            x += headingAndPeriod.getOne().getX();
-            y += headingAndPeriod.getOne().getY();
+            x += headingAndPeriod.heading.getX();
+            y += headingAndPeriod.heading.getY();
             j++;
             return Position.of(x,  y);
         }
@@ -123,8 +129,11 @@ public final class AoC2017_03 extends AoCBase {
         assert AoC2017_03.createDebug(splitLines("4")).solvePart2() == 5;
         assert AoC2017_03.createDebug(splitLines("5")).solvePart2() == 10;
 
-        final List<String> input = Aocd.getData(2017, 3);
-        lap("Part 1", () -> AoC2017_03.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_03.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 3);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2017_03.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2017_03.create(inputData)::solvePart2)
+        );
     }
 }

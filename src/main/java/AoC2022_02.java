@@ -2,9 +2,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -57,22 +54,22 @@ public class AoC2022_02 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final Map<Pair<String, String>, String> outcomes = Map.of(
-            Tuples.pair(ROCK, ROCK), DRAW,
-            Tuples.pair(ROCK, SCISSORS), LOSS,
-            Tuples.pair(ROCK, PAPER), WIN,
-            Tuples.pair(SCISSORS, ROCK), WIN,
-            Tuples.pair(SCISSORS, SCISSORS), DRAW,
-            Tuples.pair(SCISSORS, PAPER), LOSS,
-            Tuples.pair(PAPER, ROCK), LOSS,
-            Tuples.pair(PAPER, SCISSORS), WIN,
-            Tuples.pair(PAPER, PAPER), DRAW
+        final Map<StringPair, String> outcomes = Map.of(
+            new StringPair(ROCK, ROCK), DRAW,
+            new StringPair(ROCK, SCISSORS), LOSS,
+            new StringPair(ROCK, PAPER), WIN,
+            new StringPair(SCISSORS, ROCK), WIN,
+            new StringPair(SCISSORS, SCISSORS), DRAW,
+            new StringPair(SCISSORS, PAPER), LOSS,
+            new StringPair(PAPER, ROCK), LOSS,
+            new StringPair(PAPER, SCISSORS), WIN,
+            new StringPair(PAPER, PAPER), DRAW
         );
 
         return solve((col1, col2) -> {
             final String play = SHAPES.get(col1);
             final String response = SHAPES.get(col2);
-            final String outcome = outcomes.get(Tuples.pair(play, response));
+            final String outcome = outcomes.get(new StringPair(play, response));
             return new ResponseAndOutcome(response, outcome);
         } );
     }
@@ -80,21 +77,21 @@ public class AoC2022_02 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final Map<String,String> outcomes = Map.of("X", LOSS, "Y", DRAW, "Z", WIN);
-        final Map<Pair<String, String>, String> responses = Map.of(
-                Tuples.pair(ROCK, LOSS), SCISSORS,
-                Tuples.pair(ROCK, DRAW), ROCK,
-                Tuples.pair(ROCK, WIN), PAPER,
-                Tuples.pair(PAPER, LOSS), ROCK,
-                Tuples.pair(PAPER, DRAW), PAPER,
-                Tuples.pair(PAPER, WIN), SCISSORS,
-                Tuples.pair(SCISSORS, LOSS), PAPER,
-                Tuples.pair(SCISSORS, DRAW), SCISSORS,
-                Tuples.pair(SCISSORS, WIN), ROCK);
+        final Map<StringPair, String> responses = Map.of(
+                new StringPair(ROCK, LOSS), SCISSORS,
+                new StringPair(ROCK, DRAW), ROCK,
+                new StringPair(ROCK, WIN), PAPER,
+                new StringPair(PAPER, LOSS), ROCK,
+                new StringPair(PAPER, DRAW), PAPER,
+                new StringPair(PAPER, WIN), SCISSORS,
+                new StringPair(SCISSORS, LOSS), PAPER,
+                new StringPair(SCISSORS, DRAW), SCISSORS,
+                new StringPair(SCISSORS, WIN), ROCK);
        
         return solve((col1, col2) -> {
             final String play = SHAPES.get(col1);
             final String outcome = outcomes.get(col2);
-            final String response = responses.get(Tuples.pair(play, outcome));
+            final String response = responses.get(new StringPair(play, outcome));
             return new ResponseAndOutcome(response, outcome);
         });
     }
@@ -122,5 +119,12 @@ public class AoC2022_02 extends AoCBase {
     private static final class ResponseAndOutcome {
         private final String response;
         private final String outcome;
+    }
+    
+    @RequiredArgsConstructor
+    @EqualsAndHashCode
+    private static final class StringPair {
+        private final String one;
+        private final String two;
     }
 }

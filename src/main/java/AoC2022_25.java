@@ -2,23 +2,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
+
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 public class AoC2022_25 extends AoCBase {
     
     private static final Map<Character, Integer> DECODE = Map.of(
             '0', 0, '1', 1, '2', 2, '-', -1, '=', -2);
-    private static final Map<Long, Pair<String, Integer>> ENCODE = Map.of(
-            0L, Tuples.pair("0", 0),
-            1L, Tuples.pair("1", 0),
-            2L, Tuples.pair("2", 0),
-            3L, Tuples.pair("=", 1),
-            4L, Tuples.pair("-", 1),
-            5L, Tuples.pair("0", 1));
+    private static final Map<Long, DigitAndCarry> ENCODE = Map.of(
+            0L, new DigitAndCarry("0", 0),
+            1L, new DigitAndCarry("1", 0),
+            2L, new DigitAndCarry("2", 0),
+            3L, new DigitAndCarry("=", 1),
+            4L, new DigitAndCarry("-", 1),
+            5L, new DigitAndCarry("0", 1));
 
     private final List<String> input;
 
@@ -48,9 +48,9 @@ public class AoC2022_25 extends AoCBase {
             .sum();
         final StringBuilder ans = new StringBuilder();
         while (total > 0) {
-            final Pair<String, Integer> pair = ENCODE.get(total % 5);
-            ans.append(pair.getOne());
-            total = total / 5 + pair.getTwo();
+            final DigitAndCarry pair = ENCODE.get(total % 5);
+            ans.append(pair.getDigit());
+            total = total / 5 + pair.getCarry();
         }
         return ans.reverse().toString();
     }
@@ -93,4 +93,11 @@ public class AoC2022_25 extends AoCBase {
     private static final List<String> TEST1 = List.of("1=11-2");
     private static final List<String> TEST2 = List.of("1-0---0");
     private static final List<String> TEST3 = List.of("1121-1110-1=0");
+    
+    @RequiredArgsConstructor
+    @Getter
+    private static final class DigitAndCarry {
+        private final String digit;
+        private final int carry;
+    }
 }

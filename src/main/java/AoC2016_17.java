@@ -7,13 +7,13 @@ import java.util.Deque;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.codec.digest.DigestUtils;
-
+import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aoc.geometry.Point;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -80,9 +80,12 @@ public final class AoC2016_17 extends AoCBase {
         assert AoC2016_17.createDebug(splitLines("kglvqrro")).solvePart2() == 492;
         assert AoC2016_17.createDebug(splitLines("ulqzkmiv")).solvePart2() == 830;
 
-        final List<String> input = Aocd.getData(2016, 17);
-        lap("Part 1", () -> AoC2016_17.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_17.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 17);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_17.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_17.create(inputData)::solvePart2)
+        );
     }
     
     @RequiredArgsConstructor
@@ -138,7 +141,7 @@ public final class AoC2016_17 extends AoCBase {
         private boolean[] areDoorsOpen(final Path path) {
             final String data = new StringBuilder().append(this.salt)
                     .append(path.getPath()).toString();
-            final String md5Hex = DigestUtils.md5Hex(data);
+            final String md5Hex = MD5.md5Hex(data);
             final boolean[] doors = new boolean[DOORS.length];
             for (int d = 0; d < DIRECTIONS.size(); d++) {
                 doors[d] = OPEN_CHARS.contains(md5Hex.charAt(d));
