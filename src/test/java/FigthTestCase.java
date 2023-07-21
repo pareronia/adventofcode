@@ -1,7 +1,6 @@
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.Iterator;
@@ -26,7 +25,7 @@ public class FigthTestCase {
 
 		final long result = fight.run();
 		
-		assertThat(result, is(Long.valueOf(173 + 53)));
+		assertThat(result).isEqualTo(Long.valueOf(173 + 53));
 	}
 
 	@Test
@@ -45,7 +44,7 @@ public class FigthTestCase {
 		
 		final long result = fight.run();
 		
-		assertThat(result, is(Long.valueOf(229 + 113 + 73 + 173 + 53)));
+		assertThat(result).isEqualTo(Long.valueOf(229 + 113 + 73 + 173 + 53));
 	}
 	
 	@Test
@@ -65,7 +64,7 @@ public class FigthTestCase {
 
 		final long result = fight.run();
 		
-		assertThat(result, is(Long.valueOf(173 + 53)));
+		assertThat(result).isEqualTo(Long.valueOf(173 + 53));
 	}
 	
 	private static final class SingleTurnStorage implements AoC2015_22.TurnStorage {

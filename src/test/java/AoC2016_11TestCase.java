@@ -1,9 +1,4 @@
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 import java.util.Map;
@@ -17,8 +12,8 @@ public class AoC2016_11TestCase {
         final AoC2016_11.State state1 = new AoC2016_11.State(1, Map.of("L", 1, "H", 1), Map.of("L", 3, "H", 2));
         final AoC2016_11.State state2 = new AoC2016_11.State(1, Map.of("L", 1, "H", 3), Map.of("L", 3, "H", 2));
         
-        assertThat(state1.isSafe(), is(TRUE));
-        assertThat(state2.isSafe(), is(FALSE));
+        assertThat(state1.isSafe()).isTrue();
+        assertThat(state2.isSafe()).isFalse();
     }
     
     @Test
@@ -27,9 +22,9 @@ public class AoC2016_11TestCase {
         
         final List<AoC2016_11.State> moves = state.moves();
         
-        assertThat(moves, containsInAnyOrder(
+        assertThat(moves).containsExactlyInAnyOrder(
             new AoC2016_11.State(2, Map.of("L", 1, "H", 2), Map.of("L", 3, "H", 2))
-        ));
+        );
     }
     
     @Test
@@ -38,9 +33,9 @@ public class AoC2016_11TestCase {
         
         final List<AoC2016_11.State> moves = state.moves();
         
-        assertThat(moves, contains(
+        assertThat(moves).containsExactly(
             new AoC2016_11.State(3, Map.of(), Map.of("A", 3))
-        ));
+        );
     }
     
     @Test
@@ -48,7 +43,7 @@ public class AoC2016_11TestCase {
         final AoC2016_11.State state1 = new AoC2016_11.State(2, Map.of("A", 1, "B", 2), Map.of("A", 1, "B", 2));
         final AoC2016_11.State state2 = new AoC2016_11.State(3, Map.of("A", 1, "B", 3), Map.of("A", 1, "B", 2));
         
-        assertThat(state1.equivalentState(), is(211110000));
-        assertThat(state2.equivalentState(), is(311011000));
+        assertThat(state1.equivalentState()).isEqualTo(211110000);
+        assertThat(state2.equivalentState()).isEqualTo(311011000);
     }
 }

@@ -1,15 +1,9 @@
 package com.github.pareronia.aoc;
 
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
-import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.StreamSupport.stream;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
 import static org.junit.Assert.fail;
 
 import java.util.Iterator;
@@ -38,35 +32,35 @@ public class GridTestCase {
 	public void getRow() {
 		final char[] result = Grid.from(asList("123")).getRow(0);
 		
-		assertThat(result, is(new char[] {'1', '2', '3'}));
+		assertThat(result).isEqualTo(new char[] {'1', '2', '3'});
 	}
 
 	@Test
 	public void getRowReversed() {
 		final char[] result = Grid.from(asList("123")).getRowReversed(0);
 		
-		assertThat(result, is(new char[] {'3', '2', '1'}));
+		assertThat(result).isEqualTo(new char[] {'3', '2', '1'});
 	}
 	
 	@Test
 	public void getColumn() {
 		final char[] result = Grid.from(asList("123", "456")).getColumn(1);
 		
-		assertThat(result, is(new char[] {'2', '5'}));
+		assertThat(result).isEqualTo(new char[] {'2', '5'});
 	}
 	
 	@Test
 	public void getColumnReversed() {
 		final char[] result = Grid.from(asList("123", "456")).getColumnReversed(1);
 		
-		assertThat(result, is(new char[] {'5', '2'}));
+		assertThat(result).isEqualTo(new char[] {'5', '2'});
 	}
 	
 	@Test
 	public void getRowAsString() {
 		final String result = Grid.from(asList("123")).getRowAsString(0);
 		
-		assertThat(result, is("123"));
+		assertThat(result).isEqualTo("123");
 	}
 
 	@Test
@@ -75,8 +69,7 @@ public class GridTestCase {
 		
 		final Iterable<String> result = grid.getRowsAsStrings();
 		
-		assertThat(	stream(result.spliterator(), false).collect(toList()),
-					is(asList("123", "456", "789")));
+		assertThat(result).containsExactly("123", "456", "789");
 	}
 	
 	@Test
@@ -87,7 +80,7 @@ public class GridTestCase {
 		
 		final char[] result = grid.getLeftEdge();
 		
-		assertThat(result, is(new char[] {'1', '4', '7'}));
+		assertThat(result).isEqualTo(new char[] {'1', '4', '7'});
 	}
 	
 	@Test
@@ -98,7 +91,7 @@ public class GridTestCase {
 		
 		final char[] result = grid.getRightEdge();
 		
-		assertThat(result, is(new char[] {'3', '6', '9'}));
+		assertThat(result).isEqualTo(new char[] {'3', '6', '9'});
 	}
 
 	@Test
@@ -111,9 +104,9 @@ public class GridTestCase {
 				
 		final Grid result = grid.getWithEdgesRemoved();
 		
-		assertThat(asStringList(result), is(asList(	"FG",
-													"JK",
-													"NO")));
+		assertThat(asStringList(result)).containsExactly( "FG",
+													      "JK",
+													      "NO");
 	}
 	
 	@Test
@@ -123,9 +116,9 @@ public class GridTestCase {
 											"......."));
 		final Grid result = grid.rollColumn(1, 1);
 
-		assertThat(asStringList(result), is(asList(	"#.#....",
-													"###....",
-													".#.....")));
+		assertThat(asStringList(result)).containsExactly( "#.#....",
+													      "###....",
+													      ".#.....");
 	}
 	
 	@Test
@@ -135,9 +128,9 @@ public class GridTestCase {
 											".#....."));
 		final Grid result = grid.rollRow(0, 4);
 
-		assertThat(asStringList(result), is(asList(	"....#.#",
-													"###....",
-													".#.....")));
+		assertThat(asStringList(result)).containsExactly( "....#.#",
+													      "###....",
+													      ".#.....");
 	}
 	
 	@Test
@@ -146,7 +139,7 @@ public class GridTestCase {
 	    
 	    final Grid result = grid.rollRow(0, 1);
 	    
-	    assertThat(asStringList(result), is(asList( ".#.#...")));
+	    assertThat(asStringList(result)).containsExactly(".#.#...");
 	}
 	
 	@Test
@@ -157,9 +150,9 @@ public class GridTestCase {
 		
 		final Grid result = grid.rotate();
 		
-		assertThat(asStringList(result), is(asList(	"741",
-													"852",
-													"963")));
+		assertThat(asStringList(result)).containsExactly( "741",
+													      "852",
+													      "963");
 	}
 	
 	@Test
@@ -170,13 +163,13 @@ public class GridTestCase {
 		
 		final Grid result = grid.flipHorizontally();
 		
-		assertThat(asStringList(result), is(asList(	"789",
-													"456",
-													"123")));
+		assertThat(asStringList(result)).containsExactly( "789",
+													      "456",
+													      "123");
 	}
 	
 	private List<String> asStringList(final Grid grid) {
-		return stream(grid.getRowsAsStrings().spliterator(), false).collect(toList());
+	    return grid.getRowsAsStringList();
 	}
 	
 	@Test
@@ -198,46 +191,46 @@ public class GridTestCase {
 		final Iterator<Grid> result = grid.getPermutations();
 		
 		// Permutation 0 : original
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"123",
-															"456",
-															"789")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "123",
+															      "456",
+															      "789");
 		// Permutation 1 : rotated 90
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"741",
-															"852",
-															"963")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "741",
+															      "852",
+															      "963");
 		// Permutation 2 : rotated 180
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"987",
-															"654",
-															"321")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "987",
+															      "654",
+															      "321");
 		// Permutation 3 : rotated 270
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"369",
-															"258",
-															"147")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "369",
+															      "258",
+		                                                          "147");
 		// Permutation 4 : diagonal TB
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"147",
-															"258",
-															"369")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "147",
+															      "258",
+															      "369");
 		// Permutation 5 : vertical flip
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"321",
-															"654",
-															"987")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "321",
+															      "654",
+															      "987");
 		// Permutation 6 : diagonal BT
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"963",
-															"852",
-															"741")));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "963",
+															      "852",
+															      "741");
 		// Permutation 7 : horizontal flip
-		assertThat(result.hasNext(), is(TRUE));
-		assertThat(asStringList(result.next()), is(asList(	"789",
-															"456",
-															"123")));
-		assertThat(result.hasNext(), is(FALSE));
+		assertThat(result.hasNext()).isTrue();
+		assertThat(asStringList(result.next())).containsExactly(  "789",
+															      "456",
+															      "123");
+		assertThat(result.hasNext()).isFalse();
 	}
 	
 	@Test
@@ -246,11 +239,11 @@ public class GridTestCase {
 											"OXO",
 											"XOX"));
 		
-		assertThat(grid.getAllEqualTo('X').collect(toList()),
-				is(asList(	Cell.at(0,  0), Cell.at(0, 2),
+		assertThat(grid.getAllEqualTo('X')).containsExactly(
+				            Cell.at(0,  0), Cell.at(0, 2),
 							Cell.at(1,  1),
-							Cell.at(2,  0), Cell.at(2, 2))));
-		assertThat(grid.getAllEqualTo('.').collect(toList()).size(), is(0));
+							Cell.at(2,  0), Cell.at(2, 2));
+		assertThat(grid.getAllEqualTo('.')).isEmpty();
 	}
 
 	@Test
@@ -259,9 +252,9 @@ public class GridTestCase {
 											"OXO",
 											"XOX"));
 		
-		assertThat(grid.countAllEqualTo('X'), is(5L));
-		assertThat(grid.countAllEqualTo('O'), is(4L));
-		assertThat(grid.countAllEqualTo('.'), is(0L));
+		assertThat(grid.countAllEqualTo('X')).isEqualTo(5L);
+		assertThat(grid.countAllEqualTo('O')).isEqualTo(4L);
+		assertThat(grid.countAllEqualTo('.')).isEqualTo(0L);
 	}
 	
 	@Test
@@ -270,7 +263,7 @@ public class GridTestCase {
 		
 		final Grid result = grid.replace('X', 'Y');
 		
-		assertThat(asStringList(result), is(asList("YOY", "OYO", "YOY")));
+		assertThat(asStringList(result)).containsExactly("YOY", "OYO", "YOY");
 	}
 	
 	@Test
@@ -279,7 +272,7 @@ public class GridTestCase {
         
         final Grid result = grid.update(Set.of(Cell.at(0, 0), Cell.at(2, 2)), '-');
         
-        assertThat(asStringList(result), is(asList("-OX", "OXO", "XO-")));
+        assertThat(asStringList(result)).containsExactly("-OX", "OXO", "XO-");
     }
 	
 	@Test
@@ -306,9 +299,9 @@ public class GridTestCase {
 		final Grid result2 = grid.subGrid(Cell.at(0, 0), Cell.at(0, 0));
 		final Grid result3 = grid.subGrid(Cell.at(1, 1), Cell.at(5, 5));
 
-		assertThat(asStringList(result1), is(asList("FGH", "JKL", "NOP")));
-		assertThat(asStringList(result2), is(emptyList()));
-		assertThat(asStringList(result3), is(asList("FGH", "JKL", "NOP", "RST")));
+		assertThat(asStringList(result1)).containsExactly("FGH", "JKL", "NOP");
+		assertThat(asStringList(result2)).isEmpty();
+		assertThat(asStringList(result3)).containsExactly("FGH", "JKL", "NOP", "RST");
 	}
 	
 	@Test
@@ -326,7 +319,7 @@ public class GridTestCase {
 	    
 	    final Grid result = grid.addRow("EFGH");
 
-		assertThat(asStringList(result), is(asList("ABCD", "EFGH")));
+		assertThat(asStringList(result)).containsExactly("ABCD", "EFGH");
 	}
 	
 	@Test
@@ -340,8 +333,8 @@ public class GridTestCase {
 		final List<Cell> result1 = grid.getCellsN(Cell.at(2, 1)).collect(toList());
 		final List<Cell> result2 = grid.getCellsN(Cell.at(0, 2)).collect(toList());
 		
-		assertThat(result1, contains(Cell.at(1, 1), Cell.at(0, 1)));
-		assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(1, 1), Cell.at(0, 1));
+		assertThat(result2).isEmpty();
 	}
 
 	@Test
@@ -355,8 +348,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsS(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsS(Cell.at(4, 0)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(3, 1), Cell.at(4, 1)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(3, 1), Cell.at(4, 1));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -370,8 +363,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsE(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsE(Cell.at(1, 3)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(2, 2), Cell.at(2, 3)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(2, 2), Cell.at(2, 3));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -385,8 +378,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsW(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsW(Cell.at(1, 0)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(2, 0)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(2, 0));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -400,8 +393,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsNW(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsNW(Cell.at(0, 0)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(1, 0)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(1, 0));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -415,8 +408,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsNE(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsNE(Cell.at(0, 3)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(1, 2), Cell.at(0, 3)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(1, 2), Cell.at(0, 3));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -430,8 +423,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsSE(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsSE(Cell.at(4, 3)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(3, 2), Cell.at(4, 3)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(3, 2), Cell.at(4, 3));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -445,8 +438,8 @@ public class GridTestCase {
 	    final List<Cell> result1 = grid.getCellsSW(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsSW(Cell.at(4, 0)).collect(toList());
 	    
-	    assertThat(result1, contains(Cell.at(3, 0)));
-	    assertThat(result2.isEmpty(), is(true));
+		assertThat(result1).containsExactly(Cell.at(3, 0));
+		assertThat(result2).isEmpty();
 	}
 	
 	@Test
@@ -458,17 +451,11 @@ public class GridTestCase {
 	    
 		final Grid[][] result = grid.divide(2);
 		
-		assertThat(result.length, is(2));
-		assertThat(result[0].length, is(2));
-		assertThat(result[1].length, is(2));
-		assertThat(asStringList(result[0][0]), is(asList("AB",
-		                                                 "EF")));
-		assertThat(asStringList(result[0][1]), is(asList("CD",
-		                                                 "GH")));
-		assertThat(asStringList(result[1][0]), is(asList("IJ",
-		                                                 "MN")));
-		assertThat(asStringList(result[1][1]), is(asList("KL",
-		                                                 "OP")));
+		assertThat(result).hasDimensions(2, 2);
+		assertThat(asStringList(result[0][0])).containsExactly("AB", "EF");
+		assertThat(asStringList(result[0][1])).containsExactly("CD", "GH");
+		assertThat(asStringList(result[1][0])).containsExactly("IJ", "MN");
+		assertThat(asStringList(result[1][1])).containsExactly("KL", "OP");
 	}
 	
 	@Test
@@ -487,10 +474,10 @@ public class GridTestCase {
 	    final Grid result =
 	            Grid.merge(new Grid[][] { { grid1, grid2 }, { grid3, grid4 } });
 	    
-	    assertThat(asStringList(result), is(asList("ABCD",
-	                                               "EFGH",
-	                                               "IJKL",
-	                                               "MNOP")));
+	    assertThat(asStringList(result)).containsExactly(  "ABCD",
+	                                                       "EFGH",
+	                                                       "IJKL",
+	                                                       "MNOP");
 
 	    try {
             Grid.merge(new Grid[][] { { grid1, grid2 }, { grid3, grid5 } });

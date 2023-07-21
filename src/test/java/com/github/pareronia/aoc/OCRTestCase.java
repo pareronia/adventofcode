@@ -1,8 +1,7 @@
 package com.github.pareronia.aoc;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +20,6 @@ public class OCRTestCase {
 		
 		final String result = OCR.convert6(grid, '*', ' ');
 		
-		assertThat(result, is("ABCEFGHIJKLOPRSUYZ"));
+		assertThat(result).isEqualTo("ABCEFGHIJKLOPRSUYZ");
 	}
 }

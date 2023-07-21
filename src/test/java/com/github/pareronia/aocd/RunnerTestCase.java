@@ -1,8 +1,7 @@
 package com.github.pareronia.aocd;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -90,7 +89,7 @@ public class RunnerTestCase {
 				.thenThrow(new ClassNotFoundException());
 		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		
-		assertThat(response.toString(), is("{}"));
+		assertThat(response.toString()).isEqualTo("{}");
 	}
 
 	@Test
@@ -106,11 +105,11 @@ public class RunnerTestCase {
 		when(systemUtils.getSystemNanoTime()).thenReturn(1_000L, 2_000L, 5_000L, 8_000L);
 		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		
-		assertThat(response.toString(), is(
+		assertThat(response.toString()).isEqualTo(
 		        "{\"part1\":"
 		        + "{\"answer\":\"3\",\"duration\":1000},"
 		        + "\"part2\":"
-		        + "{\"answer\":\"3\",\"duration\":3000}}"));
+		        + "{\"answer\":\"3\",\"duration\":3000}}");
 	}
     
     private Request createRequest(final LocalDate date, final String[] args) {

@@ -1,7 +1,6 @@
 package com.github.pareronia.aocd;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,16 +27,16 @@ public class UserTestCase {
 
 	@Test
 	public void getToken() {
-		assertThat(user.getToken(), is("token"));
+		assertThat(user.getToken()).isEqualTo("token");
 	}
 	
 	@Test
 	public void getId() {
-	    assertThat(user.getId(), is("uid"));
+	    assertThat(user.getId()).isEqualTo("uid");
 	}
 	
 	@Test
 	public void getMemoDir() {
-		assertThat(user.getMemoDir().toString(), is(Paths.get("aocdDir", "uid").toString()));
+		assertThat(user.getMemoDir().toString()).isEqualTo(Paths.get("aocdDir", "uid").toString());
 	}
 }

@@ -1,5 +1,4 @@
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -7,15 +6,15 @@ public class AoC2021_18_ExploderTestCase {
     
     @Test
     public void ok() {
-        assertThat(explode("[[[[[9,8],1],2],3],4]"), is("[[[[0,9],2],3],4]"));
-        assertThat(explode("[7,[6,[5,[4,[3,2]]]]]"), is("[7,[6,[5,[7,0]]]]"));
-        assertThat(explode("[[6,[5,[4,[3,2]]]],1]"), is("[[6,[5,[7,0]]],3]"));
-        assertThat(explode("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"),
-                is("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"));
-        assertThat(explode("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"),
-                is("[[3,[2,[8,0]]],[9,[5,[7,0]]]]"));
-        assertThat(explode("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]"),
-                is("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]"));
+        assertThat(explode("[[[[[9,8],1],2],3],4]")).isEqualTo("[[[[0,9],2],3],4]");
+        assertThat(explode("[7,[6,[5,[4,[3,2]]]]]")).isEqualTo("[7,[6,[5,[7,0]]]]");
+        assertThat(explode("[[6,[5,[4,[3,2]]]],1]")).isEqualTo("[[6,[5,[7,0]]],3]");
+        assertThat(explode("[[3,[2,[1,[7,3]]]],[6,[5,[4,[3,2]]]]]"))
+                .isEqualTo("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]");
+        assertThat(explode("[[3,[2,[8,0]]],[9,[5,[4,[3,2]]]]]"))
+                .isEqualTo("[[3,[2,[8,0]]],[9,[5,[7,0]]]]");
+        assertThat(explode("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]"))
+                .isEqualTo("[[[[0,7],4],[[7,8],[6,0]]],[8,1]]");
     }
 
     @Test

@@ -1,5 +1,4 @@
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -24,8 +23,8 @@ public class AoC2021_18_SplitterTestCase {
                         AoC2021_18.Pair.create(new AoC2021_18.Regular(1),
                                             new AoC2021_18.Regular(1)));
         assert number.toString().equals("[[[[0,7],4],[15,[0,13]]],[1,1]]");
-        assertThat(split(number), is("[[[[0,7],4],[[7,8],[0,13]]],[1,1]]"));
-        assertThat(split(number), is("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]"));
+        assertThat(split(number)).isEqualTo("[[[[0,7],4],[[7,8],[0,13]]],[1,1]]");
+        assertThat(split(number)).isEqualTo("[[[[0,7],4],[[7,8],[0,[6,7]]]],[1,1]]");
     }
 
     @Test
@@ -38,7 +37,7 @@ public class AoC2021_18_SplitterTestCase {
                                 new AoC2021_18.Regular(10)),
                         new AoC2021_18.Regular(20));
         assert number.toString().equals("[[9,10],20]");
-        assertThat(split(number), is("[[9,[5,5]],20]"));
+        assertThat(split(number)).isEqualTo("[[9,[5,5]],20]");
     }
     
     private String split(final AoC2021_18.Number number) {

@@ -1,8 +1,6 @@
 package com.github.pareronia.aoc.navigation;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
@@ -21,15 +19,15 @@ public class NavigationWithWaypointTestCase {
             .right(180)
             .forward(1);
             
-        assertThat(nav.getPosition(), is(Position.of(0, 1)));
-        assertThat(nav.getVisitedPositions(true),
-                   contains(   Position.of(0, 0),
+        assertThat(nav.getPosition()).isEqualTo(Position.of(0, 1));
+        assertThat(nav.getVisitedPositions(true))
+            .containsExactly(   Position.of(0, 0),
                                 Position.of(0, 1),
                                 Position.of(-1, 1),
-                                Position.of(0, 1)));
-        assertThat(nav.getVisitedPositions(),
-                    contains(   Position.of(0, 1),
+                                Position.of(0, 1));
+        assertThat(nav.getVisitedPositions())
+            .containsExactly(   Position.of(0, 1),
                                 Position.of(-1, 1),
-                                Position.of(0, 1)));
+                                Position.of(0, 1));
     }
 }

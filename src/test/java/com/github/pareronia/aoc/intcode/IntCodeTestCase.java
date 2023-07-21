@@ -1,8 +1,7 @@
 package com.github.pareronia.aoc.intcode;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
 
@@ -16,7 +15,7 @@ public class IntCodeTestCase {
 
         setUpIntCode().run(program);
         
-        assertThat(program, is(asList(3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50)));
+        assertThat(program).containsExactly(3500, 9, 10, 70, 2, 3, 11, 0, 99, 30, 40, 50);
     }
 
     @Test
@@ -25,7 +24,7 @@ public class IntCodeTestCase {
         
         setUpIntCode().run(program);
         
-        assertThat(program, is(asList(2, 0, 0, 0, 99)));
+        assertThat(program).containsExactly(2, 0, 0, 0, 99);
     }
 
     @Test
@@ -34,7 +33,7 @@ public class IntCodeTestCase {
         
         setUpIntCode().run(program);
         
-        assertThat(program, is(asList(30, 1, 1, 4, 2, 5, 6, 0, 99)));
+        assertThat(program).containsExactly(30, 1, 1, 4, 2, 5, 6, 0, 99);
     }
     
     @Test
@@ -45,8 +44,8 @@ public class IntCodeTestCase {
         intCode.run(program, 123);
         final Integer result = intCode.getOutput();
         
-        assertThat(result, is(123));
-        assertThat(program, is(asList(123, 0, 4, 0, 99)));
+        assertThat(result).isEqualTo(123);
+        assertThat(program).containsExactly(123, 0, 4, 0, 99);
     }
     
     @Test
@@ -55,7 +54,7 @@ public class IntCodeTestCase {
 
         setUpIntCode().run(program);
         
-        assertThat(program, is(asList(1002, 4, 3, 4, 99)));
+        assertThat(program).containsExactly(1002, 4, 3, 4, 99);
     }
 
     @Test
@@ -64,7 +63,7 @@ public class IntCodeTestCase {
         
         setUpIntCode().run(program);
         
-        assertThat(program, is(asList(1101, 100, -1, 4, 99)));
+        assertThat(program).containsExactly(1101, 100, -1, 4, 99);
     }
     
     @Test
@@ -75,7 +74,7 @@ public class IntCodeTestCase {
         intCode.run(program, 8);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1));
+        assertThat(result).isEqualTo(1);
     }
 
     @Test
@@ -86,7 +85,7 @@ public class IntCodeTestCase {
         intCode.run(program, 88);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(0));
+        assertThat(result).isEqualTo(0);
     }
 
     @Test
@@ -97,7 +96,7 @@ public class IntCodeTestCase {
         intCode.run(program, 8);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1));
+        assertThat(result).isEqualTo(1);
     }
 
     @Test
@@ -108,7 +107,7 @@ public class IntCodeTestCase {
         intCode.run(program, 89);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(0));
+        assertThat(result).isEqualTo(0);
     }
 
     @Test
@@ -119,7 +118,7 @@ public class IntCodeTestCase {
         intCode.run(program, 7);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1));
+        assertThat(result).isEqualTo(1);
     }
 
     @Test
@@ -130,7 +129,7 @@ public class IntCodeTestCase {
         intCode.run(program, 99);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(0));
+        assertThat(result).isEqualTo(0);
     }
     
     @Test
@@ -141,7 +140,7 @@ public class IntCodeTestCase {
         intCode.run(program, 0);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1));
+        assertThat(result).isEqualTo(1);
     }
     
     @Test
@@ -152,7 +151,7 @@ public class IntCodeTestCase {
         intCode.run(program, 8);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(0));
+        assertThat(result).isEqualTo(0);
     }
     
     @Test
@@ -163,7 +162,7 @@ public class IntCodeTestCase {
         intCode.run(program, 0);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(0));
+        assertThat(result).isEqualTo(0);
     }
     
     @Test
@@ -174,7 +173,7 @@ public class IntCodeTestCase {
         intCode.run(program, 1);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1));
+        assertThat(result).isEqualTo(1);
     }
     
     @Test
@@ -185,7 +184,7 @@ public class IntCodeTestCase {
         intCode.run(program, 0);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(0));
+        assertThat(result).isEqualTo(0);
     }
     
     @Test
@@ -196,7 +195,7 @@ public class IntCodeTestCase {
         intCode.run(program, 1);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1));
+        assertThat(result).isEqualTo(1);
     }
 
     @Test
@@ -210,7 +209,7 @@ public class IntCodeTestCase {
         intCode.run(program, 1);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(999));
+        assertThat(result).isEqualTo(999);
     }
 
     @Test
@@ -224,7 +223,7 @@ public class IntCodeTestCase {
         intCode.run(program, 8);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1000));
+        assertThat(result).isEqualTo(1000);
     }
 
     @Test
@@ -238,7 +237,7 @@ public class IntCodeTestCase {
         intCode.run(program, 888);
         final Integer result = intCode.getOutput();
         
-        assertThat(result , is(1001));
+        assertThat(result).isEqualTo(1001);
     }
 
     private IntCode setUpIntCode() {

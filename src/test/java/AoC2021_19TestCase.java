@@ -1,6 +1,4 @@
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.notNullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -22,11 +20,11 @@ public class AoC2021_19TestCase {
         while (iterator.hasNext()) {
             final List<Position3D> next = iterator.next();
             unique.addAll(next);
-            assertThat(next, is(notNullValue()));
+            assertThat(next).isNotNull();
             log(next);
             cnt++;
         }
-        assertThat(cnt, is(24));
+        assertThat(cnt).isEqualTo(24);
         log("unique:");
         log(unique);
     }
