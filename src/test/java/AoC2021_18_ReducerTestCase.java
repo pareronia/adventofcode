@@ -1,12 +1,12 @@
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 public class AoC2021_18_ReducerTestCase {
     
-    @BeforeClass
+    @BeforeAll
     public static void beforeClass() {
         if (!System.getProperties().containsKey("NDEBUG")) {
             AoC2021_18.Reducer.debug = true;

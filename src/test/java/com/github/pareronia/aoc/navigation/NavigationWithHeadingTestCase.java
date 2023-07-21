@@ -4,7 +4,7 @@ import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aoc.geometry.Position;
 

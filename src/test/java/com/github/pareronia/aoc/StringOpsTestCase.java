@@ -1,17 +1,19 @@
 package com.github.pareronia.aoc;
 
 import static java.util.Arrays.asList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class StringOpsTestCase {
 
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void getDigitsExpectedNotMatched() {
-        StringOps.getDigits("a b 1 c 2", 3);
+        assertThatThrownBy(() -> StringOps.getDigits("a b 1 c 2", 3))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -20,9 +22,10 @@ public class StringOpsTestCase {
         assertThat(asList(StringOps.getDigits("abc ", 0)), is(empty()));
     }
     
-    @Test(expected = NumberFormatException.class)
+    @Test
     public void hexToBinIlegalChar() {
-        StringOps.hexToBin("1G");
+        assertThatThrownBy(() -> StringOps.hexToBin("1G"))
+            .isInstanceOf(IllegalArgumentException.class);
     }
     
     @Test
@@ -36,9 +39,10 @@ public class StringOpsTestCase {
         assertThat(StringOps.hexToBin("CAFEBABE"), is("11001010111111101011101010111110"));
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void moveSamePositions() {
-        StringOps.move("".toCharArray(), 1, 1);
+        assertThatThrownBy(() -> StringOps.move("".toCharArray(), 1, 1))
+            .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

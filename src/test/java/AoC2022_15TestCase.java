@@ -5,7 +5,7 @@ import java.util.Deque;
 import java.util.Set;
 
 import org.apache.commons.lang3.Range;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AoC2022_15TestCase {
 

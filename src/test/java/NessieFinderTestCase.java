@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aoc.Grid;
 
@@ -16,7 +16,7 @@ public class NessieFinderTestCase {
 	
 	private Grid grid;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		final List<String> lines = new ArrayList<>();
 		lines.add(".#.#...#.###...#.##.##..");

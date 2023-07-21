@@ -17,8 +17,8 @@ import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -31,7 +31,7 @@ public class PuzzleTestCase {
 	private User user;
 	private SystemUtils systemUtils;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		systemUtils = mock(SystemUtils.class);
 		user = mock(User.class);

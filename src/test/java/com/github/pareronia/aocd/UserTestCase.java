@@ -8,8 +8,8 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Paths;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class UserTestCase {
 	
@@ -17,7 +17,7 @@ public class UserTestCase {
 
 	private SystemUtils systemUtils;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		systemUtils = mock(SystemUtils.class);
 		when(systemUtils.getAocdDir()).thenReturn(Paths.get("aocdDir"));

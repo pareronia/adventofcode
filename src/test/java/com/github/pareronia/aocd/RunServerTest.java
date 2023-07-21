@@ -19,9 +19,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aocd.RunServer.RequestHandler;
 
@@ -31,7 +31,7 @@ public class RunServerTest {
 	
 	private final RequestHandler requestHandler = Runner.createRequestHandler(mock(SystemUtils.class));
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		runServer = new RunServer(5555, requestHandler);
 		new Thread(() -> {
@@ -42,7 +42,7 @@ public class RunServerTest {
 		}).start();
 	}
 	
-	@After
+	@AfterEach
 	public void tearDown() {
 		runServer.stop();
 	}

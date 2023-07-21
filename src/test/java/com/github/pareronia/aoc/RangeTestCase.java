@@ -6,13 +6,14 @@ import static com.github.pareronia.aoc.Range.rangeClosed;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import java.util.IntSummaryStatistics;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class RangeTestCase {
 
@@ -107,29 +108,34 @@ public class RangeTestCase {
         assertThat(stats.getSum(), is(28L));
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void cannotHaveZeroStep() {
-        range(10, 20, 0);
+        assertThatThrownBy(() -> range(10, 20, 0))
+            .isInstanceOf(IllegalArgumentException.class);
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void cannotHaveAscendingRangeToNegative() {
-        range(-10);
+        assertThatThrownBy(() -> range(-10))
+            .isInstanceOf(IllegalArgumentException.class);
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void cannotHaveAscendingClosedRangeToNegative() {
-        rangeClosed(-10);
+        assertThatThrownBy(() -> rangeClosed(-10))
+            .isInstanceOf(IllegalArgumentException.class);
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void cannotHaveNegativeStepOnAscendingRange() {
-        range(10, 20, -1);
+        assertThatThrownBy(() -> range(10, 20, -1))
+            .isInstanceOf(IllegalArgumentException.class);
     }
     
-    @Test(expected = IllegalArgumentException.class)
+    @Test
     public void cannotHavePositiveStepOnDescendingRange() {
-        range(20, 10, 1);
+        assertThatThrownBy(() -> range(20, 10, 1))
+            .isInstanceOf(IllegalArgumentException.class);
     }
     
     private List<Integer> collect(final Range range) {

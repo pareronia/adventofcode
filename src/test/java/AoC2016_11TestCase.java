@@ -8,7 +8,7 @@ import static org.hamcrest.Matchers.containsInAnyOrder;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AoC2016_11TestCase {
 

@@ -8,14 +8,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class VirtualMachineTestCase {
     
     private VirtualMachine vm;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         vm = new VirtualMachine();
     }

@@ -6,6 +6,7 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.StreamSupport.stream;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
@@ -15,20 +16,22 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aoc.Grid.Cell;
 
 public class GridTestCase {
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getRow_negativeIndex() {
-		Grid.from(asList("123")).getRow(-1);
+		assertThatThrownBy(() -> Grid.from(asList("123")).getRow(-1))
+		    .isInstanceOf(IllegalArgumentException.class);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void getRow_tooLargeIndex() {
-		Grid.from(asList("123")).getRow(1);
+		assertThatThrownBy(() -> Grid.from(asList("123")).getRow(1))
+		    .isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
@@ -176,13 +179,14 @@ public class GridTestCase {
 		return stream(grid.getRowsAsStrings().spliterator(), false).collect(toList());
 	}
 	
-	@Test(expected = UnsupportedOperationException.class)
+	@Test
 	public void getPermutations_notSquare() {
 		final Grid grid = Grid.from(asList(	"123A",
 											"456B",
 											"789C"));
 		
-		grid.getPermutations();
+		assertThatThrownBy(() -> grid.getPermutations())
+		    .isInstanceOf(UnsupportedOperationException.class);
 	}
 
 	@Test
@@ -278,7 +282,7 @@ public class GridTestCase {
         assertThat(asStringList(result), is(asList("-OX", "OXO", "XO-")));
     }
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void subGrid_invalidCoordinates() {
 		final Grid grid = Grid.from(asList(	"ABCD",
 											"EFGH",
@@ -286,7 +290,8 @@ public class GridTestCase {
 											"MNOP",
 											"QRST"));
 		
-		grid.subGrid(Cell.at(3, 3), Cell.at(1, 1));
+		assertThatThrownBy(() -> grid.subGrid(Cell.at(3, 3), Cell.at(1, 1)))
+		    .isInstanceOf(IllegalArgumentException.class);
 	}
 	
 	@Test
@@ -306,11 +311,13 @@ public class GridTestCase {
 		assertThat(asStringList(result3), is(asList("FGH", "JKL", "NOP", "RST")));
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void addRowInvalid() {
 	    final Grid grid = Grid.from(asList("ABCD"));
 	    
-	    grid.addRow("ABC");
+		assertThatThrownBy(() -> grid.addRow("ABC"))
+		    .isInstanceOf(IllegalArgumentException.class);
+	    
 	}
 
 	@Test
