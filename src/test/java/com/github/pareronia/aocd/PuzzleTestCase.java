@@ -1,8 +1,7 @@
 package com.github.pareronia.aocd;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -17,8 +16,8 @@ import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
@@ -31,7 +30,7 @@ public class PuzzleTestCase {
 	private User user;
 	private SystemUtils systemUtils;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		systemUtils = mock(SystemUtils.class);
 		user = mock(User.class);
@@ -50,11 +49,11 @@ public class PuzzleTestCase {
 	            LocalDateTime.of(2015, Month.DECEMBER, 7, 0, 0, 0),
 	            LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0)
 	    );
-	    assertThat(puzzle.isReleased(), is(false));
-	    assertThat(puzzle.isReleased(), is(false));
-	    assertThat(puzzle.isReleased(), is(false));
-	    assertThat(puzzle.isReleased(), is(true));
-	    assertThat(puzzle.isReleased(), is(true));
+	    assertThat(puzzle.isReleased()).isFalse();
+	    assertThat(puzzle.isReleased()).isFalse();
+	    assertThat(puzzle.isReleased()).isFalse();
+	    assertThat(puzzle.isReleased()).isTrue();
+	    assertThat(puzzle.isReleased()).isTrue();
 	}
 
     @Test
@@ -63,13 +62,13 @@ public class PuzzleTestCase {
 		when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
 				.thenReturn(Optional.empty(), Optional.of("answer1"));
 		
-	    assertThat(puzzle.getAnswer1(), is(""));
-	    assertThat(puzzle.getAnswer1(), is("answer1"));
+	    assertThat(puzzle.getAnswer1()).isEqualTo("");
+	    assertThat(puzzle.getAnswer1()).isEqualTo("answer1");
 	    
 	    final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
 	    verify(systemUtils, times(2)).readFirstLineIfExists(captor.capture());
-	    assertThat(captor.getValue().toString(),
-	            is("memoDir" + FS + "2015_07a_answer.txt"));
+	    assertThat(captor.getValue().toString())
+	            .isEqualTo("memoDir" + FS + "2015_07a_answer.txt");
 	}
 
     @Test
@@ -78,13 +77,13 @@ public class PuzzleTestCase {
         when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
                 .thenReturn(Optional.empty(), Optional.of("answer2"));
         
-        assertThat(puzzle.getAnswer2(), is(""));
-        assertThat(puzzle.getAnswer2(), is("answer2"));
+	    assertThat(puzzle.getAnswer2()).isEqualTo("");
+	    assertThat(puzzle.getAnswer2()).isEqualTo("answer2");
         
         final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
         verify(systemUtils, times(2)).readFirstLineIfExists(captor.capture());
-        assertThat(captor.getValue().toString(),
-                is("memoDir" + FS + "2015_07b_answer.txt"));
+	    assertThat(captor.getValue().toString())
+	            .isEqualTo("memoDir" + FS + "2015_07b_answer.txt");
     }
 	
 	@Test
@@ -92,13 +91,13 @@ public class PuzzleTestCase {
 		when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
 				.thenReturn(Optional.of("title"));
 		
-		assertThat(puzzle.getTitle(), is("title"));
-		assertThat(puzzle.getTitle(), is("title"));
+		assertThat(puzzle.getTitle()).isEqualTo("title");
+		assertThat(puzzle.getTitle()).isEqualTo("title");
 		final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
 		verify(systemUtils).readFirstLineIfExists(captor.capture());
 		verifyNoMoreInteractions(systemUtils);
-		assertThat(captor.getValue().toString(),
-				   is("aocdDir" + FS + "titles" + FS + "2015_07.txt"));
+		assertThat(captor.getValue().toString())
+				   .isEqualTo("aocdDir" + FS + "titles" + FS + "2015_07.txt");
 	}
 	
 	@Test
@@ -111,8 +110,8 @@ public class PuzzleTestCase {
 		final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
 		verify(systemUtils).readAllLinesIfExists(captor.capture());
 		verifyNoMoreInteractions(systemUtils);
-		assertThat(result, is(asList("line1", "line2")));
-		assertThat(captor.getValue().toString(),
-				   is("memoDir" + FS + "2015_07_input.txt"));
+		assertThat(result).containsExactly("line1", "line2");
+		assertThat(captor.getValue().toString())
+				   .isEqualTo("memoDir" + FS + "2015_07_input.txt");
 	}
 }

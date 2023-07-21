@@ -35,7 +35,7 @@ PYTHON_CMD := python -O
 PYTHON_UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := $(JAVA_EXE) -ea
 JAVAC_CMD := $(JAVAC_EXE) -encoding utf-8
-JAVA_UNITTEST_CMD := org.junit.runner.JUnitCore
+JAVA_UNITTEST_CMD := org.junit.platform.console.ConsoleLauncher
 JULIA_CMD := julia --optimize
 BAZEL := bazel
 WSLPATH := wslpath
@@ -122,7 +122,7 @@ unittest.py:
 unittest.java:
 	@$(call msg,"Running Java unit tests...")
 	@$(JAVA_CMD) -DNDEBUG -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
-		$(JAVA_UNITTEST_CMD) AllUnitTests
+		$(JAVA_UNITTEST_CMD) --details=summary --select-class=AllUnitTests
 
 #: Run C++ unit tests
 unittest.cplusplus:

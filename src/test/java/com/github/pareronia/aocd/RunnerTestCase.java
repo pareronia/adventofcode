@@ -1,7 +1,7 @@
 package com.github.pareronia.aocd;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -10,8 +10,8 @@ import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.github.pareronia.aocd.Runner.ClassFactory;
@@ -22,59 +22,61 @@ public class RunnerTestCase {
     
     private SystemUtils systemUtils;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         systemUtils = mock(SystemUtils.class);
     }
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void noArgs() throws Exception {
-		Runner.create(systemUtils, null).run(createRequest(null, null));
+	    assertThatThrownBy(() -> createRequest(null, null))
+	            .isInstanceOf(IllegalArgumentException.class);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void missingArgs() throws Exception {
-		Runner.create(systemUtils, null).run(createRequest(null, new String[] {"1", "2"}));
+	    assertThatThrownBy(() -> createRequest(null, new String[] {"1", "2"}))
+	            .isInstanceOf(IllegalArgumentException.class);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void requestedYearBefore2015() throws Exception {
-	    final Request request = createRequest(
+	    assertThatThrownBy(() -> createRequest(
 	            LocalDate.of(2021, Month.FEBRUARY, 7),
-	            new String[] {"2014", "1", ""});
-		Runner.create(systemUtils, null).run(request);
+	            new String[] {"2014", "1", ""})
+	    ).isInstanceOf(IllegalArgumentException.class);
 	}
 
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void requestedYearAfterCurrent() throws Exception {
-	    final Request request = createRequest(
+	    assertThatThrownBy(() -> createRequest(
 	            LocalDate.of(2021, Month.FEBRUARY, 7),
-	            new String[] {"2022", "1", ""});
-		Runner.create(systemUtils, null).run(request);
+	            new String[] {"2022", "1", ""})
+	    ).isInstanceOf(IllegalArgumentException.class);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void requestedDayAfterCurrentInDecember() throws Exception {
-	    final Request request = createRequest(
+	    assertThatThrownBy(() -> createRequest(
 	            LocalDate.of(2021, Month.DECEMBER, 7),
-	            new String[] {"2021", "8", ""});
-		Runner.create(systemUtils, null).run(request);
+	            new String[] {"2021", "8", ""})
+	    ).isInstanceOf(IllegalArgumentException.class);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void requestedDayLowerThan1() throws Exception {
-	    final Request request = createRequest(
+	    assertThatThrownBy(() -> createRequest(
 	            LocalDate.of(2021, Month.FEBRUARY, 7),
-	            new String[] {"2021", "0", ""});
-		Runner.create(systemUtils, null).run(request);
+	            new String[] {"2021", "0", ""})
+	    ).isInstanceOf(IllegalArgumentException.class);
 	}
 	
-	@Test(expected = IllegalArgumentException.class)
+	@Test
 	public void requestedDayHigherThan25() throws Exception {
-	    final Request request = createRequest(
+	    assertThatThrownBy(() -> createRequest(
 	            LocalDate.of(2021, Month.FEBRUARY, 7),
-	            new String[] {"2021", "31", ""});
-		Runner.create(systemUtils, null).run(request);
+	            new String[] {"2021", "31", ""})
+	    ).isInstanceOf(IllegalArgumentException.class);
 	}
 	
 	@Test
@@ -87,7 +89,7 @@ public class RunnerTestCase {
 				.thenThrow(new ClassNotFoundException());
 		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		
-		assertThat(response.toString(), is("{}"));
+		assertThat(response.toString()).isEqualTo("{}");
 	}
 
 	@Test
@@ -103,11 +105,11 @@ public class RunnerTestCase {
 		when(systemUtils.getSystemNanoTime()).thenReturn(1_000L, 2_000L, 5_000L, 8_000L);
 		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		
-		assertThat(response.toString(), is(
+		assertThat(response.toString()).isEqualTo(
 		        "{\"part1\":"
 		        + "{\"answer\":\"3\",\"duration\":1000},"
 		        + "\"part2\":"
-		        + "{\"answer\":\"3\",\"duration\":3000}}"));
+		        + "{\"answer\":\"3\",\"duration\":3000}}");
 	}
     
     private Request createRequest(final LocalDate date, final String[] args) {

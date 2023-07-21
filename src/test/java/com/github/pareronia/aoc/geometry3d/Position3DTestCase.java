@@ -1,9 +1,9 @@
 package com.github.pareronia.aoc.geometry3d;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.closeTo;
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.offset;
+
+import org.junit.jupiter.api.Test;
 
 public class Position3DTestCase {
     
@@ -14,9 +14,9 @@ public class Position3DTestCase {
         
         final Point3D translated = point.translate(vector);
         
-        assertThat(translated.getX(), is(0));
-        assertThat(translated.getY(), is(2));
-        assertThat(translated.getZ(), is(4));
+        assertThat(translated.getX()).isEqualTo(0);
+        assertThat(translated.getY()).isEqualTo(2);
+        assertThat(translated.getZ()).isEqualTo(4);
     }
     
     @Test
@@ -24,13 +24,13 @@ public class Position3DTestCase {
         final Position3D p1 = new Position3D(7, 4, 3);
         final Position3D p2 = new Position3D(17, 6, 2);
         
-        assertThat(p1.distance(p2), is(closeTo(10.25d, 2)));
-        assertThat(p2.distance(p1), is(closeTo(10.25d, 2)));
+        assertThat(p1.distance(p2)).isCloseTo(10.25d, offset(0.01d));
+        assertThat(p2.distance(p1)).isCloseTo(10.25d, offset(0.01d));
         
         final Position3D p3 = new Position3D(404, -588, -901);
         final Position3D p4 = new Position3D(686, 422, 578);
         
-        assertThat(p3.distance(p4), is(closeTo(1813.02d, 2)));
-        assertThat(p4.distance(p3), is(closeTo(1813.02d, 2)));
+        assertThat(p3.distance(p4)).isCloseTo(1813.02d, offset(0.01d));
+        assertThat(p4.distance(p3)).isCloseTo(1813.02d, offset(0.01d));
     }
 }

@@ -1,15 +1,14 @@
 package com.github.pareronia.aocd;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.nio.file.Paths;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class UserTestCase {
 	
@@ -17,7 +16,7 @@ public class UserTestCase {
 
 	private SystemUtils systemUtils;
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		systemUtils = mock(SystemUtils.class);
 		when(systemUtils.getAocdDir()).thenReturn(Paths.get("aocdDir"));
@@ -28,16 +27,16 @@ public class UserTestCase {
 
 	@Test
 	public void getToken() {
-		assertThat(user.getToken(), is("token"));
+		assertThat(user.getToken()).isEqualTo("token");
 	}
 	
 	@Test
 	public void getId() {
-	    assertThat(user.getId(), is("uid"));
+	    assertThat(user.getId()).isEqualTo("uid");
 	}
 	
 	@Test
 	public void getMemoDir() {
-		assertThat(user.getMemoDir().toString(), is(Paths.get("aocdDir", "uid").toString()));
+		assertThat(user.getMemoDir().toString()).isEqualTo(Paths.get("aocdDir", "uid").toString());
 	}
 }

@@ -1,15 +1,12 @@
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toCollection;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aoc.Grid;
 
@@ -46,8 +43,8 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 	
 	@Test
@@ -62,8 +59,8 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 
 	@Test
@@ -78,8 +75,8 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile2));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile2);
 	}
 		
 	@Test
@@ -94,7 +91,7 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(FALSE));
+		assertThat(match).isEmpty();
 	}
 
 	@Test
@@ -109,8 +106,8 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findBottomSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 	
 	@Test
@@ -125,8 +122,8 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findBottomSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 	
 	@Test
@@ -141,7 +138,7 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findBottomSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile2));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile2);
 	}
 }

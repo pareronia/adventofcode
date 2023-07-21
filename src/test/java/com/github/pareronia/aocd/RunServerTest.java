@@ -1,9 +1,7 @@
 package com.github.pareronia.aocd;
 
-import static java.lang.Boolean.TRUE;
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.io.BufferedReader;
@@ -19,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aocd.RunServer.RequestHandler;
 
@@ -31,18 +29,18 @@ public class RunServerTest {
 	
 	private final RequestHandler requestHandler = Runner.createRequestHandler(mock(SystemUtils.class));
 	
-	@Before
+	@BeforeEach
 	public void setUp() {
 		runServer = new RunServer(5555, requestHandler);
 		new Thread(() -> {
 			synchronized (this) {
 				final int status = runServer.start();
-				assertThat(status, is(RunServer.OK));
+				assertThat(status).isEqualTo(RunServer.OK);
 			}
 		}).start();
 	}
 	
-	@After
+	@AfterEach
 	public void tearDown() {
 		runServer.stop();
 	}
@@ -70,7 +68,7 @@ public class RunServerTest {
 	private void doTest(final List<String> in, final String expectedResponse) throws Exception, IOException {
 		final long start = System.nanoTime();
 		try (final Socket socket = new Socket(InetAddress.getLoopbackAddress(), 5555)) {
-			assertThat(socket.isConnected(), is(TRUE));
+			assertThat(socket.isConnected()).isTrue();
 			
 			final BufferedWriter dos = new BufferedWriter(
 					new OutputStreamWriter(new DataOutputStream(socket.getOutputStream())));
@@ -90,7 +88,7 @@ public class RunServerTest {
 			if (n > 0) {
 				response = new String(ArrayUtils.subarray(c, 0, n));
 			}
-			assertThat(response, is(expectedResponse));
+			assertThat(response).isEqualTo(expectedResponse);
 		} finally {
 			System.out.println(String.format("Took %d µs", (System.nanoTime() - start) / 1000));
 		}
