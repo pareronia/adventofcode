@@ -11,6 +11,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
+import org.apache.commons.math3.util.CombinatoricsUtils;
+
 public class IterTools {
 
     @SafeVarargs
@@ -62,6 +64,14 @@ public class IterTools {
         Heap.accept(a, p -> consumer.accept(
                 Arrays.stream(p).mapToObj(i -> o[i]).collect(toList())));
         return builder.build();
+    }
+
+    public static Iterator<int[]> combinationsIterator(final int n, final int k) {
+        return CombinatoricsUtils.combinationsIterator(n, k);
+    }
+
+    public static Iterable<int[]> combinations(final int n, final int k) {
+        return () -> combinationsIterator(n, k);
     }
 
     private static final class Heap {

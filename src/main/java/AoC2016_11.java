@@ -1,10 +1,11 @@
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
-import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -15,7 +16,6 @@ import java.util.PriorityQueue;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.util.CombinatoricsUtils;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -141,8 +141,8 @@ public final class AoC2016_11 extends AoCBase {
     @Value
     static final class State {
         private static final Set<Integer> FLOORS = Set.of(1, 2, 3, 4);
-        private static final int TOP = FLOORS.stream().max(naturalOrder()).orElseThrow();
-        private static final int BOTTOM = FLOORS.stream().min(naturalOrder()).orElseThrow();
+        private static final int TOP = FLOORS.stream().mapToInt(Integer::intValue).max().getAsInt();
+        private static final int BOTTOM = FLOORS.stream().mapToInt(Integer::intValue).min().getAsInt();
         private static final int MAX_ITEMS_PER_MOVE = 2;
         
         @Getter(AccessLevel.PRIVATE)
@@ -225,7 +225,7 @@ public final class AoC2016_11 extends AoCBase {
             assert this.isSafe();
             final StringBuilder eq = new StringBuilder();
             eq.append(this.elevator);
-            for (int f = 1; f <= FLOORS.size(); f++) {
+            for (final int f : FLOORS) {
                 eq.append(this.chipsPerFloor.getOrDefault(f, emptyList()).size());
                 eq.append(this.gennysPerFloor.getOrDefault(f, emptyList()).size());
             }
@@ -255,11 +255,10 @@ public final class AoC2016_11 extends AoCBase {
                 final List<String> chipsOnFloor) {
             final List<State> states = new ArrayList<>();
             if (chipsOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
-                CombinatoricsUtils.combinationsIterator(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE)
-                    .forEachRemaining(c -> {
+                combinations(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
+                    c -> {
                         final List<String> chipsToMove
-                            = List.of(chipsOnFloor.get(c[0]),
-                                      chipsOnFloor.get(c[1]));
+                            = Arrays.stream(c).mapToObj(chipsOnFloor::get).toList();
                         states.add(moveUpWithChips(chipsToMove));
                         if (!floorsBelowEmpty(floor)) {
                             states.add(moveDownWithChips(chipsToMove));
@@ -287,11 +286,10 @@ public final class AoC2016_11 extends AoCBase {
                 final List<String> gennysOnFloor) {
             final List<State> states = new ArrayList<>();
             if (gennysOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
-                CombinatoricsUtils.combinationsIterator(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE)
-                    .forEachRemaining(c -> {
+                combinations(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
+                    c -> {
                         final List<String> gennysToMove
-                            = List.of(gennysOnFloor.get(c[0]),
-                                      gennysOnFloor.get(c[1]));
+                            = Arrays.stream(c).mapToObj(gennysOnFloor::get).toList();
                         states.add(moveUpWitGennys(gennysToMove));
                         if (!floorsBelowEmpty(floor)) {
                             states.add(moveDownWithGennys(gennysToMove));

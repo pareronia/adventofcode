@@ -1,10 +1,10 @@
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
-import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsIterator;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -220,7 +220,7 @@ public class AoC2015_21 extends AoCBase {
 					.filter(ShopItem::isRing)
 					.collect(toList());
 			final Set<Set<ShopItem>> ringCombinations = new HashSet<>();
-			combinationsIterator(rings.size(), 2).forEachRemaining(indices -> {
+			combinations(rings.size(), 2).forEach(indices -> {
 				ringCombinations.add(
 				    Set.of(rings.get(indices[0]), rings.get(indices[1])));
 			});

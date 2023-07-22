@@ -1,10 +1,10 @@
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsIterator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -146,7 +146,7 @@ public final class AoC2016_24 extends AoCBase {
     public Integer solveAlt() {
         final List<Character> poiKeys = List.copyOf(this.pois.keySet());
         final Map<FromTo, Integer> distances = new HashMap<>();
-        combinationsIterator(poiKeys.size(), 2).forEachRemaining(a -> {
+        combinations(poiKeys.size(), 2).forEach(a -> {
             final Character from = poiKeys.get(a[0]);
             final Character to = poiKeys.get(a[1]);
             final Path path = findPath(from, to);

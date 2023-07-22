@@ -1,6 +1,6 @@
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,7 +37,7 @@ public class AoC2015_17 extends AoCBase {
         }
         final List<List<Integer>> cocos = new ArrayList<>();
         for (int i = minimalContainers.size(); i < this.containers.size(); i++) {
-            combinationsIterator(this.containers.size(), i).forEachRemaining(c -> {
+            combinations(this.containers.size(), i).forEach(c -> {
                 if (Arrays.stream(c).map(this.containers::get).sum() == eggnogVolume) {
                     cocos.add(Arrays.stream(c).mapToObj(this.containers::get).collect(toList()));
                 }
