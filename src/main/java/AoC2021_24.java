@@ -14,8 +14,7 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import org.apache.commons.lang3.StringUtils;
-
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.vm.Instruction;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;
@@ -239,7 +238,7 @@ public class AoC2021_24 extends AoCBase {
             }
             wzz.put(i, zz);
             log(String.format("digit: %d, divz: %d, addx: %d, addy: %d, z-values (%d): %s",
-                    i + 1, this.divz[i], this.addx[i], this.addy[i], zz.size(), new TreeSet<Long>(zz)));
+                    i + 1, this.divz[i], this.addx[i], this.addy[i], zz.size(), new TreeSet<>(zz)));
         }
         final long[] ans = new long[DIGITS];
         Arrays.fill(ans, -1L);
@@ -287,9 +286,10 @@ public class AoC2021_24 extends AoCBase {
         assert AoC2021_24.create(TEST4).runProgram("1").get("z") == 15;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 24);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_24.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_24.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_24.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_24.create(inputData)::solvePart2)
         );
     }
 

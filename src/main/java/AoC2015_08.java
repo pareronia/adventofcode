@@ -1,10 +1,10 @@
+import static com.github.pareronia.aoc.StringUtils.countMatches;
 import static java.util.stream.Collectors.summingInt;
-import static org.apache.commons.lang3.StringUtils.countMatches;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2015_08 extends AoCBase {
     
@@ -59,10 +59,12 @@ public class AoC2015_08 extends AoCBase {
         assert AoC2015_08.createDebug(TEST).solvePart1() == 12;
         assert AoC2015_08.createDebug(TEST).solvePart2() == 19;
 
-        final List<String> input = Aocd.getData(2015, 8);
-
-        lap("Part 1", () -> AoC2015_08.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_08.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2015, 8);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2015_08.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2015_08.create(input)::solvePart2)
+		);
     }
 
     private static final List<String> TEST = splitLines(

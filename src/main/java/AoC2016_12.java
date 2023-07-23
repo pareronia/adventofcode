@@ -2,14 +2,13 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.github.pareronia.aoc.FibonacciUtil;
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.assembunny.Assembunny;
 import com.github.pareronia.aoc.assembunny.Assembunny.AssembunnyInstruction;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2016_12 extends AoCBase {
     
@@ -72,9 +71,12 @@ public final class AoC2016_12 extends AoCBase {
         assert AoC2016_12.createDebug(TEST2).solve(0) == 318_003;
         assert AoC2016_12.createDebug(TEST2).solve(1) == 9_227_657;
         
-        final List<String> input = Aocd.getData(2016, 12);
-        lap("Part 1", () -> AoC2016_12.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_12.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2016, 12);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2016_12.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2016_12.create(input)::solvePart2)
+		);
     }
     
     private static final List<String> TEST1 = splitLines(

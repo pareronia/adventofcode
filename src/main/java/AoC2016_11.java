@@ -15,8 +15,7 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -257,8 +256,8 @@ public final class AoC2016_11 extends AoCBase {
             if (chipsOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
                 combinations(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
                     c -> {
-                        final List<String> chipsToMove
-                            = Arrays.stream(c).mapToObj(chipsOnFloor::get).toList();
+                        final List<String> chipsToMove = Arrays.stream(c)
+                                .mapToObj(chipsOnFloor::get).collect(toList());
                         states.add(moveUpWithChips(chipsToMove));
                         if (!floorsBelowEmpty(floor)) {
                             states.add(moveDownWithChips(chipsToMove));
@@ -288,8 +287,8 @@ public final class AoC2016_11 extends AoCBase {
             if (gennysOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
                 combinations(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
                     c -> {
-                        final List<String> gennysToMove
-                            = Arrays.stream(c).mapToObj(gennysOnFloor::get).toList();
+                        final List<String> gennysToMove = Arrays.stream(c)
+                                .mapToObj(gennysOnFloor::get).collect(toList());
                         states.add(moveUpWitGennys(gennysToMove));
                         if (!floorsBelowEmpty(floor)) {
                             states.add(moveDownWithGennys(gennysToMove));

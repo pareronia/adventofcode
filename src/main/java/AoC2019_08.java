@@ -1,13 +1,13 @@
+import static com.github.pareronia.aoc.StringUtils.countMatches;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.Comparator.comparing;
-import static org.apache.commons.lang3.StringUtils.countMatches;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2019_08 extends AoCBase {
 	
@@ -16,20 +16,20 @@ public class AoC2019_08 extends AoCBase {
 	
 	private final List<String> input;
 	
-	private AoC2019_08(List<String> input, boolean debug) {
+	private AoC2019_08(final List<String> input, final boolean debug) {
 		super(debug);
 		this.input = input;
 	}
 	
-	public static AoC2019_08 create(List<String> input) {
+	public static AoC2019_08 create(final List<String> input) {
 		return new AoC2019_08(input, false);
 	}
 
-	public static AoC2019_08 createDebug(List<String> input) {
+	public static AoC2019_08 createDebug(final List<String> input) {
 		return new AoC2019_08(input, true);
 	}
 	
-	private Grid parse(Integer width, Integer height) {
+	private Grid parse(final Integer width, final Integer height) {
 		assert this.input.size() == 1;
 		return Grid.from(this.input.get(0), width * height);
 	}
@@ -43,7 +43,7 @@ public class AoC2019_08 extends AoCBase {
 				.orElseThrow(() -> new RuntimeException());
 	}
 	
-	private String getImage(Integer width, Integer height) {
+	private String getImage(final Integer width, final Integer height) {
 		final Grid layers = parse(width, height);
 		return Stream.iterate(0, i -> i + 1).limit(layers.getWidth())
 				.map(i -> layers.getRowsAsStringList().stream()
@@ -61,12 +61,15 @@ public class AoC2019_08 extends AoCBase {
 		return OCR.convert6(image, '1', '0');
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2019_08.createDebug(TEST).getImage(2, 2).equals("0110");
 
-		final List<String> input = Aocd.getData(2019, 8);
-		lap("Part 1", () -> AoC2019_08.create(input).solvePart1());
-		lap("Part 2", () -> AoC2019_08.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2019, 8);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2019_08.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2019_08.create(input)::solvePart2)
+		);
 	}
 	
 	private static final List<String> TEST = splitLines(

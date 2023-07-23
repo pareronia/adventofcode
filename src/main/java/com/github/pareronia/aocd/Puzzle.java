@@ -23,14 +23,17 @@ SOFTWARE.
  */
 package com.github.pareronia.aocd;
 
+import static java.util.stream.Collectors.joining;
+
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
+import com.github.pareronia.aoc.StringUtils;
 
 import lombok.Getter;
 
@@ -98,7 +101,7 @@ public class Puzzle {
                         System.lineSeparator(), answer2, result2);
         }
         if (StringUtils.isNotBlank(fails[0]) || StringUtils.isNotBlank(fails[1])) {
-            throw new AssertionError(StringUtils.join(fails));
+            throw new AssertionError(Stream.of(fails).collect(joining()));
         }
 	}
 

@@ -1,10 +1,10 @@
+import static com.github.pareronia.aoc.StringUtils.countMatches;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.countMatches;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -12,7 +12,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Value;
 
@@ -23,7 +23,7 @@ public class AoC2016_04 extends AoCBase {
     
     private final List<Room> rooms;
 
-	private AoC2016_04(List<String> inputs, boolean debug) {
+	private AoC2016_04(final List<String> inputs, final boolean debug) {
 		super(debug);
 		this.rooms = inputs.stream()
 		        .map(REGEXP::matcher)
@@ -33,11 +33,11 @@ public class AoC2016_04 extends AoCBase {
 		log(rooms);
 	}
 	
-	public static final AoC2016_04 create(List<String> input) {
+	public static final AoC2016_04 create(final List<String> input) {
 		return new AoC2016_04(input, false);
 	}
 
-	public static final AoC2016_04 createDebug(List<String> input) {
+	public static final AoC2016_04 createDebug(final List<String> input) {
 		return new AoC2016_04(input, true);
 	}
 	
@@ -59,12 +59,15 @@ public class AoC2016_04 extends AoCBase {
 		return matches.get(0);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2016_04.createDebug(TEST).solvePart1() == 1514;
 		
-		final List<String> input = Aocd.getData(2016, 4);
-		lap("Part 1", () -> AoC2016_04.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_04.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2016, 4);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2016_04.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2016_04.create(input)::solvePart2)
+		);
 	}
 
 	private static final List<String> TEST = splitLines(
@@ -93,7 +96,7 @@ public class AoC2016_04 extends AoCBase {
 	            .equals(this.checkum);
 	    }
 	    
-	    private Character decrypt(Character c, int shift) {
+	    private Character decrypt(final Character c, final int shift) {
 	        if (c == '-') {
 	            return ' ';
 	        }

@@ -17,7 +17,6 @@ import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.github.pareronia.aoc.navigation.Headings;
@@ -471,7 +470,8 @@ public class Grid {
 
 	@Override
 	public String toString() {
-		return StringUtils.join(getRowsAsStrings(), System.lineSeparator());
+	    return Utils.stream(getRowsAsStrings().iterator())
+	            .collect(joining(System.lineSeparator()));
 	}
 
 	@Override

@@ -5,12 +5,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.OCR;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2016_08 extends AoCBase {
 
@@ -19,27 +18,27 @@ public class AoC2016_08 extends AoCBase {
     
     private final List<String> inputs;
 	
-	private AoC2016_08(List<String> inputs, boolean debug) {
+	private AoC2016_08(final List<String> inputs, final boolean debug) {
 		super(debug);
 		this.inputs = inputs;
 	}
 	
-	public static final AoC2016_08 create(List<String> input) {
+	public static final AoC2016_08 create(final List<String> input) {
 		return new AoC2016_08(input, false);
 	}
 
-	public static final AoC2016_08 createDebug(List<String> input) {
+	public static final AoC2016_08 createDebug(final List<String> input) {
 		return new AoC2016_08(input, true);
 	}
 	
-    private Grid createGrid(Integer rows, Integer columns) {
+    private Grid createGrid(final Integer rows, final Integer columns) {
         return Grid.from(Stream.iterate(0, i -> i++)
                 .limit(rows)
 	            .map(i -> StringUtils.repeat(OFF, columns))
 	            .collect(toList()));
     }
 	
-	private Grid solve(Integer rows, Integer columns) {
+	private Grid solve(final Integer rows, final Integer columns) {
 	    Grid grid = createGrid(rows, columns);
 	    for (final String input : this.inputs) {
             if (input.startsWith("rect ")) {
@@ -80,12 +79,15 @@ public class AoC2016_08 extends AoCBase {
 	    return OCR.convert6(solve(6, 50), ON, OFF);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2016_08.createDebug(TEST).solve(3, 7).countAllEqualTo(ON) == 6;
 		
-		final List<String> input = Aocd.getData(2016, 8);
-		lap("Part 1", () -> AoC2016_08.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_08.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2016, 8);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2016_08.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2016_08.create(input)::solvePart2)
+		);
 	}
 
 	private static final List<String> TEST = splitLines(
