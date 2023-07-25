@@ -139,7 +139,7 @@ public final class AoC2016_11 extends AoCBase {
     
     @Value
     static final class State {
-        private static final Set<Integer> FLOORS = Set.of(1, 2, 3, 4);
+        private static final List<Integer> FLOORS = List.of(1, 2, 3, 4);
         private static final int TOP = FLOORS.stream().mapToInt(Integer::intValue).max().getAsInt();
         private static final int BOTTOM = FLOORS.stream().mapToInt(Integer::intValue).min().getAsInt();
         private static final int MAX_ITEMS_PER_MOVE = 2;
