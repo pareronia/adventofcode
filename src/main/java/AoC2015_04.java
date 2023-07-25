@@ -1,6 +1,7 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+
 import java.util.List;
 
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -25,7 +26,7 @@ public final class AoC2015_04 extends AoCBase {
     
     private boolean checkZeroes(final byte[] digest, final int zeroes) {
         int cnt = 0;
-        for (final int j : Range.range(zeroes / 2 + zeroes % 2)) {
+        for (final int j : range(zeroes / 2 + zeroes % 2)) {
             final byte c = digest[j];
             if ((c & 0xF0) == 0) {
                 cnt++;

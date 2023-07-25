@@ -1,6 +1,7 @@
 package com.github.pareronia.aoc;
 
-import static com.github.pareronia.aoc.Range.range;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
@@ -19,6 +20,7 @@ import java.util.stream.StreamSupport;
 
 import org.apache.commons.lang3.mutable.MutableInt;
 
+import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.navigation.Headings;
 
 import lombok.Value;
@@ -84,19 +86,19 @@ public class Grid {
 	}
 
 	public Range rowIndices() {
-	    return Range.range(getHeight());
+	    return range(getHeight());
 	}
 	
 	public Range rowIndicesReversed() {
-	    return Range.rangeClosed(getHeight() - 1, 0, -1);
+	    return rangeClosed(getHeight() - 1, 0, -1);
 	}
 	
 	public Range colIndices() {
-	    return Range.range(getWidth());
+	    return range(getWidth());
 	}
 	
 	public Range colIndicesReversed() {
-        return Range.rangeClosed(getWidth() - 1, 0, -1);
+        return rangeClosed(getWidth() - 1, 0, -1);
     }
 	
 	public char[] getRow(final Integer row) {

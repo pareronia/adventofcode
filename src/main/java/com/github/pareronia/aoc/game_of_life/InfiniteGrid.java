@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.IterTools;
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.game_of_life.GameOfLife.Type;
 
 public final class InfiniteGrid implements Type<List<Integer>> {

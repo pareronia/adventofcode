@@ -127,7 +127,7 @@ public class AoC2020_16 extends AoCBase {
 	private static final class Rule {
 	    private final String field;
 	    @Singular
-	    private final Set<Range> validRanges;
+	    private final Set<Range<Integer>> validRanges;
 	    
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));

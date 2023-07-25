@@ -10,7 +10,6 @@ import java.util.stream.Collector;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.Range;
 
 public class Utils {
 
@@ -28,22 +27,6 @@ public class Utils {
 				StringBuilder::toString);
 	}
 	
-    public static Iterator<Integer> iterator(final Range<Integer> range) {
-        return new Iterator<>() {
-            private int i = range.getMinimum();
-
-            @Override
-            public Integer next() {
-                return i++;
-            }
-            
-            @Override
-            public boolean hasNext() {
-                return i <= range.getMaximum();
-            }
-        };
-    }
-    
     public static <T> Stream<T> stream(final Iterator<T> iterator) {
         return Stream.generate(() -> null)
                 .takeWhile(x -> iterator.hasNext())

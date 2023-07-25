@@ -7,8 +7,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.Range;
-
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.geometry3d.Cuboid;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;

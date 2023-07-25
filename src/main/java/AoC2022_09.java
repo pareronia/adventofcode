@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -7,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
 import com.github.pareronia.aoc.navigation.Heading;
@@ -66,7 +66,7 @@ public class AoC2022_09 extends AoCBase {
 
     private void moveRope(final Position[] rope, final Heading move) {
         rope[0] = rope[0].translate(move);
-        Range.range(1, rope.length, 1).forEach(j ->
+        range(1, rope.length, 1).forEach(j ->
                 rope[j] = catchup(rope[j - 1], rope[j]));
         printRope(rope);
     }

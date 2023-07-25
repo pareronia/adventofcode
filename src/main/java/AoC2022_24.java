@@ -1,3 +1,5 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+
 import java.math.BigInteger;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -8,7 +10,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
@@ -54,7 +55,7 @@ public class AoC2022_24 extends AoCBase {
             }
         });
         this.blizzardsByTime = new boolean[this.period][this.width][this.height];
-        for (final int i : Range.range(this.period)) {
+        for (final int i : range(this.period)) {
             for (final Blizzard blizzard : blizzards) {
                 final Position b = blizzard.at(i, this.width, this.height);
                 this.blizzardsByTime[i][b.getX()][b.getY()] = true;

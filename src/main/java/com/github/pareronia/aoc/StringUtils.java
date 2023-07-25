@@ -96,7 +96,7 @@ public class StringUtils {
         if (pads <= 0) {
             return str; // returns original String when possible
         }
-        AssertUtils.assertTrue(pads <= PAD_LIMIT, "Maximum pads: " + PAD_LIMIT);
+        AssertUtils.assertTrue(pads <= PAD_LIMIT, () -> "Maximum pads: " + PAD_LIMIT);
         return repeat(padChar, pads).concat(str);
     }
 

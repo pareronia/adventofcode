@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.Utils.last;
 import static com.github.pareronia.aoc.Utils.naturalNumbers;
 import static java.util.Collections.reverseOrder;
@@ -9,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -63,7 +63,7 @@ public class AoC2022_11 extends AoCBase {
             final Map<Integer, Integer> counter,
             final Function<Long, Long> manage
     ) {
-        Range.range(monkeys.size()).forEach(i -> {
+        range(monkeys.size()).forEach(i -> {
             final Monkey monkey = this.monkeys.get(i);
             for (final long item : monkey.items) {
                 final long level = manage.apply(monkey.operation.apply(item));
@@ -78,7 +78,7 @@ public class AoC2022_11 extends AoCBase {
     
     private long solve(final int rounds, final Function<Long, Long> manage) {
         final Map<Integer, Integer> counter = new HashMap<>();
-        Range.range(rounds).forEach(i -> round(counter, manage));
+        range(rounds).forEach(i -> round(counter, manage));
         return counter.values().stream()
                 .sorted(reverseOrder())
                 .limit(2)

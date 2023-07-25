@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.stream.Collectors.toList;
 
@@ -9,7 +10,6 @@ import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -71,7 +71,7 @@ public class AoC2022_10 extends AoCBase {
         final String pixels = program()
                 .map(state -> draw(state.cycles, state.x))
                 .collect(toAString());
-        return Range.range(6).stream()
+        return range(6).stream()
                 .map(i -> pixels.substring(i * 40, i * 40 + 40))
                 .collect(toList());
     }
