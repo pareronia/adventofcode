@@ -3,10 +3,13 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Vector;
+import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -16,6 +19,12 @@ import lombok.RequiredArgsConstructor;
 public class AoC2019_03 extends AoCBase {
     
     private static final Position ORIGIN = Position.of(0, 0);
+    private static final Map<Character, Vector> DIRECTIONS = Map.of(
+            'R', Headings.EAST.get(),
+            'U', Headings.NORTH.get(),
+            'L', Headings.WEST.get(),
+            'D', Headings.SOUTH.get()
+    );
     
     private final Wire wire1;
     private final Wire wire2;
@@ -37,11 +46,7 @@ public class AoC2019_03 extends AoCBase {
 
     private List<Instruction> toInstructions(final String input) {
         return Stream.of(input.split(","))
-            .map(ins -> {
-                final String direction = ins.substring(0, 1);
-                final int amount = Integer.parseInt(ins.substring(1));
-                return new Instruction(direction, amount);
-            })
+            .map(Instruction::fromString)
             .collect(toList());
     }
 
@@ -51,26 +56,8 @@ public class AoC2019_03 extends AoCBase {
         for (final Instruction instruction : instructions) {
             Position coord = null;
             for (int i = 1; i < instruction.amount + 1; i++) {
-                switch(instruction.direction) {
-                case "R":
-                    coord = Position.of(start.getX() + i, start.getY());
-                    wireCoordinates.add(coord);
-                    break;
-                case "U":
-                    coord = Position.of(start.getX(), start.getY() + i);
-                    wireCoordinates.add(coord);
-                    break;
-                case "L":
-                    coord = Position.of(start.getX() - i, start.getY());
-                    wireCoordinates.add(coord);
-                    break;
-                case "D":
-                    coord = Position.of(start.getX(), start.getY() - i);
-                    wireCoordinates.add(coord);
-                    break;
-                default:
-                    throw new RuntimeException("Invalid input");
-                }
+                coord = start.translate(instruction.direction, i);
+                wireCoordinates.add(coord);
             }
             start = coord;
         }
@@ -136,7 +123,14 @@ public class AoC2019_03 extends AoCBase {
     
     @RequiredArgsConstructor
     private static final class Instruction {
-        private final String direction;
+        private final Vector direction;
         private final int amount;
+        
+        public static Instruction fromString(final String str) {
+            final Vector direction = DIRECTIONS.get(str.substring(0, 1).charAt(0));
+            assert direction != null;
+            final int amount = Integer.parseInt(str.substring(1));
+            return new Instruction(direction, amount);
+        }
     }
 }
