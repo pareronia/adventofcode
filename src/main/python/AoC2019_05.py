@@ -1,10 +1,7 @@
 #! /usr/bin/env python3
 #
-# Advent of Code 2019 Day 2
+# Advent of Code 2019 Day 5
 #
-
-import itertools
-from copy import deepcopy
 
 import aocd
 
@@ -13,30 +10,24 @@ from aoc.intcode import IntCode
 
 
 def _parse(inputs: tuple[str]) -> tuple[int]:
-    assert len(inputs) == 1
     return [int(_) for _ in inputs[0].split(",")]
 
 
-def _run_prog(prog: list[int], noun: int, verb: int) -> int:
-    prog[1] = noun
-    prog[2] = verb
-    return IntCode().run(prog)
+def _solve(ints: tuple[int], inp: int) -> int:
+    IntCode().run(ints, [inp], out := [])
+    return out[-1]
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _run_prog(_parse(inputs), 12, 2)[0]
+    return _solve(_parse(inputs), 1)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    prog = _parse(inputs)
-    for noun, verb in itertools.product(range(100), repeat=2):
-        if _run_prog(deepcopy(prog), noun, verb)[0] == 19_690_720:
-            return 100 * noun + verb
-    raise RuntimeError("Unsolved")
+    return _solve(_parse(inputs), 5)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2019, 2)
+    puzzle = aocd.models.Puzzle(2019, 5)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
     inputs = my_aocd.get_input_data(puzzle, 1)
