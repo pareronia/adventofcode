@@ -6,9 +6,8 @@ import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;

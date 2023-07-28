@@ -18,8 +18,6 @@ import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.navigation.Headings;
 

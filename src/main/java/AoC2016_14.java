@@ -5,8 +5,7 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aocd.Aocd;

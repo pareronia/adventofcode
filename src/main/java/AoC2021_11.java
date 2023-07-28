@@ -4,10 +4,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aoc.IntGrid.Cell;
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;

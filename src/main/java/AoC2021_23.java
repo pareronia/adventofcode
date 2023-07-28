@@ -1,5 +1,4 @@
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,10 +51,10 @@ public class AoC2021_23 extends AoCBase {
                 .filter(c -> c != WALL)
                 .collect(toList());
             assert chars.size() == 4;
-            roomA.add(0, getEnum(Amphipod.class, chars.get(0).toString()));
-            roomB.add(0, getEnum(Amphipod.class, chars.get(1).toString()));
-            roomC.add(0, getEnum(Amphipod.class, chars.get(2).toString()));
-            roomD.add(0, getEnum(Amphipod.class, chars.get(3).toString()));
+            roomA.add(0, Enum.valueOf(Amphipod.class, chars.get(0).toString()));
+            roomB.add(0, Enum.valueOf(Amphipod.class, chars.get(1).toString()));
+            roomC.add(0, Enum.valueOf(Amphipod.class, chars.get(2).toString()));
+            roomD.add(0, Enum.valueOf(Amphipod.class, chars.get(3).toString()));
         }
         return new Diagram(
             hallway,
