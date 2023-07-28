@@ -27,6 +27,8 @@ public class IntCode {
     
     private int ip;
     private List<Long> program;
+    private boolean runTillInputRequired;
+    private boolean halted;
 
     public IntCode(final boolean debug) {
         this.debug = debug;
@@ -51,7 +53,30 @@ public class IntCode {
     ) {
         this.ip = 0;
         this.program = new ArrayList<>(instructions);
-        
+        return doRun(input, output);
+    }
+    
+    public void runTillInputRequired(
+            final List<Long> instructions,
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.runTillInputRequired = true;
+        run(instructions, input, output);
+    }
+    
+    public void continueTillInputRequired(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.runTillInputRequired = true;
+        doRun(input, output);
+    }
+    
+    private List<Long> doRun(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
         while (true) {
             final Long op = program.get(ip);
             final int opcode = (int) (op % 100);
@@ -72,6 +97,10 @@ public class IntCode {
                 ip += 4;
                 break;
             case INPUT:
+                if (this.runTillInputRequired && input.isEmpty()) {
+                    this.runTillInputRequired = false;
+                    return this.program;
+                }
                 set(addr[1], input.pop());
                 ip += 2;
                 break;
@@ -95,6 +124,7 @@ public class IntCode {
                 break;
             case EXIT:
                 log(String.format("%d: EXIT", ip));
+                this.halted = true;
                 return program;
             default:
                 throw new IllegalStateException(
@@ -133,7 +163,11 @@ public class IntCode {
         return addr;
     }
 
-	private void log(final Object obj) {
+	public boolean isHalted() {
+        return halted;
+    }
+
+    private void log(final Object obj) {
 		if (!debug) {
 			return;
 		}
