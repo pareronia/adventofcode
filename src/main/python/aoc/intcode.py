@@ -15,13 +15,33 @@ IMMEDIATE = 1
 class IntCode:
     ip: int
     prog: list[int]
+    run_till_input_required: bool = False
+    _halted: bool = False
+
+    @property
+    def halted(self) -> bool:
+        return self._halted
 
     def run(
         self, prog: list[int], inputs: list[int] = [], outputs: list[int] = []
     ) -> list[int]:
         self.ip = 0
         self.prog = prog
+        return self._do_run(inputs, outputs)
 
+    def run_till_input_required(
+        self, prog: list[int], inputs: list[int], outputs: list[int]
+    ):
+        self.run_till_input_required = True
+        self.run(prog, inputs, outputs)
+
+    def continue_till_input_required(
+        self, inputs: list[int], outputs: list[int]
+    ):
+        self.run_till_input_required = True
+        self._do_run(inputs, outputs)
+
+    def _do_run(self, inputs: list[int], outputs: list[int]) -> list[int]:
         while True:
             op = self.prog[self.ip]
             opcode = op % 100
@@ -39,13 +59,14 @@ class IntCode:
                 self[addr[3]] = self[addr[1]] * self[addr[2]]
                 self.ip += 4
             elif opcode == INP:
+                if self.run_till_input_required and len(inputs) == 0:
+                    self.run_till_input_required = False
+                    return self.prog
                 self[addr[1]] = inputs.pop(0)
                 self.ip += 2
             elif opcode == OUT:
                 outputs.append(self[addr[1]])
                 self.ip += 2
-            elif opcode == HLT:
-                return self.prog
             elif opcode == JIT:
                 self.ip = self[addr[2]] if self[addr[1]] != 0 else self.ip + 3
             elif opcode == JIF:
@@ -56,6 +77,9 @@ class IntCode:
             elif opcode == EQ:
                 self[addr[3]] = 1 if self[addr[1]] == self[addr[2]] else 0
                 self.ip += 4
+            elif opcode == HLT:
+                self._halted = True
+                return self.prog
             else:
                 raise ValueError(f"Invalid opcode '{opcode}'")
 
