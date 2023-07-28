@@ -51,7 +51,7 @@ public class IterTools {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> Stream<List<T>> permutations(
+    public static <T> void permutations(
             final Iterable<T> iterable,
             final Consumer<List<T>> consumer
     ) {
@@ -60,10 +60,8 @@ public class IterTools {
         for (int j = 0; j < a.length; j++) {
             a[j] = j;
         }
-        final Stream.Builder<List<T>> builder = Stream.builder();
         Heap.accept(a, p -> consumer.accept(
                 Arrays.stream(p).mapToObj(i -> o[i]).collect(toList())));
-        return builder.build();
     }
 
     public static Iterator<int[]> combinationsIterator(final int n, final int k) {
