@@ -1,20 +1,20 @@
-import static java.util.stream.Collectors.toList;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.IterTools.product;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2019_02 extends AoCBase {
     
-    private final List<Integer> program;
+    private final List<Long> program;
     
     private AoC2019_02(final List<String> input, final boolean debug) {
         super(debug);
         assert input.size() == 1;
-        program = Stream.of(input.get(0).split(",")).map(Integer::valueOf).collect(toList());
+        this.program = IntCode.parse(input.get(0));
     }
 
     public static AoC2019_02 create(final List<String> input) {
@@ -25,29 +25,24 @@ public class AoC2019_02 extends AoCBase {
         return new AoC2019_02(input, true);
     }
     
-    private Integer runProgram(final Integer noun, final Integer verb) {
-        final List<Integer> program = new ArrayList<>(this.program);
-        program.set(1, noun);
-        program.set(2, verb);
-        new IntCode(this.debug).run(program);
-        return program.get(0);
+    private Long runProgram(final long noun, final long verb) {
+        final List<Long> theProgram = new ArrayList<>(this.program);
+        theProgram.set(1, noun);
+        theProgram.set(2, verb);
+        return new IntCode(this.debug).run(theProgram).get(0);
     }
     
     @Override
-    public Integer solvePart1() {
+    public Long solvePart1() {
         return runProgram(12, 2);
     }
 
     @Override
     public Integer solvePart2() {
-        for (int noun = 0; noun < 100; noun++) {
-            for (int verb = 0; verb < 100; verb ++) {
-                if (runProgram(noun, verb) == 19690720) {
-                    return 100 * noun + verb;
-                }
-            }
-        }
-        throw new IllegalStateException("Unsolved");
+        return product(range(100), range(100)).stream()
+            .filter(p -> runProgram(p.get(0), p.get(1)) == 19_690_720)
+            .map(p -> 100 * p.get(0) + p.get(1))
+            .findFirst().orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
