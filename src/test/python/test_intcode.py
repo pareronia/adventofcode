@@ -45,6 +45,42 @@ class TestIntCode(unittest.TestCase):
         ans = self.intcode.run([1, 1, 1, 4, 99, 5, 6, 0, 99])
         self.assertEqual(ans, [30, 1, 1, 4, 2, 5, 6, 0, 99])
 
+    def test_7(self):
+        prog = [
+            109,
+            1,
+            204,
+            -1,
+            1001,
+            100,
+            1,
+            100,
+            1008,
+            100,
+            16,
+            101,
+            1006,
+            101,
+            0,
+            99,
+        ]
+        self.intcode.run(prog, self.inp, self.out)
+        self.assertEqual(self.out, prog)
+
+    def test_8(self):
+        self.intcode.run(
+            [1102, 34915192, 34915192, 7, 4, 7, 99, 0], self.inp, self.out
+        )
+        self.assertEqual(self.out, [34_915_192 * 34_915_192])
+
+    def test_9(self):
+        self.intcode.run([104, 1125899906842624, 99], self.inp, self.out)
+        self.assertEqual(self.out, [1_125_899_906_842_624])
+
+    def test_expand(self):
+        ans = self.intcode.run([1001, 5, 10, 7, 99], self.inp, self.out)
+        self.assertEqual(ans, [1001, 5, 10, 7, 99, 0, 0, 10])
+
     def test_input_output(self):
         self.inp = [123]
         ans = self.intcode.run([3, 0, 4, 0, 99], self.inp, self.out)

@@ -6,14 +6,17 @@ JIT = 5
 JIF = 6
 LT = 7
 EQ = 8
+BASE = 9
 HLT = 99
 
 POSITION = 0
 IMMEDIATE = 1
+RELATIVE = 2
 
 
 class IntCode:
     ip: int
+    base: int
     prog: list[int]
     run_till_input_required: bool = False
     _halted: bool = False
@@ -26,7 +29,8 @@ class IntCode:
         self, prog: list[int], inputs: list[int] = [], outputs: list[int] = []
     ) -> list[int]:
         self.ip = 0
-        self.prog = prog
+        self.base = 0
+        self.prog = [_ for _ in prog]
         return self._do_run(inputs, outputs)
 
     def run_till_input_required(
@@ -77,6 +81,9 @@ class IntCode:
             elif opcode == EQ:
                 self[addr[3]] = 1 if self[addr[1]] == self[addr[2]] else 0
                 self.ip += 4
+            elif opcode == BASE:
+                self.base += self[addr[1]]
+                self.ip += 2
             elif opcode == HLT:
                 self._halted = True
                 return self.prog
@@ -91,6 +98,8 @@ class IntCode:
                     addr[i] = self[self.ip + i]
                 elif modes[i] == IMMEDIATE:
                     addr[i] = self.ip + i
+                elif modes[i] == RELATIVE:
+                    addr[i] = self[self.ip + i] + self.base
                 else:
                     raise ValueError(f"Invalid mode '{modes[i]}'")
         except IndexError:
@@ -99,8 +108,13 @@ class IntCode:
 
     def __getitem__(self, addr: int) -> int:
         assert addr >= 0
+        if addr >= len(self.prog):
+            return 0
         return self.prog[addr]
 
     def __setitem__(self, addr: int, value: int):
         assert addr >= 0
+        size = len(self.prog)
+        if addr >= size:
+            self.prog.extend([0 for _ in range(addr - size + 1)])
         self.prog[addr] = value
