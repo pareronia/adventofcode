@@ -7,8 +7,6 @@ import java.util.Deque;
 import java.util.List;
 import java.util.stream.LongStream;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -236,7 +234,7 @@ public class AoC2021_16 extends AoCBase {
             private int binToDec(final char[] binData,
                             final int startInc, final int endExc) {
                 final String s = String.valueOf(
-                        ArrayUtils.subarray(binData, startInc, endExc));
+                        subarray(binData, startInc, endExc));
                 return Integer.parseInt(s, 2);
             }
         }

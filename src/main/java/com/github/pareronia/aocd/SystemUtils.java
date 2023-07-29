@@ -23,6 +23,7 @@ SOFTWARE.
  */
 package com.github.pareronia.aocd;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
@@ -53,10 +54,10 @@ public class SystemUtils {
 		final String env = System.getenv("AOCD_DIR");
 		if (StringUtils.isNotBlank(env)) {
 			return Paths.get(env);
-		} else if (org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS) {
+		} else if (isOsWindows()) {
 			return Paths.get(System.getenv("APPDATA"), "aocd");
-		} else if (org.apache.commons.lang3.SystemUtils.IS_OS_UNIX) {
-			final Path userHome = org.apache.commons.lang3.SystemUtils.getUserHome().toPath();
+		} else if (isOsLinux()) {
+			final Path userHome = getUserHome().toPath();
 			return userHome.resolve(".config").resolve("aocd");
 		} else {
 			throw new UnsupportedOperationException("OS not supported");
@@ -148,5 +149,25 @@ public class SystemUtils {
 		} catch (final IOException e) {
 			throw new AocdException(e);
 		}
+	}
+	
+	private boolean isOsWindows() {
+	    return getOsName().startsWith("Windows");
+	}
+	
+	private boolean isOsLinux() {
+	    return getOsName().toLowerCase().startsWith("linux");
+	}
+    
+	public File getUserHome() {
+        return new File(getSystemProperty("user.home"));
+    }
+
+    private String getOsName() {
+        return getSystemProperty("os.name");
+    }
+	
+	private String getSystemProperty(final String property) {
+	    return System.getProperty(property);
 	}
 }

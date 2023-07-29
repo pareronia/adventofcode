@@ -3,8 +3,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Deque;
 import java.util.Set;
 
-import org.apache.commons.lang3.Range;
 import org.junit.jupiter.api.Test;
+
+import com.github.pareronia.aoc.Range;
 
 public class AoC2022_15TestCase {
 

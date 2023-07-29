@@ -1,10 +1,9 @@
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,16 +24,15 @@ public class NessieFinderTestCase {
 	
 	@Test
 	public void findNessies() {
-		final List<Pair<Integer, Integer>> result = AoC2020_20.NessieFinder.findNessies(grid);
+		final Map<Integer, Integer> result = AoC2020_20.NessieFinder.findNessies(grid);
 		
 		assertThat(result).hasSize(1);
-		assertThat(result.get(0).getLeft()).isEqualTo(1);
-		assertThat(result.get(0).getRight()).isEqualTo(2);
+		assertThat(result).containsEntry(1, 2);
 	}
 	
 	@Test
 	public void markNessies() {
-		final Grid result = AoC2020_20.NessieFinder.markNessies(asList(Pair.of(1, 2)), grid);
+		final Grid result = AoC2020_20.NessieFinder.markNessies(Map.of(1, 2), grid);
 		
 		final List<String> expected = new ArrayList<>();
 		expected.add("_~_~___~_~~~___~_~~_\u2592~__");

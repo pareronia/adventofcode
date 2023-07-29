@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -17,9 +20,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
-
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aocd.Aocd;
@@ -76,15 +76,15 @@ public class AoC2020_20 extends AoCBase {
 		Grid image = Grid.from(this.tileSet.createImageGrid());
 		print(image);
 		log("Looking for Nessies...");
-		List<Pair<Integer, Integer>> nessies = null;
+		Map<Integer, Integer> nessies = null;
 		final Iterator<Grid> permutations = image.getPermutations();
 		while (permutations.hasNext()) {
 			image = permutations.next();
 			nessies = NessieFinder.findNessies(image);
 			if (nessies.size() > 1) {
-				for (final Pair<Integer, Integer> nessie : nessies) {
+				for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
 					log(String.format("Found 1 Nessie at (%d, %d)!",
-							nessie.getLeft(), nessie.getRight()));
+							nessie.getKey(), nessie.getValue()));
 				}
 				break;
 			} else if (nessies.size() == 1) {
@@ -356,7 +356,9 @@ public class AoC2020_20 extends AoCBase {
 				return;
 			}
 			for (final Tile[] tiles : placedTiles) {
-				final Tile tile = ObjectUtils.firstNonNull(tiles);
+			    final Tile tile = Arrays.stream(tiles)
+			            .filter(Objects::nonNull)
+			            .findFirst().orElse(null);
 				if (tile == null) {
 					continue;
 				}
@@ -372,7 +374,9 @@ public class AoC2020_20 extends AoCBase {
 				log("");
 			}
 			for (final Tile[] tiles : placedTiles) {
-				final Tile tile = ObjectUtils.firstNonNull(tiles);
+			    final Tile tile = Arrays.stream(tiles)
+			            .filter(Objects::nonNull)
+			            .findFirst().orElse(null);
 				if (tile == null) {
 					continue;
 				}
@@ -399,8 +403,8 @@ public class AoC2020_20 extends AoCBase {
 		private boolean haveCommonEdge(final Tile tile1, final Tile tile2) {
 			return getEdgesForMatching(tile1).stream()
 				.flatMap(edge1 -> getEdgesForMatching(tile2).stream()
-									.map(edge2 -> Pair.of(edge1, edge2)))
-				.filter(p -> Arrays.equals(p.getLeft(), p.getRight()))
+									.map(edge2 -> new char[][] { edge1, edge2 }))
+				.filter(p -> Arrays.equals(p[0], p[1]))
 				.count() == 2;
 		}
 		
@@ -502,8 +506,8 @@ public class AoC2020_20 extends AoCBase {
 		
 		private static final char NESSIE_CHAR = '\u2592';
 
-		public static List<Pair<Integer,Integer>> findNessies(final Grid grid) {
-			final List<Pair<Integer, Integer>> nessies = new ArrayList<>();
+		public static Map<Integer,Integer> findNessies(final Grid grid) {
+			final Map<Integer, Integer> nessies = new HashMap<>();
 			for (int i = 1; i < grid.getHeight(); i++) {
 				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.getRowAsString(i));
 				while (m1.find()) {
@@ -512,7 +516,7 @@ public class AoC2020_20 extends AoCBase {
 						final Matcher m2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#")
 								.matcher(grid.getRowAsString(i + 1).substring(tail));
 						if (m2.find()) {
-							nessies.add(Pair.of(i, tail));
+							nessies.put(i, tail);
 						}
 					}
 				}
@@ -520,14 +524,14 @@ public class AoC2020_20 extends AoCBase {
 			return nessies;
 		}
 		
-		public static Grid markNessies(final List<Pair<Integer, Integer>> nessies, final Grid gridIn) {
+		public static Grid markNessies(final Map<Integer, Integer> nessies, final Grid gridIn) {
 			final List<String> grid = gridIn.getRowsAsStringList();
-			for (final Pair<Integer, Integer> nessie : nessies) {
-				final int idx = nessie.getRight();
-				final char[] chars0 = grid.get(nessie.getLeft() - 1).toCharArray();
+			for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
+				final int idx = nessie.getValue();
+				final char[] chars0 = grid.get(nessie.getKey() - 1).toCharArray();
 				chars0[idx+18] = NESSIE_CHAR;
-				grid.set(nessie.getLeft() - 1, new String(chars0));
-				final char[] chars1 = grid.get(nessie.getLeft()).toCharArray();
+				grid.set(nessie.getKey() - 1, new String(chars0));
+				final char[] chars1 = grid.get(nessie.getKey()).toCharArray();
 				chars1[idx] = NESSIE_CHAR;
 				chars1[idx+5] = NESSIE_CHAR;
 				chars1[idx+6] = NESSIE_CHAR;
@@ -536,15 +540,15 @@ public class AoC2020_20 extends AoCBase {
 				chars1[idx+17] = NESSIE_CHAR;
 				chars1[idx+18] = NESSIE_CHAR;
 				chars1[idx+19] = NESSIE_CHAR;
-				grid.set(nessie.getLeft(), new String(chars1));
-				final char[] chars2 = grid.get(nessie.getLeft() + 1).toCharArray();
+				grid.set(nessie.getKey(), new String(chars1));
+				final char[] chars2 = grid.get(nessie.getKey() + 1).toCharArray();
 				chars2[idx+1] = NESSIE_CHAR;
 				chars2[idx+4] = NESSIE_CHAR;
 				chars2[idx+7] = NESSIE_CHAR;
 				chars2[idx+10] = NESSIE_CHAR;
 				chars2[idx+13] = NESSIE_CHAR;
 				chars2[idx+16] = NESSIE_CHAR;
-				grid.set(nessie.getLeft() + 1, new String(chars2));
+				grid.set(nessie.getKey() + 1, new String(chars2));
 			}
 			for (int j = 0; j < grid.size(); j++) {
 				final char[] chars = grid.get(j).toCharArray();

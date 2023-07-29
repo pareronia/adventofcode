@@ -2,8 +2,10 @@ package com.github.pareronia.aoc;
 
 import java.util.Comparator;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public final class Range<T> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
@@ -17,8 +19,10 @@ public final class Range<T> {
     }
 
     @Getter
+    @EqualsAndHashCode.Include
     private final T minimum;
     @Getter
+    @EqualsAndHashCode.Include
     private final T maximum;
     private final Comparator<T> comparator;
     private String toString;

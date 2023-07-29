@@ -4,7 +4,6 @@ import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.builder.ToStringStyle.SHORT_PREFIX_STYLE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,8 +13,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.builder.ToStringBuilder;
-
 import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -23,6 +20,7 @@ import com.github.pareronia.aocd.Puzzle;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 public class AoC2015_21 extends AoCBase {
 	
@@ -146,6 +144,7 @@ public class AoC2015_21 extends AoCBase {
 	@RequiredArgsConstructor
 	@Getter
 	@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+	@ToString
 	private static final class ShopItem {
 		private enum Type { WEAPON, ARMOR, RING, NONE }
 		
@@ -183,21 +182,10 @@ public class AoC2015_21 extends AoCBase {
 		public boolean isRing() {
 			return this.type == Type.RING;
 		}
-
-		@Override
-		public String toString() {
-			final StringBuilder builder = new StringBuilder();
-			builder.append("ShopItem [name=").append(name)
-					.append(", type=").append(type)
-					.append(", cost=").append(cost)
-					.append(", damage=").append(damage)
-					.append(", armor=").append(armor)
-					.append("]");
-			return builder.toString();
-		}
 	}
 	
 	@RequiredArgsConstructor
+	@ToString
 	private static final class Shop {
 		private final Set<ShopItem> items;
 
@@ -233,20 +221,16 @@ public class AoC2015_21 extends AoCBase {
 			result.addAll(ringCombinations);
 			return result;
 		}
-
-
-		@Override
-		public String toString() {
-			return "Shop [items=" + items + "]";
-		}
 	}
 	
 	@RequiredArgsConstructor
+	@ToString
 	private static final class PlayerConfig {
 	    @Getter
 	    private final int hitPoints = 100;
 		private final Set<ShopItem> items;
 
+		@ToString.Include
 		public int getTotalCost() {
 			return this.items.stream().collect(summingInt(ShopItem::getCost));
 		}
@@ -257,16 +241,6 @@ public class AoC2015_21 extends AoCBase {
 		
 		public int getTotalArmor() {
 			return this.items.stream().collect(summingInt(ShopItem::getArmor));
-		}
-
-		@Override
-		public String toString() {
-			final ToStringBuilder tsb
-					= new ToStringBuilder(this, SHORT_PREFIX_STYLE);
-			this.items.stream()
-					.forEach(i -> tsb.append(i.getName()));
-			tsb.append("totalCost", this.getTotalCost());
-			return tsb.toString();
 		}
 	}
 	

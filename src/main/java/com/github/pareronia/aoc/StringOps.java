@@ -3,8 +3,6 @@ import static com.github.pareronia.aoc.CharArrayUtils.addAll;
 import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.stream.Collectors.toList;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 public class StringOps {
     
     public static Integer[] getDigits(final String s, final int expected) {
@@ -78,8 +76,8 @@ public class StringOps {
     }
     
     public static char[] swap(final char[] ch, final char first, final char second) {
-        final int i1 = ArrayUtils.indexOf(ch, first);
-        final int i2 = ArrayUtils.indexOf(ch, second);
+        final int i1 = CharArrayUtils.indexOf(ch, first);
+        final int i2 = CharArrayUtils.indexOf(ch, second);
         final char temp = ch[i1];
         ch[i1] = ch[i2];
         ch[i2] = temp;
