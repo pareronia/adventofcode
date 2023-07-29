@@ -6,7 +6,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
+import com.github.pareronia.aoc.AssertUtils;
 
 public class IntCode {
     
@@ -18,14 +21,17 @@ public class IntCode {
     private static final int JIF = 6;
     private static final int LT = 7;
     private static final int EQ = 8;
+    private static final int BASE = 9;
     private static final int EXIT = 99;
 
     private static final int POSITION = 0;
     private static final int IMMEDIATE = 1;
+    private static final int RELATIVE = 2;
 
 	private final boolean debug;
     
     private int ip;
+    private int base;
     private List<Long> program;
     private boolean runTillInputRequired;
     private boolean halted;
@@ -52,6 +58,7 @@ public class IntCode {
             final Deque<Long> output
     ) {
         this.ip = 0;
+        this.base = 0;
         this.program = new ArrayList<>(instructions);
         return doRun(input, output);
     }
@@ -122,6 +129,10 @@ public class IntCode {
                 set(addr[3], get(addr[1]) == get(addr[2]) ? 1 : 0);
                 ip += 4;
                 break;
+            case BASE:
+                base += get(addr[1]);
+                ip += 2;
+                break;
             case EXIT:
                 log(String.format("%d: EXIT", ip));
                 this.halted = true;
@@ -134,14 +145,24 @@ public class IntCode {
     }
     
     private long get(final int addr) {
+        AssertUtils.assertTrue(addr >= 0, () -> "index out of range");
+        if (addr >= this.program.size()) {
+            return 0;
+        }
         return this.program.get(addr);
     }
 
     private int getInt(final int addr) {
-        return Math.toIntExact(this.program.get(addr));
+        return Math.toIntExact(this.get(addr));
     }
     
     private void set(final int addr, final long value) {
+        AssertUtils.assertTrue(addr >= 0, () -> "index out of range");
+        if (addr >= this.program.size()) {
+        IntStream.range(0, addr - this.program.size() + 1)
+                .mapToLong(i -> 0L)
+                .forEach(this.program::add);
+        }
         this.program.set(addr, value);
     }
     
@@ -153,12 +174,14 @@ public class IntCode {
                     addr[i] = Math.toIntExact(this.program.get(this.ip + i));
                 } else if (modes[i] == IMMEDIATE) {
                     addr[i] = this.ip + i;
+                } else if (modes[i] == RELATIVE) {
+                    addr[i] = Math.toIntExact(this.program.get(this.ip + i) + this.base);
                 } else {
                     throw new IllegalArgumentException(
                             String.format("Invalid mode '%d'", modes[i]));
                 }
             }
-        } catch (final IndexOutOfBoundsException e) {
+        } catch (final IndexOutOfBoundsException | ArithmeticException e) {
         }
         return addr;
     }

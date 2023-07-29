@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 public class IntCodeTestCase {
-
+    
     @Test
     public void test1() {
         final List<Long> program = asList(1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50);
@@ -181,6 +181,46 @@ public class IntCodeTestCase {
                 1000, 1, 20, 4, 20, 1105, 1, 46, 98, 99);
         
         assertIntCode(program, 888, 1001);
+    }
+
+    @Test
+    public void testExpand() {
+        final List<Long> program = asList(1001, 5, 10, 7, 99);
+        
+        final List<Long> result = setUpIntCode().run(program);
+        
+        assertThat(result).isEqualTo(asList(1001, 5, 10, 7, 99, 0, 0, 10));
+    }
+    
+    @Test
+    public void test7() {
+        final List<Long> program = asList(109, 1, 204, -1, 1001, 100, 1, 100,
+                1008, 100, 16, 101, 1006, 101, 0, 99);
+        final Deque<Long> output = new ArrayDeque<>();
+        
+        setUpIntCode().run(program, null, output);
+        
+        assertThat(output.stream().collect(toList())).isEqualTo(program);
+    }
+    
+    @Test
+    public void test8() {
+        final List<Long> program = asList(1102, 34915192, 34915192, 7, 4, 7, 99, 0);
+        final Deque<Long> output = new ArrayDeque<>();
+        
+        setUpIntCode().run(program, null, output);
+        
+        assertThat(output.getLast()).isEqualTo(34_915_192L * 34_915_192L);
+    }
+
+    @Test
+    public void test9() {
+        final List<Long> program = List.of(104L, 1125899906842624L, 99L);
+        final Deque<Long> output = new ArrayDeque<>();
+        
+        setUpIntCode().run(program, null, output);
+        
+        assertThat(output.getLast()).isEqualTo(1_125_899_906_842_624L);
     }
     
     private void assertIntCode(final List<Long> program, final long input, final long result) {
