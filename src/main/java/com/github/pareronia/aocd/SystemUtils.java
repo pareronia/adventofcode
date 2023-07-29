@@ -45,8 +45,8 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
+import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aoc.StringUtils;
-import com.google.gson.Gson;
 
 public class SystemUtils {
 
@@ -77,7 +77,7 @@ public class SystemUtils {
 	@SuppressWarnings("unchecked")
     public Map<String, String> getUserIds() {
 	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("token2id.json"))) {
-	        return new Gson().fromJson(reader, Map.class);
+	        return Json.fromJson(reader, Map.class);
         } catch (final IOException e) {
 			throw new AocdException(e);
         }
@@ -86,7 +86,7 @@ public class SystemUtils {
 	@SuppressWarnings("unchecked")
     public Map<String, String> getTokens() {
 	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("tokens.json"))) {
-	        return new Gson().fromJson(reader, Map.class);
+	        return Json.fromJson(reader, Map.class);
         } catch (final IOException e) {
 			throw new AocdException(e);
         }

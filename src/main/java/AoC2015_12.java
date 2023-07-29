@@ -6,8 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.JSONObject;
-
+import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -42,8 +41,8 @@ public class AoC2015_12 extends AoCBase {
     
     @SuppressWarnings("unchecked")
     private int addAllNumbers2(final Object obj) {
-        if (obj instanceof Integer) {
-            return (Integer) obj;
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
         } else if (obj instanceof String) {
             return 0;
         } else if (obj instanceof List) {
@@ -65,8 +64,8 @@ public class AoC2015_12 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        final JSONObject jo = new JSONObject("{content: " + this.input + "}");
-        return addAllNumbers2(jo.toMap());
+        return addAllNumbers2(
+                Json.fromJson("{content: " + this.input + "}", Map.class));
     }
 
     public static void main(final String[] args) throws Exception {

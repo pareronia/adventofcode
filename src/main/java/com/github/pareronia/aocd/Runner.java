@@ -9,8 +9,8 @@ import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aocd.RunServer.RequestHandler;
-import com.google.gson.Gson;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -142,7 +142,7 @@ class Runner {
 
         @Override
 		public String toString() {
-            return new Gson().toJson(this);
+            return Json.toJson(this);
 		}
         
         @RequiredArgsConstructor
