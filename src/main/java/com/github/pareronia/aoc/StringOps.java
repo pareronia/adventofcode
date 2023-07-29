@@ -1,7 +1,7 @@
 package com.github.pareronia.aoc;
+import static com.github.pareronia.aoc.CharArrayUtils.addAll;
+import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.addAll;
-import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import org.apache.commons.lang3.ArrayUtils;
 

@@ -1,5 +1,6 @@
 package com.github.pareronia.aocd;
 
+import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -16,7 +17,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,7 +86,7 @@ public class RunServerTest {
 			final char[] c = new char[1024];
 			final int n = dis.read(c, 0, 1024);
 			if (n > 0) {
-				response = new String(ArrayUtils.subarray(c, 0, n));
+				response = new String(subarray(c, 0, n));
 			}
 			assertThat(response).isEqualTo(expectedResponse);
 		} finally {

@@ -6,8 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.ArrayUtils;
-
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -136,11 +134,10 @@ public class AoC2021_04 extends AoCBase {
 	    public Board(final List<String> numbers) {
 	        final int[][] cells = new int[numbers.size()][numbers.get(0).length()];
 	        for (int i = 0; i < numbers.size(); i++) {
-	            final List<Integer> ints = Arrays.stream(numbers.get(i).split("\\s+"))
+	            cells[i] = Arrays.stream(numbers.get(i).split("\\s+"))
 	                    .filter(StringUtils::isNotBlank)
-	                    .map(Integer::valueOf)
-	                    .collect(toList());
-	            cells[i] = ArrayUtils.toPrimitive(ints.toArray(Integer[]::new));
+	                    .mapToInt(Integer::parseInt)
+	                    .toArray();
 	        }
 	        this.numbers = cells;
 	    }

@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
@@ -194,7 +195,7 @@ public class AoC2021_16 extends AoCBase {
                 final StringBuilder value = new StringBuilder();
                 while (true) {
                     final char proceed = binData[i];
-                    value.append(ArrayUtils.subarray(binData, i + 1, i + 5));
+                    value.append(subarray(binData, i + 1, i + 5));
                     i += 5;
                     if (proceed == '0') {
                         break;

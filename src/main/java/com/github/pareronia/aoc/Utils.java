@@ -1,22 +1,21 @@
 package com.github.pareronia.aoc;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 import java.util.stream.Collector;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 public class Utils {
 
 	public static Stream<Character> asCharacterStream(final String string) {
-		return Arrays.stream(
-				ArrayUtils.toObject(
-						Objects.requireNonNull(string).toCharArray()));
+	    AssertUtils.assertNotNull(string, () -> "Expected string to be non-null");
+	    
+	    return IntStream.range(0, string.length())
+	            .mapToObj(i -> Character.valueOf(string.charAt(i)));
 	}
     
 	public static Collector<Character, StringBuilder, String> toAString() {

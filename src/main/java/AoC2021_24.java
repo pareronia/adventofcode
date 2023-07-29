@@ -1,7 +1,6 @@
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,7 +41,7 @@ public class AoC2021_24 extends AoCBase {
         this.addx = getOperandsAt(input, 5);
         this.monadInstructions = input.stream()
                 .map(s -> s.split(" "))
-                .map(s -> new MonadInstruction(s[0], asList(subarray(s, 1, s.length))))
+                .map(s -> new MonadInstruction(s[0], asList(s).subList(1, s.length)))
                 .collect(toList());
     }
     

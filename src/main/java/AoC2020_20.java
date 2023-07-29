@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -388,7 +387,9 @@ public class AoC2020_20 extends AoCBase {
 		}
 		
 		private Set<char[]> getEdgesForMatching(final Tile tile) {
-			if (ArrayUtils.contains(placedTiles, tile)) {
+		    if (Arrays.stream(placedTiles)
+		            .flatMap(a -> Arrays.stream(a))
+		            .anyMatch(tile::equals)) {
 				return tile.getAllEdges();
 			} else {
 				return new HashSet<>(union(tile.getAllEdges(), tile.getAllEdgesReversed()));

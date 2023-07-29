@@ -1,10 +1,10 @@
+import static com.github.pareronia.aoc.CharArrayUtils.indexOf;
+import static com.github.pareronia.aoc.CharArrayUtils.reverse;
 import static com.github.pareronia.aoc.Utils.asCharacterStream;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.indexOf;
-import static org.apache.commons.lang3.ArrayUtils.reverse;
 
 import java.util.Arrays;
 import java.util.List;

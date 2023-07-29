@@ -2,8 +2,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.ArrayUtils;
-
+import com.github.pareronia.aoc.CharArrayUtils;
 import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -64,14 +63,14 @@ public class AoC2016_05 extends AoCBase {
 			final String val = md5.value;
 			index = md5.index;
 			final char temp = val.charAt(5);
-			if (!ArrayUtils.contains(validPositions, temp) || seen.contains(temp)) {
+			if (!CharArrayUtils.contains(validPositions, temp) || seen.contains(temp)) {
 				continue;
 			}
 			seen.add(temp);
 			final Integer position = Integer.valueOf(String.valueOf(temp));
 			result[position] = val.charAt(6);
 			log(String.valueOf(result));
-			if (!ArrayUtils.contains(result, ' ')) {
+			if (!CharArrayUtils.contains(result, ' ')) {
 				break;
 			}
 		}
