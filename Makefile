@@ -55,8 +55,7 @@ CPP_SRCS = $(shell find $(CPP_ROOT) -name "*.cpp" -or -name "*.hpp")
 JULIA_SRCS = $(shell find $(JULIA_ROOT) -name "*.jl")
 SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(BASH_SRCS) \
 	   $(CPP_SRCS) $(JULIA_SRCS) $(MAKEFILE)
-JAVA_LIBS = $(shell find $(JAVA_LIB_ROOT) -name "*.jar" -not -name "*-sources.jar")
-JAVA_CP_LIBS = $(call to_path,$(JAVA_LIBS))
+JAVA_CP_LIBS = $(CLASSPATH)
 
 # functions
 msg = (if [ -t 1 ]; then echo ${BLUE}"\n$1\n"${NC}; else echo "$1"; fi)
