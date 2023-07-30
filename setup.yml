@@ -18,6 +18,10 @@ julia:
     base_dir: &julia-base_dir src/main/julia
     file_pattern: &julia-file_pattern AoC{year}_{day:0>2}
     file_ext: &julia-file_ext .jl
+rust:
+    base_dir: &rust-base_dir src/main/rust
+    file_pattern: &rust-file_pattern AoC{year}_{day:0>2}
+    file_ext: &rust-file_ext .rs
 implementation_tables:
     rows:
         - language: python3
@@ -40,6 +44,10 @@ implementation_tables:
           base_dir: *julia-base_dir
           pattern: *julia-file_pattern
           ext: *julia-file_ext
+        - language: rust
+          base_dir: *rust-base_dir
+          pattern: 'AoC{year}_{day:0>2}/src/main'
+          ext: *rust-file_ext
 runner:
     root: ${PWD}
     default_timeout: 60
