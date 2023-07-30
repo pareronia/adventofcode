@@ -7,17 +7,23 @@ impl AoC2022_01 {
         Box::new(AoC2022_01 {})
     }
 
-    fn solve(&self, lines: &Vec<String>, count: usize) -> u32 {
+    fn parse(&self, lines: &Vec<String>) -> Vec<Vec<u32>> {
         let blocks = aoc::to_blocks(lines);
-        let mut sums: Vec<u32> = blocks
+        blocks
             .iter()
             .map(|block| {
                 block
                     .iter()
                     .map(|line| line.parse::<u32>().unwrap())
-                    .sum::<u32>()
+                    .collect()
             })
-            .collect();
+            .collect()
+    }
+
+    fn solve(&self, lines: &Vec<String>, count: usize) -> u32 {
+        let groups = self.parse(&lines);
+        let mut sums: Vec<u32> =
+            groups.iter().map(|group| group.iter().sum()).collect();
         sums.sort();
         sums.iter().rev().take(count).sum()
     }
