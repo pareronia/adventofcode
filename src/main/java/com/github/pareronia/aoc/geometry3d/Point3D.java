@@ -4,13 +4,14 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import lombok.With;
 
 @RequiredArgsConstructor
 @Getter
 @ToString
 @EqualsAndHashCode
 public class Point3D {
-    private final int x;
-    private final int y;
-    private final int z;
+    @With private final int x;
+    @With private final int y;
+    @With private final int z;
 }
