@@ -40,10 +40,8 @@ public class AoC2022_11 extends AoCBase {
             operation = x -> x * x;
         } else if ("+".equals(splits[1])) {
             operation = x -> x + Integer.parseInt(splits[2]);
-        } else if ("*".equals(splits[1])) {
-            operation = x -> x * Integer.parseInt(splits[2]);
         } else {
-            throw new IllegalArgumentException();
+            operation = x -> x * Integer.parseInt(splits[2]);
         }
         final int test = Integer.parseInt(last(block.get(3).split(" ")));
         final int throwTrue = Integer.parseInt(last(block.get(4).split(" ")));

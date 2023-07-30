@@ -51,10 +51,8 @@ public final class AoC2016_11 extends AoCBase {
                    continue;
                 } else if ("generator".equals(s[2])) {
                     generators.put(s[1], i + 1);
-                } else if ("microchip".equals(s[2])) {
-                    chips.put(StringUtils.substringBefore(s[1], "-"), i + 1);
                 } else {
-                    throw new IllegalArgumentException("Invalid input");
+                    chips.put(StringUtils.substringBefore(s[1], "-"), i + 1);
                 }
              }
         }

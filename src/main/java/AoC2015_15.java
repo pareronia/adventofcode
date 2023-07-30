@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static java.util.stream.Collectors.toList;
 
 import java.util.HashMap;
@@ -31,17 +32,13 @@ public class AoC2015_15 extends AoCBase {
         this.ingredients = inputs.stream()
             .map(s -> {
                 final Matcher m = pattern.matcher(s);
-                if (m.matches()) {
-                    return Map.of(
-                            CAPACITY, Integer.valueOf(m.group(2)),
-                            DURABILITY, Integer.valueOf(m.group(3)),
-                            FLAVOR, Integer.valueOf(m.group(4)),
-                            TEXTURE, Integer.valueOf(m.group(5)),
-                            CALORIES, Integer.valueOf(m.group(6))
-                    );
-                } else {
-                    throw new IllegalArgumentException();
-                }
+                assertTrue(m.matches(), () -> "No match found");
+                return Map.of(
+                        CAPACITY, Integer.valueOf(m.group(2)),
+                        DURABILITY, Integer.valueOf(m.group(3)),
+                        FLAVOR, Integer.valueOf(m.group(4)),
+                        TEXTURE, Integer.valueOf(m.group(5)),
+                        CALORIES, Integer.valueOf(m.group(6)));
             })
             .collect(toList());
         log(this.ingredients);

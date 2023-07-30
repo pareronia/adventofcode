@@ -66,7 +66,7 @@ public class AoC2016_21 extends AoCBase {
                 final Integer from = params[encrypt ? 0 : 1];
                 final Integer to = params[encrypt ? 1 : 0];
                 ch = StringOps.move(ch, from, to);
-            } else if (operation.startsWith("rotate based ")) {
+            } else {
                 final String param = operation.substring(operation.length() - 1,
                                                          operation.length());
                 final char letter = param.charAt(0);
@@ -81,8 +81,6 @@ public class AoC2016_21 extends AoCBase {
                     } while (!Arrays.equals(check2, ch));
                    ch = check1;
                 }
-            } else {
-                throw new IllegalArgumentException("Invalid input");
             }
             log(String.valueOf(ch));
         }

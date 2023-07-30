@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.pareronia.aoc.AssertUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -24,17 +25,13 @@ public class AoC2015_16 extends AoCBase {
         this.auntSues = inputs.stream()
                 .map(s -> {
                     final Matcher m = pattern.matcher(s);
-                    if (m.matches()) {
-                        final int nbr = Integer.valueOf(m.group(1));
-                        final Map<String, Integer> things = Map.of(
-                                m.group(2), Integer.valueOf(m.group(3)),
-                                m.group(4), Integer.valueOf(m.group(5)),
-                                m.group(6), Integer.valueOf(m.group(7))
-                        );
-                        return new AuntSue(nbr, things);
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
+                    AssertUtils.assertTrue(m.matches(), () -> "No match found");
+                    final int nbr = Integer.valueOf(m.group(1));
+                    final Map<String, Integer> things = Map.of(
+                            m.group(2), Integer.valueOf(m.group(3)),
+                            m.group(4), Integer.valueOf(m.group(5)),
+                            m.group(6), Integer.valueOf(m.group(7)));
+                    return new AuntSue(nbr, things);
                 })
                 .collect(toList());
     }
@@ -122,15 +119,15 @@ public class AoC2015_16 extends AoCBase {
         private final Op operation;
         private final int operand;
         
-        public static final Rule eq(final int operand) {
+        public static Rule eq(final int operand) {
             return new Rule(Op.EQ, operand);
         }
 
-        public static final Rule lt(final int operand) {
+        public static Rule lt(final int operand) {
             return new Rule(Op.LT, operand);
         }
         
-        public static final Rule gt(final int operand) {
+        public static Rule gt(final int operand) {
             return new Rule(Op.GT, operand);
         }
         
@@ -139,10 +136,8 @@ public class AoC2015_16 extends AoCBase {
                 return value != null && value == this.operand;
             } else if (this.operation == Op.LT) {
                 return value != null && value < this.operand;
-            } else if (this.operation == Op.GT) {
-                return value != null && value > this.operand;
             } else {
-                throw new IllegalArgumentException("Unsupported operation");
+                return value != null && value > this.operand;
             }
         }
     }

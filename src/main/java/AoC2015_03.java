@@ -1,4 +1,5 @@
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
@@ -11,6 +12,13 @@ import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2015_03 extends AoCBase {
 
+    private static final Map<Character, Heading> HEADINGS = Map.of(
+        '>', Headings.EAST.get(),
+        'v', Headings.SOUTH.get(),
+        '<', Headings.WEST.get(),
+        '^', Headings.NORTH.get()
+    );
+    
     private final transient String input;
 
     private AoC2015_03(final List<String> inputs, final boolean debug) {
@@ -28,24 +36,7 @@ public final class AoC2015_03 extends AoCBase {
     }
     
     private void addNavigationInstruction(final NavigationWithHeading nav, final Character ch) {
-        final Heading heading;
-        switch (ch) {
-        case '>':
-            heading = Headings.EAST.get();
-            break;
-        case 'v':
-            heading = Headings.SOUTH.get();
-            break;
-        case '<':
-            heading = Headings.WEST.get();
-            break;
-        case '^':
-            heading = Headings.NORTH.get();
-            break;
-        default:
-            throw new IllegalArgumentException("Invalid input");
-        }
-        nav.drift(heading, 1);
+        nav.drift(HEADINGS.get(ch), 1);
     }
     
     @Override

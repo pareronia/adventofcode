@@ -9,22 +9,23 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2016_01 extends AoCBase {
 
     private final List<String> inputs;
 
-    private AoC2016_01(List<String> inputs, boolean debug) {
+    private AoC2016_01(final List<String> inputs, final boolean debug) {
         super(debug);
         assert inputs.size() == 1;
         this.inputs = Stream.of(inputs.get(0).split(", ")).collect(toList());
     }
 
-    public static final AoC2016_01 create(List<String> input) {
+    public static final AoC2016_01 create(final List<String> input) {
         return new AoC2016_01(input, false);
     }
 
-    public static final AoC2016_01 createDebug(List<String> input) {
+    public static final AoC2016_01 createDebug(final List<String> input) {
         return new AoC2016_01(input, true);
     }
     
@@ -34,10 +35,8 @@ public class AoC2016_01 extends AoCBase {
         for (final String step : inputs) {
            if (step.charAt(0) == 'R') {
                nav.right(90);
-           } else if (step.charAt(0) == 'L') {
-               nav.left(90);
            } else {
-               throw new IllegalArgumentException("Invalid input");
+               nav.left(90);
            }
            for (int i = 0; i < Integer.valueOf(step.substring(1)); i++) {
               nav.forward(1);
@@ -66,15 +65,18 @@ public class AoC2016_01 extends AoCBase {
         throw new IllegalStateException("Unsolvable");
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         assert AoC2016_01.createDebug(TEST1).solvePart1() == 5;
         assert AoC2016_01.createDebug(TEST2).solvePart1() == 2;
         assert AoC2016_01.createDebug(TEST3).solvePart1() == 12;
         assert AoC2016_01.createDebug(TEST4).solvePart2() == 4;
 
-        final List<String> input = Aocd.getData(2016, 1);
-        lap("Part 1", () -> AoC2016_01.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_01.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 1);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_01.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_01.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST1 = splitLines("R2, L3");

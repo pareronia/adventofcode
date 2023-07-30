@@ -32,10 +32,8 @@ public final class AoC2015_06 extends AoCBase {
                         return Instruction.turnOn(start, end);
                     } else if ("turn_off".equals(actionAndStartSplits[0])) {
                         return Instruction.turnOff(start, end);
-                    } else if ("toggle".equals(actionAndStartSplits[0])) {
-                        return Instruction.toggle(start, end);
                     } else {
-                        throw new IllegalArgumentException("Invalid input");
+                        return Instruction.toggle(start, end);
                     }
                 })
                 .collect(toList());
@@ -104,9 +102,10 @@ public final class AoC2015_06 extends AoCBase {
         assert AoC2015_06.createDebug(TEST5).solvePart2() == 2_000_000;
 
         final Puzzle puzzle = Aocd.puzzle(2015, 6);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_06.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_06.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2015_06.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_06.create(inputData)::solvePart2)
         );
     }
 

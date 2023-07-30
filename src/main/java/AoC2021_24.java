@@ -74,10 +74,8 @@ public class AoC2021_24 extends AoCBase {
         final String operand;
         if (REGISTERS.contains(operand_)) {
             operand = "*" + operand_;
-        } else if (isNumeric(operand_)) {
-            operand = operand_;
         } else {
-            throw new IllegalArgumentException("Invalid operands for " + line.operator);
+            operand = operand_;
         }
         return operand;
     }
@@ -100,11 +98,9 @@ public class AoC2021_24 extends AoCBase {
 	        } else if (line.operator.equals("mod")) {
 	            final String value = getOperand(line, 1);
 	            instructions.add(Instruction.MOD(register, value));
-	        } else if (line.operator.equals("eql")) {
+	        } else {
 	            final String value = getOperand(line, 1);
 	            instructions.add(Instruction.EQL(register, value));
-	        } else {
-	            throw new IllegalArgumentException("Invalid operation");
 	        }
         }
         log(instructions);

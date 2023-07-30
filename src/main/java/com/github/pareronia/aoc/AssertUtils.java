@@ -10,6 +10,12 @@ public class AssertUtils {
         }
     }
 
+    public static void assertFalse(final boolean condition, final Supplier<String> message) {
+        if (condition) {
+            throw buildException(message);
+        }
+    }
+
     public static void assertNotNull(final Object obj, final Supplier<String> message) {
         if (obj == null) {
             throw buildException(message);

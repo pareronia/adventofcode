@@ -304,11 +304,9 @@ public class AoC2021_16 extends AoCBase {
             } else if (packet.getTypeId() == 6) {
                 assert values.size() == 2;
                 return values.get(0) < values.get(1) ? 1L : 0L;
-            } else if (packet.getTypeId() == 7) {
+            } else {
                 assert values.size() == 2;
                 return values.get(0).equals(values.get(1)) ? 1L : 0L;
-            } else {
-                throw new IllegalArgumentException("unexpected type_id");
             }
         }
         

@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.Utils.asCharacterStream;
 import static com.github.pareronia.aoc.Utils.toAString;
 
 import java.util.ArrayList;
@@ -8,14 +9,21 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2016_02 extends AoCBase {
     
+    private static final Map<Character, Heading> HEADINGS = Map.of(
+        'R', Headings.EAST.get(),
+        'D', Headings.SOUTH.get(),
+        'L', Headings.WEST.get(),
+        'U', Headings.NORTH.get()
+    );
     private static final Map<Position, Character> KEYPAD1 = Map.of(
             Position.of(-1, 1), '1',
             Position.of(0, 1), '2',
@@ -47,42 +55,30 @@ public class AoC2016_02 extends AoCBase {
 
     private final List<String> inputs;
 
-    private AoC2016_02(List<String> inputs, boolean debug) {
+    private AoC2016_02(final List<String> inputs, final boolean debug) {
         super(debug);
         this.inputs = inputs;
     }
 
-    public static final AoC2016_02 create(List<String> input) {
+    public static final AoC2016_02 create(final List<String> input) {
         return new AoC2016_02(input, false);
     }
 
-    public static final AoC2016_02 createDebug(List<String> input) {
+    public static final AoC2016_02 createDebug(final List<String> input) {
         return new AoC2016_02(input, true);
     }
     
     private NavigationWithHeading navigate(
-                    String ins, Position start, Predicate<Position> inBounds) {
+                    final String ins, final Position start, final Predicate<Position> inBounds) {
         final NavigationWithHeading nav
             = new NavigationWithHeading(start, Headings.NORTH.get(), inBounds);
-        Utils.asCharacterStream(ins).forEach(step -> {
-            if (step == 'R') {
-                nav.drift(Headings.EAST.get(), 1);
-            } else if (step == 'L') {
-                nav.drift(Headings.WEST.get(), 1);
-            } else if (step == 'U') {
-                nav.drift(Headings.NORTH.get(), 1);
-            } else if (step == 'D') {
-                nav.drift(Headings.SOUTH.get(), 1);
-            } else {
-                throw new IllegalArgumentException("Invalid input");
-            }
-        });
+        asCharacterStream(ins).forEach(step -> nav.drift(HEADINGS.get(step), 1));
         return nav;
     }
 
     private String solve(
-            Predicate<Position> inBounds,
-            Function<Position, Character> get
+            final Predicate<Position> inBounds,
+            final Function<Position, Character> get
         ) {
         final List<Character> code = new ArrayList<>();
         Position start = Position.of(0,  0);
@@ -110,13 +106,16 @@ public class AoC2016_02 extends AoCBase {
         );
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(final String[] args) throws Exception {
         assert AoC2016_02.createDebug(TEST).solvePart1().equals("1985");
         assert AoC2016_02.createDebug(TEST).solvePart2().equals("5DB3");
 
-        final List<String> input = Aocd.getData(2016, 2);
-        lap("Part 1", () -> AoC2016_02.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_02.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 2);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_02.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_02.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST = splitLines(

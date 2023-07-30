@@ -1,5 +1,7 @@
 package com.github.pareronia.aoc;
 
+import static com.github.pareronia.aoc.AssertUtils.assertNotNull;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
 import static java.util.stream.Collectors.joining;
@@ -10,7 +12,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -51,9 +52,7 @@ public class Grid {
 	}
 	
 	public Grid addRow(final String string ) {
-	    if (string.length() != getWidth()) {
-			throw new IllegalArgumentException("Invalid row length.");
-	    }
+	    assertTrue(string.length() == getWidth(), () -> "Invalid row length.");
 	    final List<String> list = new ArrayList<>(getRowsAsStringList());
 	    list.add(string);
 	    return Grid.from(list);
@@ -313,11 +312,10 @@ public class Grid {
 	}
 	
 	public Grid subGrid(final Cell from, final Cell to) {
-		Objects.requireNonNull(from);
-		Objects.requireNonNull(to);
-		if (from.row > to.row || from.col > to.col) {
-			throw new IllegalArgumentException("Invalid coordinates");
-		}
+	    assertNotNull(from, () -> "from should not be null");
+	    assertNotNull(to, () -> "from should not be null");
+		assertTrue(from.row <= to.row && from.col <= to.col,
+		        () -> "Invalid coordinates");
 		
 		final int endRow = Math.min(to.row, this.getHeight());
 		final int endCol = Math.min(to.col, this.getWidth());
@@ -346,18 +344,16 @@ public class Grid {
     }
 	
 	public static Grid merge(final Grid[][] grids) {
-	    if (Arrays.stream(grids)
+	    assertTrue(Arrays.stream(grids)
 	            .flatMap(Arrays::stream)
 	            .mapToInt(Grid::getHeight)
-	            .distinct().count() > 1
-	        ||
+	            .distinct().count() == 1
+	        &&
 	        Arrays.stream(grids)
 	            .flatMap(Arrays::stream)
 	            .mapToInt(Grid::getWidth)
-	            .distinct().count() > 1
-	    ) {
-	        throw new IllegalArgumentException("Grids should be same size");
-	    }
+	            .distinct().count() == 1,
+	        () -> "Grids should be same size");
         final List<String> strings = new ArrayList<>();
         for (final int r : range(grids.length)) {
             final List<List<String>> rowsList = new ArrayList<>();
@@ -501,17 +497,15 @@ public class Grid {
 	}
 
 	private void validateRowIndex(final Integer row) {
-		Objects.requireNonNull(row);
-		if (row < 0 || row > getMaxRowIndex()) {
-			throw new IllegalArgumentException("Invalid row index: " + row);
-		}
+		assertNotNull(row, () -> "row index should not be null");
+		assertTrue(0 <= row && row <= getMaxRowIndex(),
+		        () -> "Invalid row index: " + row);
 	}
 
 	private void validateColumnIndex(final Integer col) {
-		Objects.requireNonNull(col);
-		if (col < 0 || col > getMaxColIndex()) {
-			throw new IllegalArgumentException("Invalid column index: " + col);
-		}
+	    assertNotNull(col, () -> "column index should not be null");
+		assertTrue(0 <= col && col <= getMaxColIndex(),
+		        () -> "Invalid column index: " + col);
 	}
 
     private void validateIsSquare() {

@@ -1,5 +1,7 @@
 package com.github.pareronia.aocd;
 
+import static com.github.pareronia.aoc.AssertUtils.assertFalse;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Method;
@@ -104,18 +106,16 @@ class Runner {
 		private final List<String> inputs;
 		
 		public static Request create(final LocalDate date, final String args[]) {
-			if (args == null || args.length < 3) {
-				throw new IllegalArgumentException("Missing args: year, day, input");
-			}
+		    assertTrue(args != null && args.length >= 3,
+		            () -> "Missing args: year, day, input");
 			final Integer year = Integer.valueOf(args[0]);
-			if (year < 2015 || year > date.getYear()) {
-				throw new IllegalArgumentException("Invalid year");
-			}
+			assertTrue(year >= 2015 && year <= date.getYear(),
+			        () -> "Invalid year");
 			final Integer day = Integer.valueOf(args[1]);
-			if ((year == date.getYear() && date.getMonth() == Month.DECEMBER && day > date.getDayOfMonth())
-					|| day < 1 || day > 25) {
-				throw new IllegalArgumentException("Invalid day");
-			}
+			assertFalse(
+			    (year == date.getYear() && date.getMonth() == Month.DECEMBER && day > date.getDayOfMonth())
+					    || day < 1 || day > 25,
+				() -> "Invalid day");
 			final List<String> inputs
 			        = Stream.iterate(2, i -> i + 1).limit(args.length - 2)
 							.map(i -> args[i])
