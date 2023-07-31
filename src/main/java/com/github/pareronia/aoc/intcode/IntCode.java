@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -32,65 +33,45 @@ public class IntCode {
     
     private int ip;
     private int base;
-    private List<Long> program;
+    private final List<Long> program;
     private boolean runTillInputRequired;
     private boolean runTillHasOutput;
     private boolean halted;
 
-    public IntCode(final boolean debug) {
+    public IntCode(final List<Long> instructions, final boolean debug) {
         this.debug = debug;
+        this.program = new ArrayList<>(instructions);
     }
 
-    public List<Long> run(final List<Long> program) {
-       return run(program, new ArrayDeque<>(), new ArrayDeque<>());
+    public void run(final List<Long> program) {
+        run(new ArrayDeque<>(), new ArrayDeque<>());
     }
     
-    public List<Long> run(
-            final List<Long> program,
+    public void run(
             final long input,
             final Deque<Long> output
     ) {
-        return run(program, new ArrayDeque<>(List.of(input)), output);
+        run(new ArrayDeque<>(List.of(input)), output);
     }
     
-    public List<Long> run(
-            final List<Long> instructions,
+    public void run(
             final Deque<Long> input,
             final Deque<Long> output
     ) {
         this.ip = 0;
         this.base = 0;
-        this.program = new ArrayList<>(instructions);
-        return doRun(input, output);
+        doRun(input, output);
     }
     
     public void runTillInputRequired(
-            final List<Long> instructions,
             final Deque<Long> input,
             final Deque<Long> output
     ) {
         this.runTillInputRequired = true;
-        run(instructions, input, output);
+        doRun(input, output);
     }
     
     public void runTillHasOutput(
-            final List<Long> instructions,
-            final Deque<Long> input,
-            final Deque<Long> output
-    ) {
-        this.runTillHasOutput = true;
-        run(instructions, input, output);
-    }
-    
-    public void continueTillInputRequired(
-            final Deque<Long> input,
-            final Deque<Long> output
-    ) {
-        this.runTillInputRequired = true;
-        doRun(input, output);
-    }
-    
-    public void continueTillHasOutput(
             final Deque<Long> input,
             final Deque<Long> output
     ) {
@@ -98,7 +79,7 @@ public class IntCode {
         doRun(input, output);
     }
     
-    private List<Long> doRun(
+    private void doRun(
             final Deque<Long> input,
             final Deque<Long> output
     ) {
@@ -124,7 +105,7 @@ public class IntCode {
             case INPUT:
                 if (this.runTillInputRequired && input.isEmpty()) {
                     this.runTillInputRequired = false;
-                    return this.program;
+                    return;
                 }
                 set(addr[1], input.pop());
                 ip += 2;
@@ -134,7 +115,7 @@ public class IntCode {
                 ip += 2;
                 if (this.runTillHasOutput) {
                     this.runTillHasOutput = false;
-                    return this.program;
+                    return;
                 }
                 break;
             case JIT:
@@ -158,7 +139,7 @@ public class IntCode {
             case EXIT:
                 log(String.format("%d: EXIT", ip));
                 this.halted = true;
-                return program;
+                return;
             default:
                 throw new IllegalStateException(
                         String.format("Invalid opcode: '%d'", opcode));
@@ -211,6 +192,10 @@ public class IntCode {
 	public boolean isHalted() {
         return halted;
     }
+	
+	public List<Long> getProgram() {
+	    return Collections.unmodifiableList(this.program);
+	}
 
     private void log(final Object obj) {
 		if (!debug) {

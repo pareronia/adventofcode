@@ -30,10 +30,10 @@ public class AoC2019_13 extends AoCBase {
     
     @Override
     public Long solvePart1() {
-        final IntCode intCode = new IntCode(this.debug);
+        final IntCode intCode = new IntCode(this.program, this.debug);
         final Deque<Long> input = new ArrayDeque<>();
         final Deque<Long> output = new ArrayDeque<>();
-        intCode.run(this.program, input, output);
+        intCode.run(input, output);
         final List<Long> list = output.stream().collect(toList());
         return range(2, list.size(), 3).intStream()
                 .mapToLong(i -> list.get(i))
@@ -43,21 +43,23 @@ public class AoC2019_13 extends AoCBase {
     
     @Override
     public Long solvePart2() {
-        final IntCode intCode = new IntCode(this.debug);
-        final Deque<Long> input = new ArrayDeque<>();
-        final Deque<Long> output = new ArrayDeque<>();
         final List<Long> quarters = new ArrayList<>();
         quarters.add(2L);
         quarters.addAll(this.program.subList(1, this.program.size()));
+        final IntCode intCode = new IntCode(quarters, this.debug);
+        final Deque<Long> input = new ArrayDeque<>();
+        final Deque<Long> output = new ArrayDeque<>();
         final List<Long> buffer = new ArrayList<>();
         Long ball = null, paddle = null;
         long score = 0;
         
-        intCode.runTillHasOutput(quarters, input, output);
-        while (!intCode.isHalted()) {
+        while (true) {
+            intCode.runTillHasOutput(input, output);
+            if (intCode.isHalted()) {
+                break;
+            }
             buffer.add(output.pop());
             if (buffer.size() < 3) {
-                intCode.continueTillHasOutput(input, output);
                 continue;
             }
             
@@ -79,8 +81,6 @@ public class AoC2019_13 extends AoCBase {
                 input.add(joystick);
                 ball = null;
             }
-            
-            intCode.continueTillHasOutput(input, output);
         }
         return score;
     }

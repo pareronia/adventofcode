@@ -11,7 +11,8 @@ public class IntCodeDaysRunner {
             Day.at(2019, 5),
             Day.at(2019, 7),
             Day.at(2019, 9),
-            Day.at(2019, 11)
+            Day.at(2019, 11),
+            Day.at(2019, 13)
     );
 
 	public static void main(final String[] args) throws Exception {

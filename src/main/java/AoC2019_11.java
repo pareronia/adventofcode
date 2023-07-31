@@ -46,11 +46,11 @@ public class AoC2019_11 extends AoCBase {
         final Set<Position> white = new HashSet<>();
         final NavigationWithHeading nav
             = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
-        final IntCode intCode = new IntCode(false);
+        final IntCode intCode = new IntCode(this.program, false);
         final Deque<Long> input = new ArrayDeque<>(List.of(start));
         final Deque<Long> output = new ArrayDeque<>();
-        intCode.runTillInputRequired(this.program, input, output);
-        while (!intCode.isHalted()) {
+        do {
+            intCode.runTillInputRequired(input, output);
             if (output.pop() == WHITE) {
                 white.add(nav.getPosition());
             } else {
@@ -63,8 +63,8 @@ public class AoC2019_11 extends AoCBase {
             }
             nav.forward(1);
             input.add(white.contains(nav.getPosition()) ? 1L : 0L);
-            intCode.continueTillInputRequired(input, output);
-        }
+            intCode.runTillInputRequired(input, output);
+        } while (!intCode.isHalted());
         final Set<Position> visited = nav.getVisitedPositions(false).stream()
                 .distinct().collect(toSet());
         return new PaintJob(visited, white);
