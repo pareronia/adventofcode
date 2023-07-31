@@ -34,6 +34,7 @@ public class IntCode {
     private int base;
     private List<Long> program;
     private boolean runTillInputRequired;
+    private boolean runTillHasOutput;
     private boolean halted;
 
     public IntCode(final boolean debug) {
@@ -72,11 +73,28 @@ public class IntCode {
         run(instructions, input, output);
     }
     
+    public void runTillHasOutput(
+            final List<Long> instructions,
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.runTillHasOutput = true;
+        run(instructions, input, output);
+    }
+    
     public void continueTillInputRequired(
             final Deque<Long> input,
             final Deque<Long> output
     ) {
         this.runTillInputRequired = true;
+        doRun(input, output);
+    }
+    
+    public void continueTillHasOutput(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.runTillHasOutput = true;
         doRun(input, output);
     }
     
@@ -114,6 +132,10 @@ public class IntCode {
             case OUTPUT:
                 output.add(get(addr[1]));
                 ip += 2;
+                if (this.runTillHasOutput) {
+                    this.runTillHasOutput = false;
+                    return this.program;
+                }
                 break;
             case JIT:
                 ip = get(addr[1]) != 0 ? getInt(addr[2]) : ip + 3;
