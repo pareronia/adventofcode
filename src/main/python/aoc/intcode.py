@@ -18,32 +18,29 @@ class IntCode:
     ip: int
     base: int
     prog: list[int]
-    run_till_input_required: bool = False
+    _run_till_input_required: bool = False
     _halted: bool = False
+
+    def __init__(self, prog: list[int]):
+        self.prog = prog[:]
+        self.ip = 0
+        self.base = 0
 
     @property
     def halted(self) -> bool:
         return self._halted
 
     def run(
-        self, prog: list[int], inputs: list[int] = [], outputs: list[int] = []
+        self, inputs: list[int] = [], outputs: list[int] = []
     ) -> list[int]:
-        self.ip = 0
-        self.base = 0
-        self.prog = [_ for _ in prog]
         return self._do_run(inputs, outputs)
 
-    def run_till_input_required(
-        self, prog: list[int], inputs: list[int], outputs: list[int]
-    ):
-        self.run_till_input_required = True
-        self.run(prog, inputs, outputs)
-
-    def continue_till_input_required(
-        self, inputs: list[int], outputs: list[int]
-    ):
-        self.run_till_input_required = True
+    def run_till_input_required(self, inputs: list[int], outputs: list[int]):
+        self._run_till_input_required = True
         self._do_run(inputs, outputs)
+
+    def get_program(self) -> tuple[int]:
+        return tuple(self.prog)
 
     def _do_run(self, inputs: list[int], outputs: list[int]) -> list[int]:
         while True:
@@ -64,8 +61,8 @@ class IntCode:
                 self.ip += 4
             elif opcode == INP:
                 if self.run_till_input_required and len(inputs) == 0:
-                    self.run_till_input_required = False
-                    return self.prog
+                    self._run_till_input_required = False
+                    return
                 self[addr[1]] = inputs.pop(0)
                 self.ip += 2
             elif opcode == OUT:
@@ -86,7 +83,7 @@ class IntCode:
                 self.ip += 2
             elif opcode == HLT:
                 self._halted = True
-                return self.prog
+                return
             else:
                 raise ValueError(f"Invalid opcode '{opcode}'")
 

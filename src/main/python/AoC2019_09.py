@@ -14,7 +14,7 @@ def _parse(inputs: tuple[str]) -> tuple[int]:
 
 
 def _solve(ints: tuple[int], inp: int) -> int:
-    IntCode().run(ints, [inp], out := [])
+    IntCode(ints).run([inp], out := [])
     return out[-1]
 
 

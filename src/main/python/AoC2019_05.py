@@ -9,12 +9,12 @@ from aoc import my_aocd
 from aoc.intcode import IntCode
 
 
-def _parse(inputs: tuple[str]) -> tuple[int]:
+def _parse(inputs: tuple[str]) -> list[int]:
     return [int(_) for _ in inputs[0].split(",")]
 
 
-def _solve(ints: tuple[int], inp: int) -> int:
-    IntCode().run(ints, [inp], out := [])
+def _solve(ints: list[int], inp: int) -> int:
+    IntCode(ints).run([inp], out := [])
     return out[-1]
 
 
