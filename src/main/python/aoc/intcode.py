@@ -19,6 +19,7 @@ class IntCode:
     base: int
     prog: list[int]
     _run_till_input_required: bool = False
+    _run_till_has_output: bool = False
     _halted: bool = False
 
     def __init__(self, prog: list[int]):
@@ -37,6 +38,10 @@ class IntCode:
 
     def run_till_input_required(self, inputs: list[int], outputs: list[int]):
         self._run_till_input_required = True
+        self._do_run(inputs, outputs)
+
+    def run_till_has_output(self, inputs: list[int], outputs: list[int]):
+        self._run_till_has_output = True
         self._do_run(inputs, outputs)
 
     def get_program(self) -> tuple[int]:
@@ -68,6 +73,9 @@ class IntCode:
             elif opcode == OUT:
                 outputs.append(self[addr[1]])
                 self.ip += 2
+                if self._run_till_has_output:
+                    self._run_till_has_output = False
+                    return
             elif opcode == JIT:
                 self.ip = self[addr[2]] if self[addr[1]] != 0 else self.ip + 3
             elif opcode == JIF:
