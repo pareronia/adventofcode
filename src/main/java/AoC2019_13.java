@@ -3,6 +3,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
 
@@ -36,8 +37,9 @@ public class AoC2019_13 extends AoCBase {
         intCode.run(input, output);
         final List<Long> list = output.stream().collect(toList());
         return range(2, list.size(), 3).intStream()
-                .mapToLong(i -> list.get(i))
-                .filter(o -> o == 2L)
+                .mapToLong(list::get)
+                .mapToObj(TileId::from)
+                .filter(TileId.BLOCK::equals)
                 .count();
    }
     
@@ -70,9 +72,9 @@ public class AoC2019_13 extends AoCBase {
             buffer.clear();
             if (x == -1 && y == 0) {
                 score = id;
-            } else if (id == 3) {
+            } else if (TileId.from(id) == TileId.PADDLE) {
                 paddle = x;
-            } else if (id == 4) {
+            } else if (TileId.from(id) == TileId.BALL) {
                 ball = x;
             }
             if (ball != null && paddle != null) {
@@ -92,5 +94,21 @@ public class AoC2019_13 extends AoCBase {
             () -> lap("Part 1", AoC2019_13.create(inputData)::solvePart1),
             () -> lap("Part 2", AoC2019_13.create(inputData)::solvePart2)
         );
+    }
+    
+    private enum TileId {
+        EMPTY(0), WALL(1), BLOCK(2), PADDLE(3), BALL(4);
+        
+        private long value;
+
+        TileId(final long value) {
+            this.value = value;
+        }
+        
+        public static TileId from(final long value) {
+            return Arrays.stream(values())
+                    .filter(v -> v.value == value)
+                    .findFirst().orElseThrow();
+        }
     }
 }
