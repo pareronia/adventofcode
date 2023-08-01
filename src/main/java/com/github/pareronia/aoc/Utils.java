@@ -1,5 +1,6 @@
 package com.github.pareronia.aoc;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +43,12 @@ public class Utils {
     
     public static char last(final String string) {
         return Objects.requireNonNull(string).charAt(string.length() - 1);
+    }
+    
+    public static <T> List<T> concat(final List<T> list1, final T item) {
+        final ArrayList<T> ans = new ArrayList<>(list1);
+        ans.add(item);
+        return ans;
     }
     
     private static final Pattern REGEX_N = Pattern.compile("[0-9]+");
