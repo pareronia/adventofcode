@@ -43,21 +43,25 @@ public class AoC2019_15 extends AoCBase {
     
     private class FloodFill {
         
-        private Status tryMove(final List<Move> moves, final Move move) {
-            final IntCode intCode
-                    = new IntCode(AoC2019_15.this.program, AoC2019_15.this.debug);
+        private Status tryMove(final IntCode intCode, final Move move) {
             final Deque<Long> input = new ArrayDeque<>();
             final Deque<Long> output = new ArrayDeque<>();
-            moves.forEach(m -> input.add((long) m.value));
-            intCode.runTillInputRequired(input, output);
-            output.clear();
             input.add((long) move.value);
             intCode.runTillHasOutput(input, output);
-            return Status.fromValue(output.pop().intValue());
+            final Status status = Status.fromValue(output.pop().intValue());
+            if (status != Status.WALL) {
+                input.add((long) move.reverse().value);
+                intCode.runTillHasOutput(input, output);
+            }
+            return status;
         }
         
-        private Optional<Location> move(final Location location, final Move move) {
-            final Status status = tryMove(location.moves, move);
+        private Optional<Location> move(
+                final IntCode intCode,
+                final Location location,
+                final Move move
+        ) {
+            final Status status = tryMove(intCode, move);
             if (status == Status.MOVED || status == Status.FOUND_O2) {
                 return Optional.of(new Location(
                         move.applyTo(location.position),
@@ -69,8 +73,13 @@ public class AoC2019_15 extends AoCBase {
         }
         
         private Stream<Location> adjacent(final Location location) {
+            final IntCode intCode
+                    = new IntCode(AoC2019_15.this.program, AoC2019_15.this.debug);
+            final Deque<Long> input = new ArrayDeque<>();
+            location.moves.forEach(m -> input.add((long) m.value));
+            intCode.runTillInputRequired(input, new ArrayDeque<>());
             return Arrays.stream(Move.values())
-                    .map(move -> move(location, move))
+                    .map(move -> move(intCode, location, move))
                     .filter(Optional::isPresent)
                     .map(Optional::get);
         }
@@ -136,7 +145,7 @@ public class AoC2019_15 extends AoCBase {
         final Puzzle puzzle = Aocd.puzzle(2019, 15);
         final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", AoC2019_15.create(inputData)::solvePart1),
+            () -> lap("Part 1", AoC2019_15.createDebug(inputData)::solvePart1),
             () -> lap("Part 2", AoC2019_15.create(inputData)::solvePart2)
         );
     }
@@ -166,6 +175,21 @@ public class AoC2019_15 extends AoCBase {
         
         public Position applyTo(final Position position) {
             return position.translate(this.asHeading());
+        }
+        
+        public Move reverse() {
+            switch (this) {
+            case NORTH:
+                return SOUTH;
+            case SOUTH:
+                return NORTH;
+            case WEST:
+                return EAST;
+            case EAST:
+                return WEST;
+            }
+            throw new IllegalArgumentException();
+            
         }
     }
     
