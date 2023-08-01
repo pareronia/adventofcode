@@ -3,10 +3,31 @@
 # Advent of Code 2019 Day 13
 #
 
+import os
+from enum import Enum
+from typing import Callable
+
 import aocd
 
 from aoc import my_aocd
 from aoc.intcode import IntCode
+
+Tile = tuple[int, int, int]
+
+
+class TileId(bytes, Enum):
+
+    def __new__(cls, id, char):
+        obj = bytes.__new__(cls, [id])
+        obj._value_ = id
+        obj.char = char
+        return obj
+
+    EMPTY = (0, " ")
+    WALL = (1, "█")
+    BLOCK = (2, "▦")
+    PADDLE = (3, "▀")
+    BALL = (4, "◯")
 
 
 def _parse(inputs: tuple[str]) -> list[int]:
@@ -23,7 +44,7 @@ def part_1(inputs: tuple[str]) -> int:
     return sum(1 for o in [out[i] for i in range(2, len(out), 3)] if o == 2)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def _play(inputs: tuple[str], on_step: Callable[[Tile], None] = None) -> int:
     prog = _parse(inputs)
     prog[0] = 2
     int_code = IntCode(prog)
@@ -37,12 +58,14 @@ def part_2(inputs: tuple[str]) -> int:
         if len(buf) < 3:
             continue
         x, y, id = buf
+        if on_step is not None:
+            on_step((x, y, id))
         buf.clear()
         if x == -1 and y == 0:
             score = id
-        elif id == 3:
+        elif id == TileId.PADDLE.value:
             paddle = x
-        elif id == 4:
+        elif id == TileId.BALL.value:
             ball = x
         if ball and paddle:
             inp.append(-1 if ball < paddle else 1 if ball > paddle else 0)
@@ -50,11 +73,43 @@ def part_2(inputs: tuple[str]) -> int:
     return score
 
 
+def part_2(inputs: tuple[str]) -> int:
+    return _play(inputs)
+
+
+def visualize_part_2(inputs: tuple[str]) -> None:
+    tiles = dict[tuple[int, int], TileId]()
+    score = 0
+
+    def on_step(tile: Tile) -> None:
+        nonlocal score
+        os.system("cls" if os.name in ("nt", "dos") else "clear")  # nosec
+        if tile[0] == -1 and tile[1] == 0:
+            score = tile[2]
+        else:
+            try:
+                tiles[(tile[0], tile[1])] = TileId(tile[2])
+            except ValueError:
+                pass
+        for y in range(20):
+            line = ""
+            for x in range(35):
+                if (x, y) not in tiles:
+                    line += TileId.EMPTY.char
+                    continue
+                line += tiles[(x, y)].char
+            print(line)
+        print(f"Score: {score}")
+
+    _play(inputs, on_step)
+
+
 def main() -> None:
     puzzle = aocd.models.Puzzle(2019, 13)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
     inputs = my_aocd.get_input_data(puzzle, 1)
+    assert visualize_part_2(inputs) is None
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
