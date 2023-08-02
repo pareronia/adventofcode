@@ -54,14 +54,23 @@ impl aoc::Puzzle for AoC2022_03 {
             .sum::<u32>()
             .to_string()
     }
+    
+    fn samples(&self) {
+        let test = aoc::split_lines(
+            "vJrwpWtwJgWrhcsFMMfFFhFp\n\
+             jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\n\
+             PmmdzqPrVvPwwTWBwg\n\
+             wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\n\
+             ttgJtRGJQctTZtZT\n\
+             CrZsJsPPZsGzwwsLwLmpwMDw",
+        );
+        assert_eq!(self.part_1(&test), "157");
+        assert_eq!(self.part_2(&test), "70");
+    }
 }
 
 fn main() {
-    let puzzle = AoC2022_03::new();
-    let lines = puzzle.get_input_data();
-
-    println!("Part 1: {}", puzzle.part_1(&lines));
-    println!("Part 2: {}", puzzle.part_2(&lines));
+    AoC2022_03::new().run();
 }
 
 #[cfg(test)]
@@ -70,16 +79,6 @@ mod tests {
 
     #[test]
     pub fn samples() {
-        let puzzle = AoC2022_03::new();
-        let test = aoc::split_lines(
-            "vJrwpWtwJgWrhcsFMMfFFhFp\n\
-             jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\n\
-             cwPmmdzqPrVvPwwTWBwg\n\
-             wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\n\
-             ttgJtRGJQctTZtZT\n\
-             CrZsJsPPZsGzwwsLwLmpwMDw",
-        );
-        assert_eq!(puzzle.part_1(&test), "157");
-        assert_eq!(puzzle.part_2(&test), "70");
+        AoC2022_03::new().samples();
     }
 }

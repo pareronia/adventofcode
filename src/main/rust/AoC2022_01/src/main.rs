@@ -45,23 +45,8 @@ impl aoc::Puzzle for AoC2022_01 {
     fn part_2(&self, lines: &Vec<String>) -> String {
         self.solve(&lines, 3).to_string()
     }
-}
 
-fn main() {
-    let puzzle = AoC2022_01::new();
-    let lines = puzzle.get_input_data();
-
-    println!("{}", puzzle.part_1(&lines));
-    println!("{}", puzzle.part_2(&lines));
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    pub fn samples() {
-        let puzzle = AoC2022_01::new();
+    fn samples(&self) {
         let test = aoc::split_lines(
             "1000\n\
              2000\n\
@@ -78,7 +63,21 @@ mod tests {
              \n\
              10000",
         );
-        assert_eq!(puzzle.part_1(&test), "24000");
-        assert_eq!(puzzle.part_2(&test), "45000");
+        assert_eq!(self.part_1(&test), "24000");
+        assert_eq!(self.part_2(&test), "45000");
+    }
+}
+
+fn main() {
+    AoC2022_01::new().run();
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn samples() {
+        AoC2022_01::new().samples();
     }
 }
