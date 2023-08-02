@@ -70,7 +70,7 @@ impl aoc::Puzzle for AoC2022_03 {
 }
 
 fn main() {
-    AoC2022_03::new().run();
+    AoC2022_03::new().run(std::env::args());
 }
 
 #[cfg(test)]
