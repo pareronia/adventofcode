@@ -30,6 +30,10 @@ class Config:
         return self.runner['plugins']['julia']
 
     @property
+    def rust(self):
+        return self.runner['plugins']['rust']
+
+    @property
     def scratch_file(self):
         return self.runner['scratch_file']
 

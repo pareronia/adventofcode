@@ -43,6 +43,7 @@ from .java import Java
 from .bash import Bash
 from .cpp import Cpp
 from .julia import Julia
+from .rust import Rust
 
 
 DEFAULT_TIMEOUT = config.default_timeout
@@ -53,6 +54,7 @@ all_plugins = OrderedDict({"py": Py(),
                            "bash": Bash(),
                            "cpp": Cpp(),
                            "julia": Julia(),
+                           "rust": Rust(),
                            })
 
 
