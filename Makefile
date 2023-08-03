@@ -17,6 +17,7 @@ CPP_ROOT := $(SRC_ROOT_MAIN)/cpp
 CPP_TEST_ROOT := $(SRC_ROOT_TEST)/cpp
 CPP_DST_ROOT := $(DST_ROOT)/cpp
 JULIA_ROOT := $(SRC_ROOT_MAIN)/julia
+RUST_ROOT := $(SRC_ROOT_MAIN)/rust
 CFG := pyproject.toml
 SHELLCHECK := shellcheck -a -P SCRIPTDIR
 BANDIT := bandit --silent --configfile $(CFG)
@@ -37,6 +38,8 @@ JAVA_CMD := $(JAVA_EXE) -ea
 JAVAC_CMD := $(JAVAC_EXE) -encoding utf-8
 JAVA_UNITTEST_CMD := org.junit.platform.console.ConsoleLauncher
 JULIA_CMD := julia --optimize
+CARGO_CMD := cargo
+RUSTFMT := rustfmt
 BAZEL := bazel
 WSLPATH := wslpath
 RM := rm -Rf
@@ -53,8 +56,9 @@ CLITEST_SRCS = $(shell find $(CLITEST_ROOT) -name "*.md")
 BASH_SRCS = $(shell find $(BASH_ROOT) -name "*.sh")
 CPP_SRCS = $(shell find $(CPP_ROOT) -name "*.cpp" -or -name "*.hpp")
 JULIA_SRCS = $(shell find $(JULIA_ROOT) -name "*.jl")
+RUST_SRCS = $(shell find $(RUST_ROOT) -name "*.rs")
 SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(BASH_SRCS) \
-	   $(CPP_SRCS) $(JULIA_SRCS) $(MAKEFILE)
+	   $(CPP_SRCS) $(JULIA_SRCS) $(RUST_SRCS) $(MAKEFILE)
 JAVA_CP_LIBS = $(CLASSPATH)
 
 # functions
@@ -101,6 +105,11 @@ cpp:
 julia:
 	@$(JULIA_CMD) $(JULIA_ROOT)/$(call day,$(ARGS),".jl")
 
+#: Run Rust (with ARGS=year,day)
+rust:
+	@$(CARGO_CMD) run --quiet --release --manifest-path \
+		$(RUST_ROOT)/$(call day,$(ARGS),"")/Cargo.toml
+
 #: Build Java
 build.java:
 	@$(JAVAC_CMD) -cp $(JAVA_CP_LIBS) -d $(JAVA_DST) $(JAVA_SRCS)
@@ -111,6 +120,11 @@ build.java:
 build.cplusplus:
 	@$(call msg,"Building C++")
 	$(shell for f in $(find src/main/cpp/ -name "AoC*.cpp"); do rm -f "build/cpp/$(basename $f .cpp)" && MAIN=$(basename $f .cpp) make -C "$(dirname $(realpath $f))" all; done)
+
+#: Build Rust
+build.rust:
+	@$(CARGO_CMD) build --release --workspace --manifest-path \
+		$(RUST_ROOT)/Cargo.toml
 
 #: Run Python unit tests
 unittest.py:
@@ -128,8 +142,14 @@ unittest.cplusplus:
 	@$(call msg,"Running C++ unit tests...")
 	@$(BAZEL) test --test_output=errors $(CPP_TEST_ROOT)/...
 
+#: Run Rust unit tests
+unittest.rust:
+	@$(call msg,"Running Rust unit tests...")
+	@$(CARGO_CMD) test --quiet --workspace --manifest-path \
+		$(RUST_ROOT)/Cargo.toml
+
 #: Run all unit tests
-unittest: unittest.py unittest.java
+unittest: unittest.py unittest.java unittest.rust
 
 #: Run command line integration tests
 clitest:
@@ -182,11 +202,16 @@ $(PMD_HTML_DIR):
 docs.update:
 	@$(PYTHON_PATH) $(PYTHON_CMD) -m aoc.implementation_tables README.md
 
-#: Run all linters (Flake8, Vulture, Bandit, shellcheck)
-lint: flake vulture bandit shellcheck
+#: Run rustfmt - Rust code formating check
+rustfmt.check:
+	@$(call msg,"Running rustfmt check against Rust source files...")
+	@$(RUSTFMT) --check --config max_width=80 $(RUST_SRCS)
+
+#: Run all linters (Flake8, Vulture, Bandit, shellcheck, rustfmt.check)
+lint: flake vulture bandit shellcheck rustfmt.check
 
 fixme todo:
-	-@$(call igrep,"$@",$(PY_SRCS) $(JAVA_SRCS) $(CPP_SRCS))
+	-@$(call igrep,"$@",$(PY_SRCS) $(JAVA_SRCS) $(CPP_SRCS) $(RUST_SRCS))
 
 #: Show FIXMEs and TODOs in code files
 tasks: fixme todo
@@ -229,4 +254,5 @@ help:
 
 .PHONY: flake vulture bandit fixme todo list help py java cpp julia \
 	unittest.py clitest build.java clean unittest.java pmd pmd.html \
-	pmd.html.open docs.update unittest.cplusplus build.cplusplus
+	pmd.html.open docs.update unittest.cplusplus build.cplusplus \
+	build.rust rustfmt.check unittest.rust rust bash

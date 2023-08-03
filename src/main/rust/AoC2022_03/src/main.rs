@@ -54,7 +54,7 @@ impl aoc::Puzzle for AoC2022_03 {
             .sum::<u32>()
             .to_string()
     }
-    
+
     fn samples(&self) {
         let test = aoc::split_lines(
             "vJrwpWtwJgWrhcsFMMfFFhFp\n\
