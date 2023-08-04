@@ -50,16 +50,16 @@ impl aoc::Puzzle for AoC2022_03 {
     }
 
     fn samples(&self) {
-        let test = aoc::split_lines(
-            "vJrwpWtwJgWrhcsFMMfFFhFp\n\
+        let test = "vJrwpWtwJgWrhcsFMMfFFhFp\n\
              jqHRNqRjqzjGDLGLrsFMfFZSrLrFZsSL\n\
              PmmdzqPrVvPwwTWBwg\n\
              wMqvLMZHhHMvwLHjbvcjnnSBnvTQFn\n\
              ttgJtRGJQctTZtZT\n\
-             CrZsJsPPZsGzwwsLwLmpwMDw",
-        );
-        assert_eq!(self.part_1(&test), "157");
-        assert_eq!(self.part_2(&test), "70");
+             CrZsJsPPZsGzwwsLwLmpwMDw";
+        aoc::puzzle_samples! {
+            self, part_1, test, "157",
+            self, part_2, test, "70"
+        };
     }
 }
 

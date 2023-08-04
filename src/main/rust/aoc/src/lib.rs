@@ -15,6 +15,18 @@ macro_rules! puzzle_year_day {
     };
 }
 
+#[macro_export]
+macro_rules! puzzle_samples {
+    ($self:ident, $part:ident, $input:expr, $expected:expr) => {
+        assert_eq!($self.$part(&aoc::split_lines($input)), $expected);
+    };
+
+    ($self:ident, $part:ident, $input:expr, $expected:expr, $($selfs:ident, $parts:ident, $inputs:expr, $expecteds:expr),+) => {{
+        aoc::puzzle_samples!{$self, $part, $input, $expected}
+        aoc::puzzle_samples!{$($selfs, $parts, $inputs, $expecteds),+}
+    }};
+}
+
 pub trait Puzzle {
     fn year(&self) -> u16;
     fn day(&self) -> u8;

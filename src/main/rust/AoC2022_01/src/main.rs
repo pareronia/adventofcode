@@ -41,8 +41,7 @@ impl aoc::Puzzle for AoC2022_01 {
     }
 
     fn samples(&self) {
-        let test = aoc::split_lines(
-            "1000\n\
+        let test = "1000\n\
              2000\n\
              3000\n\
              \n\
@@ -55,10 +54,11 @@ impl aoc::Puzzle for AoC2022_01 {
              8000\n\
              9000\n\
              \n\
-             10000",
-        );
-        assert_eq!(self.part_1(&test), "24000");
-        assert_eq!(self.part_2(&test), "45000");
+             10000";
+        aoc::puzzle_samples! {
+            self, part_1, test, "24000",
+            self, part_2, test, "45000"
+        };
     }
 }
 
