@@ -77,14 +77,14 @@ class Waypoint(Vector):
 
 
 class Navigation:
-    position: Position
+    _position: Position
     bounds: Callable[[Position], bool]
     visited_positions: list[Position]
 
     def __init__(self,
                  position: Position,
                  bounds: Callable[[Position], bool]):
-        self.position = position
+        self._position = position
         self.bounds = bounds
         self.visited_positions = list[Position]()
         self._remember_visited_position(position)
@@ -96,12 +96,12 @@ class Navigation:
             return self.bounds(position)
 
     def _translate(self, vector: Vector, amount: int) -> None:
-        new_position = Position.copy(self.position)
+        new_position = Position.copy(self._position)
         for i in range(amount):
             new_position.translate(vector=vector, amplitude=1)
             if self._in_bounds(new_position):
-                self.position = Position.copy(new_position)
-        self._remember_visited_position(self.position)
+                self._position = Position.copy(new_position)
+        self._remember_visited_position(self._position)
 
     def _remember_visited_position(self, position: Position) -> None:
         self.visited_positions.append(deepcopy(position))
@@ -112,6 +112,10 @@ class Navigation:
             return self.visited_positions
         else:
             return self.visited_positions[1:]
+
+    @property
+    def position(self):
+        return self._position
 
 
 class NavigationWithHeading(Navigation):
@@ -125,7 +129,7 @@ class NavigationWithHeading(Navigation):
         self.heading = heading
 
     def __repr__(self) -> str:
-        return str({"position": self.position,
+        return str({"position": self._position,
                     "heading": Heading.get(
                         self.heading.x, self.heading.y).name,
                     })
@@ -154,7 +158,7 @@ class NavigationWithWaypoint(Navigation):
         self.waypoint = waypoint
 
     def __repr__(self) -> str:
-        return str({"position": self.position,
+        return str({"position": self._position,
                     "waypoint": self.waypoint,
                     })
 
