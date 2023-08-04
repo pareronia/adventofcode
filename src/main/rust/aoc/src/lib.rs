@@ -2,6 +2,19 @@ use std::env::Args;
 use std::fs::read_to_string;
 use std::time::Instant;
 
+#[macro_export]
+macro_rules! puzzle_year_day {
+    ($year:expr, $day:expr) => {
+        fn year(&self) -> u16 {
+            $year
+        }
+
+        fn day(&self) -> u8 {
+            $day
+        }
+    };
+}
+
 pub trait Puzzle {
     fn year(&self) -> u16;
     fn day(&self) -> u8;

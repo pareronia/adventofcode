@@ -18,13 +18,7 @@ impl AoC2022_03 {
 }
 
 impl aoc::Puzzle for AoC2022_03 {
-    fn year(&self) -> u16 {
-        2022
-    }
-
-    fn day(&self) -> u8 {
-        3
-    }
+    aoc::puzzle_year_day!(2022, 3);
 
     fn part_1(&self, lines: &Vec<String>) -> String {
         (0..lines.len())
