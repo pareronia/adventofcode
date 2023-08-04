@@ -103,4 +103,4 @@ runner:
                 port: 5556
         rust:
             base_dir: src/main/rust
-            day_format: AoC{year}_{day:0>2}/target/release/AoC{year}_{day:0>2}
+            day_format: target/release/AoC{year}_{day:0>2}
