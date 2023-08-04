@@ -35,13 +35,11 @@ public class AoC2021_18 extends AoCBase {
                     stack.push(new Regular(Character.digit(ch, 10)));
                 } else if (ch == ',') {
                     continue;
-                } else if (ch == ']') {
+                } else {
                     final Number right = stack.pop();
                     final Number left = stack.pop();
                     final Pair pair = Pair.create(left, right);
                     stack.push(pair);
-                } else {
-                    throw new IllegalArgumentException();
                 }
             }
             assert stack.size() == 1;

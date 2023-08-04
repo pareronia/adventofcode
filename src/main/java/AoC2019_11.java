@@ -1,18 +1,14 @@
-import static com.github.pareronia.aoc.Utils.toAString;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayDeque;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
+import com.github.pareronia.aoc.geometry.Draw;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aoc.navigation.Headings;
@@ -50,11 +46,11 @@ public class AoC2019_11 extends AoCBase {
         final Set<Position> white = new HashSet<>();
         final NavigationWithHeading nav
             = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
-        final IntCode intCode = new IntCode(false);
+        final IntCode intCode = new IntCode(this.program, false);
         final Deque<Long> input = new ArrayDeque<>(List.of(start));
         final Deque<Long> output = new ArrayDeque<>();
-        intCode.runTillInputRequired(this.program, input, output);
-        while (!intCode.isHalted()) {
+        do {
+            intCode.runTillInputRequired(input, output);
             if (output.pop() == WHITE) {
                 white.add(nav.getPosition());
             } else {
@@ -67,24 +63,11 @@ public class AoC2019_11 extends AoCBase {
             }
             nav.forward(1);
             input.add(white.contains(nav.getPosition()) ? 1L : 0L);
-            intCode.continueTillInputRequired(input, output);
-        }
+            intCode.runTillInputRequired(input, output);
+        } while (!intCode.isHalted());
         final Set<Position> visited = nav.getVisitedPositions(false).stream()
                 .distinct().collect(toSet());
         return new PaintJob(visited, white);
-    }
-    
-    private List<String> draw(final Set<Position> positions, final char fill, final char empty) {
-        final IntSummaryStatistics statsX = positions.stream()
-                .mapToInt(Position::getX).summaryStatistics();
-        final IntSummaryStatistics statsY = positions.stream()
-                .mapToInt(Position::getY).summaryStatistics();
-        final int width = statsX.getMax() + 2;
-        return IntStream.rangeClosed(statsY.getMin(), statsY.getMax()).mapToObj(
-                y -> IntStream.range(statsX.getMin(), width).mapToObj(
-                        x -> positions.contains(Position.of(x, y)) ? fill : empty)
-                        .collect(toAString()))
-                .collect(toList());
     }
     
     @Override
@@ -94,9 +77,7 @@ public class AoC2019_11 extends AoCBase {
     
     @Override
     public String solvePart2() {
-        final Set<Position> white = paint(WHITE).white;
-        final List<String> drawing = draw(white, FILL, EMPTY);
-        Collections.reverse(drawing);
+        final List<String> drawing = Draw.draw(paint(WHITE).white, FILL, EMPTY);
         drawing.forEach(this::log);
         return OCR.convert6(Grid.from(drawing), FILL, EMPTY);
     }

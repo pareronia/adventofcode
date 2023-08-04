@@ -64,10 +64,8 @@ public final class AoC2017_19 extends AoCBase {
                 stream = this.grid.getCellsE(next);
             } else if (next.getRow() < last.getRow()) {
                 stream = this.grid.getCellsN(next);
-            } else if (next.getRow() > last.getRow()) {
-                stream = this.grid.getCellsS(next);
             } else {
-                throw new IllegalArgumentException();
+                stream = this.grid.getCellsS(next);
             }
         }
         return seen.stream();

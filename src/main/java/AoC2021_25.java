@@ -37,8 +37,6 @@ public class AoC2021_25 extends AoCBase {
                     this.southHerd.add(p);
                 } else if (ch == EAST) {
                     this.eastHerd.add(p);
-                } else if (ch != EMPTY) {
-                    throw new IllegalArgumentException();
                 }
             });
     }

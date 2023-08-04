@@ -55,13 +55,11 @@ public class AoC2016_08 extends AoCBase {
                 final Integer row = Integer.valueOf(coords[0].substring("y=".length()));
                 final Integer amount = Integer.valueOf(coords[1]);
                 grid = grid.rollRow(row, amount);
-            } else if (input.startsWith("rotate column ")) {
+            } else {
                 final String[] coords = input.substring("rotate column ".length()).split(" by ");
                 final Integer column = Integer.valueOf(coords[0].substring("x=".length()));
                 final Integer amount = Integer.valueOf(coords[1]);
                 grid = grid.rollColumn(column, amount);
-            } else {
-                throw new IllegalArgumentException("Invalid input");
             }
             log("");
             log(grid);

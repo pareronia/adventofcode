@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.AssertUtils.assertFalse;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
@@ -336,16 +337,16 @@ public class AoC2021_23 extends AoCBase {
         }
         
         private Room roomFor(final Amphipod amphipod) {
+            assertFalse(amphipod == Amphipod.EMPTY, () -> "Can't assign room for EMPTY");
             if (amphipod == Amphipod.A) {
                 return this.roomA;
             } else if (amphipod == Amphipod.B) {
                 return this.roomB;
             } else if (amphipod == Amphipod.C) {
                 return this.roomC;
-            } else if (amphipod == Amphipod.D) {
+            } else {
                 return this.roomD;
             }
-            throw new IllegalArgumentException();
         }
         
         public Diagram doMove(final Move move) {
@@ -483,20 +484,19 @@ public class AoC2021_23 extends AoCBase {
         }
         
         private boolean freeTo(final int pos, final int target) {
+            assertFalse(pos == target, () -> "");
             if (pos < target) {
                 for (int i = pos + 1; i < target; i++) {
                     if (!this.hallwayEmpty(i)) {
                         return false;
                     }
                 }
-            } else if (pos > target) {
+            } else {
                 for (int i = this.hallway.capacity - 1; i > pos; i--) {
                     if (!this.hallwayEmpty(i)) {
                         return false;
                     }
                 }
-            } else {
-                throw new IllegalArgumentException();
             }
             return true;
         }

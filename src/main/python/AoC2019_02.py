@@ -20,17 +20,19 @@ def _parse(inputs: tuple[str]) -> tuple[int]:
 def _run_prog(prog: list[int], noun: int, verb: int) -> int:
     prog[1] = noun
     prog[2] = verb
-    return IntCode().run(prog)
+    int_code = IntCode(prog)
+    int_code.run()
+    return int_code.get_program()[0]
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _run_prog(_parse(inputs), 12, 2)[0]
+    return _run_prog(_parse(inputs), 12, 2)
 
 
 def part_2(inputs: tuple[str]) -> int:
     prog = _parse(inputs)
     for noun, verb in itertools.product(range(100), repeat=2):
-        if _run_prog(deepcopy(prog), noun, verb)[0] == 19_690_720:
+        if _run_prog(deepcopy(prog), noun, verb) == 19_690_720:
             return 100 * noun + verb
     raise RuntimeError("Unsolved")
 

@@ -1,16 +1,15 @@
-import static com.github.pareronia.aoc.Utils.toAString;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
+import com.github.pareronia.aoc.geometry.Draw;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.Headings;
@@ -61,28 +60,18 @@ public class AoC2021_13 extends AoCBase {
                 .size();
     }
     
-    private List<String> draw(final Set<Position> positions, final char fill, final char empty) {
-        final int maxX = positions.stream().mapToInt(Position::getX).max().orElseThrow();
-        final int maxY = positions.stream().mapToInt(Position::getY).max().orElseThrow();
-        final int width = maxX + 2;
-        return IntStream.rangeClosed(0, maxY).mapToObj(
-                y -> IntStream.range(0, width).mapToObj(
-                        x -> positions.contains(Position.of(x, y)) ? fill : empty)
-                        .collect(toAString()))
-                .collect(toList());
-    }
-    
     private List<String> solve2() {
         Set<Position> positions = this._positions;
         for (final Fold fold : this._folds) {
             positions = fold.applyTo(positions);
         }
-        return draw(positions, FILL, EMPTY);
+        return Draw.draw(positions, FILL, EMPTY);
     }
 
     @Override
     public String solvePart2() {
         final List<String> drawing = solve2();
+        Collections.reverse(drawing);
         drawing.forEach(this::log);
         return OCR.convert6(Grid.from(drawing), FILL, EMPTY);
     }

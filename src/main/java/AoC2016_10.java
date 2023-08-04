@@ -32,7 +32,7 @@ public class AoC2016_10 extends AoCBase {
                 final Integer value = Integer.valueOf(splits[0]);
                 final Integer toBot = Integer.valueOf(splits[1]);
                 this.inputs.add(new AoC2016_10.Input(value, toBot));
-            } else if (string.startsWith("bot ")) {
+            } else {
                 final String[] splits
                     = string.substring("bot ".length()).split(" ");
                 final Integer bot = Integer.valueOf(splits[0]);
@@ -43,8 +43,6 @@ public class AoC2016_10 extends AoCBase {
                 final Integer outHi = (typeHi.equals("bot") ? 0 : 1000)
                                             + Integer.valueOf(splits[10]);
                 this.bots.add(new AoC2016_10.Bot(bot, outLo, outHi));
-            } else {
-                throw new IllegalArgumentException("Invalid input");
             }
         }
         log(this.inputs);

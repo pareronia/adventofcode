@@ -25,9 +25,9 @@ public class AoC2019_09 extends AoCBase {
     }
     
     private Long solve(final long input) {
-        final IntCode intCode = new IntCode(this.debug);
+        final IntCode intCode = new IntCode(this.program, this.debug);
         final Deque<Long> output = new ArrayDeque<>();
-        intCode.run(this.program, input, output);
+        intCode.run(input, output);
         return output.getLast();
     }
 

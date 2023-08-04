@@ -29,7 +29,9 @@ public class AoC2019_02 extends AoCBase {
         final List<Long> theProgram = new ArrayList<>(this.program);
         theProgram.set(1, noun);
         theProgram.set(2, verb);
-        return new IntCode(this.debug).run(theProgram).get(0);
+        final IntCode intCode = new IntCode(theProgram, this.debug);
+        intCode.run(theProgram);
+        return intCode.getProgram().get(0);
     }
     
     @Override

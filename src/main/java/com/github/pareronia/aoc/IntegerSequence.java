@@ -1,5 +1,7 @@
 package com.github.pareronia.aoc;
 
+import static com.github.pareronia.aoc.AssertUtils.assertFalse;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Iterator;
@@ -23,15 +25,9 @@ public class IntegerSequence {
         private int maximum;
         
         private Range(final int from, final int to, final int step) {
-            if (step == 0) {
-                throw new IllegalArgumentException("step should be != 0");
-            }
-            if (from < to && step < 0) {
-                throw new IllegalArgumentException("step should be > 0");
-            }
-            if (from > to && step > 0) {
-                throw new IllegalArgumentException("step should be < 0");
-            }
+            assertTrue(step != 0, () -> "step should be != 0");
+            assertFalse(from < to && step < 0, () -> "step should be > 0");
+            assertFalse(from > to && step > 0, () -> "step should be < 0");
             this.from = from;
             this.to = to;
             this.step = step;
@@ -49,16 +45,12 @@ public class IntegerSequence {
         }
 
         public static Range range(final int to) {
-            if (to <= 0) {
-                throw new IllegalArgumentException("to should be > 0");
-            }
+            assertTrue(to > 0, () -> "to should be > 0");
             return new Range(0, to, 1);
         }
         
         public static Range rangeClosed(final int to) {
-            if (to <= 0) {
-                throw new IllegalArgumentException("to should be > 0");
-            }
+            assertTrue(to > 0, () -> "to should be > 0");
             return new Range(0, to + 1, 1);
         }
         

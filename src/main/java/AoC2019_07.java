@@ -42,16 +42,12 @@ public class AoC2019_07 extends AoCBase {
                 .toArray(Deque[]::new);
         queues[0].add(0L);
         final IntCode[] intCode = range(5).intStream()
-                .mapToObj(i -> new IntCode(false))
+                .mapToObj(i -> new IntCode(this.program, false))
                 .toArray(IntCode[]::new);
-        range(5).forEach(i -> {
-            intCode[i].runTillInputRequired(this.program, queues[i], queues[(i + 1) % 5]);
-        });
-        while (!Arrays.stream(intCode).allMatch(IntCode::isHalted)) {
-            range(5).forEach(i -> {
-                intCode[i].continueTillInputRequired(queues[i], queues[(i + 1) % 5]);
-            });
-        }
+        do {
+            range(5).forEach(i ->
+                intCode[i].runTillInputRequired(queues[i], queues[(i + 1) % 5]));
+        } while (!Arrays.stream(intCode).allMatch(IntCode::isHalted));
         return queues[0].getLast();
     }
     

@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.RequiredArgsConstructor;
 
@@ -29,12 +30,10 @@ public final class AoC2017_16 extends AoCBase {
                     final int a = Integer.parseInt(s.substring(1).split("/")[0]);
                     final int b = Integer.parseInt(s.substring(1).split("/")[1]);
                     return new Exchange(a, b);
-                } else if (s.startsWith("p")) {
+                } else  {
                     final Character a = s.substring(1).split("/")[0].charAt(0);
                     final Character b = s.substring(1).split("/")[1].charAt(0);
                     return new Partner(a, b);
-                } else  {
-                    throw new IllegalArgumentException();
                 }
             })
             .collect(toList());
@@ -129,9 +128,12 @@ public final class AoC2017_16 extends AoCBase {
         assert AoC2017_16.createDebug(TEST).solve("abcde", 1).equals("baedc");
         assert AoC2017_16.createDebug(TEST).solve("abcde", 2).equals("ceadb");
 
-        final List<String> input = Aocd.getData(2017, 16);
-        lap("Part 1", () -> AoC2017_16.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_16.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 16);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2017_16.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2017_16.create(inputData)::solvePart2)
+        );
     }
     
     private static final List<String> TEST = splitLines(

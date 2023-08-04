@@ -1,5 +1,7 @@
 package com.github.pareronia.aoc.geometry;
 
+import com.github.pareronia.aoc.AssertUtils;
+
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 import lombok.experimental.NonFinal;
@@ -9,15 +11,15 @@ import lombok.experimental.NonFinal;
 @NonFinal
 public class Vector extends Point {
 
-    protected Vector(Integer x, Integer y) {
+    protected Vector(final Integer x, final Integer y) {
         super(x, y);
     }
     
-    public static Vector of(Integer x, Integer y) {
+    public static Vector of(final Integer x, final Integer y) {
         return new Vector(x, y);
     }
     
-    public static Vector from(Point point) {
+    public static Vector from(final Point point) {
         return new Vector(point.getX(), point.getY());
     }
 
@@ -30,9 +32,9 @@ public class Vector extends Point {
         if (degrees < 0) {
             degrees = 360 + degrees;
         }
-        if (degrees % 90 != 0) {
-            throw new IllegalArgumentException("degrees to rotate should be multiple of 90");
-        }
+        AssertUtils.assertTrue(
+                degrees % 90 == 0,
+                () -> "degrees to rotate should be multiple of 90");
         Vector result = Vector.from(this);
         for (int i = 0; i < degrees / 90; i++) {
             result = result.rotate90();
@@ -40,7 +42,7 @@ public class Vector extends Point {
         return result;
     }
     
-    public Vector add(Vector vector, Integer amplitude) {
+    public Vector add(final Vector vector, final Integer amplitude) {
         final Point point = this
                 .withX(this.getX() + vector.getX() * amplitude)
                 .withY(this.getY() + vector.getY() * amplitude);

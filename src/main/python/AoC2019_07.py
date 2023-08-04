@@ -20,16 +20,14 @@ def _run(prog: list[int], phase_settings: tuple[int]) -> int:
     assert len(phase_settings) == 5
     queues = [[phase_settings[i]] for i in range(5)]
     queues[0].append(0)
-    int_codes = [IntCode() for _ in range(5)]
-    for i in range(5):
-        int_codes[i].run_till_input_required(
-            prog, queues[i], queues[(i + 1) % 5]
-        )
-    while not all(int_code.halted for int_code in int_codes):
+    int_codes = [IntCode(prog) for _ in range(5)]
+    while True:
         for i in range(5):
-            int_codes[i].continue_till_input_required(
+            int_codes[i].run_till_input_required(
                 queues[i], queues[(i + 1) % 5]
             )
+        if all(int_code.halted for int_code in int_codes):
+            break
     return queues[0][-1]
 
 

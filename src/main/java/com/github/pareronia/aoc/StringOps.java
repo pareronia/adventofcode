@@ -1,4 +1,5 @@
 package com.github.pareronia.aoc;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.CharArrayUtils.addAll;
 import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.stream.Collectors.toList;
@@ -11,10 +12,8 @@ public class StringOps {
                 .map(c -> Integer.valueOf(Character.digit(c, 10)))
                 .collect(toList())
                 .toArray(Integer[]::new);
-        if (digits.length != expected) {
-            throw new IllegalArgumentException(
-                String.format("Expected %d, got %d", expected, digits.length));
-        }
+        AssertUtils.assertTrue(digits.length == expected,
+                () -> String.format("Expected %d, got %d", expected, digits.length));
         return digits;
     }
     
@@ -24,10 +23,8 @@ public class StringOps {
                 .map(c -> Integer.valueOf(Character.digit(c, 10)))
                 .mapToInt(Integer::intValue)
                 .toArray();
-        if (digits.length != expected) {
-            throw new IllegalArgumentException(
-                    String.format("Expected %d, got %d", expected, digits.length));
-        }
+        AssertUtils.assertTrue(digits.length == expected,
+                () -> String.format("Expected %d, got %d", expected, digits.length));
         return digits;
     }
     
@@ -46,9 +43,7 @@ public class StringOps {
     }
     
     public static char[] move(final char[] ch, final int from, final int to) {
-        if (from == to) {
-            throw new IllegalArgumentException("Expected from and to to be different");
-        }
+        assertTrue(from != to, () -> "Expected from and to to be different");
         if (from < to) {
             final char[] ch1 = subarray(ch, 0, from);
             final char[] ch2 = new char[] { ch[from] };

@@ -2,6 +2,7 @@ import java.util.List;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2015_01 extends AoCBase {
     
@@ -36,13 +37,7 @@ public final class AoC2015_01 extends AoCBase {
         int sum = 0;
         for (int i = 0; i < this.input.length(); i++) {
             final char ch = this.input.charAt(i);
-            if (ch == UP) {
-                sum++;
-            } else if (ch == DOWN) {
-                sum--;
-            } else {
-                throw new IllegalArgumentException("Invalid input");
-            }
+            sum += ch == UP ? 1 : -1;
             if (sum == -1) {
                 return i + 1;
             }
@@ -63,9 +58,12 @@ public final class AoC2015_01 extends AoCBase {
         assert AoC2015_01.createDebug(TEST10).solvePart2() == 1;
         assert AoC2015_01.createDebug(TEST11).solvePart2() == 5;
 
-        final List<String> input = Aocd.getData(2015, 1);
-        lap("Part 1", () -> AoC2015_01.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_01.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2015, 1);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2015_01.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2015_01.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST1 = splitLines("(())");
