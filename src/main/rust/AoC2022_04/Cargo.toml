@@ -1,8 +1,8 @@
 [package]
-name = "aoc"
+name = "AoC2022_04"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-aocd = { path = "../aocd" }
+aoc = { path = "../aoc" }
 regex = "1.9"

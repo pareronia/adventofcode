@@ -1,3 +1,4 @@
+use regex::Regex;
 use std::fmt::Display;
 use std::fs::read_to_string;
 use std::time::Instant;
@@ -103,4 +104,20 @@ pub fn to_blocks(lines: &Vec<String>) -> Vec<Vec<&String>> {
 
 pub fn split_lines(s: &str) -> Vec<String> {
     s.lines().map(|line| String::from(line)).collect()
+}
+
+pub fn uints(line: &str, expected_count: usize) -> Vec<u32> {
+    let ans = Regex::new(r"[0-9]+")
+        .unwrap()
+        .find_iter(line)
+        .map(|mat| mat.as_str())
+        .map(|s| s.parse::<u32>().unwrap())
+        .collect::<Vec<u32>>();
+    assert_eq!(
+        ans.len(),
+        expected_count,
+        "Expected {} unsigned ints",
+        expected_count
+    );
+    ans
 }
