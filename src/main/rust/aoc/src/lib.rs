@@ -19,7 +19,13 @@ macro_rules! puzzle_year_day {
 #[macro_export]
 macro_rules! puzzle_samples {
     ($self:ident, $part:ident, $input:expr, $expected:expr) => {
-        assert_eq!($self.$part(&$self.parse_input(aoc::split_lines($input))), $expected);
+        let ans = $self.$part(&$self.parse_input(aoc::split_lines($input)));
+        assert_eq!(
+            ans,
+            $expected,
+            "\n{}({}): expected [{}], got [{}]",
+            stringify!($part), $input, $expected, ans
+        );
     };
 
     ($self:ident, $part:ident, $input:expr, $expected:expr, $($selfs:ident, $parts:ident, $inputs:expr, $expecteds:expr),+) => {{
