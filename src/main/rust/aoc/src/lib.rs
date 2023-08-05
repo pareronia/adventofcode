@@ -1,7 +1,12 @@
+use lazy_static::lazy_static;
 use regex::Regex;
 use std::fmt::Display;
 use std::fs::read_to_string;
 use std::time::Instant;
+
+lazy_static! {
+    static ref REGEX_Z: Regex = Regex::new(r"[0-9]+").unwrap();
+}
 
 #[macro_export]
 macro_rules! log {
@@ -129,8 +134,7 @@ pub fn uints_no_check(line: &str) -> Vec<u32> {
 }
 
 pub fn uints(line: &str, expected_count: Option<usize>) -> Vec<u32> {
-    let ans = Regex::new(r"[0-9]+")
-        .unwrap()
+    let ans = REGEX_Z
         .find_iter(line)
         .map(|mat| mat.as_str())
         .map(|s| s.parse::<u32>().unwrap())
