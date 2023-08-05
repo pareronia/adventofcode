@@ -1,25 +1,67 @@
 #![allow(non_snake_case)]
 
 use aoc::Puzzle;
-use std::collections::HashSet;
+
+struct Range {
+    start: u32,
+    end: u32,
+}
+
+impl Range {
+    fn between(start: u32, end: u32) -> Range {
+        Range { start, end }
+    }
+}
+
+trait Contains {
+    fn contains(&self, other: u32) -> bool;
+}
+
+impl Contains for Range {
+    fn contains(&self, other: u32) -> bool {
+        self.start <= other && other <= self.end
+    }
+}
+
+trait ContainsRange {
+    fn contains_range(&self, other: &Range) -> bool;
+}
+
+impl ContainsRange for Range {
+    fn contains_range(&self, other: &Range) -> bool {
+        self.contains(other.start) && self.contains(other.end)
+    }
+}
+
+trait IsOverlappedBy {
+    fn is_overlapped_by(&self, other: &Range) -> bool;
+}
+
+impl IsOverlappedBy for Range {
+    fn is_overlapped_by(&self, other: &Range) -> bool {
+        other.contains(self.start)
+            || other.contains(self.end)
+            || self.contains(other.start)
+    }
+}
 
 struct AoC2022_04 {}
 
 impl AoC2022_04 {
-    fn solve<F>(
+    fn solve2<F>(
         &self,
         input: &Vec<((u32, u32), (u32, u32))>,
         mut method: F,
     ) -> usize
     where
-        F: FnMut(&HashSet<u32>, &HashSet<u32>) -> bool,
+        F: FnMut(&Range, &Range) -> bool,
     {
         input
             .iter()
-            .filter(|(r1, r2)| {
-                let s1: HashSet<u32> = (r1.0..=r1.1).collect();
-                let s2: HashSet<u32> = (r2.0..=r2.1).collect();
-                method(&s1, &s2)
+            .filter(|(t1, t2)| {
+                let r1: Range = Range::between(t1.0, t1.1);
+                let r2: Range = Range::between(t2.0, t2.1);
+                method(&r1, &r2)
             })
             .count()
     }
@@ -41,15 +83,19 @@ impl aoc::Puzzle for AoC2022_04 {
     }
 
     fn part_1(&self, input: &Vec<((u32, u32), (u32, u32))>) -> usize {
-        self.solve(input, |s1, s2| s1.is_subset(s2) || s2.is_subset(s1))
+        self.solve2(input, |r1, r2| {
+            r1.contains_range(r2) || r2.contains_range(r1)
+        })
     }
 
     fn part_2(&self, input: &Vec<((u32, u32), (u32, u32))>) -> usize {
-        self.solve(input, |s1, s2| !s1.is_disjoint(s2))
+        self.solve2(input, |r1, r2| r1.is_overlapped_by(r2))
     }
 
     fn samples(&self) {
-        let test = "2-4,6-8\n\
+        #[rustfmt::skip]
+        let test =
+            "2-4,6-8\n\
              2-3,4-5\n\
              5-7,7-9\n\
              2-8,3,7\n\
