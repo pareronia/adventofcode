@@ -1,14 +1,11 @@
 #![allow(non_snake_case)]
 
+use aoc::Puzzle;
 use std::collections::HashSet;
 
 struct AoC2022_03 {}
 
 impl AoC2022_03 {
-    fn new() -> Box<dyn aoc::Puzzle> {
-        Box::new(AoC2022_03 {})
-    }
-
     fn priority(&self, ch: char) -> u32 {
         match 'a' <= ch && ch <= 'z' {
             true => ch as u32 - 'a' as u32 + 1,
@@ -18,9 +15,17 @@ impl AoC2022_03 {
 }
 
 impl aoc::Puzzle for AoC2022_03 {
+    type Input = Vec<String>;
+    type Output1 = u32;
+    type Output2 = u32;
+
     aoc::puzzle_year_day!(2022, 3);
 
-    fn part_1(&self, lines: &Vec<String>) -> String {
+    fn parse_input(&self, lines: Vec<String>) -> Vec<String> {
+        lines
+    }
+
+    fn part_1(&self, lines: &Vec<String>) -> u32 {
         (0..lines.len())
             .map(|i| {
                 let line = &lines[i];
@@ -29,11 +34,10 @@ impl aoc::Puzzle for AoC2022_03 {
                 let s2: HashSet<char> = line.chars().skip(cutoff).collect();
                 self.priority(*s1.intersection(&s2).next().unwrap())
             })
-            .sum::<u32>()
-            .to_string()
+            .sum()
     }
 
-    fn part_2(&self, lines: &Vec<String>) -> String {
+    fn part_2(&self, lines: &Vec<String>) -> u32 {
         (0..lines.len())
             .step_by(3)
             .map(|i| {
@@ -45,8 +49,7 @@ impl aoc::Puzzle for AoC2022_03 {
                     .fold(s1, |i, s| i.intersection(&s).map(|x| *x).collect());
                 self.priority(*intersection.iter().next().unwrap())
             })
-            .sum::<u32>()
-            .to_string()
+            .sum()
     }
 
     fn samples(&self) {
@@ -57,14 +60,14 @@ impl aoc::Puzzle for AoC2022_03 {
              ttgJtRGJQctTZtZT\n\
              CrZsJsPPZsGzwwsLwLmpwMDw";
         aoc::puzzle_samples! {
-            self, part_1, test, "157",
-            self, part_2, test, "70"
+            self, part_1, test, 157,
+            self, part_2, test, 70
         };
     }
 }
 
 fn main() {
-    AoC2022_03::new().run(std::env::args());
+    AoC2022_03 {}.run(std::env::args());
 }
 
 #[cfg(test)]
@@ -73,6 +76,6 @@ mod tests {
 
     #[test]
     pub fn samples() {
-        AoC2022_03::new().samples();
+        AoC2022_03 {}.samples();
     }
 }

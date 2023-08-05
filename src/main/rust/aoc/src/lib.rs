@@ -1,4 +1,4 @@
-use std::env::Args;
+use std::fmt::Display;
 use std::fs::read_to_string;
 use std::time::Instant;
 
@@ -18,7 +18,7 @@ macro_rules! puzzle_year_day {
 #[macro_export]
 macro_rules! puzzle_samples {
     ($self:ident, $part:ident, $input:expr, $expected:expr) => {
-        assert_eq!($self.$part(&aoc::split_lines($input)), $expected);
+        assert_eq!($self.$part(&$self.parse_input(aoc::split_lines($input))), $expected);
     };
 
     ($self:ident, $part:ident, $input:expr, $expected:expr, $($selfs:ident, $parts:ident, $inputs:expr, $expecteds:expr),+) => {{
@@ -28,15 +28,20 @@ macro_rules! puzzle_samples {
 }
 
 pub trait Puzzle {
+    type Input;
+    type Output1: Display;
+    type Output2: Display;
+
     fn year(&self) -> u16;
     fn day(&self) -> u8;
     fn get_input_data(&self) -> Vec<String> {
         aocd::get_input_data(self.year(), self.day())
     }
+    fn parse_input(&self, lines: Vec<String>) -> Self::Input;
     fn samples(&self) {}
-    fn part_1(&self, lines: &Vec<String>) -> String;
-    fn part_2(&self, lines: &Vec<String>) -> String;
-    fn run(&self, args: Args) {
+    fn part_1(&self, input: &Self::Input) -> Self::Output1;
+    fn part_2(&self, input: &Self::Input) -> Self::Output2;
+    fn run(&self, args: std::env::Args) {
         let argv: Vec<String> = args.collect();
         if argv.len() == 3 {
             let part: usize = argv[1].parse().unwrap();
@@ -45,10 +50,19 @@ pub trait Puzzle {
                 .lines()
                 .map(String::from)
                 .collect();
+            let input = self.parse_input(lines);
             let start = Instant::now();
+            let answer1;
+            let answer2;
             let (answer, duration) = match part {
-                1 => (self.part_1(&lines), start.elapsed()),
-                2 => (self.part_2(&lines), start.elapsed()),
+                1 => {
+                    answer1 = self.part_1(&input);
+                    (&answer1 as &dyn Display, start.elapsed())
+                }
+                2 => {
+                    answer2 = self.part_2(&input);
+                    (&answer2 as &dyn Display, start.elapsed())
+                }
                 _ => panic!("part should be '1' or '2'"),
             };
             println!(
@@ -61,9 +75,13 @@ pub trait Puzzle {
             if cfg!(debug_assertions) {
                 self.samples();
             }
-            let lines = self.get_input_data();
-            println!("Part 1: {}", self.part_1(&lines));
-            println!("Part 2: {}", self.part_2(&lines));
+            let input = self.parse_input(self.get_input_data());
+            let start1 = Instant::now();
+            let answer1 = self.part_1(&input);
+            println!("Part 1: {}, took {:?}", answer1, start1.elapsed());
+            let start2 = Instant::now();
+            let answer2 = self.part_2(&input);
+            println!("Part 2: {}, took {:?}", answer2, start2.elapsed());
         }
     }
 }

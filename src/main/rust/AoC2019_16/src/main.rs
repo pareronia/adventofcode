@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use aoc::Puzzle;
 use std::iter::zip;
 
 static ELEMENTS: &'static [i16] = &[0, 1, 0, -1];
@@ -28,18 +29,6 @@ impl Iterator for Pattern {
 struct AoC2019_16 {}
 
 impl AoC2019_16 {
-    fn new() -> Box<dyn aoc::Puzzle> {
-        Box::new(AoC2019_16 {})
-    }
-
-    fn parse(&self, lines: &Vec<String>) -> Vec<i16> {
-        lines[0]
-            .chars()
-            .filter_map(|c| c.to_digit(10))
-            .map(|i| i as i16)
-            .collect()
-    }
-
     fn pattern(&self, repeat: usize) -> Pattern {
         let mut pattern = Pattern { repeat, i: 0, j: 0 };
         pattern.next();
@@ -54,10 +43,22 @@ impl AoC2019_16 {
 }
 
 impl aoc::Puzzle for AoC2019_16 {
+    type Input = Vec<i16>;
+    type Output1 = String;
+    type Output2 = String;
+
     aoc::puzzle_year_day!(2019, 16);
 
-    fn part_1(&self, lines: &Vec<String>) -> String {
-        let mut nums = self.parse(&lines);
+    fn parse_input(&self, lines: Vec<String>) -> Vec<i16> {
+        lines[0]
+            .chars()
+            .filter_map(|c| c.to_digit(10))
+            .map(|i| i as i16)
+            .collect()
+    }
+
+    fn part_1(&self, input: &Vec<i16>) -> String {
+        let mut nums = input.clone();
         let mut digits = nums.clone();
         (0..PHASES).for_each(|_| {
             (0..nums.len()).for_each(|j| {
@@ -72,8 +73,8 @@ impl aoc::Puzzle for AoC2019_16 {
         self.as_string(&nums[..8])
     }
 
-    fn part_2(&self, lines: &Vec<String>) -> String {
-        let mut nums = self.parse(&lines);
+    fn part_2(&self, input: &Vec<i16>) -> String {
+        let mut nums = input.clone();
         let offset = self.as_string(&nums[..7]).parse::<usize>().unwrap();
         let tailsize: usize = 10_000 * nums.len() - offset;
         let repeat = tailsize / nums.len() + 1;
@@ -102,7 +103,7 @@ impl aoc::Puzzle for AoC2019_16 {
 }
 
 fn main() {
-    AoC2019_16::new().run(std::env::args());
+    AoC2019_16 {}.run(std::env::args());
 }
 
 #[cfg(test)]
@@ -111,6 +112,6 @@ mod tests {
 
     #[test]
     pub fn samples() {
-        AoC2019_16::new().samples();
+        AoC2019_16 {}.samples();
     }
 }

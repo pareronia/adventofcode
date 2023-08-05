@@ -1,14 +1,27 @@
 #![allow(non_snake_case)]
 
-struct AoC2022_01 {}
+use aoc::Puzzle;
+
+struct AoC2022_01;
 
 impl AoC2022_01 {
-    fn new() -> Box<dyn aoc::Puzzle> {
-        Box::new(AoC2022_01 {})
+    fn solve(&self, groups: &Vec<Vec<u32>>, count: usize) -> u32 {
+        let mut sums: Vec<u32> =
+            groups.iter().map(|group| group.iter().sum()).collect();
+        sums.sort();
+        sums.iter().rev().take(count).sum()
     }
+}
 
-    fn parse(&self, lines: &Vec<String>) -> Vec<Vec<u32>> {
-        let blocks = aoc::to_blocks(lines);
+impl aoc::Puzzle for AoC2022_01 {
+    type Input = Vec<Vec<u32>>;
+    type Output1 = u32;
+    type Output2 = u32;
+
+    aoc::puzzle_year_day!(2022, 1);
+
+    fn parse_input(&self, lines: Vec<String>) -> Vec<Vec<u32>> {
+        let blocks = aoc::to_blocks(&lines);
         blocks
             .iter()
             .map(|block| {
@@ -20,24 +33,12 @@ impl AoC2022_01 {
             .collect()
     }
 
-    fn solve(&self, lines: &Vec<String>, count: usize) -> u32 {
-        let groups = self.parse(&lines);
-        let mut sums: Vec<u32> =
-            groups.iter().map(|group| group.iter().sum()).collect();
-        sums.sort();
-        sums.iter().rev().take(count).sum()
-    }
-}
-
-impl aoc::Puzzle for AoC2022_01 {
-    aoc::puzzle_year_day!(2022, 1);
-
-    fn part_1(&self, lines: &Vec<String>) -> String {
-        self.solve(&lines, 1).to_string()
+    fn part_1(&self, input: &Vec<Vec<u32>>) -> u32 {
+        self.solve(input, 1)
     }
 
-    fn part_2(&self, lines: &Vec<String>) -> String {
-        self.solve(&lines, 3).to_string()
+    fn part_2(&self, input: &Vec<Vec<u32>>) -> u32 {
+        self.solve(input, 3)
     }
 
     fn samples(&self) {
@@ -56,14 +57,14 @@ impl aoc::Puzzle for AoC2022_01 {
              \n\
              10000";
         aoc::puzzle_samples! {
-            self, part_1, test, "24000",
-            self, part_2, test, "45000"
+            self, part_1, test, 24000,
+            self, part_2, test, 45000
         };
     }
 }
 
 fn main() {
-    AoC2022_01::new().run(std::env::args());
+    AoC2022_01 {}.run(std::env::args());
 }
 
 #[cfg(test)]
@@ -72,6 +73,6 @@ mod tests {
 
     #[test]
     pub fn samples() {
-        AoC2022_01::new().samples();
+        AoC2022_01 {}.samples();
     }
 }
