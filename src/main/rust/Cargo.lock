@@ -43,7 +43,13 @@ name = "AoC2022_04"
 version = "0.1.0"
 dependencies = [
  "aoc",
- "regex",
+]
+
+[[package]]
+name = "AoC2022_05"
+version = "0.1.0"
+dependencies = [
+ "aoc",
 ]
 
 [[package]]

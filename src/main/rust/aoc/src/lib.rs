@@ -4,6 +4,14 @@ use std::fs::read_to_string;
 use std::time::Instant;
 
 #[macro_export]
+macro_rules! log {
+    ($($arg:tt)*) => {{
+        #[cfg(debug_assertions)]
+        eprintln!("{:?}", ($($arg)*));
+    }};
+}
+
+#[macro_export]
 macro_rules! puzzle_year_day {
     ($year:expr, $day:expr) => {
         fn year(&self) -> u16 {
@@ -112,18 +120,26 @@ pub fn split_lines(s: &str) -> Vec<String> {
     s.lines().map(|line| String::from(line)).collect()
 }
 
-pub fn uints(line: &str, expected_count: usize) -> Vec<u32> {
+pub fn uints_with_check(line: &str, expected_count: usize) -> Vec<u32> {
+    uints(line, Some(expected_count))
+}
+
+pub fn uints_no_check(line: &str) -> Vec<u32> {
+    uints(line, None)
+}
+
+pub fn uints(line: &str, expected_count: Option<usize>) -> Vec<u32> {
     let ans = Regex::new(r"[0-9]+")
         .unwrap()
         .find_iter(line)
         .map(|mat| mat.as_str())
         .map(|s| s.parse::<u32>().unwrap())
         .collect::<Vec<u32>>();
-    assert_eq!(
-        ans.len(),
-        expected_count,
-        "Expected {} unsigned ints",
-        expected_count
-    );
-    ans
+    match expected_count {
+        None => ans,
+        Some(ec) => {
+            assert_eq!(ans.len(), ec, "Expected {} unsigned ints", ec);
+            ans
+        }
+    }
 }

@@ -35,7 +35,7 @@ impl aoc::Puzzle for AoC2022_04 {
     fn parse_input(&self, lines: Vec<String>) -> Vec<((u32, u32), (u32, u32))> {
         lines
             .iter()
-            .map(|line| aoc::uints(line, 4))
+            .map(|line| aoc::uints_with_check(line, 4))
             .map(|v| ((v[0], v[1]), (v[2], v[3])))
             .collect()
     }
