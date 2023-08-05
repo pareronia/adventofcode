@@ -157,7 +157,10 @@ def format_time(t, timeout=DEFAULT_TIMEOUT):
         color = "yellow"
     else:
         color = "red"
-    runtime = colored("{: 8.4f}s".format(t), color)
+    if t < 0.001:
+        runtime = colored("{: 7.3f}ms".format(t * 1000), color)
+    else:
+        runtime = colored("{: 8.4f}s".format(t), color)
     return runtime
 
 
