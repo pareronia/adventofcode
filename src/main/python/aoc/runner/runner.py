@@ -255,6 +255,7 @@ def run_for(
     if datasets:
         datasetpad = len(max(datasets, key=len))
     total_time = 0
+    total_walltime = 0
     for year, day, plugin, dataset in it:
         if year == aoc_now.year and day > aoc_now.day:
             continue
@@ -273,13 +274,11 @@ def run_for(
             timeout=timeout,
             progress=progress,
         )
-        time = (
-            walltime
-            if result_a.duration is None or result_b.duration is None
-            else (result_a.duration + result_b.duration) / 1e9
-        )
+        time = (0 if result_a.duration is None else result_a.duration / 1e9) \
+            + (0 if result_b.duration is None else result_b.duration / 1e9)
         runtime = format_time(time, timeout)
         total_time += time
+        total_walltime += walltime
         line = "   ".join([runtime, progress])
         if result_a.is_missing and hide_missing:
             continue
@@ -309,7 +308,8 @@ def run_for(
                 line += f"   {icon} part {part}: {answer}"
         print(line)
     print()
-    print("Total run time: {:8.4f}s".format(total_time))
+    print("Total run time: {:8.4f}s\nTook: {:8.4f}s"
+          .format(total_time, total_walltime))
     return n_incorrect
 
 
