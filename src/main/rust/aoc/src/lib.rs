@@ -5,6 +5,7 @@ use std::fs::read_to_string;
 use std::time::Instant;
 
 pub mod grid;
+pub mod geometry;
 
 lazy_static! {
     static ref REGEX_Z: Regex = Regex::new(r"[0-9]+").unwrap();
