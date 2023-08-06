@@ -4,6 +4,8 @@ use std::fmt::Display;
 use std::fs::read_to_string;
 use std::time::Instant;
 
+pub mod grid;
+
 lazy_static! {
     static ref REGEX_Z: Regex = Regex::new(r"[0-9]+").unwrap();
 }
