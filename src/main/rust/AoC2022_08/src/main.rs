@@ -18,24 +18,24 @@ impl AoC2022_08 {
     fn visible_from_outside(&self, grid: &IntGrid, cell: &Cell) -> bool {
         let val = grid.get(cell);
         grid.cells_capital_directions(cell)
-            .iter()
-            .any(|dir| dir.iter().all(|cell| grid.get(cell) < val))
+            .iter_mut()
+            .any(|dir| dir.all(|cell| grid.get(&cell) < val))
     }
 
     fn viewing_distance(
         &self,
         grid: &IntGrid,
-        direction: &Vec<Cell>,
+        direction: &GridIterator,
         val: u32,
     ) -> u32 {
         let mut n = 0;
         let mut stop = false;
-        for cell in direction {
+        for cell in direction.collect::<Vec<Cell>>() {
             if stop {
                 break;
             }
             n += 1;
-            stop = grid.get(cell) >= val;
+            stop = grid.get(&cell) >= val;
         }
         n
     }

@@ -10,9 +10,20 @@ impl Cell {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
+pub enum Direction {
+    Forward,
+    North,
+    East,
+    South,
+    West,
+}
+
+#[derive(Clone, Copy, Debug)]
 pub struct GridIterator {
     width: usize,
     height: usize,
+    direction: Direction,
     next: Option<Cell>,
 }
 
@@ -22,14 +33,44 @@ impl Iterator for GridIterator {
     fn next(&mut self) -> Option<Self::Item> {
         match self.next {
             None => None,
-            Some(val) => {
-                let n = val.row * self.width + val.col + 1;
-                self.next = match n {
-                    n if n == self.height * self.width => None,
-                    _ => Some(Cell::at(n / self.width, n % self.width)),
-                };
-                Some(val)
-            }
+            Some(val) => match self.direction {
+                Direction::Forward => {
+                    let n = val.row * self.width + val.col + 1;
+                    self.next = match n {
+                        n if n == self.height * self.width => None,
+                        _ => Some(Cell::at(n / self.width, n % self.width)),
+                    };
+                    Some(val)
+                }
+                Direction::North => {
+                    self.next = match val.row > 0 {
+                        true => Some(Cell::at(val.row - 1, val.col)),
+                        false => None,
+                    };
+                    self.next
+                }
+                Direction::East => {
+                    self.next = match val.col < self.width - 1 {
+                        true => Some(Cell::at(val.row, val.col + 1)),
+                        false => None,
+                    };
+                    self.next
+                }
+                Direction::South => {
+                    self.next = match val.row < self.height - 1 {
+                        true => Some(Cell::at(val.row + 1, val.col)),
+                        false => None,
+                    };
+                    self.next
+                }
+                Direction::West => {
+                    self.next = match val.col > 0 {
+                        true => Some(Cell::at(val.row, val.col - 1)),
+                        false => None,
+                    };
+                    self.next
+                }
+            },
         }
     }
 }
@@ -77,42 +118,49 @@ pub trait Grid {
         GridIterator {
             width: self.width(),
             height: self.height(),
+            direction: Direction::Forward,
             next: Some(Cell::at(0, 0)),
         }
     }
 
-    // TODO return iterator
-    fn cells_north(&self, cell: &Cell) -> Vec<Cell> {
-        (0..cell.row)
-            .rev()
-            .map(|row| Cell::at(row, cell.col))
-            .collect()
+    fn cells_north(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::North,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
+    fn cells_east(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::East,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
+    fn cells_south(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::South,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
+    fn cells_west(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::West,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
     }
 
     // TODO return iterator
-    fn cells_east(&self, cell: &Cell) -> Vec<Cell> {
-        (cell.col + 1..self.width())
-            .map(|col| Cell::at(cell.row, col))
-            .collect()
-    }
-
-    // TODO return iterator
-    fn cells_south(&self, cell: &Cell) -> Vec<Cell> {
-        (cell.row + 1..self.height())
-            .map(|row| Cell::at(row, cell.col))
-            .collect()
-    }
-
-    // TODO return iterator
-    fn cells_west(&self, cell: &Cell) -> Vec<Cell> {
-        (0..cell.col)
-            .rev()
-            .map(|col| Cell::at(cell.row, col))
-            .collect()
-    }
-
-    // TODO return iterator
-    fn cells_capital_directions(&self, cell: &Cell) -> Vec<Vec<Cell>> {
+    fn cells_capital_directions(&self, cell: &Cell) -> Vec<GridIterator> {
         vec![
             self.cells_north(cell),
             self.cells_east(cell),
@@ -202,19 +250,23 @@ mod tests {
             "12345".to_string(),
         ]);
         assert_eq!(
-            grid.cells_north(&Cell::at(3, 1)),
+            grid.cells_north(&Cell::at(3, 1)).collect::<Vec<Cell>>(),
             vec![Cell::at(2, 1), Cell::at(1, 1), Cell::at(0, 1)]
         );
         assert_eq!(
-            grid.cells_east(&Cell::at(2, 1)),
+            grid.cells_north(&Cell::at(0, 1)).collect::<Vec<Cell>>(),
+            vec![]
+        );
+        assert_eq!(
+            grid.cells_east(&Cell::at(2, 1)).collect::<Vec<Cell>>(),
             vec![Cell::at(2, 2), Cell::at(2, 3), Cell::at(2, 4)]
         );
         assert_eq!(
-            grid.cells_south(&Cell::at(2, 1)),
+            grid.cells_south(&Cell::at(2, 1)).collect::<Vec<Cell>>(),
             vec![Cell::at(3, 1), Cell::at(4, 1)]
         );
         assert_eq!(
-            grid.cells_west(&Cell::at(2, 3)),
+            grid.cells_west(&Cell::at(2, 3)).collect::<Vec<Cell>>(),
             vec![Cell::at(2, 2), Cell::at(2, 1), Cell::at(2, 0)]
         );
     }
