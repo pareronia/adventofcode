@@ -1,6 +1,6 @@
 use serde_json::Value;
-use std::collections::HashMap;
 use std::{
+    collections::HashMap,
     env, fs,
     io::{self, BufRead},
     path::{Path, PathBuf},
@@ -9,6 +9,20 @@ use std::{
 pub fn get_input_data(year: u16, day: u8) -> Vec<String> {
     let file = memo_dir().join(format!("{}_{:02}_input.txt", year, day));
     lines_from_file(&file)
+}
+
+pub fn answer(year: u16, day: u8, part: usize) -> Option<String> {
+    let p = match part {
+        1 => "a",
+        2 => "b",
+        _ => panic!("part should be 1 or 2"),
+    };
+    let file = memo_dir().join(format!("{}_{:02}{}_answer.txt", year, day, p));
+    let lines = lines_from_file(&file);
+    match lines.is_empty() {
+        true => None,
+        false => Some(lines[0].to_string()),
+    }
 }
 
 fn aocd_dir() -> PathBuf {
