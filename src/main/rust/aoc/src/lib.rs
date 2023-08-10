@@ -9,6 +9,7 @@ use std::{
 
 pub mod geometry;
 pub mod grid;
+pub mod ocr;
 
 static PART_NUMS: [&str; 3] = ["", "1", "2"];
 
@@ -44,7 +45,7 @@ macro_rules! puzzle_samples {
         assert_eq!(
             ans,
             $expected,
-            "\n{}({}): expected [{}], got [{}]",
+            "\n{}({}): expected [{:?}], got [{:?}]",
             stringify!($part), $input, $expected, ans
         );
     };

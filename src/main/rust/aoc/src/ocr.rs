@@ -170,11 +170,9 @@ pub fn convert_6(grid: &CharGrid, fill_char: char, empty_char: char) -> String {
             sub.replace(empty_char, '.');
             sub
         })
-        .map(|sub| {
-            match GLYPHS.get(&sub.clone()) {
-                Some(val) => val,
-                None => panic!("OCR doesn't understand\n{}", sub),
-            }
+        .map(|sub| match GLYPHS.get(&sub.clone()) {
+            Some(val) => val,
+            None => panic!("OCR doesn't understand\n{}", sub),
         })
         .collect::<String>()
 }
