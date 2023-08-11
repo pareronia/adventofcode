@@ -1,3 +1,2 @@
 [workspace]
 members = ["AoC????_??"]
-exclude = ["aoc", "aocd"]
