@@ -1,6 +1,6 @@
 use std::fmt::{Display, Error, Formatter};
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
 pub struct Cell {
     pub row: usize,
     pub col: usize,
@@ -42,10 +42,12 @@ impl Iterator for GridIterator {
             None => None,
             Some(val) => match self.direction {
                 Direction::Forward => {
-                    let n = val.row * self.width + val.col + 1;
-                    self.next = match n {
-                        n if n == self.height * self.width => None,
-                        _ => Some(Cell::at(n / self.width, n % self.width)),
+                    self.next = match val.col + 1 {
+                        col if col < self.width => Some(Cell::at(val.row, col)),
+                        _ => match val.row + 1 {
+                            row if row < self.height => Some(Cell::at(row, 0)),
+                            _ => None,
+                        },
                     };
                     Some(val)
                 }
@@ -133,6 +135,10 @@ pub trait Grid {
         self.height() * self.width()
     }
 
+    fn in_bounds(&self, cell: &Cell) -> bool {
+        self.valid_row_index(cell.row) && self.valid_column_index(cell.col)
+    }
+
     fn cells(&self) -> GridIterator {
         GridIterator {
             width: self.width(),
@@ -202,6 +208,39 @@ pub trait Grid {
             self.cells_south(cell),
             self.cells_west(cell),
         ]
+    }
+
+    fn capital_neighbours(&self, cell: &Cell) -> Vec<Cell> {
+        let mut ans = vec![];
+        if cell.row > 0 {
+            ans.push(Cell::at(cell.row - 1, cell.col));
+        }
+        if self.valid_column_index(cell.col + 1) {
+            ans.push(Cell::at(cell.row, cell.col + 1));
+        }
+        if self.valid_row_index(cell.row + 1) {
+            ans.push(Cell::at(cell.row + 1, cell.col));
+        }
+        if cell.col > 0 {
+            ans.push(Cell::at(cell.row, cell.col - 1));
+        }
+        ans
+    }
+
+    fn find_first_matching(
+        &self,
+        test: impl Fn(Self::Item) -> bool,
+    ) -> Option<Cell> {
+        for row in 0..self.height() {
+            for col in 0..self.width() {
+                if test(self.get_data()[row][col]) {
+                    return Some(Cell::at(row, col));
+                } else {
+                    continue;
+                }
+            }
+        }
+        None
     }
 
     fn replace(&mut self, val1: Self::Item, val2: Self::Item) {
@@ -459,5 +498,47 @@ mod tests {
             grid.cells_west(&Cell::at(2, 3)).collect::<Vec<Cell>>(),
             vec![Cell::at(2, 2), Cell::at(2, 1), Cell::at(2, 0)]
         );
+    }
+
+    #[test]
+    pub fn capital_neighbours() {
+        let grid =
+            IntGrid::from(&vec!["12345", "12345", "12345", "12345", "12345"]);
+        assert_eq!(
+            grid.capital_neighbours(&Cell::at(2, 2)),
+            vec![
+                Cell::at(1, 2),
+                Cell::at(2, 3),
+                Cell::at(3, 2),
+                Cell::at(2, 1)
+            ]
+        );
+        assert_eq!(
+            grid.capital_neighbours(&Cell::at(2, 0)),
+            vec![Cell::at(1, 0), Cell::at(2, 1), Cell::at(3, 0),]
+        );
+        assert_eq!(
+            grid.capital_neighbours(&Cell::at(2, 4)),
+            vec![Cell::at(1, 4), Cell::at(3, 4), Cell::at(2, 3),]
+        );
+        assert_eq!(
+            grid.capital_neighbours(&Cell::at(0, 2)),
+            vec![Cell::at(0, 3), Cell::at(1, 2), Cell::at(0, 1),]
+        );
+        assert_eq!(
+            grid.capital_neighbours(&Cell::at(4, 2)),
+            vec![Cell::at(3, 2), Cell::at(4, 3), Cell::at(4, 1),]
+        );
+    }
+
+    #[test]
+    pub fn find_first_matching() {
+        let grid =
+            IntGrid::from(&vec!["12345", "12345", "12345", "12345", "12345"]);
+        assert_eq!(
+            grid.find_first_matching(|val| val == 3),
+            Some(Cell::at(0, 2))
+        );
+        assert_eq!(grid.find_first_matching(|val| val == 7), None);
     }
 }
