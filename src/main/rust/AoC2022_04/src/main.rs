@@ -1,95 +1,67 @@
 #![allow(non_snake_case)]
 
 use aoc::Puzzle;
+use std::ops::RangeInclusive;
 
-struct Range {
-    start: u32,
-    end: u32,
-}
-
-impl Range {
-    fn between(start: u32, end: u32) -> Range {
-        Range { start, end }
-    }
-}
-
-trait Contains {
-    fn contains(&self, other: u32) -> bool;
-}
-
-impl Contains for Range {
-    fn contains(&self, other: u32) -> bool {
-        self.start <= other && other <= self.end
-    }
-}
+type RangePair = (RangeInclusive<u32>, RangeInclusive<u32>);
 
 trait ContainsRange {
-    fn contains_range(&self, other: &Range) -> bool;
+    fn contains_range(&self, other: &RangeInclusive<u32>) -> bool;
 }
 
-impl ContainsRange for Range {
-    fn contains_range(&self, other: &Range) -> bool {
-        self.contains(other.start) && self.contains(other.end)
+impl ContainsRange for RangeInclusive<u32> {
+    fn contains_range(&self, other: &RangeInclusive<u32>) -> bool {
+        self.contains(other.start()) && self.contains(other.end())
     }
 }
 
 trait IsOverlappedBy {
-    fn is_overlapped_by(&self, other: &Range) -> bool;
+    fn is_overlapped_by(&self, other: &RangeInclusive<u32>) -> bool;
 }
 
-impl IsOverlappedBy for Range {
-    fn is_overlapped_by(&self, other: &Range) -> bool {
-        other.contains(self.start)
-            || other.contains(self.end)
-            || self.contains(other.start)
+impl IsOverlappedBy for RangeInclusive<u32> {
+    fn is_overlapped_by(&self, other: &RangeInclusive<u32>) -> bool {
+        other.contains(self.start())
+            || other.contains(self.end())
+            || self.contains(other.start())
     }
 }
 
 struct AoC2022_04 {}
 
 impl AoC2022_04 {
-    fn solve2<F>(
+    fn solve2(
         &self,
-        input: &Vec<((u32, u32), (u32, u32))>,
-        mut method: F,
-    ) -> usize
-    where
-        F: FnMut(&Range, &Range) -> bool,
-    {
-        input
-            .iter()
-            .filter(|(t1, t2)| {
-                let r1: Range = Range::between(t1.0, t1.1);
-                let r2: Range = Range::between(t2.0, t2.1);
-                method(&r1, &r2)
-            })
-            .count()
+        input: &Vec<RangePair>,
+        method: impl Fn(&RangePair) -> bool,
+    ) -> usize {
+        input.iter().filter(|pair| method(&pair)).count()
     }
 }
 
 impl aoc::Puzzle for AoC2022_04 {
-    type Input = Vec<((u32, u32), (u32, u32))>;
+    type Input = Vec<RangePair>;
     type Output1 = usize;
     type Output2 = usize;
 
     aoc::puzzle_year_day!(2022, 4);
 
-    fn parse_input(&self, lines: Vec<String>) -> Vec<((u32, u32), (u32, u32))> {
+    fn parse_input(&self, lines: Vec<String>) -> Vec<RangePair> {
         lines
             .iter()
             .map(|line| aoc::uints_with_check(line, 4))
-            .map(|v| ((v[0], v[1]), (v[2], v[3])))
+            .map(|v| (v[0]..=v[1], v[2]..=v[3]))
             .collect()
     }
 
-    fn part_1(&self, input: &Vec<((u32, u32), (u32, u32))>) -> usize {
-        self.solve2(input, |r1, r2| {
-            r1.contains_range(r2) || r2.contains_range(r1)
+    fn part_1(&self, input: &Vec<RangePair>) -> usize {
+        self.solve2(input, |pair| {
+            pair.0.contains_range(&pair.1) || pair.1.contains_range(&pair.0)
         })
     }
 
-    fn part_2(&self, input: &Vec<((u32, u32), (u32, u32))>) -> usize {
-        self.solve2(input, |r1, r2| r1.is_overlapped_by(r2))
+    fn part_2(&self, input: &Vec<RangePair>) -> usize {
+        self.solve2(input, |pair| pair.0.is_overlapped_by(&pair.1))
     }
 
     fn samples(&self) {
