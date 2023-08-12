@@ -10,6 +10,19 @@ impl Cell {
     pub fn at(row: usize, col: usize) -> Cell {
         Cell { row, col }
     }
+
+    pub fn capital_neighbours(&self) -> Vec<Cell> {
+        let mut ans = vec![];
+        if self.row > 0 {
+            ans.push(Cell::at(self.row - 1, self.col));
+        }
+        ans.push(Cell::at(self.row, self.col + 1));
+        ans.push(Cell::at(self.row + 1, self.col));
+        if self.col > 0 {
+            ans.push(Cell::at(self.row, self.col - 1));
+        }
+        ans
+    }
 }
 
 pub struct CellRange {

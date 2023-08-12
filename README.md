@@ -119,7 +119,7 @@
 | bash | [✓](src/main/bash/AoC2016_01.sh) | [✓](src/main/bash/AoC2016_02.sh) | [✓](src/main/bash/AoC2016_03.sh) | [✓](src/main/bash/AoC2016_04.sh) |  | [✓](src/main/bash/AoC2016_06.sh) | [✓](src/main/bash/AoC2016_07.sh) | [✓](src/main/bash/AoC2016_08.sh) | [✓](src/main/bash/AoC2016_09.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ |  |  |  |  |  |  |  | [✓](src/main/cpp/2016/08/AoC2016_08.cpp) |  |  |  |  | [✓](src/main/cpp/2016/13/AoC2016_13.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |
 | julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| rust |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust |  |  |  |  |  |  |  |  |  |  |  |  | [✓](src/main/rust/AoC2016_13/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2016@ -->
 
 ## 2015
