@@ -24,7 +24,9 @@ impl XY {
 pub enum Heading {
     North,
     East,
+    SouthEast,
     South,
+    SouthWest,
     West,
 }
 
@@ -52,7 +54,9 @@ impl TryFrom<Heading> for XY {
         match value {
             Heading::North => Ok(XY::of(0, 1)),
             Heading::East => Ok(XY::of(1, 0)),
+            Heading::SouthEast => Ok(XY::of(1, -1)),
             Heading::South => Ok(XY::of(0, -1)),
+            Heading::SouthWest => Ok(XY::of(-1, -1)),
             Heading::West => Ok(XY::of(-1, 0)),
         }
     }
