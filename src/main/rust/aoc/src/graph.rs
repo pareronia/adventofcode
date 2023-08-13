@@ -43,6 +43,22 @@ where
         }
         unreachable!();
     }
+
+    pub fn flood_fill(start: T, adjacent: impl Fn(T) -> Vec<T>) -> HashSet<T> {
+        let mut q: VecDeque<T> = VecDeque::new();
+        q.push_back(start);
+        let mut seen: HashSet<T> = HashSet::new();
+        seen.insert(start);
+        while let Some(node) = q.pop_front() {
+            adjacent(node.clone()).iter().for_each(|n| {
+                if !seen.contains(&n) {
+                    seen.insert(*n);
+                    q.push_back(*n);
+                }
+            });
+        }
+        seen
+    }
 }
 
 pub struct AStar<T>(T);
@@ -137,25 +153,6 @@ mod tests {
     use super::*;
     use crate::grid::{Cell, CharGrid, Grid};
 
-    fn astar_execute(start: Cell, end: Cell) -> Result<Cell> {
-        #[rustfmt::skip]
-        let v = &vec![
-            ".###",
-            "..##",
-            "#..#",
-            "##..",
-            "###."];
-        let grid = CharGrid::from(&v);
-        let adjacent = |cell| {
-            grid.capital_neighbours(&cell)
-                .iter()
-                .filter(|n| grid.get(&n) != '#')
-                .cloned()
-                .collect()
-        };
-        AStar::execute(start, |cell| cell == end, adjacent, |cell| 1)
-    }
-
     fn bfs_execute(start: Cell, end: Cell) -> usize {
         #[rustfmt::skip]
         let v = &vec![
@@ -188,6 +185,38 @@ mod tests {
     }
 
     #[test]
+    pub fn bfs_flood_fill() {
+        #[rustfmt::skip]
+        let v = &vec![
+            ".###",
+            "..##",
+            "#..#",
+            "##..",
+            "###."];
+        let grid = CharGrid::from(&v);
+        let adjacent = |cell| {
+            grid.capital_neighbours(&cell)
+                .iter()
+                .filter(|n| grid.get(&n) != '#')
+                .cloned()
+                .collect()
+        };
+        assert_eq!(
+            BFS::flood_fill(Cell::at(2, 2), adjacent),
+            HashSet::from([
+                Cell::at(0, 0),
+                Cell::at(1, 0),
+                Cell::at(1, 1),
+                Cell::at(2, 1),
+                Cell::at(2, 2),
+                Cell::at(3, 2),
+                Cell::at(3, 3),
+                Cell::at(4, 3),
+            ])
+        );
+    }
+
+    #[test]
     pub fn astar_execute_ok() {
         #[rustfmt::skip]
         let v = &vec![
@@ -208,7 +237,7 @@ mod tests {
             Cell::at(0, 0),
             |cell| cell == Cell::at(4, 3),
             adjacent,
-            |cell| 1,
+            |_| 1,
         );
         assert_eq!(result.get_distance(&Cell::at(2, 2)).unwrap(), 4);
         assert_eq!(result.get_distance(&Cell::at(4, 3)).unwrap(), 7);
