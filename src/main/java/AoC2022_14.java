@@ -23,6 +23,7 @@ public class AoC2022_14 extends AoCBase {
     private final int minX;
     private final int maxX;
     private final int maxY;
+    private final boolean[][] occupied;
     
     private AoC2022_14(final List<String> input, final boolean debug) {
         super(debug);
@@ -53,6 +54,8 @@ public class AoC2022_14 extends AoCBase {
         this.minX = stats.getMin();
         this.maxX = stats.getMax();
         this.maxY = this.rocks.stream().mapToInt(Position::getY).max().getAsInt();
+        this.occupied = new boolean[maxY + 2][maxX + 150];
+        rocks.stream().forEach(p -> occupied[p.getY()][p.getX()] = true);
     }
     
     public static final AoC2022_14 create(final List<String> input) {
@@ -63,17 +66,18 @@ public class AoC2022_14 extends AoCBase {
         return new AoC2022_14(input, true);
     }
     
-    Position drop(final Set<Position> sand, final int maxY) {
+    Position drop(final int maxY) {
         Position curr = SOURCE;
         while (true) {
+            final int y = curr.getY() + 1;
             final Position p = curr;
-            final Position down = Position.of(curr.getX(), curr.getY() + 1);
-            final Position downLeft = Position.of(curr.getX() - 1, curr.getY() + 1);
-            final Position downRight = Position.of(curr.getX() + 1, curr.getY() + 1);
-            for (final Position test : List.of(down, downLeft, downRight)) {
-                if (!this.rocks.contains(test) && !sand.contains(test)) {
-                    curr = test;
-                    break;
+            for (final int x : List.of(0, -1 , 1)) {
+                try {
+                    if (!this.occupied[y][curr.getX() + x]) {
+                        curr = Position.of(curr.getX() + x, y);
+                        break;
+                    }
+                } catch (final ArrayIndexOutOfBoundsException e) {
                 }
             }
             if (curr.equals(p)) {
@@ -85,22 +89,23 @@ public class AoC2022_14 extends AoCBase {
         }
     }
     
-    private Set<Position> solve(final int maxY) {
-        final Set<Position> sand = new HashSet<>();
+    private int solve(final int maxY) {
+        int cnt = 0;
         while (true) {
-            final Position p = drop(sand, maxY);
+            final Position p = drop(maxY);
             if (p == null) {
                 break;
             }
-            sand.add(p);
+            this.occupied[p.getY()][p.getX()] = true;
+            cnt++;
             if (p.equals(SOURCE)) {
                 break;
             }
         }
-        return sand;
+        return cnt;
     }
     
-    void draw(final Set<Position> sand) {
+    void draw() {
         if (!this.debug) {
             return;
         }
@@ -116,7 +121,7 @@ public class AoC2022_14 extends AoCBase {
                         final Position pos = Position.of(x, y);
                         if (this.rocks.contains(pos)) {
                             return ROCK;
-                        } else if (sand.contains(pos)) {
+                        } else if (this.occupied[pos.getY()][pos.getX()]) {
                             return SAND;
                         } else if (SOURCE.equals(pos)) {
                             return START;
@@ -130,9 +135,9 @@ public class AoC2022_14 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final Set<Position> sand = solve(this.maxY);
-        draw(sand);
-        return sand.size();
+        final int ans = solve(this.maxY);
+        draw();
+        return ans;
     }
 
     @Override
@@ -140,9 +145,9 @@ public class AoC2022_14 extends AoCBase {
         final int max = this.maxY + 2;
         IntStream.rangeClosed(minX - max, maxX + max)
             .forEach(x -> this.rocks.add(Position.of(x, max)));
-        final Set<Position> sand = solve(max);
-        draw(sand);
-        return sand.size();
+        final int ans = solve(max);
+        draw();
+        return ans;
     }
 
     public static void main(final String[] args) throws Exception {
