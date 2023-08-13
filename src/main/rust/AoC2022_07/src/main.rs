@@ -4,6 +4,8 @@ use aoc::{log, Puzzle};
 use itertools::Itertools;
 use std::collections::{HashMap, VecDeque};
 
+const ROOT: &str = "<root>";
+
 struct AoC2022_07;
 
 impl AoC2022_07 {}
@@ -17,28 +19,24 @@ impl aoc::Puzzle for AoC2022_07 {
 
     fn parse_input(&self, lines: Vec<String>) -> HashMap<String, u32> {
         let mut sizes: HashMap<String, u32> = HashMap::new();
-        let mut path: VecDeque<String> = VecDeque::new();
+        let mut path: VecDeque<&str> = VecDeque::new();
         lines.iter().skip(1).for_each(|line| {
             if line.starts_with("$ cd ") {
                 let name = &line["$ cd ".len()..];
                 if name == ".." {
                     path.pop_back();
                 } else {
-                    path.push_back(name.to_string());
+                    path.push_back(name);
                 }
             } else if !line.starts_with("$") {
                 let split = line.split(" ").next().unwrap();
                 if !split.starts_with("dir") {
                     let size = split.parse::<u32>().unwrap();
-                    for i in 0..path.len() + 1 {
-                        let pp = path
-                            .iter()
-                            .take(i)
-                            .map(|s| s.to_string())
-                            .collect::<Vec<String>>()
-                            .join("/");
+                    for i in 0..=path.len() {
+                        let mut pp = vec![ROOT];
+                        path.iter().take(i).for_each(|p| pp.push(p));
                         sizes
-                            .entry("/".to_owned() + &pp)
+                            .entry(pp.join("/"))
                             .and_modify(|e| *e += size)
                             .or_insert(size);
                     }
@@ -54,7 +52,7 @@ impl aoc::Puzzle for AoC2022_07 {
     }
 
     fn part_2(&self, sizes: &HashMap<String, u32>) -> u32 {
-        let total = sizes.get("/").unwrap();
+        let total = sizes.get(ROOT.into()).unwrap();
         let wanted = 30_000_000 - (70_000_000 - total);
         *sizes
             .values()
