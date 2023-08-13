@@ -7,8 +7,10 @@ struct AoC2022_06;
 
 impl AoC2022_06 {
     fn solve(&self, line: &String, count: usize) -> usize {
-        for i in count..line.len() {
-            if line[i - count..i].chars().unique().count() == count {
+        for i in count..line.chars().count() {
+            if line.chars().skip(i - count).take(count).unique().count()
+                == count
+            {
                 return i;
             }
         }
