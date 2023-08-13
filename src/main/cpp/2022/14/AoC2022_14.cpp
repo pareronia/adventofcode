@@ -13,8 +13,9 @@ using namespace std;
 const Position SOURCE(500, 0);
 const Position STOP(-1, -1);
 
-tuple<unordered_set<Position>, int> parse(const vector<string>& input) {
+tuple<vector<vector<bool>>, int> parse(const vector<string>& input) {
     unordered_set<Position> rocks;
+    int maxX = 0;
     int maxY = 0;
     for (const string& line : input) {
         auto splits = aoc::split(line, " -> ");
@@ -28,34 +29,37 @@ tuple<unordered_set<Position>, int> parse(const vector<string>& input) {
             for (int x : aoc::Range::rangeClosed(xs[0], xs[1])) {
                 for (int y : aoc::Range::rangeClosed(ys[0], ys[1])) {
                     rocks.insert(Position(x, y));
+                    maxX = max(maxX, x);
                     maxY = max(maxY, y);
                 }
             }
         }
     }
-    return make_tuple(rocks, maxY);
+    vector<vector<bool>> occupied;
+    for (int i = 0; i < maxY + 2; i++) {
+        occupied.push_back(vector<bool>(maxX + 150, false));
+    }
+    for (const Position& p : rocks) {
+        occupied[p.y][p.x] = true;
+    }
+    return make_tuple(occupied, maxY);
 }
 
-Position drop(const unordered_set<Position>& rocks,
-              const unordered_set<Position>& sand, const int maxY) {
+Position drop(const vector<vector<bool>>& occupied, const int maxY) {
     int currX = SOURCE.x;
     int currY = SOURCE.y;
     while (true) {
         const Position p(currX, currY);
-        const Position down(currX, currY + 1);
-        const Position downLeft(currX - 1, currY + 1);
-        const Position downRight(currX + 1, currY + 1);
-        const vector<Position> tests({down, downLeft, downRight});
-        for (const Position& test : tests) {
-            if (rocks.find(test) != rocks.end()) {
-                continue;
+        const int y = currY + 1;
+        for (const int x : vector<int>({0, -1, 1})) {
+            try {
+                if (!occupied.at(y).at(currX + x)) {
+                    currX = currX + x;
+                    currY = y;
+                    break;
+                }
+            } catch (const std::out_of_range& e) {
             }
-            if (sand.find(test) != sand.end()) {
-                continue;
-            }
-            currX = test.x;
-            currY = test.y;
-            break;
         }
         if (p.x == currX && p.y == currY) {
             return Position(currX, currY);
@@ -67,40 +71,34 @@ Position drop(const unordered_set<Position>& rocks,
     return Position(0, 0);
 }
 
-int solve(const unordered_set<Position>& rocks, const int maxY) {
-    unordered_set<Position> sand;
+int solve(vector<vector<bool>>& occupied, const int maxY) {
+    int cnt = 0;
     while (true) {
-        const Position& p = drop(rocks, sand, maxY);
+        const Position& p = drop(occupied, maxY);
         if (p == STOP) {
             break;
         }
-        sand.insert(p);
+        occupied[p.y][p.x] = true;
+        cnt++;
         if (p == SOURCE) {
             break;
         }
     }
-    return sand.size();
+    return cnt;
 }
 
 int part1(const vector<string>& input) {
-    unordered_set<Position> rocks;
+    vector<vector<bool>> occupied;
     int maxY;
-    tie(rocks, maxY) = parse(input);
-    return solve(rocks, maxY);
+    tie(occupied, maxY) = parse(input);
+    return solve(occupied, maxY);
 }
 
 int part2(const vector<string>& input) {
-    unordered_set<Position> rocks;
+    vector<vector<bool>> occupied;
     int maxY;
-    tie(rocks, maxY) = parse(input);
-    const auto [minX, maxX] = minmax_element(
-        begin(rocks), end(rocks),
-        [](const Position& a, const Position& b) { return a.x < b.x; });
-    const int max = maxY + 2;
-    for (int x : aoc::Range::rangeClosed(minX->x - max, maxX->x + max)) {
-        rocks.insert(Position(x, max));
-    }
-    return solve(rocks, max);
+    tie(occupied, maxY) = parse(input);
+    return solve(occupied, maxY + 2);
 }
 
 // clang-format off
