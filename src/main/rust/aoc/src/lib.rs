@@ -8,6 +8,7 @@ use std::{
 };
 
 pub mod geometry;
+pub mod geometry3d;
 pub mod graph;
 pub mod grid;
 pub mod ocr;
