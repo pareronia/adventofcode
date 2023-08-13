@@ -5,14 +5,16 @@
 
 
 import aocd
+
 from aoc import my_aocd
 
 Position = tuple[int, int]
 SOURCE = Position((500, 0))
 
 
-def _parse(inputs: tuple[str]) -> tuple[set[Position], int]:
+def _parse(inputs: tuple[str]) -> tuple[list[list[bool]], int]:
     rocks = set[Position]()
+    max_x = 0
     max_y = 0
     for line in inputs:
         c = [list(map(int, p.split(","))) for p in line.strip().split(" -> ")]
@@ -22,51 +24,53 @@ def _parse(inputs: tuple[str]) -> tuple[set[Position], int]:
             for x in range(x1, x2 + 1):
                 for y in range(y1, y2 + 1):
                     rocks.add(Position((x, y)))
+                    max_x = max(max_x, x)
                     max_y = max(max_y, y)
-    return rocks, max_y
+    occupied = [[False] * (max_x + 150) for _ in range(max_y + 2)]
+    for x, y in rocks:
+        occupied[y][x] = True
+    return occupied, max_y
 
 
-def _drop(rocks: set[Position], sand: set[Position], max_y: int) -> Position:
+def _drop(occupied: list[list[bool]], max_y: int) -> Position:
     curr = SOURCE
     while True:
+        p = curr
         curr_x, curr_y = curr
         for dx, dy in [(0, 1), (-1, 1), (1, 1)]:
-            test = Position((curr_x + dx, curr_y + dy))
-            if test not in sand and test not in rocks:
-                curr = test
-                break
-        if curr == (curr_x, curr_y):
+            try:
+                if not occupied[curr_y + dy][curr_x + dx]:
+                    curr = (curr_x + dx, curr_y + dy)
+                    break
+            except IndexError:
+                pass
+        if curr == p:
             return curr
         if curr[1] > max_y:
             return None
 
 
-def _solve(rocks: set[Position], max_y: int) -> set[Position]:
-    sand = set[Position]()
+def _solve(occupied: list[list[bool]], max_y: int) -> int:
+    cnt = 0
     while True:
-        p = _drop(rocks, sand, max_y)
+        p = _drop(occupied, max_y)
         if p is None:
             break
-        sand.add(p)
+        occupied[p[1]][p[0]] = True
+        cnt += 1
         if p == SOURCE:
             break
-    return sand
+    return cnt
 
 
 def part_1(inputs: tuple[str]) -> int:
-    rocks, max_y = _parse(inputs)
-    sand = _solve(rocks, max_y)
-    return len(sand)
+    occupied, max_y = _parse(inputs)
+    return _solve(occupied, max_y)
 
 
 def part_2(inputs: tuple[str]) -> int:
-    rocks, max_y = _parse(inputs)
-    xs = sorted(x for (x, y) in rocks)
-    the_max = max_y + 2
-    for x in range(xs[0] - the_max, xs[-1] + the_max + 1):
-        rocks.add(Position((x, the_max)))
-    sand = _solve(rocks, the_max)
-    return len(sand)
+    occupied, max_y = _parse(inputs)
+    return _solve(occupied, max_y + 2)
 
 
 TEST = tuple(
