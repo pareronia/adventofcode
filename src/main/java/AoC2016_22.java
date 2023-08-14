@@ -16,10 +16,9 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Point;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -262,10 +261,6 @@ public class AoC2016_22 extends AoCBase {
     
     @RequiredArgsConstructor
     private static final class PathFinder {
-        private static final List<Heading> DIRECTIONS = List.of(
-                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
-                .stream().map(Headings::get).collect(toList());
-
         private final Position start;
         private final Position destination;
         private final Position max;
@@ -281,7 +276,7 @@ public class AoC2016_22 extends AoCBase {
                 if (path.isAt(this.destination)) {
                     continue;
                 }
-                for (final Heading direction : DIRECTIONS) {
+                for (final Direction direction : Direction.CAPITAL) {
                     final Path newPath = buildNewPath(path, direction);
                     if (isInBounds(newPath.getPosition())
                             && isUsable(newPath.getPosition())
@@ -293,10 +288,9 @@ public class AoC2016_22 extends AoCBase {
             }
         }
         
-        private Path buildNewPath(final Path path, final Heading direction) {
+        private Path buildNewPath(final Path path, final Direction direction) {
             return new Path(path.getLength() + 1,
-                    Position.of(path.getPosition().getX() + direction.getX(),
-                                path.getPosition().getY() + direction.getY()));
+                    path.getPosition().translate(direction));
         }
         
         private boolean isInBounds(final Position position) {

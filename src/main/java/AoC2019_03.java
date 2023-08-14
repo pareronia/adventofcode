@@ -3,13 +3,11 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.geometry.Vector;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -19,12 +17,6 @@ import lombok.RequiredArgsConstructor;
 public class AoC2019_03 extends AoCBase {
     
     private static final Position ORIGIN = Position.of(0, 0);
-    private static final Map<Character, Vector> DIRECTIONS = Map.of(
-            'R', Headings.EAST.get(),
-            'U', Headings.NORTH.get(),
-            'L', Headings.WEST.get(),
-            'D', Headings.SOUTH.get()
-    );
     
     private final Wire wire1;
     private final Wire wire2;
@@ -32,8 +24,8 @@ public class AoC2019_03 extends AoCBase {
     private AoC2019_03(final List<String> input, final boolean debug) {
         super(debug);
         assert input.size() == 2;
-        this.wire1 = toWire(toInstructions(input.get(0)));
-        this.wire2 = toWire(toInstructions(input.get(1)));
+        this.wire1 = Wire.fromString(input.get(0));
+        this.wire2 = Wire.fromString(input.get(1));
     }
 
     public static AoC2019_03 create(final List<String> input) {
@@ -42,26 +34,6 @@ public class AoC2019_03 extends AoCBase {
 
     public static AoC2019_03 createDebug(final List<String> input) {
         return new AoC2019_03(input, true);
-    }
-
-    private List<Instruction> toInstructions(final String input) {
-        return Stream.of(input.split(","))
-            .map(Instruction::fromString)
-            .collect(toList());
-    }
-
-    private Wire toWire(final List<Instruction> instructions) {
-        final List<Position> wireCoordinates = new ArrayList<>();
-        Position start = ORIGIN;
-        for (final Instruction instruction : instructions) {
-            Position coord = null;
-            for (int i = 1; i < instruction.amount + 1; i++) {
-                coord = start.translate(instruction.direction, i);
-                wireCoordinates.add(coord);
-            }
-            start = coord;
-        }
-        return new Wire(wireCoordinates);
     }
     
     @Override
@@ -115,20 +87,39 @@ public class AoC2019_03 extends AoCBase {
     private static final class Wire {
         @Getter
         private final List<Position> coordinates;
+        
+        public static Wire fromString(final String string) {
+            final List<Position> wireCoordinates = new ArrayList<>();
+            Position start = ORIGIN;
+            for (final Instruction instruction : toInstructions(string)) {
+                Position coord = null;
+                for (int i = 1; i < instruction.amount + 1; i++) {
+                    coord = start.translate(instruction.direction, i);
+                    wireCoordinates.add(coord);
+                }
+                start = coord;
+            }
+            return new Wire(wireCoordinates);
+        }
        
         public Integer steps(final Position coord) {
             return this.getCoordinates().indexOf(coord) + 1;
+        }
+
+        private static List<Instruction> toInstructions(final String input) {
+            return Stream.of(input.split(","))
+                    .map(Instruction::fromString)
+                    .collect(toList());
         }
     }
     
     @RequiredArgsConstructor
     private static final class Instruction {
-        private final Vector direction;
+        private final Direction direction;
         private final int amount;
         
         public static Instruction fromString(final String str) {
-            final Vector direction = DIRECTIONS.get(str.substring(0, 1).charAt(0));
-            assert direction != null;
+            final Direction direction = Direction.fromString(str.substring(0, 1));
             final int amount = Integer.parseInt(str.substring(1));
             return new Instruction(direction, amount);
         }

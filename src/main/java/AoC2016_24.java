@@ -20,8 +20,6 @@ import java.util.TreeSet;
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.IterTools;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -36,9 +34,6 @@ public final class AoC2016_24 extends AoCBase {
     private static final char OPEN = '.';
     private static final char START = '0';
     private static final int MAX_POIS = 10;  // ?
-        private static final List<Heading> DIRECTIONS = List.of(
-                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
-                .stream().map(Headings::get).collect(toList());
 
     private final transient Grid grid;
     private final transient Map<Character, Cell> pois;
@@ -65,27 +60,17 @@ public final class AoC2016_24 extends AoCBase {
     }
     
     private List<Path> neighbours(final Path path) {
-        final List<Path> paths = new ArrayList<>();
-        for (final Heading direction : DIRECTIONS) {
-            final Cell newPos
-                    = Cell.at(path.getPosition().getRow() + direction.getX(),
-                              path.getPosition().getCol() + direction.getY());
-            if (newPos.getRow() >= 0 && newPos.getCol() >= 0
-                    && newPos.getRow() < this.grid.getHeight()
-                    && newPos.getCol() < this.grid.getWidth()
-            ) {
+        return this.grid.getCapitalNeighbours(path.getPosition())
+            .filter(cell -> this.grid.getValueAt(cell) != WALL)
+            .map(newPos -> {
                 final char value = this.grid.getValueAt(newPos);
-                if (value == WALL) {
-                    continue;
-                }
                 if (this.pois.keySet().contains(value)) {
-                    paths.add(Path.from(path, newPos, value));
+                    return Path.from(path, newPos, value);
                 } else {
-                    paths.add(Path.from(path, newPos));
+                    return Path.from(path, newPos);
                 }
-            }
-        }
-        return paths;
+            })
+            .collect(toList());
     }
 
     private Path findPath(final Character from, final Character to) {

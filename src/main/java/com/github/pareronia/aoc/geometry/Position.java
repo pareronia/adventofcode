@@ -1,5 +1,7 @@
 package com.github.pareronia.aoc.geometry;
 
+import java.util.stream.Stream;
+
 import lombok.EqualsAndHashCode;
 import lombok.Value;
 
@@ -7,35 +9,53 @@ import lombok.Value;
 @EqualsAndHashCode(callSuper = true)
 public class Position extends Point {
     
-    private Position(Integer x, Integer y) {
+    private Position(final Integer x, final Integer y) {
         super(x, y);
     }
     
-    public static Position of(Integer x, Integer y) {
+    public static Position of(final Integer x, final Integer y) {
         return new Position(x, y);
     }
     
-    public static Position from(Point point) {
+    public static Position from(final Point point) {
         return new Position(point.getX(), point.getY());
     }
     
-    public Position translate(Vector vector, Integer amplitude) {
+    public Position translate(final Vector vector, final Integer amplitude) {
         final Point point = this.withX(this.getX() + vector.getX() * amplitude)
                 .withY(this.getY() + vector.getY() * amplitude);
         return Position.from(point);
     }
 
-    public Position translate(Vector vector) {
+    public Position translate(final Vector vector) {
         return translate(vector, 1);
+    }
+    
+    public Position translate(final Direction direction, final Integer amplitude) {
+        return translate(direction.getVector(), amplitude);
+    }
+    
+    public Position translate(final Direction direction) {
+        return translate(direction.getVector(), 1);
     }
     
     public Integer manhattanDistance() {
         return manhattanDistance(Position.of(0, 0));
     }
     
-    public Integer manhattanDistance(Position from) {
+    public Integer manhattanDistance(final Position from) {
         return Math.abs(this.getX() - from.getX())
                 + Math.abs(this.getY() - from.getY());
+    }
+    
+    public Stream<Position> capitalNeighbours() {
+        return Direction.CAPITAL.stream()
+            .map(this::translate);
+    }
+    
+    public Stream<Position> allNeighbours() {
+        return Direction.OCTANTS.stream()
+            .map(this::translate);
     }
 
     @Override

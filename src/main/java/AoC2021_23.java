@@ -73,6 +73,7 @@ public class AoC2021_23 extends AoCBase {
         return new AoC2021_23(input, true);
     }
     
+    @SuppressWarnings("unused")
     private int solveBis(final Diagram start) {
         final PriorityQueue<State> q = new PriorityQueue<>();
         q.add(new State(start, 0));

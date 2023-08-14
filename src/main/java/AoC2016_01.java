@@ -6,7 +6,8 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.geometry.Turn;
+import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -31,16 +32,12 @@ public class AoC2016_01 extends AoCBase {
     
     private NavigationWithHeading navigate() {
         final NavigationWithHeading nav
-            = new NavigationWithHeading(Position.of(0,  0), Headings.NORTH.get());
+            = new NavigationWithHeading(Position.of(0,  0), Heading.NORTH);
         for (final String step : inputs) {
-           if (step.charAt(0) == 'R') {
-               nav.right(90);
-           } else {
-               nav.left(90);
-           }
-           for (int i = 0; i < Integer.valueOf(step.substring(1)); i++) {
-              nav.forward(1);
-           }
+            nav.turn(Turn.fromChar(step.charAt(0)));
+            for (int i = 0; i < Integer.valueOf(step.substring(1)); i++) {
+                nav.forward(1);
+            }
         }
         return nav;
     }

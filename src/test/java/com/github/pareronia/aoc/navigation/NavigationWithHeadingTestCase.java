@@ -5,17 +5,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Turn;
 
 public class NavigationWithHeadingTestCase {
 
     @Test
     public void test() {
         final NavigationWithHeading nav
-                = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get())
-            .drift(Headings.NORTH.get(), 1)
-            .left(90)
+                = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH)
+            .drift(Heading.NORTH, 1)
+            .turn(Turn.LEFT)
             .forward(1)
-            .right(180)
+            .turn(Turn.AROUND)
             .forward(1);
         
         assertThat(nav.getPosition()).isEqualTo(Position.of(0, 1));
@@ -34,12 +35,12 @@ public class NavigationWithHeadingTestCase {
     public void testInBounds() {
         final NavigationWithHeading nav = new NavigationWithHeading(
                 Position.of(0, 0),
-                Headings.NORTH.get(),
+                Heading.NORTH,
                 pos -> pos.getX() <= 4 && pos.getY() <= 4)
-            .drift(Headings.NORTH.get(), 1)
-            .left(90)
+            .drift(Heading.NORTH, 1)
+            .turn(Turn.LEFT)
             .forward(1)
-            .right(180)
+            .turn(Turn.AROUND)
             .forward(10);
         
         log(nav.getVisitedPositions(true));

@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -19,17 +19,6 @@ import lombok.RequiredArgsConstructor;
 
 public final class AoC2017_22 extends AoCBase {
     
-    private static final Heading UP = Headings.NORTH.get();
-    private static final Heading DOWN = Headings.SOUTH.get();
-    private static final Heading LEFT = Headings.WEST.get();
-    private static final Heading RIGHT = Headings.EAST.get();
-    private static final Map<Heading, Map<Turn, Heading>> TURNS = Map.of(
-        UP, Map.of(Turn.LEFT, LEFT, Turn.RIGHT, RIGHT, Turn.AROUND, DOWN),
-        DOWN, Map.of(Turn.LEFT, RIGHT, Turn.RIGHT, LEFT, Turn.AROUND, UP),
-        LEFT, Map.of(Turn.LEFT, DOWN, Turn.RIGHT, UP, Turn.AROUND, RIGHT),
-        RIGHT, Map.of(Turn.LEFT, UP, Turn.RIGHT, DOWN, Turn.AROUND, LEFT)
-    );
-
     private final Map<Position, State> input;
     private final Position start;
     
@@ -63,7 +52,7 @@ public final class AoC2017_22 extends AoCBase {
         final int bursts
     ) {
         Position position = start;
-        Heading heading = UP;
+        Direction direction = Direction.UP;
         int count = 0;
         for (int i = 0; i < bursts; i++) {
             final State currentState = nodes.getOrDefault(position, State.CLEAN);
@@ -74,11 +63,11 @@ public final class AoC2017_22 extends AoCBase {
             }
             final Turn turn = turns.get(currentState);
             if (turn != null) {
-                heading = TURNS.get(heading).get(turn);
+                direction = direction.turn(turn);
             }
             position = Position.of(
-                position.getX() + heading.getX(),
-                position.getY() + heading.getY());
+                position.getX() + direction.getX(),
+                position.getY() + direction.getY());
         }
         return count;
     }
@@ -140,6 +129,4 @@ public final class AoC2017_22 extends AoCBase {
                     .findFirst().orElseThrow();
         }
     }
-    
-    private enum Turn { LEFT, RIGHT, AROUND }
 }

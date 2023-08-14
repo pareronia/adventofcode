@@ -1,24 +1,15 @@
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2015_03 extends AoCBase {
 
-    private static final Map<Character, Heading> HEADINGS = Map.of(
-        '>', Headings.EAST.get(),
-        'v', Headings.SOUTH.get(),
-        '<', Headings.WEST.get(),
-        '^', Headings.NORTH.get()
-    );
-    
     private final transient String input;
 
     private AoC2015_03(final List<String> inputs, final boolean debug) {
@@ -36,20 +27,20 @@ public final class AoC2015_03 extends AoCBase {
     }
     
     private void addNavigationInstruction(final NavigationWithHeading nav, final Character ch) {
-        nav.drift(HEADINGS.get(ch), 1);
+        nav.drift(Heading.fromChar(ch), 1);
     }
     
     @Override
     public Integer solvePart1() {
-        final NavigationWithHeading nav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
+        final NavigationWithHeading nav = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
         Utils.asCharacterStream(this.input).forEach(ch -> addNavigationInstruction(nav, ch));
         return (int) nav.getVisitedPositions(true).stream().distinct().count();
     }
 
     @Override
     public Integer solvePart2() {
-        final NavigationWithHeading santaNav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
-        final NavigationWithHeading robotNav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
+        final NavigationWithHeading santaNav = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
+        final NavigationWithHeading robotNav = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
         Stream.iterate(0, i -> i < this.input.length(), i -> i + 2)
                 .forEach(i -> addNavigationInstruction(santaNav, this.input.charAt(i)));
         Stream.iterate(1, i -> i < this.input.length(), i -> i + 2)

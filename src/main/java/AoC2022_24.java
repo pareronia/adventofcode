@@ -6,13 +6,11 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -20,13 +18,9 @@ import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 
 public class AoC2022_24 extends AoCBase {
-    private static final Set<Heading> DIRS = Set.of(
-        Headings.NORTH.get(), Headings.EAST.get(), Headings.SOUTH.get(),
-        Headings.WEST.get(), Heading.of(0, 0)
-    );
-    private static final Map<Character, Heading> BLIZZARD_DIRS = Map.of(
-        '^', Headings.NORTH.get(), '>', Headings.EAST.get(),
-        'v', Headings.SOUTH.get(), '<', Headings.WEST.get()
+    private static final Set<Direction> DIRS = Set.of(
+        Direction.UP, Direction.RIGHT, Direction.DOWN,
+        Direction.LEFT, Direction.NONE
     );
     
     private final boolean[][][] blizzardsByTime;
@@ -50,7 +44,7 @@ public class AoC2022_24 extends AoCBase {
                 final char ch = input.get(y).charAt(x);
                 if (ch != '.' && ch != '#') {
                     final Position position = Position.of(x - 1,  height - y);
-                    blizzards.add(new Blizzard(position, BLIZZARD_DIRS.get(ch)));
+                    blizzards.add(new Blizzard(position, Direction.fromChar(ch)));
                 }
             }
         });
@@ -108,7 +102,7 @@ public class AoC2022_24 extends AoCBase {
                 seen.clear();
             }
             final int nextTime = state.time + 1;
-            for (final Heading d : DIRS) {
+            for (final Direction d : DIRS) {
                 final Position n = state.position.translate(d);
                 if (n.equals(start) || n.equals(end)
                         || inBounds(n) && !isBlizzard(n, nextTime)
@@ -161,12 +155,12 @@ public class AoC2022_24 extends AoCBase {
     @RequiredArgsConstructor
     private static final class Blizzard {
         private final Position position;
-        private final Heading heading;
+        private final Direction direction;
         
         public Position at(final int tick, final int width, final int height) {
             final int amount = horizontal() ? tick % width : tick % height;
             final Position newPosition
-                    = this.position.translate(this.heading, amount);
+                    = this.position.translate(this.direction, amount);
             final Position pp = Position.of(
                     (width + newPosition.getX()) % width,
                     (height + newPosition.getY()) % height);
@@ -176,8 +170,8 @@ public class AoC2022_24 extends AoCBase {
         }
         
         private boolean horizontal() {
-            return this.heading.equals(Headings.EAST.get())
-                    || this.heading.equals(Headings.WEST.get());
+            return this.direction.equals(Direction.RIGHT)
+                    || this.direction.equals(Direction.LEFT);
         }
     }
 }

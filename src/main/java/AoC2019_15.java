@@ -10,11 +10,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aoc.intcode.IntCode;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -46,11 +46,11 @@ public class AoC2019_15 extends AoCBase {
         private Status tryMove(final IntCode intCode, final Move move) {
             final Deque<Long> input = new ArrayDeque<>();
             final Deque<Long> output = new ArrayDeque<>();
-            input.add((long) move.value);
+            input.add(move.value);
             intCode.runTillHasOutput(input, output);
-            final Status status = Status.fromValue(output.pop().intValue());
+            final Status status = Status.fromValue(output.pop());
             if (status != Status.WALL) {
-                input.add((long) move.reverse().value);
+                input.add(move.reverse().value);
                 intCode.runTillHasOutput(input, output);
             }
             return status;
@@ -76,7 +76,7 @@ public class AoC2019_15 extends AoCBase {
             final IntCode intCode
                     = new IntCode(AoC2019_15.this.program, AoC2019_15.this.debug);
             final Deque<Long> input = new ArrayDeque<>();
-            location.moves.forEach(m -> input.add((long) m.value));
+            location.moves.forEach(m -> input.add(m.value));
             intCode.runTillInputRequired(input, new ArrayDeque<>());
             return Arrays.stream(Move.values())
                     .map(move -> move(intCode, location, move))
@@ -111,9 +111,7 @@ public class AoC2019_15 extends AoCBase {
         }
         
         private Set<Position> adjacent(final Position position) {
-            return Headings.CAPITAL.stream()
-                    .map(Headings::get)
-                    .map(position::translate)
+            return position.capitalNeighbours()
                     .filter(positions::contains)
                     .collect(toSet());
         }
@@ -151,58 +149,40 @@ public class AoC2019_15 extends AoCBase {
     }
     
     private enum Move {
-        NORTH(1), SOUTH(2), WEST(3), EAST(4);
+        NORTH(Direction.UP, 1),
+        SOUTH(Direction.DOWN, 2),
+        WEST(Direction.LEFT, 3),
+        EAST(Direction.RIGHT, 4);
         
-        private int value;
+        private long value;
+        private Direction direction;
 
-        Move(final int value) {
+        Move(final Direction direction, final int value) {
             this.value = value;
-        }
-        
-        private Heading asHeading() {
-            switch (this) {
-            case NORTH:
-                return Headings.NORTH.get();
-            case SOUTH:
-                return Headings.SOUTH.get();
-            case WEST:
-                return Headings.WEST.get();
-            case EAST:
-                return Headings.EAST.get();
-            }
-            throw new IllegalArgumentException();
+            this.direction = direction;
         }
         
         public Position applyTo(final Position position) {
-            return position.translate(this.asHeading());
+            return position.translate(this.direction);
         }
         
         public Move reverse() {
-            switch (this) {
-            case NORTH:
-                return SOUTH;
-            case SOUTH:
-                return NORTH;
-            case WEST:
-                return EAST;
-            case EAST:
-                return WEST;
-            }
-            throw new IllegalArgumentException();
-            
+            return Arrays.stream(Move.values())
+                .filter(v -> v.direction == this.direction.turn(Turn.AROUND))
+                .findFirst().orElseThrow();
         }
     }
     
     private enum Status {
         WALL(0), MOVED(1), FOUND_O2(2);
         
-        private int value;
+        private long value;
         
         Status(final int value) {
             this.value = value;
         }
         
-        public static Status fromValue(final int value) {
+        public static Status fromValue(final long value) {
             return Arrays.stream(values())
                 .filter(v -> v.value == value)
                 .findFirst().orElseThrow();

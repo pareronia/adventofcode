@@ -8,7 +8,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -44,7 +44,7 @@ public class AoC2015_18 extends AoCBase {
         if (neighboursCache.containsKey(c)) {
             return neighboursCache.get(c);
         }
-        final Set<Cell> neighbours = Headings.OCTANTS.stream()
+        final Set<Cell> neighbours = Direction.OCTANTS.stream()
             .filter(n -> c.getRow() + n.getX() >= 0)
             .filter(n -> c.getRow() + n.getX() < this.height)
             .filter(n -> c.getCol() + n.getY() >= 0)

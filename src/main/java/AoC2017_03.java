@@ -1,12 +1,12 @@
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -31,44 +31,44 @@ public final class AoC2017_03 extends AoCBase {
     }
     
     @RequiredArgsConstructor(staticName = "of")
-    private static final class HeadingAndPeriod {
-        private final Heading heading;
+    private static final class DirectionAndPeriod {
+        private final Direction direction;
         private final int period;
     }
 
     private static class CoordinateSupplier implements Supplier<Position> {
-        private final Function<Integer, HeadingAndPeriod>
-                headingsAndPeriods = new Function<>() {
-                    private final List<Headings> directions = List.of(
-                            Headings.EAST, Headings.NORTH,
-                            Headings.WEST, Headings.SOUTH);
+        private final Function<Integer, DirectionAndPeriod>
+                directionsAndPeriods = new Function<>() {
+                    private final List<Direction> directions = List.of(
+                            Direction.RIGHT, Direction.UP,
+                            Direction.LEFT, Direction.DOWN);
                     private final int[] periods = { 1, 1, 2, 2 };
 
                     @Override
-                    public HeadingAndPeriod apply(final Integer t) {
+                    public DirectionAndPeriod apply(final Integer t) {
                         final int idx = t % 4;
                         final int period = periods[idx];
                         periods[idx] = period + 2;
-                        final Headings pair = directions.get(idx);
-                        return HeadingAndPeriod.of(pair.get(), period);
+                        final Direction direction = directions.get(idx);
+                        return DirectionAndPeriod.of(direction, period);
                     }
         };
         private int x;
         private int y;
         private int k;
-        private HeadingAndPeriod headingAndPeriod
-                = headingsAndPeriods.apply(k);
+        private DirectionAndPeriod directionAndPeriod
+                = directionsAndPeriods.apply(k);
         private int j;
 
         @Override
         public Position get() {
-            if (j == headingAndPeriod.period) {
+            if (j == directionAndPeriod.period) {
                 k++;
-                headingAndPeriod = headingsAndPeriods.apply(k);
+                directionAndPeriod = directionsAndPeriods.apply(k);
                 j = 0;
             }
-            x += headingAndPeriod.heading.getX();
-            y += headingAndPeriod.heading.getY();
+            x += directionAndPeriod.direction.getX();
+            y += directionAndPeriod.direction.getY();
             j++;
             return Position.of(x,  y);
         }
@@ -105,11 +105,9 @@ public final class AoC2017_03 extends AoCBase {
         while (true) {
             final Position position = supplier.get();
             int value = 0;
-            for (final Headings d : Headings.OCTANTS) {
-                final Position neighbour = Position.of(
-                        position.getX() + d.getX(),
-                        position.getY() + d.getY());
-                value += squares.getOrDefault(neighbour, 0);
+            final Iterator<Position> it = position.allNeighbours().iterator();
+            while (it.hasNext()) {
+                value += squares.getOrDefault(it.next(), 0);
             }
             squares.put(position, value);
             if (value > this.input) {

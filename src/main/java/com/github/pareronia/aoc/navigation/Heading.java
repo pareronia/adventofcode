@@ -1,36 +1,45 @@
 package com.github.pareronia.aoc.navigation;
 
+import java.util.Arrays;
+
+import com.github.pareronia.aoc.geometry.Direction;
+import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.geometry.Vector;
 
-import lombok.EqualsAndHashCode;
+import lombok.ToString;
 
-@EqualsAndHashCode(callSuper = true)
-public class Heading extends Vector {
+@ToString
+public enum Heading {
+    NORTH(Direction.UP),
+    NORTHEAST(Direction.RIGHT_AND_UP),
+    EAST(Direction.RIGHT),
+    SOUTHEAST(Direction.RIGHT_AND_DOWN),
+    SOUTH(Direction.DOWN),
+    SOUTHWEST(Direction.LEFT_AND_DOWN),
+    WEST(Direction.LEFT),
+    NORTHWEST(Direction.LEFT_AND_UP);
+    
+    private final Direction direction;
 
-    public Heading(Integer x, Integer y) {
-        super(x, y);
+    Heading(final Direction direction) {
+        this.direction = direction;
     }
     
-    public static Heading of(Integer x, Integer y) {
-        return new Heading(x, y);
+    public static Heading fromDirection(final Direction direction) {
+        return Arrays.stream(values())
+                .filter(v -> v.direction == direction)
+                .findFirst().orElseThrow();
     }
     
-    public static Heading from(Vector vector) {
-        return new Heading(vector.getX(), vector.getY());
+    public static final Heading fromChar(final char ch) {
+        return fromDirection(Direction.fromChar(ch));
     }
-
-    @Override
-    public Heading rotate(Integer degrees) {
-        return Heading.from(super.rotate(degrees));
+    
+    public Vector getVector() {
+        return this.direction.getVector();
     }
-
-    @Override
-    public String toString() {
-        for (final Headings h : Headings.values()) {
-            if (this.equals(h.get())) {
-                return h.name();
-            }
-        }
-        return super.toString();
+    
+    public Heading turn(final Turn turn) {
+        return fromDirection(this.direction.turn(turn));
     }
 }

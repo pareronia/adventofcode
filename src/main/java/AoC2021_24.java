@@ -13,7 +13,6 @@ import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.vm.Instruction;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;
@@ -63,10 +62,6 @@ public class AoC2021_24 extends AoCBase {
 
     public static final AoC2021_24 createDebug(final List<String> input) {
         return new AoC2021_24(input, true);
-    }
-    
-    private static boolean isNumeric(final String s) {
-        return StringUtils.isNumeric(s.replace("-", ""));
     }
     
     private static String getOperand(final MonadInstruction line, final int idx) {

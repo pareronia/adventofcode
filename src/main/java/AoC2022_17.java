@@ -15,10 +15,9 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -58,13 +57,13 @@ public class AoC2022_17 extends AoCBase {
         Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(1, 0), Position.of(1, 1))
     );
 
-    private final List<Heading> jets;
+    private final List<Direction> jets;
     private final Map<State, List<Cycle>> states;
     
     private AoC2022_17(final List<String> input, final boolean debug) {
         super(debug);
         this.jets = Utils.asCharacterStream(input.get(0))
-            .map(c -> c== '>' ? Headings.EAST.get() : Headings.WEST.get())
+            .map(Direction::fromChar)
             .collect(toList());
         this.states = new HashMap<>();
     }
@@ -110,14 +109,14 @@ public class AoC2022_17 extends AoCBase {
         State state;
         int cnt = 0;
         while (true) {
-            final Heading jet = jetSupplier.get();
+            final Direction jet = jetSupplier.get();
             state = new State(rock.idx, stack.getTopsNormalised(), jet);
             if (cnt++ == 1) {
                 this.states.computeIfAbsent(state, k -> new ArrayList<>())
                     .add(new Cycle(dropIndex, stack.getTop()));
             }
             trace(() -> "move " + jet.toString());
-            Rock moved = rock.move(jet);
+            Rock moved = rock.move(jet.getVector());
             if (!moved.insideX(0, WIDTH)) {
                 trace(() -> "hit side: undo");
             } else if (stack.overlappedBy(moved)) {
@@ -126,7 +125,7 @@ public class AoC2022_17 extends AoCBase {
                 rock = moved;
             }
             trace(() -> "move down");
-            moved = rock.move(Headings.SOUTH.get());
+            moved = rock.move(Direction.DOWN.getVector());
             if (stack.overlappedBy(moved)) {
                 trace(() -> "hit stack: undo");
                 break;
@@ -286,12 +285,12 @@ public class AoC2022_17 extends AoCBase {
     }
     
     @RequiredArgsConstructor
-    public static final class JetSupplier implements Supplier<Heading> {
-        private final List<Heading> jets;
+    public static final class JetSupplier implements Supplier<Direction> {
+        private final List<Direction> jets;
         private int idx = 0;
 
         @Override
-        public Heading get() {
+        public Direction get() {
             return this.jets.get(idx++ % jets.size());
         }
     }
@@ -302,7 +301,7 @@ public class AoC2022_17 extends AoCBase {
     private static final class State {
         private final int shape;
         private final int[] tops;
-        private final Heading jet;
+        private final Direction jet;
     }
     
     @RequiredArgsConstructor

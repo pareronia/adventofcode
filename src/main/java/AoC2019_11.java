@@ -10,8 +10,9 @@ import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.geometry.Draw;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.intcode.IntCode;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -45,7 +46,7 @@ public class AoC2019_11 extends AoCBase {
     private PaintJob paint(final long start) {
         final Set<Position> white = new HashSet<>();
         final NavigationWithHeading nav
-            = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
+            = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
         final IntCode intCode = new IntCode(this.program, false);
         final Deque<Long> input = new ArrayDeque<>(List.of(start));
         final Deque<Long> output = new ArrayDeque<>();
@@ -56,11 +57,7 @@ public class AoC2019_11 extends AoCBase {
             } else {
                 white.remove(nav.getPosition());
             }
-            if (output.pop() == LEFT) {
-                nav.left(90);
-            } else {
-                nav.right(90);
-            }
+            nav.turn(output.pop() == LEFT ? Turn.LEFT : Turn.RIGHT);
             nav.forward(1);
             input.add(white.contains(nav.getPosition()) ? 1L : 0L);
             intCode.runTillInputRequired(input, output);

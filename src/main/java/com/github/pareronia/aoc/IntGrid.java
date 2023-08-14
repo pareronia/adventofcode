@@ -7,7 +7,7 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.geometry.Direction;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -113,12 +113,21 @@ public final class IntGrid {
     }
 
     public Stream<Cell> getCapitalNeighbours(final Cell c) {
-        return Headings.CAPITAL.stream()
+        return Direction.CAPITAL.stream()
             .filter(n -> c.getRow() + n.getX() >= 0)
             .filter(n -> c.getRow() + n.getX() < this.getHeight())
             .filter(n -> c.getCol() + n.getY() >= 0)
             .filter(n -> c.getCol() + n.getY() < this.getWidth())
             .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
+    }
+
+    public Stream<Cell> getAllNeighbours(final Cell cell) {
+        return Direction.OCTANTS.stream()
+                .filter(n -> cell.getRow() + n.getX() >= 0)
+                .filter(n -> cell.getRow() + n.getX() < this.getHeight())
+                .filter(n -> cell.getCol() + n.getY() >= 0)
+                .filter(n -> cell.getCol() + n.getY() < this.getWidth())
+                .map(n -> Cell.at(cell.getRow() + n.getX(), cell.getCol() + n.getY()));
     }
 
     @RequiredArgsConstructor(staticName = "at")

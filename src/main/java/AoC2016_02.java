@@ -11,19 +11,12 @@ import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2016_02 extends AoCBase {
     
-    private static final Map<Character, Heading> HEADINGS = Map.of(
-        'R', Headings.EAST.get(),
-        'D', Headings.SOUTH.get(),
-        'L', Headings.WEST.get(),
-        'U', Headings.NORTH.get()
-    );
     private static final Map<Position, Character> KEYPAD1 = Map.of(
             Position.of(-1, 1), '1',
             Position.of(0, 1), '2',
@@ -71,8 +64,8 @@ public class AoC2016_02 extends AoCBase {
     private NavigationWithHeading navigate(
                     final String ins, final Position start, final Predicate<Position> inBounds) {
         final NavigationWithHeading nav
-            = new NavigationWithHeading(start, Headings.NORTH.get(), inBounds);
-        asCharacterStream(ins).forEach(step -> nav.drift(HEADINGS.get(step), 1));
+            = new NavigationWithHeading(start, Heading.NORTH, inBounds);
+        asCharacterStream(ins).forEach(step -> nav.drift(Heading.fromChar(step), 1));
         return nav;
     }
 

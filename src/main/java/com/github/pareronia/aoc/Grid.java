@@ -20,7 +20,7 @@ import java.util.stream.Stream.Builder;
 import java.util.stream.StreamSupport;
 
 import com.github.pareronia.aoc.IntegerSequence.Range;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.geometry.Direction;
 
 import lombok.Value;
 
@@ -149,7 +149,7 @@ public class Grid {
 	}
 	
 	public Stream<Cell> getCapitalNeighbours(final Cell cell) {
-        return Headings.CAPITAL.stream()
+        return Direction.CAPITAL.stream()
             .filter(n -> cell.getRow() + n.getX() >= 0)
             .filter(n -> cell.getRow() + n.getX() < this.getHeight())
             .filter(n -> cell.getCol() + n.getY() >= 0)

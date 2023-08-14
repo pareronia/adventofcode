@@ -12,7 +12,7 @@ public class NavigationWithWaypointTestCase {
     public void test() {
         final NavigationWithWaypoint nav
                 = new NavigationWithWaypoint(Position.of(0, 0), new WayPoint(0, 0))
-            .updateWaypoint(Headings.NORTH.get(), 1)
+            .updateWaypoint(Heading.NORTH, 1)
             .forward(1)
             .left(90)
             .forward(1)

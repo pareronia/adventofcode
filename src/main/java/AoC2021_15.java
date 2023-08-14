@@ -8,8 +8,8 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aoc.IntGrid.Cell;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.graph.AStar;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -45,7 +45,7 @@ public class AoC2021_15 extends AoCBase {
     }
     
     private Stream<Cell> findNeighbours(final Cell c, final int tiles) {
-        return Headings.CAPITAL.stream()
+        return Direction.CAPITAL.stream()
             .map(d -> Cell.at(c.getRow() + d.getX(), c.getCol() + d.getY()))
             .filter(n -> n.getRow() >= 0)
             .filter(n -> n.getCol() >= 0)

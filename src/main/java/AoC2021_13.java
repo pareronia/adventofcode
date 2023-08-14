@@ -9,10 +9,9 @@ import java.util.function.Function;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.OCR;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Draw;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -127,19 +126,19 @@ public class AoC2021_13 extends AoCBase {
         
         public Set<Position> applyTo(final Set<Position> positions) {
             if (this.xAxis) {
-                return apply(positions, Headings.WEST.get(), Position::getX);
+                return apply(positions, Direction.LEFT, Position::getX);
             } else {
-                return apply(positions, Headings.SOUTH.get(), Position::getY);
+                return apply(positions, Direction.DOWN, Position::getY);
             }
         }
         
         private Set<Position> apply(
                 final Set<Position> positions,
-                final Heading vector,
+                final Direction direction,
                 final Function<Position, Integer> dim
         ) {
             return positions.stream()
-                    .map(p -> p.translate(vector, amplitude(p, dim)))
+                    .map(p -> p.translate(direction, amplitude(p, dim)))
                     .collect(toSet());
         }
         

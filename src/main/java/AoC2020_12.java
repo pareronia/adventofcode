@@ -5,11 +5,13 @@ import java.util.List;
 import java.util.Set;
 
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.geometry.Turn;
+import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aoc.navigation.NavigationWithWaypoint;
 import com.github.pareronia.aoc.navigation.WayPoint;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Value;
 
@@ -17,7 +19,7 @@ public class AoC2020_12 extends AoCBase {
 	
 	private final List<NavigationInstruction> navs;
 	
-	private AoC2020_12(List<String> input, boolean debug) {
+	private AoC2020_12(final List<String> input, final boolean debug) {
 		super(debug);
 		this.navs = input.stream()
 		        .map(s -> NavigationInstruction.of(s.substring(0, 1), s.substring(1)))
@@ -25,11 +27,11 @@ public class AoC2020_12 extends AoCBase {
 		log(this.navs);
 	}
 	
-	public static AoC2020_12 create(List<String> input) {
+	public static AoC2020_12 create(final List<String> input) {
 		return new AoC2020_12(input, false);
 	}
 
-	public static AoC2020_12 createDebug(List<String> input) {
+	public static AoC2020_12 createDebug(final List<String> input) {
 		return new AoC2020_12(input, true);
 	}
 	
@@ -37,18 +39,18 @@ public class AoC2020_12 extends AoCBase {
 	public Integer solvePart1() {
 	    final Position start = Position.of(0, 0);
         final NavigationWithHeading nav
-                = new NavigationWithHeading(start, Headings.EAST.get());
+                = new NavigationWithHeading(start, Heading.EAST);
 	    log(nav);
 	    for (final NavigationInstruction ins : this.navs) {
 	       if (ins.getAction() == Action.RIGHT) {
-	           nav.right(ins.getValue());
+	           nav.turn(Turn.fromDegrees(ins.getValue()));
 	       } else if (ins.getAction() == Action.LEFT) {
-	           nav.left(ins.getValue());
+	           nav.turn(Turn.fromDegrees(360 - ins.getValue()));
 	       } else if (ins.getAction() == Action.FORWARD) {
 	           nav.forward(ins.getValue());
 	       } else if (Set.of(Action.NORTH, Action.SOUTH, Action.EAST, Action.WEST)
 	               .contains(ins.getAction())) {
-	           nav.drift(Headings.valueOf(ins.getAction().name()).get(), ins.getValue());
+	           nav.drift(Heading.valueOf(ins.getAction().name()), ins.getValue());
 	       }
 	       log(nav);
         }
@@ -71,7 +73,7 @@ public class AoC2020_12 extends AoCBase {
 	           nav.forward(ins.getValue());
 	       } else if (Set.of(Action.NORTH, Action.SOUTH, Action.EAST, Action.WEST)
 	               .contains(ins.getAction())) {
-	           nav.updateWaypoint(Headings.valueOf(ins.getAction().name()).get(),
+	           nav.updateWaypoint(Heading.valueOf(ins.getAction().name()),
 	                              ins.getValue());
 	       }
 	       log(nav);
@@ -79,13 +81,16 @@ public class AoC2020_12 extends AoCBase {
 	    return nav.getPosition().manhattanDistance(start);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_12.createDebug(TEST).solvePart1() == 25;
 		assert AoC2020_12.createDebug(TEST).solvePart2() == 286;
 
-		final List<String> input = Aocd.getData(2020, 12);
-		lap("Part 1", () -> AoC2020_12.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_12.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2020, 12);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2020_12.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2020_12.create(inputData)::solvePart2)
+        );
 	}
 	
 	private static final List<String> TEST = splitLines(
@@ -103,11 +108,11 @@ public class AoC2020_12 extends AoCBase {
 	    
 	    private final String code;
 	    
-	    private Action(String code) {
+	    Action(final String code) {
 	        this.code = code;
 	    }
 	    
-	    public static Action of(String code) {
+	    public static Action of(final String code) {
 	        return Arrays.stream(Action.values())
 	                .filter(a -> a.code.equals(code))
 	                .findFirst()
@@ -120,7 +125,7 @@ public class AoC2020_12 extends AoCBase {
 	    private final Action action;
 	    private final Integer value;
 	    
-	    public static NavigationInstruction of(String action, String value) {
+	    public static NavigationInstruction of(final String action, final String value) {
 	        return new NavigationInstruction(
 	            Action.of(action), Integer.valueOf(value)
 	        );
