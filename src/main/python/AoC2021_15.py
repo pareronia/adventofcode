@@ -5,6 +5,7 @@
 
 from collections.abc import Generator
 from aoc import my_aocd
+from aoc.geometry import Direction
 from aoc.graph import a_star
 from aoc.grid import IntGrid
 import aocd
@@ -33,13 +34,13 @@ def _find_neighbours(
 ) -> Generator[Cell]:
     seen.add((row, col))
     return (
-        (row + dr, col + dc)
-        for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
-        if (row + dr, col + dc) not in seen
-        and row + dr >= 0
-        and row + dr < tiles * grid.get_height()
-        and col + dc >= 0
-        and col + dc < tiles * grid.get_width()
+        (row + d.x, col + d.y)
+        for d in Direction.CAPITAL
+        if (row + d.x, col + d.y) not in seen
+        and row + d.x >= 0
+        and row + d.x < tiles * grid.get_height()
+        and col + d.y >= 0
+        and col + d.y < tiles * grid.get_width()
     )
 
 

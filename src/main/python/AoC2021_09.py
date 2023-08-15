@@ -16,19 +16,10 @@ def _parse(inputs: tuple[str]) -> IntGrid:
     return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
 
-def _find_neighbours(grid: IntGrid, c: Cell) -> Generator[Cell]:
-    return (Cell(c.row + dr, c.col + dc)
-            for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
-            if c.row + dr >= 0
-            and c.row + dr < grid.get_height()
-            and c.col + dc >= 0
-            and c.col + dc < grid.get_width())
-
-
 def _find_lows(grid: IntGrid) -> Generator[Cell]:
     for low in (c for c in grid.get_cells()
                 if (all(grid.get_value(c) < grid.get_value(n)
-                        for n in _find_neighbours(grid, c)))):
+                        for n in grid.get_capital_neighbours(c)))):
         log(low)
         yield low
 
@@ -47,7 +38,7 @@ def _size_of_basin_around_low(grid: IntGrid, c: Cell) -> int:
     while len(q) > 0:
         cell = q.popleft()
         basin.add(cell)
-        for n in _find_neighbours(grid, cell):
+        for n in grid.get_capital_neighbours(cell):
             if n not in basin and grid.get_value(n) != 9:
                 q.append(n)
     log(basin)

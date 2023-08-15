@@ -10,13 +10,14 @@ Coordinate system:
 """
 
 from __future__ import annotations
+import aocd
 import re
 from functools import lru_cache
 from dataclasses import dataclass
 from aoc import my_aocd
 from aoc.common import log
 from aoc.geometry import Position
-from aoc.navigation import Headings, Waypoint, NavigationWithWaypoint
+from aoc.navigation import Heading, Waypoint, NavigationWithWaypoint
 
 
 E = "e"
@@ -25,15 +26,11 @@ SW = "sw"
 W = "w"
 NW = "nw"
 NE = "ne"
-NORTH = "N"
-EAST = "E"
-SOUTH = "S"
-WEST = "W"
 
 
 @dataclass(frozen=True)
 class NavigationInstruction:
-    action: str
+    heading: Heading
     value: int
 
 
@@ -56,32 +53,29 @@ def _parse(inputs: tuple[str]) -> list[list[NavigationInstruction]]:
         for _ in m:
             heading = _[0]
             if heading == E:
-                nav.append(NavigationInstruction(EAST, 1))
+                nav.append(NavigationInstruction(Heading.EAST, 1))
             elif heading == SE:
-                nav.append(NavigationInstruction(SOUTH, 1))
-                nav.append(NavigationInstruction(EAST, 1))
+                nav.append(NavigationInstruction(Heading.SOUTH, 1))
+                nav.append(NavigationInstruction(Heading.EAST, 1))
             elif heading == W:
-                nav.append(NavigationInstruction(WEST, 1))
+                nav.append(NavigationInstruction(Heading.WEST, 1))
             elif heading == SW:
-                nav.append(NavigationInstruction(SOUTH, 1))
+                nav.append(NavigationInstruction(Heading.SOUTH, 1))
             elif heading == NW:
-                nav.append(NavigationInstruction(NORTH, 1))
-                nav.append(NavigationInstruction(WEST, 1))
+                nav.append(NavigationInstruction(Heading.NORTH, 1))
+                nav.append(NavigationInstruction(Heading.WEST, 1))
             elif heading == NE:
-                nav.append(NavigationInstruction(NORTH, 1))
+                nav.append(NavigationInstruction(Heading.NORTH, 1))
             else:
                 raise ValueError("invalid input")
         navs.append(nav)
     return navs
 
 
-def _navigate_with_waypoint(navigation: NavigationWithWaypoint,
-                            nav: NavigationInstruction) -> None:
-    if nav.action in {NORTH, EAST, SOUTH, WEST}:
-        navigation.update_waypoint(heading=Headings[nav.action].value,
-                                   amount=nav.value)
-    else:
-        raise ValueError("invalid input")
+def _navigate_with_waypoint(
+    navigation: NavigationWithWaypoint, nav: NavigationInstruction
+) -> None:
+    navigation.update_waypoint(nav.heading, nav.value)
 
 
 def _build_floor(navs: list[list[NavigationInstruction]]) -> Floor:
@@ -101,11 +95,10 @@ def part_1(inputs: tuple[str]) -> int:
 
 @lru_cache(maxsize=11000)
 def _get_neighbours(x: int, y: int) -> list[Position]:
-    return [((x + dx, y + dy))
-            for dx, dy in [(-1, 1), (0, 1),
-                           (-1, 0), (1, 0),
-                           (0, -1), (1, -1)]
-            ]
+    return [
+        ((x + dx, y + dy))
+        for dx, dy in [(-1, 1), (0, 1), (-1, 0), (1, 0), (0, -1), (1, -1)]
+    ]
 
 
 def _run_cycle(floor: Floor) -> Floor:
@@ -139,7 +132,7 @@ def part_2(inputs: tuple[str]) -> int:
     navs = _parse(inputs)
     floor = _build_floor(navs)
     log(len(floor.tiles))
-    for i in range(100):
+    for _ in range(100):
         floor = _run_cycle(floor)
         log(len(floor.tiles))
     log(_get_neighbours.cache_info())
@@ -171,17 +164,18 @@ wseweeenwnesenwwwswnew
 
 
 def main() -> None:
-    my_aocd.print_header(2020, 24)
+    puzzle = aocd.models.Puzzle(2020, 24)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 10
     assert part_2(TEST) == 2208
 
-    inputs = my_aocd.get_input(2020, 24, 316)
+    inputs = my_aocd.get_input_data(puzzle, 316)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

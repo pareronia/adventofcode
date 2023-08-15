@@ -4,18 +4,18 @@
 #
 
 from __future__ import annotations
-import os
-from typing import NamedTuple
+
+from typing import Callable, NamedTuple
+
+import aocd
 from advent_of_code_ocr import convert_6
+
 from aoc import my_aocd
 from aoc.common import log
-from aoc.geometry import Vector
-from aoc.navigation import Headings
-import aocd
+from aoc.geometry import Direction, Vector
 
-
-FILL = '▒'
-EMPTY = ' '
+FILL = "▒"
+EMPTY = " "
 
 
 class Position(NamedTuple):
@@ -24,8 +24,7 @@ class Position(NamedTuple):
 
     def translate(self, vector: Vector, amplitude: int = 1) -> Position:
         return Position.of(
-            self.x + vector.x * amplitude,
-            self.y + vector.y * amplitude
+            self.x + vector.x * amplitude, self.y + vector.y * amplitude
         )
 
     @classmethod
@@ -39,42 +38,54 @@ class Fold(NamedTuple):
 
     def apply_to(self, positions: set[Position]) -> set[Position]:
         if self.x_axis:
-            vector = Headings.W.value
-            return {p.translate(vector, self._amplitude_x(p))
-                    for p in positions}
+            return {
+                p.translate(
+                    Direction.LEFT.vector,
+                    self._amplitude(p, lambda position: position.x),
+                )
+                for p in positions
+            }
         else:
-            vector = Headings.S.value
-            return {p.translate(vector, self._amplitude_y(p))
-                    for p in positions}
+            return {
+                p.translate(
+                    Direction.DOWN.vector,
+                    self._amplitude(p, lambda position: position.y),
+                )
+                for p in positions
+            }
 
-    def _amplitude_x(self, position: Position) -> int:
-        return 2 * (position.x - self.value) \
-                if position.x > self.value\
-                else 0
-
-    def _amplitude_y(self, position: Position) -> int:
-        return 2 * (position.y - self.value) \
-                if position.y > self.value \
-                else 0
+    def _amplitude(
+        self, position: Position, dim: Callable[[Position], int]
+    ) -> int:
+        return (
+            2 * (dim(position) - self.value)
+            if dim(position) > self.value
+            else 0
+        )
 
 
 def _parse(inputs: tuple[str]) -> set[Position, tuple[Fold]]:
     blocks = my_aocd.to_blocks(inputs)
-    positions = {Position.of(*[int(_) for _ in line.split(',')])
-                 for line in blocks[0]}
+    positions = {
+        Position.of(*[int(_) for _ in line.split(",")]) for line in blocks[0]
+    }
     folds = list[Fold]()
     for line in blocks[1]:
-        axis, value = line[len("fold along "):].split('=')
-        folds.append(Fold(axis == 'x', int(value)))
+        axis, value = line[len("fold along ") :].split("=")  # noqa E203
+        folds.append(Fold(axis == "x", int(value)))
     return positions, tuple(folds)
 
 
 def _draw(positions: set[Position], fill: str, empty: str) -> list[str]:
     max_x = max(p.x for p in positions)
     max_y = max(p.y for p in positions)
-    return ["".join(fill if Position.of(x, y) in positions else empty
-                    for x in range(max_x + 2))
-            for y in range(max_y + 1)]
+    return [
+        "".join(
+            fill if Position.of(x, y) in positions else empty
+            for x in range(max_x + 2)
+        )
+        for y in range(max_y + 1)
+    ]
 
 
 def _solve_2(inputs: tuple[str]) -> list[str]:
@@ -93,7 +104,7 @@ def part_1(inputs: tuple[str]) -> int:
 
 
 def part_2(inputs: tuple[str]) -> int:
-    to_ocr = os.linesep.join(_solve_2(inputs))
+    to_ocr = "\n".join(_solve_2(inputs))
     return convert_6(to_ocr, fill_pixel=FILL, empty_pixel=EMPTY)
 
 
@@ -120,11 +131,13 @@ TEST = """\
 fold along y=7
 fold along x=5
 """.splitlines()
+# fmt: off
 RESULT = ["▒▒▒▒▒ ",
           "▒   ▒ ",
           "▒   ▒ ",
           "▒   ▒ ",
           "▒▒▒▒▒ "]
+# fmt: on
 
 
 def main() -> None:
@@ -142,5 +155,5 @@ def main() -> None:
     my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

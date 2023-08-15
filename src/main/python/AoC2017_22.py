@@ -4,8 +4,8 @@
 #
 
 from aoc import my_aocd
-from aoc.navigation import Headings
 import aocd
+from aoc.geometry import Direction, Turn
 
 
 CLEAN = "."
@@ -15,32 +15,6 @@ FLAGGED = "F"
 LEFT = "L"
 RIGHT = "R"
 AROUND = "A"
-HEADING_UP = (Headings.N.value.x, Headings.N.value.y)
-HEADING_DOWN = (Headings.S.value.x, Headings.S.value.y)
-HEADING_LEFT = (Headings.W.value.x, Headings.W.value.y)
-HEADING_RIGHT = (Headings.E.value.x, Headings.E.value.y)
-TURNS = {
-    HEADING_UP: {
-        LEFT: HEADING_LEFT,
-        RIGHT: HEADING_RIGHT,
-        AROUND: HEADING_DOWN,
-    },
-    HEADING_DOWN: {
-        LEFT: HEADING_RIGHT,
-        RIGHT: HEADING_LEFT,
-        AROUND: HEADING_UP,
-    },
-    HEADING_LEFT: {
-        LEFT: HEADING_DOWN,
-        RIGHT: HEADING_UP,
-        AROUND: HEADING_RIGHT,
-    },
-    HEADING_RIGHT: {
-        LEFT: HEADING_UP,
-        RIGHT: HEADING_DOWN,
-        AROUND: HEADING_LEFT,
-    },
-}
 
 
 def _parse(
@@ -59,10 +33,10 @@ def _solve(
     position: tuple[int, int],
     bursts: int,
     nodes: dict[tuple[int, int], str],
-    states: dict[str, str],
-    turns: dict[str, str],
+    states: dict[str, Turn],
+    turns: dict[str, Turn],
 ) -> int:
-    heading = HEADING_UP
+    direction = Direction.UP
     count = 0
     for _ in range(bursts):
         current_state = nodes.get(position, CLEAN)
@@ -70,17 +44,17 @@ def _solve(
         nodes[position] = new_state
         if new_state == INFECTED:
             count += 1
-        turn = turns[current_state]
+        turn = turns.get(current_state)
         if turn is not None:
-            heading = TURNS[heading][turn]
-        position = (position[0] + heading[0], position[1] + heading[1])
+            direction = direction.turn(turn)
+        position = (position[0] + direction.x, position[1] + direction.y)
     return count
 
 
 def part_1(inputs: tuple[str]) -> int:
     nodes, start = _parse(inputs)
     states = {CLEAN: INFECTED, INFECTED: CLEAN}
-    turns = {CLEAN: LEFT, INFECTED: RIGHT}
+    turns = {CLEAN: Turn.LEFT, INFECTED: Turn.RIGHT}
     return _solve(
         start,
         10_000,
@@ -99,10 +73,9 @@ def part_2(inputs: tuple[str]) -> int:
         FLAGGED: CLEAN,
     }
     turns = {
-        CLEAN: LEFT,
-        WEAKENED: None,
-        INFECTED: RIGHT,
-        FLAGGED: AROUND,
+        CLEAN: Turn.LEFT,
+        INFECTED: Turn.RIGHT,
+        FLAGGED: Turn.AROUND,
     }
     return _solve(
         start,

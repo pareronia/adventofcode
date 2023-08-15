@@ -4,7 +4,6 @@
 #
 
 
-import os
 from collections.abc import Generator
 
 import advent_of_code_ocr as ocr
@@ -53,7 +52,7 @@ def part_2(inputs: tuple[str]) -> str:
     pixels = _get_pixels(inputs)
     log(pixels)
     return ocr.convert_6(
-        os.linesep.join(pixels), fill_pixel=FILL, empty_pixel=EMPTY
+        "\n".join(pixels), fill_pixel=FILL, empty_pixel=EMPTY
     )
 
 

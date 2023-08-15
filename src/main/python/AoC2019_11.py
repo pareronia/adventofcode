@@ -3,16 +3,14 @@
 # Advent of Code 2019 Day 11
 #
 
-import os
-
 import aocd
 from advent_of_code_ocr import convert_6
 
 from aoc import my_aocd
 from aoc.common import log
-from aoc.geometry import Position
+from aoc.geometry import Position, Turn
 from aoc.intcode import IntCode
-from aoc.navigation import Headings, NavigationWithHeading
+from aoc.navigation import Heading, NavigationWithHeading
 
 BLACK = 0
 WHITE = 1
@@ -29,7 +27,7 @@ def _paint(
     ints: tuple[int], start: int
 ) -> tuple[set[tuple[int, int]], set[tuple[int, int]]]:
     white = set[tuple[int, int]]()
-    nav = NavigationWithHeading(Position.of(0, 0), Headings.N)
+    nav = NavigationWithHeading(Position.of(0, 0), Heading.NORTH)
     int_code = IntCode(ints)
     input = [start]
     out = []
@@ -41,10 +39,7 @@ def _paint(
             white.add((nav.position.x, nav.position.y))
         else:
             white.discard((nav.position.x, nav.position.y))
-        if out.pop(0) == LEFT:
-            nav.left(90)
-        else:
-            nav.right(90)
+        nav.turn(Turn.LEFT if out.pop(0) == LEFT else Turn.RIGHT)
         nav.forward(1)
         input.append(1 if (nav.position.x, nav.position.y) in white else 0)
         int_code.run_till_input_required(input, out)
@@ -77,7 +72,7 @@ def part_2(inputs: tuple[str]) -> str:
     drawing = _draw(white, FILL, EMPTY)
     [log(_) for _ in drawing]
     return convert_6(
-        os.linesep.join(drawing), fill_pixel=FILL, empty_pixel=EMPTY
+        "\n".join(drawing), fill_pixel=FILL, empty_pixel=EMPTY
     )
 
 

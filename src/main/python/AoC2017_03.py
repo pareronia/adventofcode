@@ -4,22 +4,26 @@
 #
 from collections.abc import Generator
 from aoc import my_aocd
-from aoc.geometry import Position
-from aoc.navigation import Headings
+from aoc.geometry import Position, Direction
 import aocd
 
 
-class HeadingsAndPeriods:
+class DirectionsAndPeriods:
     def __init__(self):
         self.periods = [1, 1, 2, 2]
-        self.headings = [Headings.E, Headings.N, Headings.W, Headings.S]
+        self.directions = [
+            Direction.RIGHT,
+            Direction.UP,
+            Direction.LEFT,
+            Direction.DOWN,
+        ]
 
-    def apply(self, t: int) -> tuple[Headings, int]:
+    def apply(self, t: int) -> tuple[Direction, int]:
         idx = t % 4
         period = self.periods[idx]
         self.periods[idx] = period + 2
-        heading = self.headings[idx]
-        return heading, period
+        direction = self.directions[idx]
+        return direction, period
 
 
 def _parse(inputs: tuple[str]) -> int:
@@ -29,16 +33,16 @@ def _parse(inputs: tuple[str]) -> int:
 
 def _coordinates() -> Generator[tuple[int, int]]:
     x = y = j = k = 0
-    headings_and_periods = HeadingsAndPeriods()
-    heading, period = headings_and_periods.apply(k)
+    directions_and_periods = DirectionsAndPeriods()
+    direction, period = directions_and_periods.apply(k)
 
     while True:
         if j == period:
             k += 1
-            heading, period = headings_and_periods.apply(k)
+            direction, period = directions_and_periods.apply(k)
             j = 0
-        x += heading.x
-        y += heading.y
+        x += direction.x
+        y += direction.y
         j += 1
         yield (x, y)
 
@@ -67,7 +71,7 @@ def part_2(inputs: tuple[str]) -> int:
     while True:
         x, y = next(coords)
         value = 0
-        for d in Headings.OCTANTS():
+        for d in Direction.OCTANTS:
             neighbour = (x + d.x, y + d.y)
             value += squares[neighbour] if neighbour in squares else 0
         squares[(x, y)] = value
@@ -97,5 +101,5 @@ def main() -> None:
     my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

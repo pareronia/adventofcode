@@ -1,5 +1,6 @@
 from collections.abc import Generator
 from typing import NamedTuple, Callable
+from aoc.geometry import Direction
 
 
 class Cell(NamedTuple):
@@ -42,12 +43,22 @@ class IntGrid(NamedTuple):
 
     def get_capital_neighbours(self, cell: Cell) -> Generator[Cell]:
         return (
-            Cell(cell.row + dr, cell.col + dc)
-            for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
-            if cell.row + dr >= 0
-            and cell.row + dr < self.get_height()
-            and cell.col + dc >= 0
-            and cell.col + dc < self.get_width()
+            Cell(cell.row + d.x, cell.col + d.y)
+            for d in Direction.CAPITAL
+            if cell.row + d.x >= 0
+            and cell.row + d.x < self.get_height()
+            and cell.col + d.y >= 0
+            and cell.col + d.y < self.get_width()
+        )
+
+    def get_all_neighbours(self, cell: Cell) -> Generator[Cell]:
+        return (
+            Cell(cell.row + d.x, cell.col + d.y)
+            for d in Direction.OCTANTS
+            if cell.row + d.x >= 0
+            and cell.row + d.x < self.get_height()
+            and cell.col + d.y >= 0
+            and cell.col + d.y < self.get_width()
         )
 
     def find_all_matching(

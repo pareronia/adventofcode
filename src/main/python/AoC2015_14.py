@@ -75,6 +75,7 @@ Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds.
 
 def main() -> None:
     puzzle = aocd.models.Puzzle(2015, 14)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert _do_part_1(TEST, 1000) == 1120
     assert _do_part_2(TEST, 1000) == 689

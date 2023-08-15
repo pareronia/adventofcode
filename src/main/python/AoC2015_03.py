@@ -3,15 +3,10 @@
 # Advent of Code 2015 Day 3
 #
 
+import aocd
 from aoc import my_aocd
-from aoc.navigation import NavigationWithHeading, Headings
+from aoc.navigation import NavigationWithHeading, Heading
 from aoc.geometry import Position
-
-
-NORTH = Headings["N"].value
-EAST = Headings["E"].value
-SOUTH = Headings["S"].value
-WEST = Headings["W"].value
 
 
 # TODO: make geometry.Position hashable ?
@@ -20,21 +15,12 @@ def _count_unique_positions(positions: list[Position]) -> int:
 
 
 def _add_navigation_instruction(navigation: NavigationWithHeading, c: str):
-    if c == ">":
-        navigation.drift(EAST, 1)
-    elif c == "v":
-        navigation.drift(SOUTH, 1)
-    elif c == "<":
-        navigation.drift(WEST, 1)
-    elif c == "^":
-        navigation.drift(NORTH, 1)
-    else:
-        raise ValueError("Invalid input")
+    navigation.drift(Heading.from_str(c), 1)
 
 
 def part_1(inputs: tuple[str]) -> int:
     assert len(inputs) == 1
-    navigation = NavigationWithHeading(Position(0, 0), NORTH)
+    navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
     for c in inputs[0]:
         _add_navigation_instruction(navigation, c)
     return _count_unique_positions(navigation.get_visited_positions(True))
@@ -42,8 +28,8 @@ def part_1(inputs: tuple[str]) -> int:
 
 def part_2(inputs: tuple[str]) -> int:
     assert len(inputs) == 1
-    santa_navigation = NavigationWithHeading(Position(0, 0), NORTH)
-    robot_navigation = NavigationWithHeading(Position(0, 0), NORTH)
+    santa_navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
+    robot_navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
     for i, c in enumerate(inputs[0]):
         if i % 2 != 0:
             _add_navigation_instruction(robot_navigation, c)
@@ -61,7 +47,8 @@ TEST4 = "^v".splitlines()
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 3)
+    puzzle = aocd.models.Puzzle(2015, 3)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST1) == 2
     assert part_1(TEST2) == 4
@@ -70,12 +57,13 @@ def main() -> None:
     assert part_2(TEST2) == 3
     assert part_2(TEST3) == 11
 
-    inputs = my_aocd.get_input(2015, 3, 1)
+    inputs = my_aocd.get_input_data(puzzle, 1)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
