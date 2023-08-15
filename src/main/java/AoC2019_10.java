@@ -7,7 +7,7 @@ import java.util.TreeMap;
 import java.util.function.BinaryOperator;
 import java.util.function.Function;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Puzzle;
@@ -19,11 +19,11 @@ public class AoC2019_10 extends AoCBase {
     
     private static final char ASTEROID = '#';
 	
-	private final Grid grid;
+	private final CharGrid grid;
 	
 	private AoC2019_10(final List<String> input, final boolean debug) {
 		super(debug);
-		this.grid = Grid.from(input);
+		this.grid = CharGrid.from(input);
 	}
 	
 	public static AoC2019_10 create(final List<String> input) {

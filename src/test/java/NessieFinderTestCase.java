@@ -7,11 +7,11 @@ import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 
 public class NessieFinderTestCase {
 	
-	private Grid grid;
+	private CharGrid grid;
 
 	@BeforeEach
 	public void setUp() {
@@ -19,7 +19,7 @@ public class NessieFinderTestCase {
 		lines.add(".#.#...#.###...#.##.##..");
 		lines.add("#.#.##.###.#.##.##.#####");
 		lines.add("..##.###.####..#.####.##");
-		grid = Grid.from(lines);
+		grid = CharGrid.from(lines);
 	}
 	
 	@Test
@@ -32,7 +32,7 @@ public class NessieFinderTestCase {
 	
 	@Test
 	public void markNessies() {
-		final Grid result = AoC2020_20.NessieFinder.markNessies(Map.of(1, 2), grid);
+		final CharGrid result = AoC2020_20.NessieFinder.markNessies(Map.of(1, 2), grid);
 		
 		final List<String> expected = new ArrayList<>();
 		expected.add("_~_~___~_~~~___~_~~_\u2592~__");

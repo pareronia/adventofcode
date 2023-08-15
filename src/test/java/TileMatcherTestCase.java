@@ -8,13 +8,13 @@ import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 
 public class TileMatcherTestCase {
 	
 	private final AoC2020_20.Tile tile1 = new AoC2020_20.Tile(
 		1,
-		new Grid(new char[][] {
+		new CharGrid(new char[][] {
 			{ '.', '.', 'X' },
 			{ '.', '.', 'Y' },
 			{ '.', '.', 'Z' }
@@ -22,7 +22,7 @@ public class TileMatcherTestCase {
 	);
 	private final AoC2020_20.Tile tile2 = new AoC2020_20.Tile(
 		2,
-		new Grid(new char[][] {
+		new CharGrid(new char[][] {
 			{ '.', '.', '.' },
 			{ '.', '.', '.' },
 			{ 'A', 'B', 'C' }
@@ -35,7 +35,7 @@ public class TileMatcherTestCase {
 	public void testRightSide1() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'X' },
 				{ '.', '.', 'Y' },
 				{ '.', '.', 'Z' }
@@ -51,7 +51,7 @@ public class TileMatcherTestCase {
 	public void testRightSide2() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'Z' },
 				{ '.', '.', 'Y' },
 				{ '.', '.', 'X' }
@@ -67,7 +67,7 @@ public class TileMatcherTestCase {
 	public void testRightSide3() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'C' },
 				{ '.', '.', 'B' },
 				{ '.', '.', 'A' }
@@ -83,7 +83,7 @@ public class TileMatcherTestCase {
 	public void testRightSideNoMatch() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'G' },
 				{ '.', '.', 'G' },
 				{ '.', '.', 'G' }
@@ -98,7 +98,7 @@ public class TileMatcherTestCase {
 	public void testBottomSide1() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', '.' },
 				{ '.', '.', '.' },
 				{ 'X', 'Y', 'Z' }
@@ -114,7 +114,7 @@ public class TileMatcherTestCase {
 	public void testBottomSide2() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', '.' },
 				{ '.', '.', '.' },
 				{ 'Z', 'Y', 'X' }
@@ -130,7 +130,7 @@ public class TileMatcherTestCase {
 	public void testBottomSide3() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', '.' },
 				{ '.', '.', '.' },
 				{ 'C', 'B', 'A' }

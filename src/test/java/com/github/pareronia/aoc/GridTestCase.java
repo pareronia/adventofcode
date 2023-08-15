@@ -18,54 +18,54 @@ public class GridTestCase {
 
 	@Test
 	public void getRow_negativeIndex() {
-		assertThatThrownBy(() -> Grid.from(asList("123")).getRow(-1))
+		assertThatThrownBy(() -> CharGrid.from(asList("123")).getRow(-1))
 		    .isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
 	public void getRow_tooLargeIndex() {
-		assertThatThrownBy(() -> Grid.from(asList("123")).getRow(1))
+		assertThatThrownBy(() -> CharGrid.from(asList("123")).getRow(1))
 		    .isInstanceOf(IllegalArgumentException.class);
 	}
 
 	@Test
 	public void getRow() {
-		final char[] result = Grid.from(asList("123")).getRow(0);
+		final char[] result = CharGrid.from(asList("123")).getRow(0);
 		
 		assertThat(result).isEqualTo(new char[] {'1', '2', '3'});
 	}
 
 	@Test
 	public void getRowReversed() {
-		final char[] result = Grid.from(asList("123")).getRowReversed(0);
+		final char[] result = CharGrid.from(asList("123")).getRowReversed(0);
 		
 		assertThat(result).isEqualTo(new char[] {'3', '2', '1'});
 	}
 	
 	@Test
 	public void getColumn() {
-		final char[] result = Grid.from(asList("123", "456")).getColumn(1);
+		final char[] result = CharGrid.from(asList("123", "456")).getColumn(1);
 		
 		assertThat(result).isEqualTo(new char[] {'2', '5'});
 	}
 	
 	@Test
 	public void getColumnReversed() {
-		final char[] result = Grid.from(asList("123", "456")).getColumnReversed(1);
+		final char[] result = CharGrid.from(asList("123", "456")).getColumnReversed(1);
 		
 		assertThat(result).isEqualTo(new char[] {'5', '2'});
 	}
 	
 	@Test
 	public void getRowAsString() {
-		final String result = Grid.from(asList("123")).getRowAsString(0);
+		final String result = CharGrid.from(asList("123")).getRowAsString(0);
 		
 		assertThat(result).isEqualTo("123");
 	}
 
 	@Test
 	public void getRowsAsString() {
-		final Grid grid = Grid.from(asList("123", "456", "789"));
+		final CharGrid grid = CharGrid.from(asList("123", "456", "789"));
 		
 		final Iterable<String> result = grid.getRowsAsStrings();
 		
@@ -74,9 +74,9 @@ public class GridTestCase {
 	
 	@Test
 	public void getLeftEdge() {
-		final Grid grid = Grid.from(asList(	"123",
-											"456",
-											"789"));
+		final CharGrid grid = CharGrid.from(asList(	"123",
+													"456",
+													"789"));
 		
 		final char[] result = grid.getLeftEdge();
 		
@@ -85,9 +85,9 @@ public class GridTestCase {
 	
 	@Test
 	public void getRightEdge() {
-		final Grid grid = Grid.from(asList(	"123",
-											"456",
-											"789"));
+		final CharGrid grid = CharGrid.from(asList(	"123",
+													"456",
+													"789"));
 		
 		final char[] result = grid.getRightEdge();
 		
@@ -96,13 +96,13 @@ public class GridTestCase {
 
 	@Test
 	public void getWithEdgesRemoved() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRTS"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRTS"));
 				
-		final Grid result = grid.getWithEdgesRemoved();
+		final CharGrid result = grid.getWithEdgesRemoved();
 		
 		assertThat(asStringList(result)).containsExactly( "FG",
 													      "JK",
@@ -111,10 +111,10 @@ public class GridTestCase {
 	
 	@Test
 	public void rollColumn() {
-		final Grid grid = Grid.from(asList(	"###....",
-											"###....",
-											"......."));
-		final Grid result = grid.rollColumn(1, 1);
+		final CharGrid grid = CharGrid.from(asList(	"###....",
+													"###....",
+													"......."));
+		final CharGrid result = grid.rollColumn(1, 1);
 
 		assertThat(asStringList(result)).containsExactly( "#.#....",
 													      "###....",
@@ -123,10 +123,10 @@ public class GridTestCase {
 	
 	@Test
 	public void rollRow() {
-		final Grid grid = Grid.from(asList(	"#.#....",
-											"###....",
-											".#....."));
-		final Grid result = grid.rollRow(0, 4);
+		final CharGrid grid = CharGrid.from(asList(	"#.#....",
+													"###....",
+													".#....."));
+		final CharGrid result = grid.rollRow(0, 4);
 
 		assertThat(asStringList(result)).containsExactly( "....#.#",
 													      "###....",
@@ -135,20 +135,20 @@ public class GridTestCase {
 	
 	@Test
 	public void rollRow1() {
-	    final Grid grid = Grid.from(asList(	"#.#...."));
+	    final CharGrid grid = CharGrid.from(asList(	"#.#...."));
 	    
-	    final Grid result = grid.rollRow(0, 1);
+	    final CharGrid result = grid.rollRow(0, 1);
 	    
 	    assertThat(asStringList(result)).containsExactly(".#.#...");
 	}
 	
 	@Test
 	public void rotate() {
-		final Grid grid = Grid.from(asList(	"123",
-											"456",
-											"789"));
+		final CharGrid grid = CharGrid.from(asList(	"123",
+													"456",
+													"789"));
 		
-		final Grid result = grid.rotate();
+		final CharGrid result = grid.rotate();
 		
 		assertThat(asStringList(result)).containsExactly( "741",
 													      "852",
@@ -157,26 +157,26 @@ public class GridTestCase {
 	
 	@Test
 	public void flipHorizontally() {
-		final Grid grid = Grid.from(asList(	"123",
-											"456",
-											"789"));
+		final CharGrid grid = CharGrid.from(asList(	"123",
+													"456",
+													"789"));
 		
-		final Grid result = grid.flipHorizontally();
+		final CharGrid result = grid.flipHorizontally();
 		
 		assertThat(asStringList(result)).containsExactly( "789",
 													      "456",
 													      "123");
 	}
 	
-	private List<String> asStringList(final Grid grid) {
+	private List<String> asStringList(final CharGrid grid) {
 	    return grid.getRowsAsStringList();
 	}
 	
 	@Test
 	public void getPermutations_notSquare() {
-		final Grid grid = Grid.from(asList(	"123A",
-											"456B",
-											"789C"));
+		final CharGrid grid = CharGrid.from(asList(	"123A",
+													"456B",
+													"789C"));
 		
 		assertThatThrownBy(() -> grid.getPermutations())
 		    .isInstanceOf(UnsupportedOperationException.class);
@@ -184,11 +184,11 @@ public class GridTestCase {
 
 	@Test
 	public void getPermutations() {
-		final Grid grid = Grid.from(asList(	"123",
-											"456",
-											"789"));
+		final CharGrid grid = CharGrid.from(asList(	"123",
+													"456",
+													"789"));
 		
-		final Iterator<Grid> result = grid.getPermutations();
+		final Iterator<CharGrid> result = grid.getPermutations();
 		
 		// Permutation 0 : original
 		assertThat(result.hasNext()).isTrue();
@@ -235,9 +235,9 @@ public class GridTestCase {
 	
 	@Test
 	public void getAllEqualTo() {
-		final Grid grid = Grid.from(asList(	"XOX",
-											"OXO",
-											"XOX"));
+		final CharGrid grid = CharGrid.from(asList(	"XOX",
+													"OXO",
+													"XOX"));
 		
 		assertThat(grid.getAllEqualTo('X')).containsExactly(
 				            Cell.at(0,  0), Cell.at(0, 2),
@@ -248,9 +248,9 @@ public class GridTestCase {
 
 	@Test
 	public void countAllEqualTo() {
-		final Grid grid = Grid.from(asList(	"XOX",
-											"OXO",
-											"XOX"));
+		final CharGrid grid = CharGrid.from(asList(	"XOX",
+													"OXO",
+													"XOX"));
 		
 		assertThat(grid.countAllEqualTo('X')).isEqualTo(5L);
 		assertThat(grid.countAllEqualTo('O')).isEqualTo(4L);
@@ -259,29 +259,29 @@ public class GridTestCase {
 	
 	@Test
 	public void replace() {
-		final Grid grid = Grid.from(asList(	"XOX", "OXO", "XOX"));
+		final CharGrid grid = CharGrid.from(asList(	"XOX", "OXO", "XOX"));
 		
-		final Grid result = grid.replace('X', 'Y');
+		final CharGrid result = grid.replace('X', 'Y');
 		
 		assertThat(asStringList(result)).containsExactly("YOY", "OYO", "YOY");
 	}
 	
 	@Test
     public void update() {
-        final Grid grid = Grid.from(asList( "XOX", "OXO", "XOX"));
+        final CharGrid grid = CharGrid.from(asList( "XOX", "OXO", "XOX"));
         
-        final Grid result = grid.update(Set.of(Cell.at(0, 0), Cell.at(2, 2)), '-');
+        final CharGrid result = grid.update(Set.of(Cell.at(0, 0), Cell.at(2, 2)), '-');
         
         assertThat(asStringList(result)).containsExactly("-OX", "OXO", "XO-");
     }
 	
 	@Test
 	public void subGrid_invalidCoordinates() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 		
 		assertThatThrownBy(() -> grid.subGrid(Cell.at(3, 3), Cell.at(1, 1)))
 		    .isInstanceOf(IllegalArgumentException.class);
@@ -289,15 +289,15 @@ public class GridTestCase {
 	
 	@Test
 	public void subGrid() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 		
-		final Grid result1 = grid.subGrid(Cell.at(1, 1), Cell.at(4, 4));
-		final Grid result2 = grid.subGrid(Cell.at(0, 0), Cell.at(0, 0));
-		final Grid result3 = grid.subGrid(Cell.at(1, 1), Cell.at(5, 5));
+		final CharGrid result1 = grid.subGrid(Cell.at(1, 1), Cell.at(4, 4));
+		final CharGrid result2 = grid.subGrid(Cell.at(0, 0), Cell.at(0, 0));
+		final CharGrid result3 = grid.subGrid(Cell.at(1, 1), Cell.at(5, 5));
 
 		assertThat(asStringList(result1)).containsExactly("FGH", "JKL", "NOP");
 		assertThat(asStringList(result2)).isEmpty();
@@ -306,7 +306,7 @@ public class GridTestCase {
 	
 	@Test
 	public void addRowInvalid() {
-	    final Grid grid = Grid.from(asList("ABCD"));
+	    final CharGrid grid = CharGrid.from(asList("ABCD"));
 	    
 		assertThatThrownBy(() -> grid.addRow("ABC"))
 		    .isInstanceOf(IllegalArgumentException.class);
@@ -315,20 +315,20 @@ public class GridTestCase {
 
 	@Test
 	public void addRow() {
-	    final Grid grid = Grid.from(asList("ABCD"));
+	    final CharGrid grid = CharGrid.from(asList("ABCD"));
 	    
-	    final Grid result = grid.addRow("EFGH");
+	    final CharGrid result = grid.addRow("EFGH");
 
 		assertThat(asStringList(result)).containsExactly("ABCD", "EFGH");
 	}
 	
 	@Test
 	public void getCellsN() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 		final List<Cell> result1 = grid.getCellsN(Cell.at(2, 1)).collect(toList());
 		final List<Cell> result2 = grid.getCellsN(Cell.at(0, 2)).collect(toList());
@@ -339,11 +339,11 @@ public class GridTestCase {
 
 	@Test
 	public void getCellsS() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsS(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsS(Cell.at(4, 0)).collect(toList());
@@ -354,11 +354,11 @@ public class GridTestCase {
 	
 	@Test
 	public void getCellsE() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsE(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsE(Cell.at(1, 3)).collect(toList());
@@ -369,11 +369,11 @@ public class GridTestCase {
 	
 	@Test
 	public void getCellsW() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsW(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsW(Cell.at(1, 0)).collect(toList());
@@ -384,11 +384,11 @@ public class GridTestCase {
 	
 	@Test
 	public void getCellsNW() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsNW(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsNW(Cell.at(0, 0)).collect(toList());
@@ -399,11 +399,11 @@ public class GridTestCase {
 	
 	@Test
 	public void getCellsNE() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsNE(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsNE(Cell.at(0, 3)).collect(toList());
@@ -414,11 +414,11 @@ public class GridTestCase {
 	
 	@Test
 	public void getCellsSE() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsSE(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsSE(Cell.at(4, 3)).collect(toList());
@@ -429,11 +429,11 @@ public class GridTestCase {
 	
 	@Test
 	public void getCellsSW() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP",
-											"QRST"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
 	    
 	    final List<Cell> result1 = grid.getCellsSW(Cell.at(2, 1)).collect(toList());
 	    final List<Cell> result2 = grid.getCellsSW(Cell.at(4, 0)).collect(toList());
@@ -444,12 +444,12 @@ public class GridTestCase {
 	
 	@Test
 	public void divide() {
-		final Grid grid = Grid.from(asList(	"ABCD",
-											"EFGH",
-											"IJKL",
-											"MNOP"));
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP"));
 	    
-		final Grid[][] result = grid.divide(2);
+		final CharGrid[][] result = grid.divide(2);
 		
 		assertThat(result).hasDimensions(2, 2);
 		assertThat(asStringList(result[0][0])).containsExactly("AB", "EF");
@@ -460,19 +460,19 @@ public class GridTestCase {
 	
 	@Test
 	public void merge() {
-	    final Grid grid1 = Grid.from(asList("AB",
-	                                        "EF"));
-	    final Grid grid2 = Grid.from(asList("CD",
-	                                        "GH"));
-	    final Grid grid3 = Grid.from(asList("IJ",
-	                                        "MN"));
-	    final Grid grid4 = Grid.from(asList("KL",
-	                                        "OP"));
-	    final Grid grid5 = Grid.from(asList("XXX",
-	                                        "XXX"));
+	    final CharGrid grid1 = CharGrid.from(asList("AB",
+	    		                                    "EF"));
+	    final CharGrid grid2 = CharGrid.from(asList("CD",
+	    		                                    "GH"));
+	    final CharGrid grid3 = CharGrid.from(asList("IJ",
+	    		                                    "MN"));
+	    final CharGrid grid4 = CharGrid.from(asList("KL",
+	    		                                    "OP"));
+	    final CharGrid grid5 = CharGrid.from(asList("XXX",
+	    		                                    "XXX"));
 	    
-	    final Grid result =
-	            Grid.merge(new Grid[][] { { grid1, grid2 }, { grid3, grid4 } });
+	    final CharGrid result =
+	            CharGrid.merge(new CharGrid[][] { { grid1, grid2 }, { grid3, grid4 } });
 	    
 	    assertThat(asStringList(result)).containsExactly(  "ABCD",
 	                                                       "EFGH",
@@ -480,7 +480,7 @@ public class GridTestCase {
 	                                                       "MNOP");
 
 	    try {
-            Grid.merge(new Grid[][] { { grid1, grid2 }, { grid3, grid5 } });
+            CharGrid.merge(new CharGrid[][] { { grid1, grid2 }, { grid3, grid5 } });
             fail("Expected IllegalArgumentException");
         } catch (final IllegalArgumentException expected) {
         }

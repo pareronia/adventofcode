@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Draw;
@@ -72,7 +72,7 @@ public class AoC2021_13 extends AoCBase {
         final List<String> drawing = solve2();
         Collections.reverse(drawing);
         drawing.forEach(this::log);
-        return OCR.convert6(Grid.from(drawing), FILL, EMPTY);
+        return OCR.convert6(CharGrid.from(drawing), FILL, EMPTY);
     }
 
     public static void main(final String[] args) throws Exception {

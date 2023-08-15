@@ -5,7 +5,7 @@ import static java.util.Comparator.comparing;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -29,14 +29,14 @@ public class AoC2019_08 extends AoCBase {
 		return new AoC2019_08(input, true);
 	}
 	
-	private Grid parse(final Integer width, final Integer height) {
+	private CharGrid parse(final Integer width, final Integer height) {
 		assert this.input.size() == 1;
-		return Grid.from(this.input.get(0), width * height);
+		return CharGrid.from(this.input.get(0), width * height);
 	}
 	
 	@Override
 	public Integer solvePart1() {
-		final Grid layers = parse(WIDTH, HEIGHT);
+		final CharGrid layers = parse(WIDTH, HEIGHT);
 		return layers.getRowsAsStringList().stream()
 				.min(comparing(s -> countMatches(s, '0')))
 				.map(s -> countMatches(s, '1') * countMatches(s, '2'))
@@ -44,7 +44,7 @@ public class AoC2019_08 extends AoCBase {
 	}
 	
 	private String getImage(final Integer width, final Integer height) {
-		final Grid layers = parse(width, height);
+		final CharGrid layers = parse(width, height);
 		return Stream.iterate(0, i -> i + 1).limit(layers.getWidth())
 				.map(i -> layers.getRowsAsStringList().stream()
 						.map(row -> row.charAt(i))
@@ -56,7 +56,7 @@ public class AoC2019_08 extends AoCBase {
 
 	@Override
 	public String solvePart2() {
-		final Grid image = Grid.from(getImage(WIDTH, HEIGHT), WIDTH);
+		final CharGrid image = CharGrid.from(getImage(WIDTH, HEIGHT), WIDTH);
 		log(image.replace('1', '\u2592').replace('0', ' '));
 		return OCR.convert6(image, '1', '0');
 	}

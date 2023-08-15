@@ -9,7 +9,7 @@ public class OCRTestCase {
 
 	@Test
 	public void test() {
-		final Grid grid = Grid.from(asList(
+		final CharGrid grid = CharGrid.from(asList(
 			" **  ***   **  **** ****  **  *  *  ***   ** *  * *     **  ***  ***   *** *  * *   ***** ",
 			"*  * *  * *  * *    *    *  * *  *   *     * * *  *    *  * *  * *  * *    *  * *   *   * ",
 			"*  * ***  *    ***  ***  *    ****   *     * **   *    *  * *  * *  * *    *  *  * *   *  ",

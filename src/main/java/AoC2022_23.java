@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aocd.Aocd;
@@ -34,7 +34,7 @@ public class AoC2022_23 extends AoCBase {
 
     private AoC2022_23(final List<String> input, final boolean debug) {
         super(debug);
-		this.input = Grid.from(input)
+		this.input = CharGrid.from(input)
 		        .findAllMatching(ch -> ch == ELF)
 		        .collect(toSet());
     }

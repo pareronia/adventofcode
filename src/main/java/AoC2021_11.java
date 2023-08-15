@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.github.pareronia.aoc.IntGrid;
-import com.github.pareronia.aoc.IntGrid.Cell;
+import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;

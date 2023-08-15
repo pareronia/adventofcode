@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -31,7 +31,7 @@ public class AoC2020_03 extends AoCBase {
 	}
 	
 	private Slope parse(final List<String> inputs) {
-		final Grid grid = Grid.from(inputs);
+		final CharGrid grid = CharGrid.from(inputs);
 		return new Slope(grid.getAllEqualTo('#').collect(toSet()),
 						 grid.getWidth(),
 						 grid.getHeight());

@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -50,10 +50,10 @@ public class AoC2019_17 extends AoCBase {
             }
         }
         strings.forEach(this::log);
-        final Grid grid = Grid.from(strings);
+        final CharGrid grid = CharGrid.from(strings);
         return grid.getAllEqualTo(SCAFFOLD)
             .filter(cell -> grid.getCapitalNeighbours(cell)
-                        .allMatch(n -> grid.getValueAt(n) == SCAFFOLD))
+                        .allMatch(n -> grid.getValue(n) == SCAFFOLD))
             .mapToInt(cell -> cell.getRow() * cell.getCol())
             .sum();
     }

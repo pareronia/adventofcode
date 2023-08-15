@@ -3,7 +3,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -12,7 +12,7 @@ import lombok.Getter;
 
 public final class AoC2017_21 extends AoCBase {
     
-    private static final Grid START = Grid.from(List.of(".#.", "..#", "###"));
+    private static final CharGrid START = CharGrid.from(List.of(".#.", "..#", "###"));
 
     private final List<Rule> rules;
     
@@ -24,8 +24,8 @@ public final class AoC2017_21 extends AoCBase {
     private Rule parseRule(final String input) {
         final String[] splits = input.split(" => ");
         return new Rule(
-            Grid.from(Arrays.asList(splits[0].split("/"))),
-            Grid.from(Arrays.asList(splits[1].split("/"))));
+            CharGrid.from(Arrays.asList(splits[0].split("/"))),
+            CharGrid.from(Arrays.asList(splits[1].split("/"))));
     }
 
     public static AoC2017_21 create(final List<String> input) {
@@ -36,7 +36,7 @@ public final class AoC2017_21 extends AoCBase {
         return new AoC2017_21(input, true);
     }
     
-    private Grid enhance(final Grid grid) {
+    private CharGrid enhance(final CharGrid grid) {
         return this.rules.stream()
             .filter(r -> r.getFrom().contains(grid))
             .map(Rule::getTo)
@@ -44,15 +44,15 @@ public final class AoC2017_21 extends AoCBase {
     }
     
     private long solve(final int iterations) {
-        Grid grid = START;
+        CharGrid grid = START;
         for (int i = 0; i < iterations; i++) {
             final int size = grid.getHeight();
-            final Grid[][] subGrids = grid.divide(size % 2 == 0 ? 2 : 3);
-            final Grid[][] enhanced = Arrays.stream(subGrids)
+            final CharGrid[][] subGrids = grid.divide(size % 2 == 0 ? 2 : 3);
+            final CharGrid[][] enhanced = Arrays.stream(subGrids)
                 .map(a ->
-                    Arrays.stream(a).map(this::enhance).toArray(Grid[]::new))
-                .toArray(Grid[][]::new);
-            grid = Grid.merge(enhanced);
+                    Arrays.stream(a).map(this::enhance).toArray(CharGrid[]::new))
+                .toArray(CharGrid[][]::new);
+            grid = CharGrid.merge(enhanced);
         }
         return grid.countAllEqualTo('#');
     }
@@ -85,10 +85,10 @@ public final class AoC2017_21 extends AoCBase {
     
     @Getter
     private static final class Rule {
-        private final List<Grid> from;
-        private final Grid to;
+        private final List<CharGrid> from;
+        private final CharGrid to;
         
-        public Rule(final Grid from, final Grid to) {
+        public Rule(final CharGrid from, final CharGrid to) {
             this.from = Utils.stream(from.getPermutations()).collect(toList());
             this.to = to;
         }

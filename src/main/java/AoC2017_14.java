@@ -7,7 +7,7 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.graph.BFS;
@@ -41,10 +41,10 @@ public final class AoC2017_14 extends AoCBase {
             .map(KnotHash::binString);
     }
     
-    private Set<Cell> findRegion(final Grid grid, final Cell start) {
+    private Set<Cell> findRegion(final CharGrid grid, final Cell start) {
         final Function<Cell, Stream<Cell>> adjacent =
                 cell -> grid.getCapitalNeighbours(cell)
-                            .filter(n -> grid.getValueAt(n) == ON);
+                            .filter(n -> grid.getValue(n) == ON);
         return BFS.floodFill(start, adjacent);
     }
     
@@ -58,7 +58,7 @@ public final class AoC2017_14 extends AoCBase {
     
     @Override
     public Integer solvePart2() {
-        final Grid grid = Grid.from(hashes().collect(toList()));
+        final CharGrid grid = CharGrid.from(hashes().collect(toList()));
         final List<Set<Cell>> regions = new ArrayList<>();
         grid.getAllEqualTo(ON)
             .filter(c -> regions.stream().noneMatch(r -> r.contains(c)))

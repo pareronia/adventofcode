@@ -6,7 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.geometry.Draw;
 import com.github.pareronia.aoc.geometry.Position;
@@ -76,7 +76,7 @@ public class AoC2019_11 extends AoCBase {
     public String solvePart2() {
         final List<String> drawing = Draw.draw(paint(WHITE).white, FILL, EMPTY);
         drawing.forEach(this::log);
-        return OCR.convert6(Grid.from(drawing), FILL, EMPTY);
+        return OCR.convert6(CharGrid.from(drawing), FILL, EMPTY);
     }
 
     public static void main(final String[] args) throws Exception {

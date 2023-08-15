@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.StringUtils;
@@ -31,15 +31,15 @@ public class AoC2016_08 extends AoCBase {
 		return new AoC2016_08(input, true);
 	}
 	
-    private Grid createGrid(final Integer rows, final Integer columns) {
-        return Grid.from(Stream.iterate(0, i -> i++)
+    private CharGrid createGrid(final Integer rows, final Integer columns) {
+        return CharGrid.from(Stream.iterate(0, i -> i++)
                 .limit(rows)
 	            .map(i -> StringUtils.repeat(OFF, columns))
 	            .collect(toList()));
     }
 	
-	private Grid solve(final Integer rows, final Integer columns) {
-	    Grid grid = createGrid(rows, columns);
+	private CharGrid solve(final Integer rows, final Integer columns) {
+	    CharGrid grid = createGrid(rows, columns);
 	    for (final String input : this.inputs) {
             if (input.startsWith("rect ")) {
                 final String[] coords = input.substring("rect ".length()).split("x");

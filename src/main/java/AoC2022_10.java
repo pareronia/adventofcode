@@ -8,7 +8,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import java.util.stream.Stream.Builder;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aocd.Aocd;
@@ -79,7 +79,7 @@ public class AoC2022_10 extends AoCBase {
     public String solvePart2() {
         final List<String> pixels = getPixels();
         pixels.forEach(this::log);
-        return OCR.convert6(Grid.from(pixels), FILL, EMPTY);
+        return OCR.convert6(CharGrid.from(pixels), FILL, EMPTY);
     }
 
     public static void main(final String[] args) throws Exception {

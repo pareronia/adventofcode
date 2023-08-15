@@ -21,7 +21,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -73,11 +73,11 @@ public class AoC2020_20 extends AoCBase {
 		this.tileSet.puzzle();
 		this.tileSet.removeTileEdges();
 		this.tileSet.printPlacedTiles();
-		Grid image = Grid.from(this.tileSet.createImageGrid());
+		CharGrid image = CharGrid.from(this.tileSet.createImageGrid());
 		print(image);
 		log("Looking for Nessies...");
 		Map<Integer, Integer> nessies = null;
-		final Iterator<Grid> permutations = image.getPermutations();
+		final Iterator<CharGrid> permutations = image.getPermutations();
 		while (permutations.hasNext()) {
 			image = permutations.next();
 			nessies = NessieFinder.findNessies(image);
@@ -88,7 +88,7 @@ public class AoC2020_20 extends AoCBase {
 				}
 				break;
 			} else if (nessies.size() == 1) {
-				final Grid grid = NessieFinder.markNessies(nessies, image);
+				final CharGrid grid = NessieFinder.markNessies(nessies, image);
 				print(grid);
 				log("One is not enough? Looking for more Nessies...");
 			}
@@ -100,7 +100,7 @@ public class AoC2020_20 extends AoCBase {
 		return octothorps - 15 * nessies.size();
 	}
 
-	private void print(final Grid image) {
+	private void print(final CharGrid image) {
 		image.getRowsAsStrings().forEach(this::log);
 	}
 	
@@ -227,14 +227,14 @@ public class AoC2020_20 extends AoCBase {
 	
 	static final class Tile {
 		private final Integer id;
-		private final Grid grid;
+		private final CharGrid grid;
 		
 		public Tile(final Integer id, final List<String> grid) {
 			this.id = id;
-			this.grid = Grid.from(grid);
+			this.grid = CharGrid.from(grid);
 		}
 		
-		public Tile(final Integer id, final Grid grid) {
+		public Tile(final Integer id, final CharGrid grid) {
 			this.id = id;
 			this.grid = grid;
 		}
@@ -243,7 +243,7 @@ public class AoC2020_20 extends AoCBase {
 			return id;
 		}
 
-		public Grid getGrid() {
+		public CharGrid getGrid() {
 			return grid;
 		}
 
@@ -285,7 +285,7 @@ public class AoC2020_20 extends AoCBase {
 
 		public Iterator<Tile> getAllPermutations() {
 			return new Iterator<>() {
-				final Iterator<Grid> inner = Tile.this.getGrid().getPermutations();
+				final Iterator<CharGrid> inner = Tile.this.getGrid().getPermutations();
 				
 				@Override
 				public boolean hasNext() {
@@ -506,7 +506,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		private static final char NESSIE_CHAR = '\u2592';
 
-		public static Map<Integer,Integer> findNessies(final Grid grid) {
+		public static Map<Integer,Integer> findNessies(final CharGrid grid) {
 			final Map<Integer, Integer> nessies = new HashMap<>();
 			for (int i = 1; i < grid.getHeight(); i++) {
 				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.getRowAsString(i));
@@ -524,7 +524,7 @@ public class AoC2020_20 extends AoCBase {
 			return nessies;
 		}
 		
-		public static Grid markNessies(final Map<Integer, Integer> nessies, final Grid gridIn) {
+		public static CharGrid markNessies(final Map<Integer, Integer> nessies, final CharGrid gridIn) {
 			final List<String> grid = gridIn.getRowsAsStringList();
 			for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
 				final int idx = nessie.getValue();
@@ -561,7 +561,7 @@ public class AoC2020_20 extends AoCBase {
 				}
 				grid.set(j, new String(chars));
 			}
-			return Grid.from(grid);
+			return CharGrid.from(grid);
 		}
 	}
 	

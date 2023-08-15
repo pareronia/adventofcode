@@ -17,7 +17,7 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aocd.Aocd;
@@ -35,16 +35,16 @@ public final class AoC2016_24 extends AoCBase {
     private static final char START = '0';
     private static final int MAX_POIS = 10;  // ?
 
-    private final transient Grid grid;
+    private final transient CharGrid grid;
     private final transient Map<Character, Cell> pois;
     private final transient Cell start;
 
     private AoC2016_24(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.grid = Grid.from(inputs).getWithEdgesRemoved();
+        this.grid = CharGrid.from(inputs).getWithEdgesRemoved();
         this.pois = this.grid
                 .findAllMatching(c -> !Set.of(WALL, OPEN).contains(c))
-                .collect(toMap(c -> this.grid.getValueAt(c), c -> c));
+                .collect(toMap(c -> this.grid.getValue(c), c -> c));
         this.start = this.pois.get(START);
         log(this.grid);
         log(this.pois);
@@ -61,9 +61,9 @@ public final class AoC2016_24 extends AoCBase {
     
     private List<Path> neighbours(final Path path) {
         return this.grid.getCapitalNeighbours(path.getPosition())
-            .filter(cell -> this.grid.getValueAt(cell) != WALL)
+            .filter(cell -> this.grid.getValue(cell) != WALL)
             .map(newPos -> {
-                final char value = this.grid.getValueAt(newPos);
+                final char value = this.grid.getValue(newPos);
                 if (this.pois.keySet().contains(value)) {
                     return Path.from(path, newPos, value);
                 } else {
