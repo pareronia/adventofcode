@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -107,7 +108,7 @@ public class AoC2015_18 extends AoCBase {
     
     private int solve2(final int generations) {
         logGrid();
-        final Set<Cell> stuckPositions = Set.of(Cell.at(0, 0), Cell.at(this.height - 1, 0),
+        final Set<Cell> stuckPositions = Set.of(Grid.ORIGIN, Cell.at(this.height - 1, 0),
                                                 Cell.at(0, this.width - 1), Cell.at(this.height- 1, this.width - 1));
         for (final Cell stuck : stuckPositions) {
             this.grid.add(stuck);

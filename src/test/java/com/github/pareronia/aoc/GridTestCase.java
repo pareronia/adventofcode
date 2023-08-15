@@ -9,6 +9,7 @@ import static org.junit.Assert.fail;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +68,7 @@ public class GridTestCase {
 	public void getRowsAsString() {
 		final CharGrid grid = CharGrid.from(asList("123", "456", "789"));
 		
-		final Iterable<String> result = grid.getRowsAsStrings();
+		final Stream<String> result = grid.getRowsAsStrings();
 		
 		assertThat(result).containsExactly("123", "456", "789");
 	}
@@ -440,6 +441,19 @@ public class GridTestCase {
 	    
 		assertThat(result1).containsExactly(Cell.at(3, 0));
 		assertThat(result2).isEmpty();
+	}
+	
+	@Test
+	public void getCells() {
+		final CharGrid grid = CharGrid.from(asList(	"ABCD",
+													"EFGH",
+													"IJKL",
+													"MNOP",
+													"QRST"));
+		final String result
+		    = grid.getCells().map(grid::getValue).collect(Utils.toAString());
+		
+		assertThat(result).isEqualTo("ABCDEFGHIJKLMNOPQRST");
 	}
 	
 	@Test

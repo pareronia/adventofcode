@@ -1,6 +1,5 @@
 package com.github.pareronia.aoc;
 
-import static com.github.pareronia.aoc.AssertUtils.assertNotNull;
 import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
@@ -10,10 +9,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.function.Predicate;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
-import java.util.stream.StreamSupport;
 
 import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.geometry.Direction;
@@ -24,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 public interface Grid<T> {
+    
+    Cell ORIGIN = Cell.at(0, 0);
 
     int getHeight();
     
@@ -40,15 +38,15 @@ public interface Grid<T> {
     }
     
     default boolean isSquare() {
-        return getWidth() == getHeight();
+        return this.getWidth() == this.getHeight();
     }
     
     default int getMaxRowIndex() {
-        return getHeight() - 1;
+        return this.getHeight() - 1;
     }
     
     default int getMaxColIndex() {
-        return getWidth() - 1;
+        return this.getWidth() - 1;
     }
 
     default void validateIsSquare() {
@@ -56,127 +54,112 @@ public interface Grid<T> {
             throw new UnsupportedOperationException("Grid should be square.");
         }
     }
+    
+    default boolean isValidRowIndex(final int row) {
+        return 0 <= row && row <= this.getMaxRowIndex();
+    }
 
     default void validateRowIndex(final int row) {
-        assertNotNull(row, () -> "row index should not be null");
-        assertTrue(0 <= row && row <= getMaxRowIndex(),
+        assertTrue(this.isValidRowIndex(row),
                 () -> "Invalid row index: " + row);
+    }
+    
+    default boolean isValidColumnIndex(final int col) {
+        return 0 <= col && col <= this.getMaxColIndex();
     }
 
     default void validateColumnIndex(final int col) {
-        assertNotNull(col, () -> "column index should not be null");
-        assertTrue(0 <= col && col <= getMaxColIndex(),
+        assertTrue(this.isValidColumnIndex(col),
                 () -> "Invalid column index: " + col);
+    }
+    
+    default boolean isInBounds(final Cell cell) {
+        return this.isValidRowIndex(cell.row) && this.isValidColumnIndex(cell.col);
     }
 
     default Range rowIndices() {
-        return range(getHeight());
+        return range(this.getHeight());
     }
     
     default Range rowIndicesReversed() {
-        return rangeClosed(getHeight() - 1, 0, -1);
+        return rangeClosed(this.getMaxRowIndex(), 0, -1);
     }
     
     default Range colIndices() {
-        return range(getWidth());
+        return range(this.getWidth());
     }
     
     default Range colIndicesReversed() {
-        return rangeClosed(getWidth() - 1, 0, -1);
+        return rangeClosed(this.getMaxColIndex(), 0, -1);
     }
 
     default Stream<Cell> findAllMatching(final Predicate<T> test) {
-        final Builder<Cell> builder = Stream.builder();
-        for (int row = 0; row < getHeight(); row++) {
-            for (int col = 0; col < getWidth(); col++) {
-                if (test.test(getValue(Cell.at(row, col)))) {
-                    builder.add(Cell.at(row, col));
-                }
-            }
-        }
-        return builder.build();
+        return this.getCells().filter(cell -> test.test(this.getValue(cell)));
     }
     
     default Stream<Cell> getAllEqualTo(final T i) {
-        return findAllMatching(c -> c == i);
+        return this.findAllMatching(c -> c == i);
     }
     
     default long countAllEqualTo(final T i) {
-        return getAllEqualTo(i).count();
+        return this.getAllEqualTo(i).count();
     }
     
     default Stream<Cell> getCells() {
-        final Builder<Cell> builder = Stream.builder();
-        for (int r = 0; r < this.getHeight(); r++) {
-            for (int c = 0; c < getWidth(); c++) {
-                builder.add(Cell.at(r, c));
-            }
-        }
-        return builder.build();
+        return Utils.stream(
+            new GridIterator<>(this, ORIGIN, GridIterator.IterDir.FORWARD));
     }
 
     default Stream<Cell> getCellsN(final Cell cell) {
-        return IntStream.iterate(cell.getRow() - 1, i -> i >= 0, i -> i - 1)
-                .mapToObj(i -> Cell.at(i, cell.getCol()));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.UP));
     }
     
     default Stream<Cell> getCellsNE(final Cell cell) {
-        final int cntRight = this.getWidth() - 1 - cell.getCol();
-        final int cntUp = cell.getRow();
-        return IntStream.iterate(1, i -> i <= Math.min(cntRight, cntUp), i -> i + 1)
-                .mapToObj(i -> Cell.at(cell.getRow() - i, cell.getCol() + i));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.RIGHT_AND_UP));
     }
 
 	default Stream<Cell> getCellsE(final Cell cell) {
-	    return IntStream.iterate(cell.getCol() + 1, i -> i < this.getWidth(), i -> i + 1)
-	            .mapToObj(i -> Cell.at(cell.getRow(), i));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.RIGHT));
 	}
     
     default Stream<Cell> getCellsSE(final Cell cell) {
-        final int cntRight = this.getWidth() - 1 - cell.getCol();
-        final int cntDown = this.getHeight() - 1 - cell.getRow();
-        return IntStream.iterate(1, i -> i <= Math.min(cntRight, cntDown), i -> i + 1)
-                .mapToObj(i -> Cell.at(cell.getRow() + i, cell.getCol() + i));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.RIGHT_AND_DOWN));
     }
     
     default Stream<Cell> getCellsS(final Cell cell) {
-	    return IntStream.iterate(cell.getRow() + 1, i -> i < this.getHeight(), i -> i + 1)
-	            .mapToObj(i -> Cell.at(i, cell.getCol()));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.DOWN));
 	}
 
     default Stream<Cell> getCellsSW(final Cell cell) {
-        final int cntLeft = cell.getCol();
-        final int cntDown = this.getHeight() - 1 - cell.getRow();
-        return IntStream.iterate(1, i -> i <= Math.min(cntLeft, cntDown), i -> i + 1)
-                .mapToObj(i -> Cell.at(cell.getRow() + i, cell.getCol() - i));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.LEFT_AND_DOWN));
     }
 	
 	default Stream<Cell> getCellsW(final Cell cell) {
-	    return IntStream.iterate(cell.getCol() - 1, i -> i >= 0, i -> i - 1)
-	            .mapToObj(i -> Cell.at(cell.getRow(), i));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.LEFT));
 	}
     
     default Stream<Cell> getCellsNW(final Cell cell) {
-        final int cntLeft = cell.getCol();
-        final int cntUp = cell.getRow();
-        return IntStream.iterate(1, i -> i <= Math.min(cntLeft, cntUp), i -> i + 1)
-                .mapToObj(i -> Cell.at(cell.getRow() - i, cell.getCol() - i));
+        return Utils.stream(
+            new GridIterator<>(this, cell, GridIterator.IterDir.LEFT_AND_UP));
     }
 
     default Stream<Cell> getCapitalNeighbours(final Cell cell) {
-        return cell.capitalNeighbours()
-	            .filter(n -> n.row >= 0 && n.row < this.getHeight())
-	            .filter(n -> n.col >= 0 && n.col < this.getWidth());
+        return cell.capitalNeighbours().filter(this::isInBounds);
     }
 
     default Stream<Cell> getAllNeighbours(final Cell cell) {
-        return cell.allNeighbours()
-	            .filter(n -> n.row >= 0 && n.row < this.getHeight())
-	            .filter(n -> n.col >= 0 && n.col < this.getWidth());
+        return cell.allNeighbours().filter(this::isInBounds);
     }
     
-    default Iterable<String> getRowsAsStrings() {
-        return () -> new Iterator<>() {
+    default Stream<String> getRowsAsStrings() {
+        return Utils.stream(new Iterator<>() {
             int i = 0;
             
             @Override
@@ -188,17 +171,15 @@ public interface Grid<T> {
             public String next() {
                 return Grid.this.getRowAsString(i++);
             }
-        };
+        });
     }
     
     default List<String> getRowsAsStringList() {
-        return StreamSupport.stream(getRowsAsStrings().spliterator(), false)
-                .collect(toList());
+        return this.getRowsAsStrings().collect(toList());
     }
 	
     default String asString() {
-	    return Utils.stream(getRowsAsStrings().iterator())
-	            .collect(joining(System.lineSeparator()));
+	    return this.getRowsAsStrings().collect(joining(System.lineSeparator()));
 	}
 
     @RequiredArgsConstructor(staticName = "at")
@@ -206,8 +187,8 @@ public interface Grid<T> {
     @EqualsAndHashCode
     @ToString
 	public static final class Cell {
-		private final int row;
-		private final int col;
+		final int row;
+		final int col;
 		
 		public Cell at(final Direction direction) {
 		    return Cell.at(
