@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid;
@@ -46,14 +45,7 @@ public class AoC2020_11 extends AoCBase {
 	}
 	
 	private Set<Cell> findAdjacent(final Cell cell) {
-	    return IntStream.rangeClosed(cell.getRow() - 1, cell.getRow() + 1)
-	            .filter(rr -> 0 <= rr && rr < this.grid.getHeight())
-	            .boxed()
-	            .flatMap(rr -> IntStream.rangeClosed(cell.getCol() - 1, cell.getCol() + 1)
-	                            .filter(cc -> 0 <= cc && cc < this.grid.getWidth())
-	                            .mapToObj(cc -> Cell.at(rr, cc)))
-	            .filter(c -> !c.equals(cell))
-	            .collect(toSet());
+	    return grid.getAllNeighbours(cell).collect(toSet());
 	}
 	
 	private Stream<Cell> visible(final Cell cell) {

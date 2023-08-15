@@ -149,13 +149,16 @@ public class Grid {
 	}
 	
 	public Stream<Cell> getCapitalNeighbours(final Cell cell) {
-        return Direction.CAPITAL.stream()
-            .filter(n -> cell.getRow() + n.getX() >= 0)
-            .filter(n -> cell.getRow() + n.getX() < this.getHeight())
-            .filter(n -> cell.getCol() + n.getY() >= 0)
-            .filter(n -> cell.getCol() + n.getY() < this.getWidth())
-            .map(n -> Cell.at(cell.getRow() + n.getX(), cell.getCol() + n.getY()));
+	    return cell.capitalNeighbours()
+	            .filter(n -> n.row >= 0 && n.row < this.getHeight())
+	            .filter(n -> n.col >= 0 && n.col < this.getWidth());
 	}
+
+    public Stream<Cell> getAllNeighbours(final Cell cell) {
+        return cell.allNeighbours()
+	            .filter(n -> n.row >= 0 && n.row < this.getHeight())
+	            .filter(n -> n.col >= 0 && n.col < this.getWidth());
+    }
 	
 	public String getRowAsString(final Integer row) {
 		return new String(getRow(row));
@@ -521,6 +524,19 @@ public class Grid {
 		
 		public static Cell at(final Integer row, final Integer col) {
 			return new Cell(row, col);
+		}
+		
+		public Cell at(final Direction direction) {
+		    return Cell.at(
+		            this.row - direction.getY(), this.col + direction.getX());
+		}
+    
+		public Stream<Cell> allNeighbours() {
+		    return Direction.OCTANTS.stream().map(this::at);
+		}
+		
+		public Stream<Cell> capitalNeighbours() {
+		    return Direction.CAPITAL.stream().map(this::at);
 		}
 	}
 }

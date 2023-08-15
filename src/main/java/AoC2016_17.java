@@ -147,9 +147,9 @@ public final class AoC2016_17 extends AoCBase {
         }
     
         private Path buildNewPath(final Path path, final Direction direction) {
-            return new Path(path.getPath() + DOORS[DIRECTIONS.indexOf(direction)],
-                    Position.of(path.getPosition().getX() + direction.getX(),
-                                path.getPosition().getY() + direction.getY()));
+            return new Path(
+                    path.getPath() + DOORS[DIRECTIONS.indexOf(direction)],
+                    path.getPosition().translate(direction));
         }
     
         private boolean isInBounds(final Point position) {

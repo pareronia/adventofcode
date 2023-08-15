@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.stream.Collectors.summarizingInt;
 
 import java.util.ArrayList;
@@ -9,6 +10,7 @@ import java.util.Set;
 import org.apache.commons.math3.util.IntegerSequence.Range;
 
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -90,6 +92,11 @@ public class AoC2021_20 extends AoCBase {
     );
     
     private static final class ImageEnhancement {
+        private static final List<Direction> SQUARE = List.of(
+            Direction.LEFT_AND_UP, Direction.UP, Direction.RIGHT_AND_UP,
+            Direction.LEFT, Direction.NONE, Direction.RIGHT,
+            Direction.LEFT_AND_DOWN, Direction.DOWN, Direction.RIGHT_AND_DOWN);
+
         private final String algorithm;
         private final boolean isFlicker;
         private Set<Cell> data;
@@ -141,14 +148,10 @@ public class AoC2021_20 extends AoCBase {
                 found = '0';
                 notFound = '1';
             }
-            final StringBuilder sb = new StringBuilder();
-            for (final int rr : List.of(-1, 0, 1)) {
-                for (final int cc : List.of(-1, 0, 1)) {
-                    sb.append(this.data.contains(Cell.at(row + rr, col + cc))
-                                ? found : notFound);
-                }
-            }
-            return sb.toString();
+            return SQUARE.stream()
+                .map(Cell.at(row, col)::at)
+                .map(n -> this.data.contains(n) ? found : notFound)
+                .collect(toAString());
         }
         
         public void run() {

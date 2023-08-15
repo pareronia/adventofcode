@@ -5,7 +5,6 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.graph.AStar;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -45,9 +44,7 @@ public final class AoC2016_13 extends AoCBase {
     }
     
     private Stream<Cell> adjacent(final Cell c) {
-        
-        return Direction.CAPITAL.stream()
-            .map(d -> Cell.at(c.getRow() + d.getX(), c.getCol() + d.getY()))
+        return c.capitalNeighbours()
             .filter(n -> n.getRow() >= 0)
             .filter(n -> n.getCol() >= 0)
             .filter(this::isOpenSpace);

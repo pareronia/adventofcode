@@ -14,7 +14,7 @@ import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.geometry.Vector;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -24,21 +24,11 @@ public class AoC2022_23 extends AoCBase {
     
     private static final char ELF = '#';
     private static final char GROUND = '.';
-    private static final Vector N = Vector.of(-1, 0);
-    private static final Vector NW = Vector.of(-1, -1);
-    private static final Vector NE = Vector.of(-1, 1);
-    private static final Vector S = Vector.of(1, 0);
-    private static final Vector SW = Vector.of(1, -1);
-    private static final Vector SE = Vector.of(1, 1);
-    private static final Vector W = Vector.of(0, -1);
-    private static final Vector E = Vector.of(0, 1);
-    private static final Set<Vector> ALL_DIRS = Set.of(
-            N, NE, E, SE, S, SW, W, NW);
-    private static final Map<Vector, Set<Vector>> DIRS = Map.of(
-            N, Set.of(N, NW, NE),
-            S, Set.of(S, SW, SE),
-            W, Set.of(W, NW, SW),
-            E, Set.of(E, NE, SE));
+    private static final Map<Direction, Set<Direction>> DIRS = Map.of(
+        Direction.UP, Set.of(Direction.UP, Direction.LEFT_AND_UP, Direction.RIGHT_AND_UP),
+        Direction.DOWN, Set.of(Direction.DOWN, Direction.LEFT_AND_DOWN, Direction.RIGHT_AND_DOWN),
+        Direction.LEFT, Set.of(Direction.LEFT, Direction.LEFT_AND_DOWN, Direction.LEFT_AND_UP),
+        Direction.RIGHT, Set.of(Direction.RIGHT, Direction.RIGHT_AND_UP, Direction.RIGHT_AND_DOWN));
              
     private final Set<Cell> input;
 
@@ -80,32 +70,27 @@ public class AoC2022_23 extends AoCBase {
         });
     }
     
-    private Cell add(final Cell cell, final Vector dir) {
-        return Cell.at(
-                cell.getRow() + dir.getX(), cell.getCol() + dir.getY());
-    }
-    
     private boolean allNotOccupied(
             final Set<Cell> elves,
             final Cell elf,
-            final Set<Vector> directions
+            final Set<Direction> directions
     ) {
         return directions.stream()
-                .map(dir -> add(elf, dir))
+                .map(dir -> elf.at(dir))
                 .noneMatch(elves::contains);
     }
     
     private Map<Cell, List<Cell>> calculateMoves(
-            final Set<Cell> elves, final Deque<Vector> order
+            final Set<Cell> elves, final Deque<Direction> order
     ) {
         final Map<Cell, List<Cell>> moves = new HashMap<>();
         for (final Cell elf : elves) {
-            if (allNotOccupied(elves, elf, ALL_DIRS)) {
+            if (allNotOccupied(elves, elf, Direction.OCTANTS)) {
                 continue;
             }
-            for (final Vector d : order) {
+            for (final Direction d : order) {
                 if (allNotOccupied(elves, elf, DIRS.get(d))) {
-                    final Cell n = add(elf, d);
+                    final Cell n = elf.at(d);
                     moves.computeIfAbsent(n, k -> new ArrayList<>()).add(elf);
                     break;
                 }
@@ -128,7 +113,8 @@ public class AoC2022_23 extends AoCBase {
     @Override
     public Integer solvePart1() {
         final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Vector> order = new ArrayDeque<>(List.of(N, S, W, E));
+        final Deque<Direction> order = new ArrayDeque<>(
+            List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
         IntStream.range(0, 10).forEach(i -> {
             log("Round " + (i + 1));
             final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);
@@ -145,7 +131,8 @@ public class AoC2022_23 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Vector> order = new ArrayDeque<>(List.of(N, S, W, E));
+        final Deque<Direction> order = new ArrayDeque<>(
+            List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
         int cnt = 1;
         while (true) {
             final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);

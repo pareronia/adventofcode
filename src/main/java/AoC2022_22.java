@@ -20,10 +20,6 @@ import lombok.ToString;
 public class AoC2022_22 extends AoCBase {
 
     private static final Pattern REGEX = Pattern.compile("([LR])([0-9]+)");
-    private static final Map<Direction, Delta> DIRS = Map.of(
-        Direction.UP, Delta.of(-1, 0), Direction.RIGHT, Delta.of(0, 1),
-        Direction.DOWN, Delta.of(1, 0), Direction.LEFT, Delta.of(0, -1)
-    );
     private static final char WALL = '#';
     
     private final List<String> grid;
@@ -72,9 +68,9 @@ public class AoC2022_22 extends AoCBase {
         for (final Move move : this.moves) {
             facing = facing.turn(move.turn);
             for (int i = 0; i < move.steps; i++) {
-                final Delta d = DIRS.get(facing);
-                int rr = row + d.dr;
-                int cc = col + d.dc;
+                final Cell moved = Cell.at(row, col).at(facing);
+                int rr = moved.getRow();
+                int cc = moved.getCol();
                 if (facing == Direction.UP || facing == Direction.DOWN) {
                     final List<Integer> rows = rowsCache.computeIfAbsent(
                             col ,
@@ -127,9 +123,9 @@ public class AoC2022_22 extends AoCBase {
         for (final Move move : this.moves) {
             facing = facing.turn(move.turn);
             for (int i = 0; i < move.steps; i++) {
-                final Delta d = DIRS.get(facing);
-                int rr = row + d.dr;
-                int cc = col + d.dc;
+                final Cell moved = Cell.at(row, col).at(facing);
+                int rr = moved.getRow();
+                int cc = moved.getCol();
                 Direction ff = facing;
                 if (rr < 0 && size <= cc && cc < 2 * size && ff == Direction.UP) {
                     // top edge 1
@@ -248,11 +244,5 @@ public class AoC2022_22 extends AoCBase {
     private static final class Move {
         private final Turn turn;
         private final int steps;
-    }
-    
-    @RequiredArgsConstructor(staticName = "of")
-    private static final class Delta {
-        private final int dr;
-        private final int dc;
     }
 }

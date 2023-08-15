@@ -112,22 +112,16 @@ public final class IntGrid {
         return getAllEqualTo(i).count();
     }
 
-    public Stream<Cell> getCapitalNeighbours(final Cell c) {
-        return Direction.CAPITAL.stream()
-            .filter(n -> c.getRow() + n.getX() >= 0)
-            .filter(n -> c.getRow() + n.getX() < this.getHeight())
-            .filter(n -> c.getCol() + n.getY() >= 0)
-            .filter(n -> c.getCol() + n.getY() < this.getWidth())
-            .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
+    public Stream<Cell> getCapitalNeighbours(final Cell cell) {
+        return cell.capitalNeighbours()
+	            .filter(n -> n.row >= 0 && n.row < this.getHeight())
+	            .filter(n -> n.col >= 0 && n.col < this.getWidth());
     }
 
     public Stream<Cell> getAllNeighbours(final Cell cell) {
-        return Direction.OCTANTS.stream()
-                .filter(n -> cell.getRow() + n.getX() >= 0)
-                .filter(n -> cell.getRow() + n.getX() < this.getHeight())
-                .filter(n -> cell.getCol() + n.getY() >= 0)
-                .filter(n -> cell.getCol() + n.getY() < this.getWidth())
-                .map(n -> Cell.at(cell.getRow() + n.getX(), cell.getCol() + n.getY()));
+        return cell.allNeighbours()
+	            .filter(n -> n.row >= 0 && n.row < this.getHeight())
+	            .filter(n -> n.col >= 0 && n.col < this.getWidth());
     }
 
     @RequiredArgsConstructor(staticName = "at")
@@ -137,5 +131,18 @@ public final class IntGrid {
     public static final class Cell {
         private final int row;
         private final int col;
+		
+		public Cell at(final Direction direction) {
+		    return Cell.at(
+		            this.row - direction.getY(), this.col + direction.getX());
+		}
+    
+		public Stream<Cell> allNeighbours() {
+		    return Direction.OCTANTS.stream().map(this::at);
+		}
+		
+		public Stream<Cell> capitalNeighbours() {
+		    return Direction.CAPITAL.stream().map(this::at);
+		}
     }
 }
