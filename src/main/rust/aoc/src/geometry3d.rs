@@ -28,10 +28,10 @@ impl XYZ {
 
     pub fn capital_neighbours(&self) -> impl Iterator<Item = XYZ> + '_ {
         vec![
-            Direction3D::North,
-            Direction3D::East,
-            Direction3D::South,
-            Direction3D::West,
+            Direction3D::Up,
+            Direction3D::Right,
+            Direction3D::Down,
+            Direction3D::Left,
             Direction3D::Forward,
             Direction3D::Backward,
         ]
@@ -53,10 +53,10 @@ impl FromIterator<u32> for XYZ {
 
 #[derive(Clone, Copy, Debug)]
 pub enum Direction3D {
-    North,
-    East,
-    South,
-    West,
+    Up,
+    Right,
+    Down,
+    Left,
     Forward,
     Backward,
 }
@@ -66,10 +66,10 @@ impl TryFrom<Direction3D> for XYZ {
 
     fn try_from(value: Direction3D) -> Result<Self, Self::Error> {
         match value {
-            Direction3D::North => Ok(XYZ::of(0, 1, 0)),
-            Direction3D::East => Ok(XYZ::of(1, 0, 0)),
-            Direction3D::South => Ok(XYZ::of(0, -1, 0)),
-            Direction3D::West => Ok(XYZ::of(-1, 0, 0)),
+            Direction3D::Up => Ok(XYZ::of(0, 1, 0)),
+            Direction3D::Right => Ok(XYZ::of(1, 0, 0)),
+            Direction3D::Down => Ok(XYZ::of(0, -1, 0)),
+            Direction3D::Left => Ok(XYZ::of(-1, 0, 0)),
             Direction3D::Forward => Ok(XYZ::of(0, 0, 1)),
             Direction3D::Backward => Ok(XYZ::of(0, 0, -1)),
         }

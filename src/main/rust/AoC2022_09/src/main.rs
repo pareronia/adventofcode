@@ -1,6 +1,6 @@
 #![allow(non_snake_case)]
 
-use aoc::geometry::{Heading, Translate, XY};
+use aoc::geometry::{Direction, Translate, XY};
 use aoc::Puzzle;
 use itertools::Itertools;
 use std::str::FromStr;
@@ -29,7 +29,7 @@ impl AoC2022_09 {
         }
     }
 
-    fn move_rope(&self, rope: &mut Vec<XY>, move_: &Heading) {
+    fn move_rope(&self, rope: &mut Vec<XY>, move_: &Direction) {
         let xy = XY::try_from(*move_).unwrap();
         rope[0] = rope[0].translate(&xy, 1);
         (1..rope.len()).for_each(|j| {
@@ -42,7 +42,7 @@ impl AoC2022_09 {
         });
     }
 
-    fn solve(&self, moves: &Vec<Heading>, size: usize) -> usize {
+    fn solve(&self, moves: &Vec<Direction>, size: usize) -> usize {
         let mut rope = vec![XY::of(0, 0); size];
         moves
             .iter()
@@ -56,29 +56,29 @@ impl AoC2022_09 {
 }
 
 impl aoc::Puzzle for AoC2022_09 {
-    type Input = Vec<Heading>;
+    type Input = Vec<Direction>;
     type Output1 = usize;
     type Output2 = usize;
 
     aoc::puzzle_year_day!(2022, 9);
 
-    fn parse_input(&self, lines: Vec<String>) -> Vec<Heading> {
+    fn parse_input(&self, lines: Vec<String>) -> Vec<Direction> {
         lines
             .iter()
             .flat_map(|line| {
                 let splits: Vec<&str> = line.split(" ").collect();
                 let n = splits[1].parse::<usize>().unwrap();
-                let heading = Heading::from_str(splits[0]).unwrap();
-                std::iter::repeat(heading).take(n)
+                let direction = Direction::from_str(splits[0]).unwrap();
+                std::iter::repeat(direction).take(n)
             })
-            .collect::<Vec<Heading>>()
+            .collect::<Vec<Direction>>()
     }
 
-    fn part_1(&self, input: &Vec<Heading>) -> usize {
+    fn part_1(&self, input: &Vec<Direction>) -> usize {
         self.solve(input, 2)
     }
 
-    fn part_2(&self, input: &Vec<Heading>) -> usize {
+    fn part_2(&self, input: &Vec<Direction>) -> usize {
         self.solve(input, 10)
     }
 

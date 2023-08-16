@@ -21,39 +21,36 @@ impl XY {
 }
 
 #[derive(Clone, Copy, Debug)]
-pub enum Heading {
-    North,
-    East,
-    South,
-    West,
+pub enum Direction {
+    Up,
+    Right,
+    Down,
+    Left,
 }
 
-#[derive(Debug)]
-pub struct HeadingFromStrErr;
-
-impl FromStr for Heading {
-    type Err = HeadingFromStrErr;
+impl FromStr for Direction {
+    type Err = &'static str;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "U" => Ok(Heading::North),
-            "R" => Ok(Heading::East),
-            "D" => Ok(Heading::South),
-            "L" => Ok(Heading::West),
-            _ => panic!("Invalid Heading '{}'", s),
+            "U" => Ok(Direction::Up),
+            "R" => Ok(Direction::Right),
+            "D" => Ok(Direction::Down),
+            "L" => Ok(Direction::Left),
+            _ => panic!("Invalid Direction '{}'", s),
         }
     }
 }
 
-impl TryFrom<Heading> for XY {
+impl TryFrom<Direction> for XY {
     type Error = &'static str;
 
-    fn try_from(value: Heading) -> Result<Self, Self::Error> {
+    fn try_from(value: Direction) -> Result<Self, Self::Error> {
         match value {
-            Heading::North => Ok(XY::of(0, 1)),
-            Heading::East => Ok(XY::of(1, 0)),
-            Heading::South => Ok(XY::of(0, -1)),
-            Heading::West => Ok(XY::of(-1, 0)),
+            Direction::Up => Ok(XY::of(0, 1)),
+            Direction::Right => Ok(XY::of(1, 0)),
+            Direction::Down => Ok(XY::of(0, -1)),
+            Direction::Left => Ok(XY::of(-1, 0)),
         }
     }
 }
