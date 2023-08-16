@@ -1,10 +1,15 @@
 package com.github.pareronia.aoc.geometry;
 
+import static com.github.pareronia.aoc.AssertUtils.unreachable;
+
 import java.util.Arrays;
 import java.util.Optional;
 
 import com.github.pareronia.aoc.AssertUtils;
 
+import lombok.Getter;
+
+@Getter
 public enum Turn {
 
     LEFT(270, Optional.of('L')),
@@ -44,5 +49,15 @@ public enum Turn {
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException(
                                 String.format("Invalid degrees: '%s'", degrees)));
+    }
+    
+    public static Turn fromDirections(final Direction dir1, final Direction dir2) {
+        for (final Turn turn : values()) {
+            if (dir1.turn(turn) == dir2) {
+                return turn;
+            }
+        }
+        System.err.println(String.format("%s -> %s", dir1, dir2));
+        throw unreachable();
     }
 }

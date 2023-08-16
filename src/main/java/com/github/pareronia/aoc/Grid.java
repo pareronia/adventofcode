@@ -202,5 +202,18 @@ public interface Grid<T> {
 		public Stream<Cell> capitalNeighbours() {
 		    return Direction.CAPITAL.stream().map(this::at);
 		}
+		
+		public Direction to(final Cell other) {
+		    if (this.row == other.row) {
+		        if (this.col == other.col) {
+		            return Direction.NONE;
+		        }
+		        return this.col < other.col ? Direction.RIGHT : Direction.LEFT;
+		    } else if (this.col == other.col) {
+		        return this.row < other.row ? Direction.DOWN : Direction.UP;
+		    } else {
+		        throw new UnsupportedOperationException();
+		    }
+		}
 	}
 }

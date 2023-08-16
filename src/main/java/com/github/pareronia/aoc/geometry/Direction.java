@@ -1,5 +1,7 @@
 package com.github.pareronia.aoc.geometry;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.Optional;
@@ -38,6 +40,9 @@ public enum Direction {
         LEFT,
         LEFT_AND_UP
     );
+    
+    public static final Set<Character> CAPITAL_ARROWS = CAPITAL.stream()
+            .map(d -> d.arrow.get()).collect(toSet());
     
     @Getter
     private final Vector vector;
