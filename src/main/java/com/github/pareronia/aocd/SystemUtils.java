@@ -69,7 +69,7 @@ public class SystemUtils {
 		if (StringUtils.isNotBlank(tokenFromEnv)) {
 			return tokenFromEnv;
 		}
-		return readAlLines(getAocdDir().resolve("token")).stream()
+		return readAllLines(getAocdDir().resolve("token")).stream()
 				.findFirst()
 				.orElseThrow(() -> new AocdException("Missing session ID"));
 	}
@@ -96,7 +96,7 @@ public class SystemUtils {
  		if (Files.notExists(Objects.requireNonNull(path))) {
 			return Collections.emptyList();
 		}
-		return readAlLines(path);
+		return readAllLines(path);
 	}
 	
 	public Optional<String> readFirstLineIfExists(final Path path) {
@@ -141,7 +141,7 @@ public class SystemUtils {
         }
 	}
 	
-	private List<String> readAlLines(final Path path) {
+	public List<String> readAllLines(final Path path) {
 		try {
 			return Collections.unmodifiableList(
 					Files.readAllLines(Objects.requireNonNull(path),
