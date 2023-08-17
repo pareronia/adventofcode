@@ -173,8 +173,8 @@ public class AoC2019_17 extends AoCBase {
             final Cell start = robot;
             final Cell end = grid.getAllEqualTo(SCAFFOLD)
                 .filter(cell -> grid.getCapitalNeighbours(cell)
-                                    .filter(n -> grid.getValue(n) == SCAFFOLD)
-                                    .count() == 1)
+                    .filter(n -> grid.getValue(n) == SCAFFOLD || n.equals(robot))
+                    .count() == 1)
                 .findFirst().orElseThrow();
             final Deque<Cell> path = new ArrayDeque<>();
             final DFS dfs = new DFS(grid, path, start, end);
