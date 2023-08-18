@@ -7,76 +7,73 @@
 from __future__ import annotations
 
 import aocd
+
 from aoc import my_aocd
-from aoc.common import clog
+from aoc.common import clog, log
 
 
-class Num:
-    def __init__(self, num: int) -> None:
-        self.num: int = num
-        self.next: Num | None = None
-        self.prev: Num | None = None
+class Nums:
+    def __init__(self, inputs: tuple[str], factor: int):
+        self.nums = list(map(lambda line: int(line) * factor, inputs))
+        size = len(self.nums)
+        self.next: list[int] = [None] * size
+        self.prev: list[int] = [None] * size
+        for i in range(1, size + 1, 1):
+            self.prev[i % size] = (i - 1) % size
+            self.next[i % size] = (i + 1) % size
 
+    def print(self, zero: int) -> list[int]:
+        tmp = zero
+        s = []
+        while True:
+            s.append(self.nums[tmp])
+            tmp = self.next[tmp]
+            if self.nums[tmp] == 0:
+                break
+        return s
 
-def _print(zero: Num) -> None:
-    tmp = zero
-    s = []
-    while True:
-        s.append(tmp.num)
-        tmp = tmp.next
-        if tmp.num == 0:
-            break
-    return s
+    def find_zero(self) -> int:
+        return next(i for i, num in enumerate(self.nums) if num == 0)
 
-
-def _do_mix(nums: list[Num], zero: Num) -> None:
-    def _do_move(to_move: Num, move_to: Num) -> None:
-        before, after = move_to, move_to.next
-        before.next = to_move
-        to_move.prev = before
-        after.prev = to_move
-        to_move.next = after
-
-    size = len(nums)
-    for to_move in nums:
-        clog(lambda: f"to_move: {to_move.num}")
-        if to_move.num > 0:
-            move_to = to_move.prev
-            amount = to_move.num % (size - 1)
-            to_move.next.prev = to_move.prev
-            to_move.prev.next = to_move.next
-            for j in range(amount):
-                move_to = move_to.next
-            clog(lambda: f"move to: {move_to.num}")
-            _do_move(to_move, move_to)
-        elif to_move.num < 0:
-            move_to = to_move.next
-            amount = abs(to_move.num) % (size - 1) + 1
-            to_move.next.prev = to_move.prev
-            to_move.prev.next = to_move.next
-            for j in range(amount):
-                move_to = move_to.prev
-            clog(lambda: f"move to: {move_to.num}")
-            _do_move(to_move, move_to)
-        clog(lambda: _print(zero))
+    def round(self) -> None:
+        size = len(self.nums)
+        for i, to_move in enumerate(self.nums):
+            clog(lambda: f"to_move: {to_move}")
+            if to_move == 0:
+                continue
+            self.prev[self.next[i]] = self.prev[i]
+            self.next[self.prev[i]] = self.next[i]
+            if to_move > 0:
+                move_to = self.prev[i]
+                amount = to_move % (size - 1)
+                for _ in range(amount):
+                    move_to = self.next[move_to]
+            else:
+                move_to = self.next[i]
+                amount = abs(to_move) % (size - 1) + 1
+                for _ in range(amount):
+                    move_to = self.prev[move_to]
+            clog(lambda: f"move to: {self.nums[move_to]} ({amount})")
+            before, after = move_to, self.next[move_to]
+            self.next[before] = i
+            self.prev[i] = before
+            self.prev[after] = i
+            self.next[i] = after
 
 
 def _solve(inputs: tuple[str], rounds: int, factor: int = 1) -> int:
-    nums = list(map(lambda line: Num(int(line) * factor), inputs))
-    size = len(nums)
-    for i in range(1, size + 1):
-        if nums[i - 1].num == 0:
-            zero = nums[i - 1]
-        nums[i % size].prev = nums[(i - 1) % size]
-        nums[i % size].next = nums[(i + 1) % size]
-    for i in range(rounds):
-        _do_mix(nums, zero)
+    nums = Nums(inputs, factor)
+    zero = nums.find_zero()
+    for round in range(rounds):
+        log(f"Round {round}")
+        nums.round()
+        clog(lambda: f"{nums.print(zero)}")
     ans = 0
     n = zero
     for i in range(1, 3001):
-        n = n.next
+        n = nums.next[n]
         if i % 1000 == 0:
-            ans += n.num
+            ans += nums.nums[n]
     return ans
 
 
