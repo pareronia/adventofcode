@@ -1,111 +1,27 @@
 #![allow(non_snake_case)]
 
-use aoc::{clog, Puzzle};
-
-#[derive(Debug)]
-struct Nums {
-    nums: Vec<i64>,
-    prev: Vec<usize>,
-    next: Vec<usize>,
-}
-
-impl Nums {
-    #[cfg(debug_assertions)]
-    fn print(&self, zero: usize) -> Vec<i64> {
-        let mut s = vec![];
-        let mut tmp = zero;
-        loop {
-            s.push(self.nums[tmp]);
-            tmp = self.next[tmp];
-            if tmp == zero {
-                break;
-            }
-        }
-        s
-    }
-
-    fn find_zero(&self) -> usize {
-        self.nums
-            .iter()
-            .enumerate()
-            .filter(|&(_, &num)| num == 0)
-            .map(|(i, _)| i)
-            .next()
-            .unwrap()
-    }
-
-    fn round(&mut self) {
-        let size = self.nums.len();
-        for (i, &to_move) in self.nums.iter().enumerate() {
-            if to_move == 0 {
-                continue;
-            }
-            self.prev[self.next[i]] = self.prev[i];
-            self.next[self.prev[i]] = self.next[i];
-            let (move_to, _amount) = match to_move {
-                _ if to_move > 0 => {
-                    let mut move_to = self.prev[i];
-                    let amount = to_move as usize % (size - 1);
-                    (0..amount).for_each(|_| move_to = self.next[move_to]);
-                    (move_to, amount)
-                }
-                _ => {
-                    let mut move_to = self.next[i];
-                    let amount = to_move.abs() as usize % (size - 1) + 1;
-                    (0..amount).for_each(|_| move_to = self.prev[move_to]);
-                    (move_to, amount)
-                }
-            };
-            clog!(
-                (|| format!(
-                    "move {} to {} ({})",
-                    self.nums[i], self.nums[move_to], _amount
-                ))
-            );
-            let (before, after) = (move_to, self.next[move_to]);
-            self.next[before] = i;
-            self.prev[i] = before;
-            self.prev[after] = i;
-            self.next[i] = after;
-        }
-    }
-}
-
-impl From<Vec<i64>> for Nums {
-    fn from(nums: Vec<i64>) -> Nums {
-        let size = nums.len();
-        let mut prev = vec![usize::MAX; size];
-        let mut next = vec![usize::MAX; size];
-        (1..=size).for_each(|i| {
-            prev[i % size] = (i - 1) % size;
-            next[i % size] = (i + 1) % size;
-        });
-        Nums { nums, prev, next }
-    }
-}
+use aoc::Puzzle;
 
 struct AoC2022_20;
 
 impl AoC2022_20 {
     fn solve(&self, numbers: &Vec<i64>, rounds: usize, factor: i64) -> i64 {
-        let mut nums = Nums::from(
-            numbers.iter().map(|num| num * factor).collect::<Vec<i64>>(),
-        );
-        let zero = nums.find_zero();
-        (0..rounds).for_each(|_round| {
-            clog!((|| format!("Round {_round}")));
-            nums.round();
-            clog!((|| nums.print(zero)));
-        });
-        let mut n = zero;
-        let mut ans = 0;
-        (1..=3000).for_each(|i| {
-            n = nums.next[n];
-            if i % 1000 == 0 {
-                ans += nums.nums[n];
+        let nums = numbers.iter().map(|num| num * factor).collect::<Vec<i64>>();
+        let mut idxs: Vec<usize> = (0..nums.len()).collect();
+        (0..rounds).for_each(|_| {
+            for (i, &num) in nums.iter().enumerate() {
+                let idx = idxs.iter().position(|&idx| idx == i).unwrap();
+                idxs.remove(idx);
+                let new_idx = (idx as i64 + num).rem_euclid(idxs.len() as i64);
+                idxs.insert(new_idx as usize, i);
             }
         });
-        ans
+        let orig_zero_idx = nums.iter().position(|&i| i == 0).unwrap();
+        let zero_idx = idxs.iter().position(|&i| i == orig_zero_idx).unwrap();
+        (1000..=3000)
+            .step_by(1000)
+            .map(|i| nums[idxs[(zero_idx + i) % idxs.len()]])
+            .sum()
     }
 }
 
