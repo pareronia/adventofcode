@@ -28,6 +28,14 @@ macro_rules! log {
 }
 
 #[macro_export]
+macro_rules! clog {
+    ($f:tt) => {{
+        #[cfg(debug_assertions)]
+        eprintln!("{:?}", $f());
+    }};
+}
+
+#[macro_export]
 macro_rules! puzzle_year_day {
     ($year:expr, $day:expr) => {
         fn year(&self) -> u16 {
