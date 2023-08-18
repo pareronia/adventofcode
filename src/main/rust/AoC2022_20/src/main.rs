@@ -2,15 +2,15 @@
 
 use aoc::{clog, Puzzle};
 
-#[derive(Clone, Debug)]
+#[derive(Debug)]
 struct Nums {
     nums: Vec<i64>,
     prev: Vec<usize>,
     next: Vec<usize>,
 }
 
-#[cfg(debug_assertions)]
 impl Nums {
+    #[cfg(debug_assertions)]
     fn print(&self, zero: usize) -> Vec<i64> {
         let mut s = vec![];
         let mut tmp = zero;
@@ -22,6 +22,52 @@ impl Nums {
             }
         }
         s
+    }
+
+    fn find_zero(&self) -> usize {
+        self.nums
+            .iter()
+            .enumerate()
+            .filter(|&(_, &num)| num == 0)
+            .map(|(i, _)| i)
+            .next()
+            .unwrap()
+    }
+
+    fn round(&mut self) {
+        let size = self.nums.len();
+        for (i, &to_move) in self.nums.iter().enumerate() {
+            if to_move == 0 {
+                continue;
+            }
+            self.prev[self.next[i]] = self.prev[i];
+            self.next[self.prev[i]] = self.next[i];
+            let (move_to, _amount) = match to_move {
+                _ if to_move > 0 => {
+                    let mut move_to = self.prev[i];
+                    let amount = to_move as usize % (size - 1);
+                    (0..amount).for_each(|_| move_to = self.next[move_to]);
+                    (move_to, amount)
+                }
+                _ => {
+                    let mut move_to = self.next[i];
+                    let amount = to_move.abs() as usize % (size - 1) + 1;
+                    (0..amount).for_each(|_| move_to = self.prev[move_to]);
+                    (move_to, amount)
+                }
+            };
+            clog!(
+                (|| format!(
+                    "move {} to {} ({})",
+                    self.nums[i], self.nums[move_to], _amount
+                ))
+            );
+            let (before, after) = (move_to, self.next[move_to]);
+            self.next[before] = i;
+            self.prev[i] = before;
+            self.prev[after] = i;
+            self.next[i] = after;
+        }
     }
 }
 
@@ -42,69 +88,14 @@ struct AoC2022_20;
 
 impl AoC2022_20 {
     fn solve(&self, numbers: &Vec<i64>, rounds: usize, factor: i64) -> i64 {
-        fn find_zero(nums: &Nums) -> usize {
-            nums.nums
-                .iter()
-                .enumerate()
-                .filter(|&(_, &num)| num == 0)
-                .map(|(i, _)| i)
-                .next()
-                .unwrap()
-        }
-
-        fn round(nums: &mut Nums, _zero: usize) {
-            let size = nums.nums.len();
-            for (i, &to_move) in nums.nums.iter().enumerate() {
-                if to_move == 0 {
-                    continue;
-                }
-                nums.prev[nums.next[i]] = nums.prev[i];
-                nums.next[nums.prev[i]] = nums.next[i];
-                let (move_to, _amount) = match to_move {
-                    _ if to_move > 0 => {
-                        let mut move_to = nums.prev[i];
-                        let amount = to_move as usize % (size - 1);
-                        (0..amount).for_each(|_| move_to = nums.next[move_to]);
-                        (move_to, amount)
-                    }
-                    _ => {
-                        let mut move_to = nums.next[i];
-                        let amount = to_move.abs() as usize % (size - 1) + 1;
-                        (0..amount).for_each(|_| move_to = nums.prev[move_to]);
-                        (move_to, amount)
-                    }
-                };
-                clog!(
-                    (|| format!(
-                        "move {} to {} ({})",
-                        nums.nums[i], nums.nums[move_to], _amount
-                    ))
-                );
-                let (before, after) = (move_to, nums.next[move_to]);
-                nums.next[before] = i;
-                nums.prev[i] = before;
-                nums.prev[after] = i;
-                nums.next[i] = after;
-                clog!(
-                    (|| {
-                        let tmp = Nums {
-                            nums: nums.nums.clone(),
-                            prev: nums.prev.clone(),
-                            next: nums.next.clone(),
-                        };
-                        tmp.print(_zero)
-                    })
-                );
-            }
-        }
-
         let mut nums = Nums::from(
             numbers.iter().map(|num| num * factor).collect::<Vec<i64>>(),
         );
-        let zero = find_zero(&nums);
+        let zero = nums.find_zero();
         (0..rounds).for_each(|_round| {
             clog!((|| format!("Round {_round}")));
-            round(&mut nums, zero);
+            nums.round();
+            clog!((|| nums.print(zero)));
         });
         let mut n = zero;
         let mut ans = 0;
