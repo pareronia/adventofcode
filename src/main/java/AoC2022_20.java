@@ -1,15 +1,12 @@
-import static java.lang.Math.abs;
-import static java.util.stream.Collectors.joining;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.RequiredArgsConstructor;
 
 public class AoC2022_20 extends AoCBase {
     
@@ -29,62 +26,24 @@ public class AoC2022_20 extends AoCBase {
         return new AoC2022_20(input, true);
     }
     
-    private void print(final Num zero) {
-        if (!this.debug) {
-            return;
-        }
-        final List<Long> lst = new ArrayList<>();
-        Num tmp = zero;
-        do {
-            lst.add(tmp.num);
-            tmp = tmp.next;
-        } while (tmp.num != 0);
-        log(lst.stream().map(String::valueOf).collect(joining(", ")));
-    }
-    
     private long solve(final int rounds, final long factor) {
-        final int size = this.numbers.size();
-        final List<Num> nums = IntStream.range(0, size)
-                .mapToLong(i -> factor * this.numbers.get(i))
-                .mapToObj(Num::new)
+        final List<Long> nums = this.numbers.stream()
+                .map(num -> factor * num)
                 .collect(toList());
-        Num zero = null;
-        for (int i = 1; i <= nums.size(); i++) {
-            if (nums.get(i - 1).num == 0) {
-                zero = nums.get(i - 1);
-            }
-            nums.get(i % size).prev = nums.get((i - 1) % size);
-            nums.get(i % size).next = nums.get((i + 1) % size);
-        }
-        print(zero);
-
-        for (int i = 0; i < rounds; i++) {
-            log("Round " + (i + 1));
-            for (final Num to_move : nums) {
-                if (to_move.num > 0) {
-                    final int amount = (int) (to_move.num % (size - 1));
-                    Num move_to = to_move.prev;
-                    to_move.remove();
-                    move_to = move_to.next(amount);
-                    to_move.insertAfter(move_to);
-                } else if (to_move.num < 0) {
-                    final int amount = (int) (abs(to_move.num) % (size - 1) + 1);
-                    Num move_to = to_move.next;
-                    to_move.remove();
-                    move_to = move_to.prev(amount);
-                    to_move.insertAfter(move_to);
-                }
-            }
-            print(zero);
-        }
-
-        long ans = 0;
-        Num n = zero;
-        for (int i = 0; i < 3; i++) {
-            n = n.next(1000);
-            ans += n.num;
-        }
-        return ans;
+        final int size = nums.size();
+        final List<Integer> idxs = range(size).intStream().boxed().collect(toList());
+        range(rounds).forEach(round -> {
+            Stream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
+                final int idx = idxs.indexOf(i);
+                idxs.remove(i);
+                final int new_idx = Math.floorMod(idx + nums.get(i), idxs.size());
+                idxs.add(new_idx, i);
+            });
+        });
+        final int zero = idxs.indexOf(nums.indexOf(0L));
+        return IntStream.of(1000, 2000, 3000)
+            .mapToLong(i -> nums.get(idxs.get((zero + i) % size)))
+            .sum();
     }
     
     @Override
@@ -118,43 +77,4 @@ public class AoC2022_20 extends AoCBase {
         "0\r\n" +
         "4"
     );
-    
-    @RequiredArgsConstructor
-    private static final class Num {
-        private final long num;
-        private Num next;
-        private Num prev;
-        
-        public void remove() {
-            this.prev.next = this.next;
-            this.next.prev = this.prev;
-            this.next = null;
-            this.prev = null;
-        }
-
-        public void insertAfter(final Num move_to) {
-            final Num before = move_to;
-            final Num after = move_to.next;
-            before.next = this;
-            this.prev = before;
-            after.prev = this;
-            this.next = after;
-        }
-        
-        public Num prev(int amount) {
-            Num ans = this;
-            while (amount-- > 0) {
-                ans = ans.prev;
-            }
-            return ans;
-        }
-        
-        public Num next(int amount) {
-            Num ans = this;
-            while (amount-- > 0) {
-                ans = ans.next;
-            }
-            return ans;
-        }
-    }
 }
