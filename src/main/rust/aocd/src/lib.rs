@@ -7,7 +7,8 @@ use std::{
 };
 
 pub fn get_input_data(year: u16, day: u8) -> Vec<String> {
-    let file = memo_dir().join(format!("{}_{:02}_input.txt", year, day));
+    let path = memo_dir().join(format!("{}_{:02}_input.txt", year, day));
+    let file = fs::File::open(path).expect("!! INPUT DATA MISSING !");
     lines_from_file(&file)
 }
 
@@ -17,11 +18,17 @@ pub fn answer(year: u16, day: u8, part: usize) -> Option<String> {
         2 => "b",
         _ => panic!("part should be 1 or 2"),
     };
-    let file = memo_dir().join(format!("{}_{:02}{}_answer.txt", year, day, p));
-    let lines = lines_from_file(&file);
-    match lines.is_empty() {
-        true => None,
-        false => Some(lines[0].to_string()),
+    let path = memo_dir().join(format!("{}_{:02}{}_answer.txt", year, day, p));
+    let file = fs::File::open(path);
+    match file {
+        Ok(file) => {
+            let lines = lines_from_file(&file);
+            match lines.is_empty() {
+                true => None,
+                false => Some(lines[0].to_string()),
+            }
+        }
+        _ => None,
     }
 }
 
@@ -54,8 +61,8 @@ fn token() -> String {
         Ok(val) => val,
         Err(_) => {
             let filepath = aocd_dir().join("token");
-            fs::File::open(&filepath).expect("Missing token");
-            let lines = lines_from_file(&filepath);
+            let file = fs::File::open(&filepath).expect("Missing token");
+            let lines = lines_from_file(&file);
             match lines.len() {
                 1 => lines[0].clone(),
                 _ => panic!("Missing token"),
@@ -69,8 +76,7 @@ fn memo_dir() -> PathBuf {
     Path::new(&aocd_dir()).join(user_id.as_str().unwrap())
 }
 
-fn lines_from_file(path: &PathBuf) -> Vec<String> {
-    let file = fs::File::open(path).expect("!! INPUT DATA MISSING !");
+fn lines_from_file(file: &fs::File) -> Vec<String> {
     let buf = io::BufReader::new(file);
     buf.lines()
         .map(|l| l.expect("Could not parse line"))

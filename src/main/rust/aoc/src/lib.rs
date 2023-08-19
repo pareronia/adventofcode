@@ -145,7 +145,7 @@ impl Display for Solution {
             f,
             "Part {}: {}, took {:?}",
             self.part,
-            self.answer.clone().unwrap(),
+            self.answer.clone().unwrap_or_default(),
             self.duration
         )
     }
