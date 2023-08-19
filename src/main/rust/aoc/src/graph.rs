@@ -59,6 +59,25 @@ where
         }
         seen
     }
+
+    pub fn flood_fill_mut(
+        start: T,
+        mut adjacent: impl FnMut(T) -> Vec<T>,
+    ) -> HashSet<T> {
+        let mut q: VecDeque<T> = VecDeque::new();
+        q.push_back(start);
+        let mut seen: HashSet<T> = HashSet::new();
+        seen.insert(start);
+        while let Some(node) = q.pop_front() {
+            adjacent(node.clone()).iter().for_each(|n| {
+                if !seen.contains(&n) {
+                    seen.insert(*n);
+                    q.push_back(*n);
+                }
+            });
+        }
+        seen
+    }
 }
 
 pub struct AStar<T>(T);
