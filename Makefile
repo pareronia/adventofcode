@@ -56,7 +56,7 @@ CLITEST_SRCS = $(shell find $(CLITEST_ROOT) -name "*.md")
 BASH_SRCS = $(shell find $(BASH_ROOT) -name "*.sh")
 CPP_SRCS = $(shell find $(CPP_ROOT) -name "*.cpp" -or -name "*.hpp")
 JULIA_SRCS = $(shell find $(JULIA_ROOT) -name "*.jl")
-RUST_SRCS = $(shell find $(RUST_ROOT) -name "*.rs")
+RUST_SRCS = $(shell find $(RUST_ROOT) -name "*.rs" -not -path "*/target/*")
 SRCS = $(PY_SRCS) $(JAVA_SRCS) $(JAVA_TEST_SRCS) $(CLITEST_SRCS) $(BASH_SRCS) \
 	   $(CPP_SRCS) $(JULIA_SRCS) $(RUST_SRCS) $(MAKEFILE)
 JAVA_CP_LIBS = $(CLASSPATH)
