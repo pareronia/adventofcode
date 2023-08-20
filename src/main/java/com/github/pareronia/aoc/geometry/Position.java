@@ -8,6 +8,8 @@ import lombok.Value;
 @Value
 @EqualsAndHashCode(callSuper = true)
 public class Position extends Point {
+
+    public static final Position ORIGIN = Position.of(0, 0);
     
     private Position(final Integer x, final Integer y) {
         super(x, y);

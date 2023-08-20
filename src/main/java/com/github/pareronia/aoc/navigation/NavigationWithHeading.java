@@ -26,6 +26,12 @@ public class NavigationWithHeading extends Navigation {
         super(position, inBounds);
         this.heading = heading;
     }
+    
+    public NavigationWithHeading navigate(final Heading heading, final int amount) {
+        this.heading = heading;
+        forward(amount);
+        return this;
+    }
 
     public NavigationWithHeading turn(final Turn turn) {
         this.heading = this.heading.turn(turn);

@@ -1,7 +1,11 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static java.util.stream.Collectors.toList;
+
 import java.util.List;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
@@ -10,12 +14,13 @@ import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2015_03 extends AoCBase {
 
-    private final transient String input;
+    private final transient List<Direction> input;
 
     private AoC2015_03(final List<String> inputs, final boolean debug) {
         super(debug);
         assert inputs.size() == 1;
-        this.input = inputs.get(0);
+        this.input = Utils.asCharacterStream(inputs.get(0))
+                .map(Direction::fromChar).collect(toList());
     }
 
     public static AoC2015_03 create(final List<String> input) {
@@ -26,29 +31,26 @@ public final class AoC2015_03 extends AoCBase {
         return new AoC2015_03(input, true);
     }
     
-    private void addNavigationInstruction(final NavigationWithHeading nav, final Character ch) {
-        nav.drift(Heading.fromChar(ch), 1);
-    }
-    
     @Override
-    public Integer solvePart1() {
-        final NavigationWithHeading nav = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
-        Utils.asCharacterStream(this.input).forEach(ch -> addNavigationInstruction(nav, ch));
-        return (int) nav.getVisitedPositions(true).stream().distinct().count();
+    public Long solvePart1() {
+        final HouseVisits houseVisits = new HouseVisits();
+        this.input.forEach(houseVisits::goVisit);
+        return houseVisits.getUniqueVisits().count();
     }
 
     @Override
-    public Integer solvePart2() {
-        final NavigationWithHeading santaNav = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
-        final NavigationWithHeading robotNav = new NavigationWithHeading(Position.of(0, 0), Heading.NORTH);
-        Stream.iterate(0, i -> i < this.input.length(), i -> i + 2)
-                .forEach(i -> addNavigationInstruction(santaNav, this.input.charAt(i)));
-        Stream.iterate(1, i -> i < this.input.length(), i -> i + 2)
-                .forEach(i -> addNavigationInstruction(robotNav, this.input.charAt(i)));
-        return (int) Stream.concat(
-                santaNav.getVisitedPositions(true).stream(),
-                robotNav.getVisitedPositions(true).stream())
-            .distinct().count();
+    public Long solvePart2() {
+        final HouseVisits santaVisits = new HouseVisits();
+        range(0, this.input.size(), 2).intStream()
+                .mapToObj(this.input::get)
+                .forEach(santaVisits::goVisit);
+        final HouseVisits robotVisits = new HouseVisits();
+        range(1, this.input.size(), 2).intStream()
+                .mapToObj(this.input::get)
+                .forEach(robotVisits::goVisit);
+        return Stream.concat(
+                    santaVisits.getUniqueVisits(), robotVisits.getUniqueVisits())
+                .distinct().count();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -71,4 +73,17 @@ public final class AoC2015_03 extends AoCBase {
     private static final List<String> TEST2 = splitLines("^>v<");
     private static final List<String> TEST3 = splitLines("^v^v^v^v^v");
     private static final List<String> TEST4 = splitLines("^v");
+    
+    private static final class HouseVisits {
+        private final NavigationWithHeading nav
+                = new NavigationWithHeading(Position.ORIGIN, Heading.NORTH);
+        
+        public void goVisit(final Direction direction) {
+            this.nav.navigate(Heading.fromDirection(direction), 1);
+        }
+        
+        public Stream<Position> getUniqueVisits() {
+            return nav.getVisitedPositions(true).stream().distinct();
+        }
+    }
 }
