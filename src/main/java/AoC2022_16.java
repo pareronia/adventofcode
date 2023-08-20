@@ -88,6 +88,9 @@ public class AoC2022_16 extends AoCBase {
                 final int newTime = time + 1 + distances[start][i];
                 if (newTime < maxTime) {
                     final int flow = rates[i] * (maxTime - newTime);
+                    if (maxFlow + flow < bestPerUsed.getOrDefault(used + idx, 0)) {
+                        continue;
+                    }
                     maxFlow += flow;
                     used += idx;
                     dfs(i, newTime);
