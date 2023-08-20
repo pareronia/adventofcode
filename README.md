@@ -137,5 +137,5 @@
 | bash | [✓](src/main/bash/AoC2015_01.sh) | [✓](src/main/bash/AoC2015_02.sh) | [✓](src/main/bash/AoC2015_03.sh) | [✓](src/main/bash/AoC2015_04.sh) | [✓](src/main/bash/AoC2015_05.sh) |  |  |  | [✓](src/main/bash/AoC2015_09.sh) | [✓](src/main/bash/AoC2015_10.sh) |  |  |  | [✓](src/main/bash/AoC2015_14.sh) |  |  |  |  |  |  |  |  |  |  |  |
 | c++ | [✓](src/main/cpp/2015/01/AoC2015_01.cpp) | [✓](src/main/cpp/2015/02/AoC2015_02.cpp) | [✓](src/main/cpp/2015/03/AoC2015_03.cpp) | [✓](src/main/cpp/2015/04/AoC2015_04.cpp) | [✓](src/main/cpp/2015/05/AoC2015_05.cpp) | [✓](src/main/cpp/2015/06/AoC2015_06.cpp) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | julia | [✓](src/main/julia/AoC2015_01.jl) | [✓](src/main/julia/AoC2015_02.jl) | [✓](src/main/julia/AoC2015_03.jl) | [✓](src/main/julia/AoC2015_04.jl) | [✓](src/main/julia/AoC2015_05.jl) | [✓](src/main/julia/AoC2015_06.jl) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| rust | [✓](src/main/rust/AoC2015_01/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust | [✓](src/main/rust/AoC2015_01/src/main.rs) | [✓](src/main/rust/AoC2015_02/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2015@ -->
