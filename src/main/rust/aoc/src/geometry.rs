@@ -33,10 +33,10 @@ impl FromStr for Direction {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "U" => Ok(Direction::Up),
-            "R" => Ok(Direction::Right),
-            "D" => Ok(Direction::Down),
-            "L" => Ok(Direction::Left),
+            "U" | "^" => Ok(Direction::Up),
+            "R" | ">" => Ok(Direction::Right),
+            "D" | "v" => Ok(Direction::Down),
+            "L" | "<" => Ok(Direction::Left),
             _ => panic!("Invalid Direction '{}'", s),
         }
     }
