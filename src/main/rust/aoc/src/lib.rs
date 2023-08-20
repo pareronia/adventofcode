@@ -11,6 +11,7 @@ pub mod geometry;
 pub mod geometry3d;
 pub mod graph;
 pub mod grid;
+pub mod navigation;
 pub mod ocr;
 
 static PART_NUMS: [&str; 3] = ["", "1", "2"];
