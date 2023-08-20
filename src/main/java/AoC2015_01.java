@@ -1,25 +1,28 @@
 import static com.github.pareronia.aoc.AssertUtils.unreachable;
+import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.Getter;
 
 public final class AoC2015_01 extends AoCBase {
     
     private static final char UP = '(';
     private static final char DOWN = ')';
     
-    private final transient String input;
+    private final transient List<Direction> input;
     
     private AoC2015_01(final List<String> inputs, final boolean debug) {
         super(debug);
         assert inputs.size() == 1;
-        this.input = inputs.get(0);
+        this.input = Utils.asCharacterStream(inputs.get(0))
+                .map(Direction::fromChar)
+                .collect(toList());
     }
     
     public static AoC2015_01 create(final List<String> input) {
@@ -32,10 +35,7 @@ public final class AoC2015_01 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        return Utils.asCharacterStream(this.input)
-            .map(Direction::fromChar)
-            .mapToInt(Direction::getValue)
-            .sum();
+        return this.input.stream().collect(Direction.summingInt());
     }
     
     @Override
@@ -45,12 +45,11 @@ public final class AoC2015_01 extends AoCBase {
             
             @Override
             public boolean test(final Direction dir) {
-                sum += dir.getValue();
+                sum = dir.addTo(sum);
                 return sum != -1;
             }
         };
-        return Utils.enumerate(Utils.asCharacterStream(this.input)
-                                .map(Direction::fromChar))
+        return Utils.enumerate(this.input.stream())
             .dropWhile(e -> dropCondition.test(e.getValue()))
             .map(e -> e.getIndex() + 1)
             .findFirst().orElseThrow();
@@ -87,7 +86,6 @@ public final class AoC2015_01 extends AoCBase {
     private static final List<String> TEST9 = splitLines(")");
     private static final List<String> TEST10 = splitLines("()())");
     
-    @Getter
     private enum Direction {
         UP(1), DOWN(-1);
         
@@ -106,6 +104,14 @@ public final class AoC2015_01 extends AoCBase {
             default:
                 throw unreachable();
             }
+        }
+        
+        public int addTo(final int lhs) {
+            return lhs + this.value;
+        }
+        
+        public static Collector<Direction, ?, Integer> summingInt() {
+            return Collectors.summingInt(dir -> dir.value);
         }
     }
 }
