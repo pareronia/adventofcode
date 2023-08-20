@@ -2,10 +2,10 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -15,12 +15,7 @@ public final class AoC2015_02 extends AoCBase {
 
     private AoC2015_02(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.input = inputs.stream()
-                .map(s -> {
-                    final String[] sp = s.split("x");
-                    return new Present(Integer.valueOf(sp[0]), Integer.valueOf(sp[1]), Integer.valueOf(sp[2]));
-                })
-                .collect(toList());
+        this.input = inputs.stream().map(Present::fromInput).collect(toList());
     }
 
     public static AoC2015_02 create(final List<String> input) {
@@ -30,35 +25,18 @@ public final class AoC2015_02 extends AoCBase {
     public static AoC2015_02 createDebug(final List<String> input) {
         return new AoC2015_02(input, true);
     }
-    
-    private int calculateRequiredArea(final Present present) {
-        final int[] sides = new int[] {
-                2 * present.getLength() * present.getWidth(),
-                2 * present.getWidth() * present.getHeight(),
-                2 * present.getHeight() * present.getLength()};
-        return Arrays.stream(sides).sum() + Arrays.stream(sides).min().getAsInt() / 2;
-    }
-
-    private int calculateRequiredLength(final Present present) {
-        final int[] circumferences = new int[] {
-                2 * (present.getLength() + present.getWidth()),
-                2 * (present.getWidth() + present.getHeight()),
-                2 * (present.getHeight() + present.getLength())};
-        return Arrays.stream(circumferences).min().getAsInt()
-                + present.getLength() * present.getWidth() * present.getHeight();
-    }
 
     @Override
     public Integer solvePart1() {
         return this.input.stream()
-                .mapToInt(this::calculateRequiredArea)
+                .mapToInt(Present::calculateRequiredArea)
                 .sum();
     }
 
     @Override
     public Integer solvePart2() {
         return this.input.stream()
-                .mapToInt(this::calculateRequiredLength)
+                .mapToInt(Present::calculateRequiredLength)
                 .sum();
     }
 
@@ -79,11 +57,30 @@ public final class AoC2015_02 extends AoCBase {
     @RequiredArgsConstructor
     @ToString
     private static final class Present {
-        @Getter
         private final Integer length;
-        @Getter
         private final Integer width;
-        @Getter
         private final Integer height;
+        
+        public static Present fromInput(final String s) {
+            final int[] sp = Stream.of(s.split("x")).mapToInt(Integer::valueOf).toArray();
+            return new Present(sp[0], sp[1], sp[2]);
+        }
+        
+        public int calculateRequiredArea() {
+            final int[] sides = new int[] {
+                    2 * this.length * this.width,
+                    2 * this.width * this.height,
+                    2 * this.height * this.length};
+            return Arrays.stream(sides).sum() + Arrays.stream(sides).min().getAsInt() / 2;
+        }
+
+        public int calculateRequiredLength() {
+            final int[] circumferences = new int[] {
+                    2 * (this.length + this.width),
+                    2 * (this.width + this.height),
+                    2 * (this.height + this.length)};
+            return Arrays.stream(circumferences).min().getAsInt()
+                    + this.length * this.width * this.height;
+        }
     }
 }
