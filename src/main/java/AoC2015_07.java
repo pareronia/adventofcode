@@ -1,12 +1,12 @@
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -24,11 +24,11 @@ public class AoC2015_07 extends AoCBase {
 
 	private static final int BIT_SIZE = 16;
 
-	private final List<String> inputs;
+	private final List<Gate> inputs;
 	
 	private AoC2015_07(final List<String> input, final boolean debug) {
 		super(debug);
-		this.inputs = input;
+		this.inputs = input.stream().map(Gate::fromInput).collect(toList());
 	}
 	
 	public static final AoC2015_07 create(final List<String> input) {
@@ -39,34 +39,8 @@ public class AoC2015_07 extends AoCBase {
 		return new AoC2015_07(input, true);
 	}
 	
-	private Circuit parse() {
-		final List<Gate> gates = new ArrayList<>();
-		for (final String input : inputs) {
-			final String[] splits = input.split(" -> ");
-			if (splits[0].contains("AND")) {
-				final String[] andSplits = splits[0].split(" AND ");
-				gates.add(Gate.and(splits[1], andSplits[0], andSplits[1]));
-			} else if (splits[0].contains("OR")) {
-				final String[] orSplits = splits[0].split(" OR ");
-				gates.add(Gate.or(splits[1], orSplits[0], orSplits[1]));
-			} else if (splits[0].contains("LSHIFT")) {
-				final String[] shSplits = splits[0].split(" LSHIFT ");
-				gates.add(Gate.lshift(splits[1], shSplits[0], shSplits[1]));
-			} else if (splits[0].contains("RSHIFT")) {
-				final String[] shSplits = splits[0].split(" RSHIFT ");
-				gates.add(Gate.rshift(splits[1], shSplits[0], shSplits[1]));
-			} else if (splits[0].contains("NOT")) {
-				final String in = splits[0].substring("NOT ".length());
-				gates.add(Gate.not(splits[1], in));
-			} else {
-				gates.add(Gate.set(splits[1], splits[0]));
-			}
-		}
-		return Circuit.of(gates);
-	}
-	
 	int part1(final String wire) {
-		final Circuit circuit = parse();
+		final Circuit circuit = Circuit.of(this.inputs);
 		log(circuit);
 		return circuit.getValue(wire);
 	}
@@ -78,14 +52,16 @@ public class AoC2015_07 extends AoCBase {
 	
 	@Override
 	public Integer solvePart2() {
-		final long a = part1("a");
-		final Circuit circuit = parse();
-		circuit.setGate("b", Gate.set("b", String.valueOf(a)));
-		return circuit.getValue("a");
+	    final List<Gate> clone = this.inputs.stream().map(Gate::cloneGate).collect(toList());
+		final Circuit circuit1 = Circuit.of(this.inputs);
+		final int a = circuit1.getValue("a");
+		final Circuit circuit2 = Circuit.of(clone);
+		circuit2.setGate("b", Gate.set("b", String.valueOf(a)));
+		return circuit2.getValue("a");
 	}
 	
 	public void visualize(final OutputStream os) throws IOException {
-		final Circuit circuit = parse();
+		final Circuit circuit = Circuit.of(this.inputs);
 		final StringBuilder sb = new StringBuilder("digraph circuit {");
 		sb.append("rankdir=LR charset=UTF-8 ");
 		sb.append("node [ shape=rect ]; " );
@@ -171,7 +147,7 @@ public class AoC2015_07 extends AoCBase {
 	);
 	
 	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-	private static final class Gate {
+	private static final class Gate implements Cloneable {
 
 		private enum Op { SET, NOT, AND, OR, LSHIFT, RSHIFT }
 		
@@ -183,6 +159,42 @@ public class AoC2015_07 extends AoCBase {
 		private final Integer arg;
 		@Getter
 		private Integer result;
+		
+		public static Gate fromInput(final String input) {
+			final String[] splits = input.split(" -> ");
+			if (splits[0].contains("AND")) {
+				final String[] andSplits = splits[0].split(" AND ");
+				return Gate.and(splits[1], andSplits[0], andSplits[1]);
+			} else if (splits[0].contains("OR")) {
+				final String[] orSplits = splits[0].split(" OR ");
+				return Gate.or(splits[1], orSplits[0], orSplits[1]);
+			} else if (splits[0].contains("LSHIFT")) {
+				final String[] shSplits = splits[0].split(" LSHIFT ");
+				return Gate.lshift(splits[1], shSplits[0], shSplits[1]);
+			} else if (splits[0].contains("RSHIFT")) {
+				final String[] shSplits = splits[0].split(" RSHIFT ");
+				return Gate.rshift(splits[1], shSplits[0], shSplits[1]);
+			} else if (splits[0].contains("NOT")) {
+				final String in = splits[0].substring("NOT ".length());
+				return Gate.not(splits[1], in);
+			} else {
+				return Gate.set(splits[1], splits[0]);
+			}
+		    
+		}
+
+        @Override
+        protected Gate clone() throws CloneNotSupportedException {
+            return new Gate(this.name, this.in1, this.in2, this.op, this.arg);
+        }
+        
+        public static Gate cloneGate(final Gate gate) {
+            try {
+                return gate.clone();
+            } catch (final CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
 		
 		public static Gate not(final String name, final String in) {
 			return new Gate(name, in, null, Op.NOT, null);
