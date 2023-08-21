@@ -51,6 +51,10 @@ impl NavigationWithHeading {
         self.visited.push(xy);
     }
 
+    pub fn get_position(&self) -> &XY {
+        &self.position
+    }
+
     pub fn get_visited_positions(
         &self,
         include_start_position: bool,
@@ -63,11 +67,25 @@ impl NavigationWithHeading {
     }
 
     pub fn navigate(&mut self, heading: Heading, amount: i32) {
+        self.navigate_with_bounds(heading, amount, |_| true)
+    }
+
+    pub fn navigate_with_bounds(
+        &mut self,
+        heading: Heading,
+        amount: i32,
+        in_bounds: impl Fn(&XY) -> bool,
+    ) {
         self.heading = heading;
         let direction: Direction = self.heading.into();
-        self.position = self
-            .position
-            .translate(&XY::try_from(direction).unwrap(), amount);
+        let mut new_position = self.position;
+        (0..amount).for_each(|_| {
+            new_position =
+                new_position.translate(&XY::try_from(direction).unwrap(), 1);
+            if in_bounds(&new_position) {
+                self.position = new_position;
+            }
+        });
         self.remember_visited_position(self.position.clone());
     }
 }
