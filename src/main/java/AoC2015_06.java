@@ -1,14 +1,15 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
@@ -19,24 +20,7 @@ public final class AoC2015_06 extends AoCBase {
 
     private AoC2015_06(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.input = inputs.stream()
-                .map(s -> s.replace("turn ", "turn_"))
-                .map(s -> {
-                    final String[] splits = s.split(" through ");
-                    final String[] actionAndStartSplits = splits[0].split(" ");
-                    final String[] startSplits = actionAndStartSplits[1].split(",");
-                    final Cell start = Cell.at(Integer.valueOf(startSplits[0]), Integer.valueOf(startSplits[1]));
-                    final String[] endSplits = splits[1].split(",");
-                    final Cell end = Cell.at(Integer.valueOf(endSplits[0]), Integer.valueOf(endSplits[1]));
-                    if ("turn_on".equals(actionAndStartSplits[0])) {
-                        return Instruction.turnOn(start, end);
-                    } else if ("turn_off".equals(actionAndStartSplits[0])) {
-                        return Instruction.turnOff(start, end);
-                    } else {
-                        return Instruction.toggle(start, end);
-                    }
-                })
-                .collect(toList());
+        this.input = inputs.stream().map(Instruction::fromInput).collect(toList());
         log(this.input);
     }
 
@@ -48,50 +32,18 @@ public final class AoC2015_06 extends AoCBase {
         return new AoC2015_06(input, true);
     }
     
-    private void forEachCell(final Cell start, final Cell end, final Consumer<Cell> action) {
-        for (int rr = start.getRow(); rr <= end.getRow(); rr++) {
-            for (int cc = start.getCol(); cc <= end.getCol(); cc++) {
-                action.accept(IntGrid.Cell.at(rr, cc));
-            }
-        }
-    }
-    
     @Override
     public Integer solvePart1() {
-        final IntGrid lights = new IntGrid(new int[1_000][1_000]);
-        this.input.stream().forEach(ins -> {
-            if (ins.isTurnOn()) {
-                forEachCell(ins.getStart(), ins.getEnd(),
-                    c -> lights.setValue(c, 1));
-            } else if (ins.isTurnOff()) {
-                forEachCell(ins.getStart(), ins.getEnd(),
-                    c -> lights.setValue(c, 0));
-            } else if (ins.isToggle()) {
-                forEachCell(ins.getStart(), ins.getEnd(),
-                    c -> lights.setValue(c, lights.getValue(c) == 1 ? 0 : 1));
-            }
-        });
-        return (int) lights.countAllEqualTo(1);
+        final Grid lights = new Grid(c -> 1, c -> 0, c -> c == 1 ? 0 : 1);
+        lights.processInstructions(this.input);
+        return (int) lights.getAllLightValues().filter(l -> l == 1).count();
     }
 
     @Override
     public Integer solvePart2() {
-        final IntGrid lights = new IntGrid(new int[1_000][1_000]);
-        this.input.stream().forEach(ins -> {
-            if (ins.isTurnOn()) {
-                forEachCell(ins.getStart(), ins.getEnd(),
-                    c -> lights.setValue(c, lights.getValue(c) + 1));
-            } else if (ins.isTurnOff()) {
-                forEachCell(ins.getStart(), ins.getEnd(),
-                    c -> lights.setValue(c, Math.max(lights.getValue(c) - 1, 0)));
-            } else if (ins.isToggle()) {
-                forEachCell(ins.getStart(), ins.getEnd(),
-                    c -> lights.setValue(c, lights.getValue(c) + 2));
-            }
-        });
-        return lights.getCells()
-                .mapToInt(c -> lights.getValue(c))
-                .sum();
+        final Grid lights = new Grid(c -> c + 1, c -> Math.max(c - 1, 0), c -> c + 2);
+        lights.processInstructions(this.input);
+        return lights.getAllLightValues().sum();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -121,33 +73,50 @@ public final class AoC2015_06 extends AoCBase {
         private enum Action { TURN_ON, TURN_OFF, TOGGLE }
         
         private final Action action;
-        @Getter
         private final Cell start;
-        @Getter
         private final Cell end;
         
-        public static Instruction turnOn(final Cell start, final Cell end) {
-            return new Instruction(Action.TURN_ON, start, end);
+        public static Instruction fromInput(final String input) {
+            final String s = input.replace("turn ", "turn_");
+            final String[] splits = s.split(" through ");
+            final String[] actionAndStartSplits = splits[0].split(" ");
+            final Cell start = Cell.fromString(actionAndStartSplits[1]);
+            final Cell end = Cell.fromString(splits[1]);
+            if ("turn_on".equals(actionAndStartSplits[0])) {
+                return new Instruction(Action.TURN_ON, start, end);
+            } else if ("turn_off".equals(actionAndStartSplits[0])) {
+                return new Instruction(Action.TURN_OFF, start, end);
+            } else {
+                return new Instruction(Action.TOGGLE, start, end);
+            }
+        }
+    }
+    
+    @RequiredArgsConstructor
+    private static final class Grid {
+        private final IntGrid lights = new IntGrid(new int[1_000][1_000]);
+        private final Function<Integer, Integer> turnOn;
+        private final Function<Integer, Integer> turnOff;
+        private final Function<Integer, Integer> toggle;
+        
+        public IntStream getAllLightValues() {
+            return Stream.of(this.lights.getValues()).flatMapToInt(IntStream::of);
         }
         
-        public static Instruction turnOff(final Cell start, final Cell end) {
-            return new Instruction(Action.TURN_OFF, start, end);
-        }
-        
-        public static Instruction toggle(final Cell start, final Cell end) {
-            return new Instruction(Action.TOGGLE, start, end);
-        }
-        
-        public boolean isTurnOn() {
-            return this.action == Action.TURN_ON;
-        }
-        
-        public boolean isTurnOff() {
-            return this.action == Action.TURN_OFF;
-        }
-        
-        public boolean isToggle() {
-            return this.action == Action.TOGGLE;
+        public void processInstructions(final List<Instruction> instructions) {
+            for (final Instruction instruction : instructions) {
+                final Function<Integer, Integer> action =
+                        instruction.action == Instruction.Action.TURN_ON
+                            ? this.turnOn
+                            : instruction.action == Instruction.Action.TURN_OFF
+                            ? this.turnOff
+                            : this.toggle;
+                for (int rr = instruction.start.getRow(); rr <= instruction.end.getRow(); rr++) {
+                    for (int cc = instruction.start.getCol(); cc <= instruction.end.getCol(); cc++) {
+                        this.lights.setValue(Cell.at(rr, cc), action.apply(this.lights.getValue(Cell.at(rr, cc))));
+                    }
+                }
+            }
         }
     }
 }

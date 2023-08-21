@@ -190,6 +190,13 @@ public interface Grid<T> {
 		final int row;
 		final int col;
 		
+		public static Cell fromString(final String string) {
+		    final String[] splits = string.split(",");
+		    assertTrue(splits.length == 2 && StringUtils.isNumeric(splits[0]) && StringUtils.isNumeric(splits[1]),
+		            () -> "Expected string to be like '[0-9]+,[0-9]+'");
+		    return Cell.at(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]));
+		}
+		
 		public Cell at(final Direction direction) {
 		    return Cell.at(
 		            this.row - direction.getY(), this.col + direction.getX());
