@@ -31,10 +31,6 @@ public enum Heading {
                 .findFirst().orElseThrow();
     }
     
-    public static final Heading fromChar(final char ch) {
-        return fromDirection(Direction.fromChar(ch));
-    }
-    
     public Vector getVector() {
         return this.direction.getVector();
     }

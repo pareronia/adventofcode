@@ -1,23 +1,24 @@
 import static com.github.pareronia.aoc.Utils.asCharacterStream;
 import static com.github.pareronia.aoc.Utils.toAString;
+import static java.util.stream.Collectors.toList;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Predicate;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.RequiredArgsConstructor;
+
 public class AoC2016_02 extends AoCBase {
     
-    private static final Map<Position, Character> KEYPAD1 = Map.of(
+    private static final Map<Position, Character> LAYOUT1 = Map.of(
             Position.of(-1, 1), '1',
             Position.of(0, 1), '2',
             Position.of(1, 1), '3',
@@ -29,7 +30,7 @@ public class AoC2016_02 extends AoCBase {
             Position.of(1, -1), '9'
     );
     @SuppressWarnings("serial")
-    private static final Map<Position, Character> KEYPAD2
+    private static final Map<Position, Character> LAYOUT2
         = Collections.unmodifiableMap(new HashMap<>() {{
             put(Position.of(2, 2), '1');
             put(Position.of(1, 1), '2');
@@ -46,11 +47,13 @@ public class AoC2016_02 extends AoCBase {
             put(Position.of(2, -2), 'D');
     }});
 
-    private final List<String> inputs;
+    private final List<List<Direction>> inputs;
 
     private AoC2016_02(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.inputs = inputs;
+        this.inputs = inputs.stream()
+            .map(s -> asCharacterStream(s).map(Direction::fromChar).collect(toList()))
+            .collect(toList());
     }
 
     public static final AoC2016_02 create(final List<String> input) {
@@ -61,42 +64,14 @@ public class AoC2016_02 extends AoCBase {
         return new AoC2016_02(input, true);
     }
     
-    private NavigationWithHeading navigate(
-                    final String ins, final Position start, final Predicate<Position> inBounds) {
-        final NavigationWithHeading nav
-            = new NavigationWithHeading(start, Heading.NORTH, inBounds);
-        asCharacterStream(ins).forEach(step -> nav.drift(Heading.fromChar(step), 1));
-        return nav;
-    }
-
-    private String solve(
-            final Predicate<Position> inBounds,
-            final Function<Position, Character> get
-        ) {
-        final List<Character> code = new ArrayList<>();
-        Position start = Position.of(0,  0);
-        for (final String ins : this.inputs) {
-            final Position last = navigate(ins, start, inBounds).getPosition();
-            code.add(get.apply(last));
-            start = last;
-        }
-        return code.stream().collect(toAString());
-    }
-
     @Override
     public String solvePart1() {
-        return solve(
-                pos -> KEYPAD1.keySet().contains(pos),
-                pos -> KEYPAD1.get(pos)
-        );
+        return Keypad.fromLayout(LAYOUT1).executeInstructions(this.inputs);
     }
     
     @Override
     public String solvePart2() {
-        return solve(
-                pos -> KEYPAD2.keySet().contains(pos),
-                pos -> KEYPAD2.get(pos)
-        );
+        return Keypad.fromLayout(LAYOUT2).executeInstructions(this.inputs);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -117,4 +92,26 @@ public class AoC2016_02 extends AoCBase {
             "LURDL\n" +
             "UUUUD"
     );
+    
+    @RequiredArgsConstructor(staticName = "fromLayout")
+    private static final class Keypad {
+        private final Map<Position, Character> positions;
+        private Position current = Position.ORIGIN;
+        
+        public String executeInstructions(final List<List<Direction>> directions) {
+            return directions.stream()
+                .map(this::executeInstruction)
+                .collect(toAString());
+        }
+        
+        private Character executeInstruction(final List<Direction> directions) {
+            final NavigationWithHeading nav = new NavigationWithHeading(
+                this.current,
+                Heading.NORTH,
+                this.positions.keySet()::contains);
+            directions.forEach(step -> nav.navigate(Heading.fromDirection(step), 1));
+            this.current = nav.getPosition();
+            return this.positions.get(this.current);
+        }
+    }
 }
