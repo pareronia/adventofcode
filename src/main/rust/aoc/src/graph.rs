@@ -1,19 +1,38 @@
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap, HashSet, VecDeque},
     hash::Hash,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Eq, PartialEq)]
 struct State<T> {
     node: T,
     distance: usize,
+}
+
+impl<T> PartialOrd for State<T>
+where
+    T: Eq + Copy + Hash,
+{
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl<T> Ord for State<T>
+where
+    T: Eq + Copy + Hash,
+{
+    fn cmp(&self, other: &Self) -> Ordering {
+        other.distance.cmp(&self.distance)
+    }
 }
 
 pub struct BFS<T>(T);
 
 impl<T> BFS<T>
 where
-    T: Hash + Eq + Copy,
+    T: Eq + Copy + Hash,
 {
     pub fn execute(
         start: T,
@@ -90,7 +109,7 @@ pub struct Result<T> {
 
 impl<T> Result<T>
 where
-    T: Hash + Eq + Copy,
+    T: Eq + Copy + Hash,
 {
     pub fn get_distance(&self, t: &T) -> Option<usize> {
         self.distances.get(t).cloned()
@@ -125,7 +144,7 @@ where
 
 impl<T> AStar<T>
 where
-    T: Hash + Eq + Copy,
+    T: Eq + Copy + Hash,
 {
     pub fn execute(
         start: T,
@@ -133,26 +152,29 @@ where
         adjacent: impl Fn(T) -> Vec<T>,
         cost: impl Fn(T) -> usize,
     ) -> Result<T> {
-        let mut q: VecDeque<State<T>> = VecDeque::new();
-        q.push_back(State {
+        let mut q: BinaryHeap<State<T>> = BinaryHeap::new();
+        q.push(State {
             node: start,
             distance: 0,
         });
         let mut distances: HashMap<T, usize> = HashMap::new();
         distances.insert(start, 0);
         let mut paths: HashMap<T, T> = HashMap::new();
-        while let Some(state) = q.pop_front() {
+        while let Some(state) = q.pop() {
             if is_end(state.node.clone()) {
                 break;
             }
             let total =
                 distances.get(&state.node).unwrap_or(&usize::MAX).clone();
+            if state.distance > total {
+                continue;
+            }
             adjacent(state.node.clone()).iter().for_each(|n| {
                 let risk = total + cost(*n);
                 if risk < *distances.get(n).unwrap_or(&usize::MAX) {
                     distances.insert(*n, risk);
                     paths.insert(*n, state.node);
-                    q.push_back(State {
+                    q.push(State {
                         node: *n,
                         distance: risk,
                     });
