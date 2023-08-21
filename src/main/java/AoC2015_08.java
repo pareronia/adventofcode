@@ -1,5 +1,4 @@
 import static com.github.pareronia.aoc.StringUtils.countMatches;
-import static java.util.stream.Collectors.summingInt;
 
 import java.util.List;
 import java.util.regex.Pattern;
@@ -25,6 +24,16 @@ public class AoC2015_08 extends AoCBase {
         return new AoC2015_08(input, true);
     }
 
+    @Override
+    public Integer solvePart1() {
+        return this.inputs.stream().mapToInt(this::countDecodingOverhead).sum();
+    }
+
+    @Override
+    public Integer solvePart2() {
+        return this.inputs.stream().mapToInt(this::countEncodingOverhead).sum();
+    }
+
     private int countDecodingOverhead(String str) {
         assert str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"';
         int cnt = 2;
@@ -39,20 +48,6 @@ public class AoC2015_08 extends AoCBase {
     
     private int countEncodingOverhead(final String str) {
         return 2 + countMatches(str, "\\") + countMatches(str, "\"");
-    }
-
-    @Override
-    public Integer solvePart1() {
-        return this.inputs.stream()
-                .map(this::countDecodingOverhead)
-                .collect(summingInt(Integer::valueOf));
-    }
-
-    @Override
-    public Integer solvePart2() {
-        return this.inputs.stream()
-                .map(this::countEncodingOverhead)
-                .collect(summingInt(Integer::valueOf));
     }
 
     public static void main(final String[] args) throws Exception {
