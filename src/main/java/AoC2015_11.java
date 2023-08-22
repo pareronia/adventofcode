@@ -1,15 +1,13 @@
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import static com.github.pareronia.aoc.StringOps.nextLetter;
 
+import java.util.List;
+
+import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2015_11 extends AoCBase {
     
-    private static final String ALPH = "abcdefghijklmnopqrstuvwxyz";
-    private static final String NEXT = "bcdefghjjkmmnppqrstuvwxyza";
-
     private final String input;
     
     private AoC2015_11(final List<String> inputs, final boolean debug) {
@@ -26,68 +24,21 @@ public class AoC2015_11 extends AoCBase {
         return new AoC2015_11(input, true);
     }
     
-    private char nextLetter(final char ch) {
-        return NEXT.charAt(ALPH.indexOf(ch));
-    }
-    
-    private String increment(String password) {
-        int i = password.length() - 1;
-        password = password.substring(0, i) + nextLetter(password.charAt(i));
-        while (password.charAt(i) == 'a' && i > 0) {
-            i--;
-            password = password.substring(0, i) + nextLetter(password.charAt(i)) + password.substring(i + 1);
-        }
-        return password;
-    }
-    
-    private boolean isOk(final String password) {
-        final Matcher m = Pattern.compile("([a-z])\\1").matcher(password);
-        if (!(m.find() && m.find())) {
-            return false;
-        }
-        for (int i = 0; i < password.length() - 3; i++) {
-            if (password.charAt(i) == password.charAt(i + 1) - 1
-                    && password.charAt(i + 1) == password.charAt(i + 2) - 1) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private String solve(String password) {
-        final List<Integer> h = List.of(password.indexOf('i'), password.indexOf('o'), password.indexOf('l'));
-        if (!h.equals(List.of(-1, -1, -1))) {
-            final int min = h.stream().mapToInt(Integer::intValue).filter(i -> i != -1).min().orElseThrow();
-            if (min < password.length() - 1) {
-                final int length = password.substring(min + 1).length();
-                password = password.substring(0, min) + nextLetter(password.charAt(min));
-                for (int i = 0; i < length; i++) {
-                    password += 'a';
-                }
-            }
-        } else {
-            password = increment(password);
-        }
-        while (!isOk(password)) {
-            password = increment(password);
-        }
-        return password;
-    }
-    
     @Override
     public String solvePart1() {
-        return solve(this.input);
+        return PasswordGenerator.generateFrom(this.input);
     }
 
     @Override
     public String solvePart2() {
-        return solve(solve(this.input));
+        return PasswordGenerator.generateFrom(PasswordGenerator.generateFrom(this.input));
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2015_11.createDebug(List.of("")).isOk("heqaabcc") == true;
-        assert AoC2015_11.createDebug(List.of("")).solve(TEST1).equals("abcdffaa");
-        assert AoC2015_11.createDebug(List.of("")).solve(TEST2).equals("ghjaabcc");
+        assert PasswordChecker.isOk("heqaabcc".toCharArray()) == true;
+        assert PasswordGenerator.generateFrom("abcdefgh").equals("abcdffaa");
+        assert PasswordGenerator.generateFrom("ghijklmn").equals("ghjaabcc");
+        assert PasswordGenerator.generateFrom("heqaabcc").equals("heqbbcdd");
 
         final Puzzle puzzle = Aocd.puzzle(2015, 11);
         puzzle.check(
@@ -96,6 +47,76 @@ public class AoC2015_11 extends AoCBase {
         );
     }
     
-    private static final String TEST1 = "abcdefgh";
-    private static final String TEST2 = "ghijklmn";
+    private static final class PasswordChecker {
+        
+        private static int findPair(final char[] password, final int start) {
+            for (int i = start + 1; i < password.length; i++) {
+                if (password[i] == password[i - 1]) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        
+        public static boolean isOk(final char[] password) {
+            final int pair1 = findPair(password, 0);
+            if (pair1 < 0) {
+                return false;
+            }
+            final int pair2 = findPair(password, pair1 + 1);
+            if (pair2 < 0) {
+                return false;
+            }
+            if (password[pair1] == password[pair2]) {
+                return false;
+            }
+            for (int i = 0; i < password.length - 3; i++) {
+                if (password[i] == password[i + 1] - 1 && password[i + 1] == password[i + 2] - 1) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+    
+    private static final class PasswordGenerator {
+        
+        private static char[] increment(final char[] password) {
+            char[] chars = new char[password.length];
+            int i = password.length - 1;
+            System.arraycopy(password, 0, chars, 0, i);
+            chars[i] = nextLetter(password[i], 1);
+            while (chars[i] == 'a' && i > 0) {
+                i--;
+                final char[] tmp = new char[chars.length];
+                System.arraycopy(chars, 0, tmp, 0, i);
+                tmp[i] = nextLetter(chars[i], 1);
+                System.arraycopy(chars, i + 1, tmp, i + 1, chars.length - i - 1);
+                chars = tmp;
+            }
+            return chars;
+        }
+        
+        public static String generateFrom(String password) {
+            char [] chars = password.toCharArray();
+            final List<Integer> h = List.of(password.indexOf('i'), password.indexOf('o'), password.indexOf('l'));
+            if (!h.equals(List.of(-1, -1, -1))) {
+                final int min = h.stream().mapToInt(Integer::intValue).filter(i -> i != -1).min().orElseThrow();
+                if (min < password.length() - 1) {
+                    final int length = password.substring(min + 1).length();
+                    password = password.substring(0, min) + StringOps.nextLetter(password.charAt(min), 1);
+                    for (int i = 0; i < length; i++) {
+                        password += 'a';
+                    }
+                    chars = password.toCharArray();
+                }
+            } else {
+                chars = increment(chars);
+            }
+            while (!PasswordChecker.isOk(chars)) {
+                chars = increment(chars);
+            }
+            return String.valueOf(chars);
+        }
+    }
 }

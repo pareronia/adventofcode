@@ -75,4 +75,12 @@ public class StringOpsTestCase {
     public void swapPositions() {
         assertThat(StringOps.swap("abcde".toCharArray(), 4, 0)).isEqualTo("ebcda".toCharArray());
     }
+    
+    @Test
+    public void nextLetter() {
+        assertThat(StringOps.nextLetter('a', 0)).isEqualTo('a');
+        assertThat(StringOps.nextLetter('a', 1)).isEqualTo('b');
+        assertThat(StringOps.nextLetter('a', 26)).isEqualTo('a');
+        assertThat(StringOps.nextLetter('A', 107)).isEqualTo('D');
+    }
 }

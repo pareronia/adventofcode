@@ -11,6 +11,7 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -100,7 +101,7 @@ public class AoC2016_04 extends AoCBase {
 	        if (c == '-') {
 	            return ' ';
 	        }
-	        return (char) ((c + shift - 97) % 26 + 97);
+	        return StringOps.nextLetter(c, shift);
 	    }
 	    
 	    public String decrypt() {

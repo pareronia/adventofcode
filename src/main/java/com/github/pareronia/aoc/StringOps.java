@@ -85,4 +85,15 @@ public class StringOps {
         ch[second] = temp;
         return ch;
     }
+    
+    public static char nextLetter(final char c, final int shift) {
+        AssertUtils.assertTrue(shift >= 0, () -> "expected shift to be non-negative");
+        if (Character.isLowerCase(c)) {
+            return (char) ((c + shift - 97) % 26 + 97);
+        } else if (Character.isUpperCase(c)) {
+            return (char) ((c + shift - 65) % 26 + 65);
+        } else {
+            throw new IllegalArgumentException("Expected alphabetic char");
+        }
+    }
 }
