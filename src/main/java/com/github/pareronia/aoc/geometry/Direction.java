@@ -13,15 +13,15 @@ import lombok.Getter;
 
 public enum Direction {
 
-    NONE(Vector.of(0, 0), Optional.empty(), Optional.empty()),
-    UP(Vector.of(0, 1), Optional.of('U'), Optional.of('^')),
-    RIGHT_AND_UP(Vector.of(1, 1), Optional.empty(), Optional.empty()),
-    RIGHT(Vector.of(1, 0), Optional.of('R'), Optional.of('>')),
-    RIGHT_AND_DOWN(Vector.of(1, -1), Optional.empty(), Optional.empty()),
-    DOWN(Vector.of(0, -1), Optional.of('D'), Optional.of('v')),
-    LEFT_AND_DOWN(Vector.of(-1, -1), Optional.empty(), Optional.empty()),
-    LEFT(Vector.of(-1, 0), Optional.of('L'), Optional.of('<')),
-    LEFT_AND_UP(Vector.of(-1, 1), Optional.empty(), Optional.empty());
+    NONE(Vector.of(0, 0), Optional.empty(), Optional.empty(), Optional.empty()),
+    UP(Vector.of(0, 1), Optional.of('U'), Optional.of('N'), Optional.of('^')),
+    RIGHT_AND_UP(Vector.of(1, 1), Optional.empty(), Optional.empty(), Optional.empty()),
+    RIGHT(Vector.of(1, 0), Optional.of('R'), Optional.of('E'), Optional.of('>')),
+    RIGHT_AND_DOWN(Vector.of(1, -1), Optional.empty(), Optional.empty(), Optional.empty()),
+    DOWN(Vector.of(0, -1), Optional.of('D'), Optional.of('S'), Optional.of('v')),
+    LEFT_AND_DOWN(Vector.of(-1, -1), Optional.empty(), Optional.empty(), Optional.empty()),
+    LEFT(Vector.of(-1, 0), Optional.of('L'), Optional.of('W'), Optional.of('<')),
+    LEFT_AND_UP(Vector.of(-1, 1), Optional.empty(), Optional.empty(), Optional.empty());
 
     public static final Set<Direction> CAPITAL = EnumSet.of(
         UP,
@@ -47,21 +47,25 @@ public enum Direction {
     @Getter
     private final Vector vector;
     private final Optional<Character> letter;
+    private final Optional<Character> geo;
     private final Optional<Character> arrow;
 
     Direction(
         final Vector value,
         final Optional<Character> letter,
+        final Optional<Character> geo,
         final Optional<Character> arrow
     ) {
         this.vector = value;
         this.letter = letter;
+        this.geo = geo;
         this.arrow = arrow;
     }
     
     public static final Direction fromChar(final char ch) {
         return Arrays.stream(values())
             .filter(v -> v.letter.isPresent() && v.letter.get() == ch
+                    || v.geo.isPresent() && v.geo.get() == ch
                     || v.arrow.isPresent() && v.arrow.get() == ch)
             .findFirst()
             .orElseThrow(() -> new IllegalArgumentException(

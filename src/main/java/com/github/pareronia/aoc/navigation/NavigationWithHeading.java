@@ -5,12 +5,16 @@ import java.util.function.Predicate;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Turn;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 @ToString(callSuper = true, onlyExplicitlyIncluded = true)
 public class NavigationWithHeading extends Navigation {
     
     @ToString.Include
+    @Getter
+    @Setter
     private Heading heading;
 
     public NavigationWithHeading(final Position position, final Heading heading) {

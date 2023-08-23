@@ -19,7 +19,7 @@ public class Vector extends Point {
         return new Vector(x, y);
     }
     
-    public static Vector from(final Point point) {
+    private static Vector from(final Point point) {
         return new Vector(point.getX(), point.getY());
     }
 
@@ -28,7 +28,7 @@ public class Vector extends Point {
         return Vector.from(point);
     }
     
-    public Vector rotate(Integer degrees) {
+    private Vector rotate(int degrees) {
         if (degrees < 0) {
             degrees = 360 + degrees;
         }
@@ -40,6 +40,10 @@ public class Vector extends Point {
             result = result.rotate90();
         }
         return result;
+    }
+    
+    public Vector rotate(final Turn turn) {
+        return this.rotate(turn.getDegrees());
     }
     
     public Vector add(final Vector vector, final Integer amplitude) {

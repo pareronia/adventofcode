@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import com.github.pareronia.aoc.AssertUtils;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
 @Getter
@@ -16,6 +17,7 @@ public enum Turn {
     RIGHT(90, Optional.of('R')),
     AROUND(180, Optional.empty());
     
+    @Getter(AccessLevel.PACKAGE)
     private final int degrees;
     private final Optional<Character> letter;
     

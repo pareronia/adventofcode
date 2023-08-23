@@ -42,7 +42,7 @@ public class Position extends Point {
     }
     
     public Integer manhattanDistance() {
-        return manhattanDistance(Position.of(0, 0));
+        return manhattanDistance(ORIGIN);
     }
     
     public Integer manhattanDistance(final Position from) {

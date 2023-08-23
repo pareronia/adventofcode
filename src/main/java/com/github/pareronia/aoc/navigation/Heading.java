@@ -1,41 +1,47 @@
 package com.github.pareronia.aoc.navigation;
 
-import java.util.Arrays;
-
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.geometry.Vector;
 
+import lombok.Getter;
 import lombok.ToString;
 
 @ToString
-public enum Heading {
-    NORTH(Direction.UP),
-    NORTHEAST(Direction.RIGHT_AND_UP),
-    EAST(Direction.RIGHT),
-    SOUTHEAST(Direction.RIGHT_AND_DOWN),
-    SOUTH(Direction.DOWN),
-    SOUTHWEST(Direction.LEFT_AND_DOWN),
-    WEST(Direction.LEFT),
-    NORTHWEST(Direction.LEFT_AND_UP);
+public class Heading {
+    public static final Heading NORTH = Heading.fromDirection(Direction.UP);
+    public static final Heading NORTHEAST = Heading.fromDirection(Direction.RIGHT_AND_UP);
+    public static final Heading EAST = Heading.fromDirection(Direction.RIGHT);
+    public static final Heading SOUTHEAST = Heading.fromDirection(Direction.RIGHT_AND_DOWN);
+    public static final Heading SOUTH = Heading.fromDirection(Direction.DOWN);
+    public static final Heading SOUTHWEST = Heading.fromDirection(Direction.LEFT_AND_DOWN);
+    public static final Heading WEST = Heading.fromDirection(Direction.LEFT);
+    public static final Heading NORTHWEST = Heading.fromDirection(Direction.LEFT_AND_UP);
     
-    private final Direction direction;
-
-    Heading(final Direction direction) {
-        this.direction = direction;
+    @Getter
+    private final Vector vector;
+    
+    private Heading(final Vector direction) {
+        this.vector = direction;
+    }
+    
+    public static final Heading of(final int x, final int y) {
+        return new Heading(Vector.of(x, y));
     }
     
     public static Heading fromDirection(final Direction direction) {
-        return Arrays.stream(values())
-                .filter(v -> v.direction == direction)
-                .findFirst().orElseThrow();
+        return new Heading(direction.getVector());
     }
     
-    public Vector getVector() {
-        return this.direction.getVector();
+    public static Heading fromString(final String string) {
+        return Heading.fromDirection(Direction.fromString(string));
     }
     
     public Heading turn(final Turn turn) {
-        return fromDirection(this.direction.turn(turn));
+        return new Heading(this.vector.rotate(turn));
+    }
+    
+    public Heading add(final Direction direction, final int amplitude) {
+        return new Heading(this.getVector().add(direction.getVector(), amplitude));
     }
 }
