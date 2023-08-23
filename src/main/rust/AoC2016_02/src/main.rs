@@ -8,6 +8,7 @@ use aoc::{
 };
 use lazy_static::lazy_static;
 use std::{collections::HashMap, str::FromStr};
+
 lazy_static! {
     static ref LAYOUT1: HashMap<XY, char> = HashMap::from([
         (XY::of(-1, 1), '1'),
@@ -37,37 +38,39 @@ lazy_static! {
     ]);
 }
 
-struct Keypad<'a> {
-    layout: &'a HashMap<XY, char>,
+struct Keypad {
+    layout: &'static HashMap<XY, char>,
     current: XY,
 }
 
-impl<'a> Keypad<'a> {
-    fn new(layout: &'a HashMap<XY, char>) -> Self {
+impl Keypad {
+    fn new(layout: &'static HashMap<XY, char>) -> Self {
         Keypad {
             layout,
             current: XY::of(0, 0),
         }
     }
 
-    fn execute_instruction(&mut self, directions: &Vec<Direction>) -> char {
-        let mut nav = NavigationWithHeading::new(self.current, Heading::North);
-        directions.iter().for_each(|&step| {
-            nav.navigate_with_bounds(Heading::from(step), 1, |position| {
-                self.layout.contains_key(&position)
-            })
-        });
-        self.current = nav.get_position().clone();
-        *self.layout.get(&self.current).unwrap()
-    }
-
     fn execute_instructions(
         &mut self,
         directions: &Vec<Vec<Direction>>,
     ) -> String {
+        let mut execute_instruction = |directions: &Vec<Direction>| {
+            let mut nav = NavigationWithHeading::new_with_bounds(
+                self.current,
+                Heading::North,
+                Box::new(|pos| self.layout.contains_key(&pos)),
+            );
+            directions
+                .iter()
+                .for_each(|&step| nav.navigate(Heading::from(step), 1));
+            self.current = nav.get_position().clone();
+            *self.layout.get(&self.current).unwrap()
+        };
+
         directions
             .iter()
-            .map(|dir| self.execute_instruction(dir))
+            .map(|directions| execute_instruction(directions))
             .collect()
     }
 }

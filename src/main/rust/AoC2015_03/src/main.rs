@@ -8,11 +8,11 @@ use aoc::{
 use itertools::Itertools;
 use std::str::FromStr;
 
-struct HouseVisits {
-    navigation: NavigationWithHeading,
+struct HouseVisits<'a> {
+    navigation: NavigationWithHeading<'a>,
 }
 
-impl HouseVisits {
+impl<'a> HouseVisits<'a> {
     fn new() -> Self {
         Self {
             navigation: NavigationWithHeading::new(

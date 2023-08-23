@@ -30,18 +30,35 @@ impl From<Direction> for Heading {
     }
 }
 
-pub struct NavigationWithHeading {
+pub struct NavigationWithHeading<'a> {
     position: XY,
     heading: Heading,
     visited: Vec<XY>,
+    in_bounds: Box<dyn FnMut(&XY) -> bool + 'a>,
 }
 
-impl NavigationWithHeading {
+impl<'a> NavigationWithHeading<'a> {
     pub fn new(start: XY, heading: Heading) -> Self {
         let mut navigation = Self {
             position: start,
             heading,
             visited: vec![],
+            in_bounds: Box::new(|_| true),
+        };
+        navigation.remember_visited_position(navigation.position);
+        navigation
+    }
+
+    pub fn new_with_bounds(
+        start: XY,
+        heading: Heading,
+        in_bounds: Box<dyn FnMut(&XY) -> bool + 'a>,
+    ) -> Self {
+        let mut navigation = Self {
+            position: start,
+            heading,
+            visited: vec![],
+            in_bounds,
         };
         navigation.remember_visited_position(navigation.position);
         navigation
@@ -67,22 +84,13 @@ impl NavigationWithHeading {
     }
 
     pub fn navigate(&mut self, heading: Heading, amount: i32) {
-        self.navigate_with_bounds(heading, amount, |_| true)
-    }
-
-    pub fn navigate_with_bounds(
-        &mut self,
-        heading: Heading,
-        amount: i32,
-        in_bounds: impl Fn(&XY) -> bool,
-    ) {
         self.heading = heading;
         let direction: Direction = self.heading.into();
         let mut new_position = self.position;
         (0..amount).for_each(|_| {
             new_position =
                 new_position.translate(&XY::try_from(direction).unwrap(), 1);
-            if in_bounds(&new_position) {
+            if (self.in_bounds)(&new_position) {
                 self.position = new_position;
             }
         });
