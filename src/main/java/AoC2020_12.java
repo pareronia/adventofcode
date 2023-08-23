@@ -2,14 +2,12 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Set;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
-import com.github.pareronia.aoc.navigation.NavigationWithWaypoint;
-import com.github.pareronia.aoc.navigation.WayPoint;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -17,14 +15,13 @@ import lombok.Value;
 
 public class AoC2020_12 extends AoCBase {
 	
-	private final List<NavigationInstruction> navs;
+	private final List<NavigationInstruction> instructions;
 	
 	private AoC2020_12(final List<String> input, final boolean debug) {
 		super(debug);
-		this.navs = input.stream()
+		this.instructions = input.stream()
 		        .map(s -> NavigationInstruction.of(s.substring(0, 1), s.substring(1)))
 		        .collect(toList());
-		log(this.navs);
 	}
 	
 	public static AoC2020_12 create(final List<String> input) {
@@ -37,48 +34,16 @@ public class AoC2020_12 extends AoCBase {
 	
 	@Override
 	public Integer solvePart1() {
-	    final Position start = Position.of(0, 0);
-        final NavigationWithHeading nav
-                = new NavigationWithHeading(start, Heading.EAST);
-	    log(nav);
-	    for (final NavigationInstruction ins : this.navs) {
-	       if (ins.getAction() == Action.RIGHT) {
-	           nav.turn(Turn.fromDegrees(ins.getValue()));
-	       } else if (ins.getAction() == Action.LEFT) {
-	           nav.turn(Turn.fromDegrees(360 - ins.getValue()));
-	       } else if (ins.getAction() == Action.FORWARD) {
-	           nav.forward(ins.getValue());
-	       } else if (Set.of(Action.NORTH, Action.SOUTH, Action.EAST, Action.WEST)
-	               .contains(ins.getAction())) {
-	           nav.drift(Heading.valueOf(ins.getAction().name()), ins.getValue());
-	       }
-	       log(nav);
-        }
-	    return nav.getPosition().manhattanDistance(start);
+	    return new Navigation(
+                this.instructions, Heading.EAST, ActionMeaning.ONE)
+            .getDistanceTraveled();
 	}
 	
 	@Override
 	public Integer solvePart2() {
-	    final Position start = Position.of(0, 0);
-	    final WayPoint waypoint = new WayPoint(10, 1);
-        final NavigationWithWaypoint nav
-                = new NavigationWithWaypoint(start, waypoint);
-	    log(nav);
-	    for (final NavigationInstruction ins : this.navs) {
-	       if (ins.getAction() == Action.RIGHT) {
-	           nav.right(ins.getValue());
-	       } else if (ins.getAction() == Action.LEFT) {
-	           nav.left(ins.getValue());
-	       } else if (ins.getAction() == Action.FORWARD) {
-	           nav.forward(ins.getValue());
-	       } else if (Set.of(Action.NORTH, Action.SOUTH, Action.EAST, Action.WEST)
-	               .contains(ins.getAction())) {
-	           nav.updateWaypoint(Heading.valueOf(ins.getAction().name()),
-	                              ins.getValue());
-	       }
-	       log(nav);
-        }
-	    return nav.getPosition().manhattanDistance(start);
+	    return new Navigation(
+                this.instructions, Heading.of(10, 1), ActionMeaning.TWO)
+            .getDistanceTraveled();
 	}
 
 	public static void main(final String[] args) throws Exception {
@@ -103,8 +68,7 @@ public class AoC2020_12 extends AoCBase {
 	
 	public enum Action {
 	    NORTH("N"), EAST("E"), SOUTH("S"), WEST("W"),
-	    RIGHT("R"), LEFT("L"),
-	    FORWARD("F");
+	    RIGHT("R"), LEFT("L"), FORWARD("F");
 	    
 	    private final String code;
 	    
@@ -123,12 +87,55 @@ public class AoC2020_12 extends AoCBase {
 	@Value
 	private static final class NavigationInstruction {
 	    private final Action action;
-	    private final Integer value;
+	    private final int value;
 	    
 	    public static NavigationInstruction of(final String action, final String value) {
 	        return new NavigationInstruction(
-	            Action.of(action), Integer.valueOf(value)
+	            Action.of(action), Integer.parseInt(value)
 	        );
 	    }
 	}
+	
+	private enum ActionMeaning {
+	    ONE, TWO;
+	}
+	
+	private static final class Navigation {
+	    private final List<NavigationInstruction> instructions;
+	    private final ActionMeaning actionMeaning;
+	    private final NavigationWithHeading nav;
+	    private final Position start = Position.ORIGIN;
+	    
+	    public Navigation(
+	            final List<NavigationInstruction> instructions,
+	            final Heading initialHeading,
+                final ActionMeaning actionMeaning
+        ) {
+            this.instructions = instructions;
+            this.actionMeaning = actionMeaning;
+            this.nav = new NavigationWithHeading(this.start, initialHeading);
+        }
+
+        public int getDistanceTraveled() {
+            this.instructions.forEach(this::executeInstruction);
+            return this.nav.getPosition().manhattanDistance(this.start);
+	    }
+
+        private void executeInstruction(final NavigationInstruction instuction) {
+            final Action action = instuction.getAction();
+            final int value = instuction.getValue();
+            if (action == Action.RIGHT) {
+                this.nav.turn(Turn.fromDegrees(value));
+            } else if (action == Action.LEFT) {
+                this.nav.turn(Turn.fromDegrees(360 - value));
+            } else if (action == Action.FORWARD) {
+                this.nav.forward(value);
+            } else if (this.actionMeaning == ActionMeaning.ONE) {
+                this.nav.drift(Heading.fromString(action.code), value);
+            } else {
+                final Direction dir = Direction.fromString(action.code);
+                this.nav.setHeading(nav.getHeading().add(dir, value));
+            }
+        }
+    }
 }
