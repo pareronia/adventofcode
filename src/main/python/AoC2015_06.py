@@ -3,13 +3,16 @@
 # Advent of Code 2015 Day 6
 #
 
+from __future__ import annotations
 
 from enum import Enum
-from dataclasses import dataclass
+from typing import Callable, NamedTuple
+
+import aocd
 import numpy as np
+
 from aoc import my_aocd
 from aoc.geometry import Position
-import aocd
 
 
 class Action(Enum):
@@ -18,25 +21,13 @@ class Action(Enum):
     TURN_OFF = 3
 
 
-@dataclass(frozen=True)
-class Instruction:
-    action: str
+class Instruction(NamedTuple):
+    action: Action
     start: Position
     end: Position
 
-    def is_turn_on(self):
-        return self.action == Action.TURN_ON
-
-    def is_turn_off(self):
-        return self.action == Action.TURN_OFF
-
-    def is_toggle(self):
-        return self.action == Action.TOGGLE
-
-
-def _parse(inputs: tuple[str]) -> list[Instruction]:
-    inss = list[Instruction]()
-    for input_ in inputs:
+    @classmethod
+    def from_input(cls, input_: str) -> Instruction:
         input_ = input_.replace("turn ", "turn_")
         splits = input_.split(" through ")
         action_and_start_splits = splits[0].split(" ")
@@ -53,52 +44,81 @@ def _parse(inputs: tuple[str]) -> list[Instruction]:
         start = Position.of(int(start_splits[0]), int(start_splits[1]))
         end_splits = splits[1].split(",")
         end = Position.of(int(end_splits[0]), int(end_splits[1]))
-        inss.append(Instruction(action, start, end))
-    return inss
+        return Instruction(action, start, end)
 
 
-def _process_instructions_1(lights, inss: list[Instruction]):
-    for ins in inss:
-        start_x = ins.start.x
-        end_x = ins.end.x + 1
-        start_y = ins.start.y
-        end_y = ins.end.y + 1
-        if ins.is_turn_on():
-            lights[start_x:end_x, start_y:end_y] = 1
-        elif ins.is_turn_off():
-            lights[start_x:end_x, start_y:end_y] = 0
-        elif ins.is_toggle():
-            lights[start_x:end_x, start_y:end_y] \
-                = np.logical_not(lights[start_x:end_x, start_y:end_y])
+class Grid:
+    def __init__(
+        self,
+        turn_on: Callable[[np.ndarray, Position, Position], None],
+        turn_off: Callable[[np.ndarray, Position, Position], None],
+        toggle: Callable[[np.ndarray, Position, Position], None],
+    ):
+        self.lights = np.zeros((1000, 1000), np.byte)
+        self.turn_on = turn_on
+        self.turn_off = turn_off
+        self.toggle = toggle
+
+    def process_instructions(self, instructions: list[Instruction]):
+        for instruction in instructions:
+            action = (
+                self.turn_on
+                if instruction.action == Action.TURN_ON
+                else self.turn_off
+                if instruction.action == Action.TURN_OFF
+                else self.toggle
+            )
+            action(self.lights, instruction.start, instruction.end)
+
+    def get_total_light_value(self) -> int:
+        return np.sum(self.lights)
+
+
+def _parse(inputs: tuple[str]) -> list[Instruction]:
+    return [Instruction.from_input(line) for line in inputs]
 
 
 def part_1(inputs: tuple[str]) -> int:
-    inss = _parse(inputs)
-    lights = np.zeros((1000, 1000), int)
-    _process_instructions_1(lights, inss)
-    return np.sum(lights)
+    def turn_on(lights: np.ndarray, start: Position, end: Position):
+        lights[start.x : end.x + 1, start.y : end.y + 1] = 1  # noqa E203
 
+    def turn_off(lights: np.ndarray, start: Position, end: Position):
+        lights[start.x : end.x + 1, start.y : end.y + 1] = 0  # noqa E203
 
-def _process_instructions_2(lights, inss: list[Instruction]):
-    for ins in inss:
-        start_x = ins.start.x
-        end_x = ins.end.x + 1
-        start_y = ins.start.y
-        end_y = ins.end.y + 1
-        if ins.is_turn_on():
-            lights[start_x:end_x, start_y:end_y] += 1
-        elif ins.is_turn_off():
-            lights[start_x:end_x, start_y:end_y] -= 1
-            lights[lights < 0] = 0
-        elif ins.is_toggle():
-            lights[start_x:end_x, start_y:end_y] += 2
+    def toggle(lights: np.ndarray, start: Position, end: Position):
+        lights[
+            start.x : end.x + 1, start.y : end.y + 1  # noqa E203
+        ] = np.logical_not(
+            lights[start.x : end.x + 1, start.y : end.y + 1]  # noqa E203
+        )
+
+    lights = Grid(
+        lambda lights, start, end: turn_on(lights, start, end),
+        lambda lights, start, end: turn_off(lights, start, end),
+        lambda lights, start, end: toggle(lights, start, end),
+    )
+    lights.process_instructions(_parse(inputs))
+    return lights.get_total_light_value()
 
 
 def part_2(inputs: tuple[str]) -> int:
-    inss = _parse(inputs)
-    lights = np.zeros((1000, 1000), int)
-    _process_instructions_2(lights, inss)
-    return np.sum(lights)
+    def turn_on(lights: np.ndarray, start: Position, end: Position):
+        lights[start.x : end.x + 1, start.y : end.y + 1] += 1  # noqa E203
+
+    def turn_off(lights: np.ndarray, start: Position, end: Position):
+        lights[start.x : end.x + 1, start.y : end.y + 1] -= 1  # noqa E203
+        lights[lights < 0] = 0
+
+    def toggle(lights: np.ndarray, start: Position, end: Position):
+        lights[start.x : end.x + 1, start.y : end.y + 1] += 2  # noqa E203
+
+    lights = Grid(
+        lambda lights, start, end: turn_on(lights, start, end),
+        lambda lights, start, end: turn_off(lights, start, end),
+        lambda lights, start, end: toggle(lights, start, end),
+    )
+    lights.process_instructions(_parse(inputs))
+    return lights.get_total_light_value()
 
 
 TEST1 = "turn on 0,0 through 999,999".splitlines()
@@ -126,5 +146,5 @@ def main() -> None:
     my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
