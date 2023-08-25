@@ -17,7 +17,8 @@ pub mod ocr;
 static PART_NUMS: [&str; 3] = ["", "1", "2"];
 
 lazy_static! {
-    static ref REGEX_Z: Regex = Regex::new(r"[0-9]+").unwrap();
+    static ref REGEX_N: Regex = Regex::new(r"[0-9]+").unwrap();
+    static ref REGEX_Z: Regex = Regex::new(r"[-0-9]+").unwrap();
 }
 
 #[macro_export]
@@ -299,6 +300,10 @@ pub fn split_lines(s: &str) -> Vec<String> {
     s.lines().map(|line| String::from(line)).collect()
 }
 
+pub fn ints_with_check(line: &str, expected_count: usize) -> Vec<i32> {
+    ints(line, Some(expected_count))
+}
+
 pub fn uints_with_check(line: &str, expected_count: usize) -> Vec<u32> {
     uints(line, Some(expected_count))
 }
@@ -308,7 +313,7 @@ pub fn uints_no_check(line: &str) -> Vec<u32> {
 }
 
 pub fn uints(line: &str, expected_count: Option<usize>) -> Vec<u32> {
-    let ans = REGEX_Z
+    let ans = REGEX_N
         .find_iter(line)
         .map(|mat| mat.as_str())
         .map(|s| s.parse::<u32>().unwrap())
@@ -317,6 +322,21 @@ pub fn uints(line: &str, expected_count: Option<usize>) -> Vec<u32> {
         None => ans,
         Some(ec) => {
             assert_eq!(ans.len(), ec, "Expected {} unsigned ints", ec);
+            ans
+        }
+    }
+}
+
+pub fn ints(line: &str, expected_count: Option<usize>) -> Vec<i32> {
+    let ans = REGEX_Z
+        .find_iter(line)
+        .map(|mat| mat.as_str())
+        .map(|s| s.parse::<i32>().unwrap())
+        .collect::<Vec<i32>>();
+    match expected_count {
+        None => ans,
+        Some(ec) => {
+            assert_eq!(ans.len(), ec, "Expected {} signed ints", ec);
             ans
         }
     }
