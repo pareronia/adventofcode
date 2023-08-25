@@ -4,94 +4,87 @@
 #
 
 from __future__ import annotations
+
 import re
-import math
-import itertools
-from dataclasses import dataclass
+from enum import Enum
+from math import prod
+from typing import Generator, NamedTuple
+
+import aocd
+
 from aoc import my_aocd
-from aoc.common import log
+
+REGEXP = re.compile(r"([-0-9]+)")
 
 
-REGEXP = r'([A-Za-z]+): capacity ([-0-9]+), durability ([-0-9]+), flavor ([-0-9]+), texture ([-0-9]+), calories ([-0-9]+)'  # noqa
+class Property(Enum):
+    CAPACITY = 0
+    DURABILITY = 1
+    FLAVOR = 2
+    TEXTURE = 3
+    CALORIES = 4
 
 
-@dataclass(frozen=True)
-class Ingredient:
-    name: str
-    capacity: int
-    durability: int
-    flavor: int
-    texture: int
-    calories: int
+class Ingredients(NamedTuple):
+    ingredients: list[list[int]]
 
     @classmethod
-    def of(cls, name: str, capacity: str, durability: str, flavor: str,
-           texture: str, calories: str) -> Ingredient:
-        return Ingredient(name, int(capacity), int(durability), int(flavor),
-                          int(texture), int(calories))
+    def from_input(cls, inputs: tuple[str]) -> Ingredients:
+        return Ingredients(
+            [list(map(int, REGEXP.findall(line))) for line in inputs]
+        )
 
-
-def _parse(inputs: tuple[str]) -> list[Ingredient]:
-    return [Ingredient.of(*re.search(REGEXP, input_).groups())
-            for input_ in inputs]
-
-
-def _generate_measures(size: int):
-    def yield_permutations(x: tuple[int], size: int):
-        if sum(x) == 100:
-            for p in itertools.permutations(x, size):
-                yield p
-
-    assert size in {2, 4}
-    for i in range(100, -1, -1):
-        for j in range(i, -1, -1):
-            if size == 2:
-                for p in yield_permutations((i, j), size):
-                    yield p
+    def _generate_measures(self) -> Generator[tuple[int, ...]]:
+        for i in range(101):
+            if len(self.ingredients) == 2:
+                yield (i, 100 - i)
                 continue
-            for k in range(j, -1, -1):
-                for m in range(k, -1, -1):
-                    for p in yield_permutations((i, j, k, m), size):
-                        yield p
+            for j in range(101 - i):
+                for k in range(101 - i - j):
+                    yield (i, j, k, 100 - i - j - k)
 
+    def _get_property_score(
+        self, measures: tuple[int, ...], p: Property
+    ) -> int:
+        return sum(
+            self.ingredients[i][p.value] * measures[i]
+            for i in range(len(self.ingredients))
+        )
 
-def _caclulate_score(ingredients: list[Ingredient],
-                     measure: tuple[int],
-                     calories_target: int = None) -> int:
-    def calculate_total(attribute: str) -> int:
-        return sum([measure[i] * getattr(ingredients[i], attribute)
-                    for i in range(size)])
-
-    assert len(measure) == len(ingredients)
-    size = len(measure)
-    if calories_target is not None:
-        if calculate_total('calories') != calories_target:
+    def _calculate_score(
+        self, measures: tuple[int, ...], calories_target: int | None
+    ) -> int:
+        if (
+            calories_target is not None
+            and self._get_property_score(measures, Property.CALORIES)
+            != calories_target
+        ):
             return 0
-    totals = dict()
-    for attribute in ['capacity', 'durability', 'flavor', 'texture']:
-        totals[attribute] = calculate_total(attribute)
-        if totals[attribute] < 0:
-            return 0
-    return math.prod(totals.values())
+        return prod(
+            max(0, self._get_property_score(measures, p))
+            for p in Property
+            if p != Property.CALORIES
+        )
 
+    def _get_maximum_score(self, limit: int | None) -> int:
+        return max(
+            self._calculate_score(m, limit) for m in self._generate_measures()
+        )
 
-def _find_max_score(ingredients: list[Ingredient],
-                    calories_target: int = None) -> int:
-    max_score = 0
-    for measure in _generate_measures(len(ingredients)):
-        score = _caclulate_score(ingredients, measure, calories_target)
-        if score > max_score:
-            max_score = score
-            log(max_score)
-    return max_score
+    def get_highest_score(self):
+        return self._get_maximum_score(None)
+
+    def get_highest_score_with_calorie_limit(self, limit: int):
+        return self._get_maximum_score(limit)
 
 
 def part_1(inputs: tuple[str]) -> int:
-    return _find_max_score(_parse(inputs))
+    return Ingredients.from_input(inputs).get_highest_score()
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return _find_max_score(_parse(inputs), calories_target=500)
+    ingredients = Ingredients.from_input(inputs)
+    return ingredients.get_highest_score_with_calorie_limit(500)
 
 
 TEST = """\
@@ -101,17 +94,19 @@ Cinnamon: capacity 2, durability 3, flavor -2, texture -1, calories 3
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 15)
+    puzzle = aocd.models.Puzzle(2015, 15)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == 62842880
-    assert part_2(TEST) == 57600000
+    assert part_1(TEST) == 62_842_880
+    assert part_2(TEST) == 57_600_000
 
-    inputs = my_aocd.get_input(2015, 15, 4)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 4)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
