@@ -63,6 +63,12 @@ public class IterTools {
         Heap.accept(a, p -> consumer.accept(
                 Arrays.stream(p).mapToObj(i -> o[i]).collect(toList())));
     }
+    
+    public static Stream<int[]> permutations(final int[] a) {
+        final Stream.Builder<int[]> builder = Stream.builder();
+        Heap.accept(a, p -> builder.add(Arrays.copyOf(p, p.length)));
+        return builder.build();
+    }
 
     public static Iterator<int[]> combinationsIterator(final int n, final int k) {
         return CombinatoricsUtils.combinationsIterator(n, k);

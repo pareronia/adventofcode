@@ -1,31 +1,23 @@
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.IterTools;
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+
 public class AoC2015_13 extends AoCBase {
     
-    private final Map<String, Integer> seatings;
-    private final Set<String> diners;
+    private final Happiness input;
     
     private AoC2015_13(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.seatings = new HashMap<>();
-        this.diners = new HashSet<>();
-        for (final String input : inputs) {
-            final String[] s = input.substring(0, input.length() - 1).split(" ");
-            final String d1 = s[0];
-            final String d2 = s[10];
-            final Integer value = Integer.valueOf(s[3]);
-            this.seatings.put(d1 + "-" + d2, "gain".equals(s[2]) ? value : -value);
-            this.diners.addAll(Set.of(d1, d2));
-        }
+        this.input = Happiness.fromInput(inputs);
     }
 
     public static final AoC2015_13 create(final List<String> input) {
@@ -36,32 +28,14 @@ public class AoC2015_13 extends AoCBase {
         return new AoC2015_13(input, true);
     }
     
-    private int solve() {
-        return IterTools.permutations(this.diners)
-            .mapToInt(ds ->
-                IntStream.range(0, ds.size())
-                    .map(i -> {
-                        final String d1 = ds.get(i);
-                        final String d2 = ds.get((i + 1) % ds.size());
-                        return this.seatings.get(d1 + "-" + d2) + this.seatings.get(d2 + "-" + d1);
-                    })
-                    .sum())
-            .max().orElseThrow();
-    }
-
     @Override
     public Integer solvePart1() {
-        return solve();
+        return this.input.getOptimalHappinessChangeWithoutMe();
     }
     
     @Override
     public Integer solvePart2() {
-        for (final String diner : this.diners) {
-            this.seatings.put("me-" + diner, 0);
-            this.seatings.put(diner + "-me", 0);
-        }
-        this.diners.add("me");
-        return solve();
+        return this.input.getOptimalHappinessChangeWithMe();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -89,4 +63,52 @@ public class AoC2015_13 extends AoCBase {
             + "David would lose 7 happiness units by sitting next to Bob.\r\n"
             + "David would gain 41 happiness units by sitting next to Carol."
     );
+    
+    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+    private static final class Happiness {
+        private final int[][] happinessMatrix;
+        
+        public static Happiness fromInput(final List<String> inputs) {
+            final Map<String, Integer> map = new HashMap<>();
+            final Map<int[], Integer> values = new HashMap<>();
+            final MutableInt cnt = new MutableInt(0);
+            for (final String input : inputs) {
+                final String[] s = input.substring(0, input.length() - 1).split(" ");
+                final String d1 = s[0];
+                final String d2 = s[10];
+                final int idx1 = map.computeIfAbsent(d1, x -> cnt.getAndIncrement());
+                final int idx2 = map.computeIfAbsent(d2, x -> cnt.getAndIncrement());
+                final int value = Integer.parseInt(s[3]);
+                values.put(new int[] { idx1, idx2 }, "gain".equals(s[2]) ? value : -value);
+            }
+            final int[][] happinessMatrix = new int[map.keySet().size() + 1][map.keySet().size() + 1];
+            values.entrySet().stream()
+                .forEach(e -> {
+                    happinessMatrix[e.getKey()[0]][e.getKey()[1]] = e.getValue();
+                });
+            return new Happiness(happinessMatrix);
+        }
+        
+        private int solve(final int size) {
+            final int[] idxs = IntStream.range(0, size).toArray();
+            return IterTools.permutations(idxs)
+                .mapToInt(p ->
+                    IntStream.range(0, p.length)
+                        .map(i -> {
+                            final int d1 = p[i];
+                            final int d2 = p[(i + 1) % p.length];
+                            return this.happinessMatrix[d1][d2] + this.happinessMatrix[d2][d1];
+                        })
+                        .sum())
+                .max().orElseThrow();
+        }
+        
+        public int getOptimalHappinessChangeWithoutMe() {
+            return solve(this.happinessMatrix.length - 1);
+        }
+        
+        public int getOptimalHappinessChangeWithMe() {
+            return solve(this.happinessMatrix.length);
+        }
+    }
 }

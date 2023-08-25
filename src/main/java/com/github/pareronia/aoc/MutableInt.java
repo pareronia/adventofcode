@@ -20,6 +20,12 @@ public class MutableInt {
         return value;
     }
     
+    public int getAndIncrement() {
+        final int last = value;
+        value++;
+        return last;
+    }
+    
     public void add(final int value) {
         this.value += value;
     }
