@@ -3,75 +3,67 @@
 # Advent of Code 2015 Day 13
 #
 
-from typing import NamedTuple
-from functools import lru_cache
+from __future__ import annotations
+
 import itertools
+from collections import defaultdict
+from typing import NamedTuple
+
+import aocd
+
 from aoc import my_aocd
-from aoc.common import log
 
 
-class Seating(NamedTuple):
-    diner1: str
-    diner2: str
-    happiness_gain: int
+class Happiness(NamedTuple):
+    matrix: list[list[int]]
 
+    @classmethod
+    def from_input(cls, inputs: tuple[str]) -> Happiness:
+        cnt = 0
 
-class SeatingArrangement(NamedTuple):
-    seatings: tuple[Seating]
-    happiness_change: int
+        def get_and_increment():
+            nonlocal cnt
+            tmp = cnt
+            cnt += 1
+            return tmp
 
+        idxs = defaultdict[str, int](get_and_increment)
+        values = dict[tuple[int, int], int]()
+        for line in inputs:
+            splits = line[:-1].split(" ")
+            values[(idxs[splits[0]], idxs[splits[10]])] = int(splits[3]) * (
+                1 if splits[2] == "gain" else -1
+            )
+        matrix = [[0] * (len(idxs) + 1) for _ in range(len(idxs) + 1)]
+        for k, v in values.items():
+            matrix[k[0]][k[1]] = v
+        return Happiness(matrix)
 
-def _parse(inputs: tuple[str]) -> set[Seating]:
-    def to_Seating(input_: str) -> Seating:
-        splits = input_[:-1].split(" ")
-        return Seating(splits[0], splits[10],
-                       int(splits[3]) * (1 if splits[2] == "gain" else -1))
+    def _solve(self, size: int) -> int:
+        the_max = -1e9
+        for p in itertools.permutations(range(size), size):
+            the_sum = 0
+            for i in range(size):
+                d1, d2 = p[i], p[(i + 1) % size]
+                the_sum += self.matrix[d1][d2] + self.matrix[d2][d1]
+            the_max = max(the_max, the_sum)
+        return the_max
 
-    seatings = {to_Seating(input_) for input_ in inputs}
-    diners = {s.diner1 for s in seatings} | {s.diner2 for s in seatings}
-    return diners, seatings
+    def get_optimal_happiness_change_without_me(self) -> int:
+        return self._solve(len(self.matrix) - 1)
 
-
-def _find_all_arrangements(diners: set[str],
-                           seatings: set[Seating]) -> set[SeatingArrangement]:
-    @lru_cache
-    def find_happiness_gain(diner1: str, diner2: str) -> int:
-        return sum(s.happiness_gain for s in seatings
-                   if {s.diner1, s.diner2} == {diner1, diner2})
-
-    log(diners)
-    log(seatings)
-    arrangements = {
-        SeatingArrangement(c,
-                           sum([find_happiness_gain(c[i], c[(i+1) % len(c)])
-                                for i in range(len(c))]))
-        for c in itertools.permutations(diners, len(diners))
-    }
-    log(find_happiness_gain.cache_info())
-    return arrangements
-
-
-def _log_arrangements(arrangements: set[SeatingArrangement]):
-    log(f"SeatingArrangements: {len(arrangements)}")
-    if len(arrangements) <= 24:
-        [log(str(a)) for a in arrangements]
+    def get_optimal_happiness_change_with_me(self) -> int:
+        return self._solve(len(self.matrix))
 
 
 def part_1(inputs: tuple[str]) -> int:
-    diners, seatings = _parse(inputs)
-    arrangements = _find_all_arrangements(diners, seatings)
-    _log_arrangements(arrangements)
-    return max({a.happiness_change for a in arrangements})
+    return Happiness.from_input(
+        inputs
+    ).get_optimal_happiness_change_without_me()
 
 
 def part_2(inputs: tuple[str]) -> int:
-    diners, seatings = _parse(inputs)
-    for d in diners:
-        seatings.add(Seating("me", d, 0))
-        seatings.add(Seating(d, "me", 0))
-    diners.add("me")
-    arrangements = _find_all_arrangements(diners, seatings)
-    return max({a.happiness_change for a in arrangements})
+    return Happiness.from_input(inputs).get_optimal_happiness_change_with_me()
 
 
 TEST = """\
@@ -91,16 +83,18 @@ David would gain 41 happiness units by sitting next to Carol.
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 13)
+    puzzle = aocd.models.Puzzle(2015, 13)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 330
 
-    inputs = my_aocd.get_input(2015, 13, 56)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 56)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
