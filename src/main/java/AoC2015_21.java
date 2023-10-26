@@ -1,7 +1,6 @@
 import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.summingInt;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
@@ -223,25 +222,20 @@ public class AoC2015_21 extends AoCBase {
 		}
 	}
 	
-	@RequiredArgsConstructor
 	@ToString
+	@Getter
 	private static final class PlayerConfig {
-	    @Getter
-	    private final int hitPoints = 100;
-		private final Set<ShopItem> items;
-
-		@ToString.Include
-		public int getTotalCost() {
-			return this.items.stream().collect(summingInt(ShopItem::getCost));
-		}
-		
-		public int getTotalDamage() {
-			return this.items.stream().collect(summingInt(ShopItem::getDamage));
-		}
-		
-		public int getTotalArmor() {
-			return this.items.stream().collect(summingInt(ShopItem::getArmor));
-		}
+	    private final int hitPoints;
+	    private final int totalCost;
+	    private final int totalDamage;
+	    private final int totalArmor;
+	    
+	    public PlayerConfig(final Set<ShopItem> items) {
+	        this.hitPoints = 100;
+	        this.totalCost = items.stream().mapToInt(ShopItem::getCost).sum();
+	        this.totalDamage = items.stream().mapToInt(ShopItem::getDamage).sum();
+	        this.totalArmor = items.stream().mapToInt(ShopItem::getArmor).sum();
+	    }
 	}
 	
 	@RequiredArgsConstructor
