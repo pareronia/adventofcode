@@ -2,7 +2,7 @@
 #
 
 import unittest
-from aoc.navigation import NavigationWithWaypoint, NavigationWithHeading,\
+from aoc.navigation import NavigationWithWaypoint, NavigationWithHeading, \
         Waypoint, Heading
 from aoc.geometry import Position, Turn
 

@@ -43,7 +43,7 @@ def _move_rope(rope: list[Position], move: Move) -> list[Position]:
 
 def _solve(size: int, moves: list[Move]) -> int:
     rope = [(0, 0)] * size
-    seen = {(rope := _move_rope(rope, move))[-1] for move in moves}
+    seen = {(rope := _move_rope(rope, move))[-1] for move in moves}  # noqa F841
     return len(seen)
 
 

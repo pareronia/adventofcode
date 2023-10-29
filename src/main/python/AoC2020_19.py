@@ -138,7 +138,7 @@ def _build_rule(rule: str, pos: int = 0) -> ResultAndPosition:
 
 
 def _log_tree(tree):
-    if type(tree) == list:
+    if type(tree) is list:
         for tree_item in tree:
             _log_tree(tree_item)
     else:
