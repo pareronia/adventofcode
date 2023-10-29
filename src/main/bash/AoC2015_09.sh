@@ -13,14 +13,14 @@ permutations() {
     local -i n_1=$((n - 1))
     local -i i=0
     for ((i = 0; i < n_1; i++)); do
-        permutations $n_1 "${a[@]}"
+        permutations "$n_1" "${a[@]}"
         if [ $((n % 2)) = 0 ]; then
             local temp="${a[$n_1]}"
-            a[$n_1]="${a[$i]}"
-            a[$i]="$temp"
+            a[n_1]="${a[$i]}"
+            a[i]="$temp"
         else
             local temp="${a[$n_1]}"
-            a[$n_1]="${a[0]}"
+            a[n_1]="${a[0]}"
             a[0]="$temp"
         fi
     done

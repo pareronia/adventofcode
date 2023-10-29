@@ -19,7 +19,7 @@ CPP_DST_ROOT := $(DST_ROOT)/cpp
 JULIA_ROOT := $(SRC_ROOT_MAIN)/julia
 RUST_ROOT := $(SRC_ROOT_MAIN)/rust
 CFG := pyproject.toml
-SHELLCHECK := shellcheck -a -P SCRIPTDIR
+SHELLCHECK := shellcheck -a -P SCRIPTDIR --exclude=SC2317
 BANDIT := bandit --silent --configfile $(CFG)
 FLAKE := flake8
 VULTURE := vulture

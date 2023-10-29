@@ -23,7 +23,7 @@ part1() {
         done
         chksum_=$({
             for k in "${!hist[@]}"; do
-                echo ${hist[$k]}' - '$k;
+                echo "${hist[$k]}"' - '"$k";
             done | sort --key=1rn,2 |
                 for ((j = 0; j < 5; j++)); do
                     read -r hh

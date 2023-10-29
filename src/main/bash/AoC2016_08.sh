@@ -30,7 +30,7 @@ solve() {
             done
             for ((i = 0; i < b; i++)); do
                 local row="${grid[$i]}"
-                grid[$i]="$on_part""${row:$a}"
+                grid[i]="$on_part""${row:$a}"
             done
             continue
         fi
@@ -38,7 +38,7 @@ solve() {
             local -i a="${BASH_REMATCH[1]}"
             local -i b="${BASH_REMATCH[2]}"
             local row="${grid[$a]}"
-            grid[$a]="${row:$width-$b}""${row:0:$width-$b}"
+            grid[a]="${row:$width-$b}""${row:0:$width-$b}"
             continue
         fi
         if [[ "$instruction" =~ 'rotate column x='([0-9]+)' by '([0-9]+) ]]; then
@@ -52,7 +52,7 @@ solve() {
             col="${col:$height-$b}""${col:0:$height-$b}"
             for ((i = 0; i < height; i++)); do
                 local row="${grid[$i]}"
-                grid[$i]="${row:0:$a}""${col:$i:1}""${row:$a+1}"
+                grid[i]="${row:0:$a}""${col:$i:1}""${row:$a+1}"
             done
             continue
         fi
