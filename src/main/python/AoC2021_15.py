@@ -30,12 +30,12 @@ def _get_risk(grid: IntGrid, row: int, col: int) -> int:
 
 
 def _find_neighbours(
-    grid: IntGrid, row: int, col: int, tiles: int, seen: set[Cell]
-) -> Generator[Cell]:
+    grid: IntGrid, tiles: int, seen: set[Cell], row: int, col: int
+) -> Generator[Cell, None, None]:
     seen.add((row, col))
     return (
         (row + d.x, col + d.y)
-        for d in Direction.CAPITAL
+        for d in Direction.capitals()
         if (row + d.x, col + d.y) not in seen
         and row + d.x >= 0
         and row + d.x < tiles * grid.get_height()
@@ -50,7 +50,7 @@ def _solve(grid: IntGrid, tiles: int) -> int:
     risk, _ = a_star(
         START,
         lambda cell: cell == end,
-        lambda cell: _find_neighbours(grid, *cell, tiles, seen),
+        lambda cell: _find_neighbours(grid, tiles, seen, *cell),
         lambda cell: _get_risk(grid, *cell),
     )
     return risk
@@ -84,8 +84,8 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2021, 15)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == 40
-    assert part_2(TEST) == 315
+    assert part_1(TEST) == 40  # type:ignore[arg-type]
+    assert part_2(TEST) == 315  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input(puzzle.year, puzzle.day, 100)
     result1 = part_1(inputs)

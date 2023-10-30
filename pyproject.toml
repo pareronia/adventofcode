@@ -6,3 +6,8 @@ min_confidence = 80
 exclude_dirs = [".venv"]
 skips = ["B101"]
 
+[tool.mypy]
+
+[[tool.mypy.overrides]]
+module = "aocd.*"
+ignore_missing_imports = true

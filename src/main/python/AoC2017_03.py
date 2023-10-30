@@ -71,7 +71,7 @@ def part_2(inputs: tuple[str]) -> int:
     while True:
         x, y = next(coords)
         value = 0
-        for d in Direction.OCTANTS:
+        for d in Direction.octants():
             neighbour = (x + d.x, y + d.y)
             value += squares[neighbour] if neighbour in squares else 0
         squares[(x, y)] = value

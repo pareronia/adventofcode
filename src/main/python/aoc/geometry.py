@@ -59,7 +59,9 @@ class Vector(Point):
 
 
 class Turn(Enum):
-    def __new__(cls, value, letter):
+    letter: str
+
+    def __new__(cls, value: int, letter: str) -> Turn:
         obj = object.__new__(cls)
         obj._value_ = value
         obj.letter = letter
@@ -77,7 +79,7 @@ class Turn(Enum):
         raise ValueError
 
     @classmethod
-    def from_degrees(cls, degrees: int):
+    def from_degrees(cls, degrees: int) -> Turn:
         val = degrees % 360
         for v in Turn:
             if v.value == val:
@@ -87,7 +89,17 @@ class Turn(Enum):
 
 @unique
 class Direction(Enum):
-    def __new__(cls, value, heading_letter=None, letter=None, arrow=None):
+    heading_letter: str | None
+    letter: str | None
+    arrow: str | None
+
+    def __new__(
+        cls,
+        value: Vector,
+        heading_letter: str | None = None,
+        letter: str | None = None,
+        arrow: str | None = None,
+    ) -> Direction:
         obj = object.__new__(cls)
         obj._value_ = value
         obj.heading_letter = heading_letter
@@ -106,6 +118,28 @@ class Direction(Enum):
     LEFT_AND_UP = (Vector.of(-1, 1), "NW")
 
     @classmethod
+    def capitals(cls) -> set[Direction]:
+        return {
+            Direction.UP,
+            Direction.RIGHT,
+            Direction.DOWN,
+            Direction.LEFT,
+        }
+
+    @classmethod
+    def octants(cls) -> set[Direction]:
+        return {
+            Direction.UP,
+            Direction.RIGHT_AND_UP,
+            Direction.RIGHT,
+            Direction.RIGHT_AND_DOWN,
+            Direction.DOWN,
+            Direction.LEFT_AND_DOWN,
+            Direction.LEFT,
+            Direction.LEFT_AND_UP,
+        }
+
+    @classmethod
     def from_str(cls, s: str) -> Direction:
         for v in Direction:
             if (
@@ -121,11 +155,11 @@ class Direction(Enum):
 
     @property
     def vector(self) -> Vector:
-        return self.value
+        return self.value  # type:ignore[no-any-return]
 
     @property
     def x(self) -> int:
-        return self.vector.x
+        return int(self.vector.x)
 
     @property
     def y(self) -> int:
@@ -166,22 +200,3 @@ class Direction(Enum):
             )
         else:
             raise ValueError
-
-
-Direction.OCTANTS = {
-    Direction.UP,
-    Direction.RIGHT_AND_UP,
-    Direction.RIGHT,
-    Direction.RIGHT_AND_DOWN,
-    Direction.DOWN,
-    Direction.LEFT_AND_DOWN,
-    Direction.LEFT,
-    Direction.LEFT_AND_UP,
-}
-
-Direction.CAPITAL = {
-    Direction.UP,
-    Direction.RIGHT,
-    Direction.DOWN,
-    Direction.LEFT,
-}
