@@ -73,6 +73,7 @@ public class AoC2022_16 extends AoCBase {
     private final class DFS {
         private final int[][] distances;
         private final int maxTime;
+        private final boolean sample;
         private final Map<Long, Integer> bestPerUsed = new HashMap<>();
         private long used = 0L;
         private int maxFlow = 0;
@@ -88,7 +89,8 @@ public class AoC2022_16 extends AoCBase {
                 final int newTime = time + 1 + distances[start][i];
                 if (newTime < maxTime) {
                     final int flow = rates[i] * (maxTime - newTime);
-                    if (maxFlow + flow < bestPerUsed.getOrDefault(used + idx, 0)) {
+                    if (!this.sample && maxFlow + flow
+                            < bestPerUsed.getOrDefault(used + idx, 0)) {
                         continue;
                     }
                     maxFlow += flow;
@@ -132,18 +134,17 @@ public class AoC2022_16 extends AoCBase {
     @Override
     public Integer solvePart1() {
         final int[][] distances = getDistances();
-        final DFS dfs = new DFS(distances, 30);
+        final DFS dfs = new DFS(distances, 30, false);
         dfs.dfs(this.start, 0);
         log("dfs: " + dfs.cnt);
         return dfs.bestPerUsed.values().stream()
                 .mapToInt(Integer::valueOf)
                 .max().orElseThrow();
     }
-
-    @Override
-    public Integer solvePart2() {
+    
+    private int solve2(final boolean sample) {
         final int[][] distances = getDistances();
-        final DFS dfs = new DFS(distances, 26);
+        final DFS dfs = new DFS(distances, 26, sample);
         dfs.dfs(this.start, 0);
         log("dfs: " + dfs.cnt);
         return dfs.bestPerUsed.entrySet().stream()
@@ -153,9 +154,14 @@ public class AoC2022_16 extends AoCBase {
             .max().orElseThrow();
     }
 
+    @Override
+    public Integer solvePart2() {
+        return solve2(false);
+    }
+    
     public static void main(final String[] args) throws Exception {
         assert AoC2022_16.createDebug(TEST).solvePart1() == 1651;
-        assert AoC2022_16.createDebug(TEST).solvePart2() == 1707;
+        assert AoC2022_16.createDebug(TEST).solve2(true) == 1707;
 
         final Puzzle puzzle = Aocd.puzzle(2022, 16);
         final List<String> inputData = puzzle.getInputData();
