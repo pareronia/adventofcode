@@ -2,17 +2,17 @@ from prettyprinter import cpprint
 from typing import Callable
 
 
-def clog(c: Callable) -> None:
+def clog(c: Callable[[], object]) -> None:
     if __debug__:
         log(c())
 
 
-def log(msg) -> None:
+def log(msg: object) -> None:
     if __debug__:
         cpprint(msg)
 
 
-def spinner(num: int, period: int = 1000):
+def spinner(num: int, period: int = 1000) -> None:
     if not __debug__:
         return
     val = num % period

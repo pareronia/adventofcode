@@ -7,18 +7,18 @@ class TestIntCode(unittest.TestCase):
     inp: list[int]
     out: list[int]
 
-    def setUp(self):
+    def setUp(self) -> None:
         self.inp = []
         self.out = []
 
     def _run(
         self, prog: list[int], inp: list[int] = [], out: list[int] = []
-    ) -> tuple[int]:
+    ) -> list[int]:
         int_code = IntCode(prog)
         int_code.run(inp, out)
         return list(int_code.get_program())
 
-    def test(self):
+    def test(self) -> None:
         ans = self._run([1, 9, 10, 3, 2, 3, 11, 0, 99, 30, 40, 50])
         self.assertEqual(
             ans,
@@ -50,7 +50,7 @@ class TestIntCode(unittest.TestCase):
         ans = self._run([1, 1, 1, 4, 99, 5, 6, 0, 99])
         self.assertEqual(ans, [30, 1, 1, 4, 2, 5, 6, 0, 99])
 
-    def test_7(self):
+    def test_7(self) -> None:
         prog = [
             109,
             1,
@@ -72,34 +72,34 @@ class TestIntCode(unittest.TestCase):
         self._run(prog, self.inp, self.out)
         self.assertEqual(self.out, prog)
 
-    def test_8(self):
+    def test_8(self) -> None:
         self._run(
             [1102, 34915192, 34915192, 7, 4, 7, 99, 0], self.inp, self.out
         )
         self.assertEqual(self.out, [34_915_192 * 34_915_192])
 
-    def test_9(self):
+    def test_9(self) -> None:
         self._run([104, 1125899906842624, 99], self.inp, self.out)
         self.assertEqual(self.out, [1_125_899_906_842_624])
 
-    def test_expand(self):
+    def test_expand(self) -> None:
         ans = self._run([1001, 5, 10, 7, 99], self.inp, self.out)
         self.assertEqual(ans, [1001, 5, 10, 7, 99, 0, 0, 10])
 
-    def test_input_output(self):
+    def test_input_output(self) -> None:
         self.inp = [123]
         ans = self._run([3, 0, 4, 0, 99], self.inp, self.out)
         self.assertEqual(ans, [123, 0, 4, 0, 99])
         self.assertEqual(self.out, [123])
 
-    def test_modes(self):
+    def test_modes(self) -> None:
         ans = self._run([1002, 4, 3, 4, 33])
         self.assertEqual(ans, [1002, 4, 3, 4, 99])
 
         ans = self._run([1101, 100, -1, 4, 0])
         self.assertEqual(ans, [1101, 100, -1, 4, 99])
 
-    def test_equalto_8(self):
+    def test_equalto_8(self) -> None:
         prog = [3, 9, 8, 9, 10, 9, 4, 9, 99, -1, 8]
         self.inp = [8]
         ans = self._run(prog, self.inp, self.out)
@@ -122,7 +122,7 @@ class TestIntCode(unittest.TestCase):
 
         self.assertEqual(self.out, [1, 0, 1, 0])
 
-    def test_lessthan_8(self):
+    def test_lessthan_8(self) -> None:
         prog = [3, 9, 7, 9, 10, 9, 4, 9, 99, -1, 8]
         self.inp = [7]
         ans = self._run(prog, self.inp, self.out)
@@ -145,7 +145,7 @@ class TestIntCode(unittest.TestCase):
 
         self.assertEqual(self.out, [1, 0, 1, 0])
 
-    def test_jump(self):
+    def test_jump(self) -> None:
         prog = [3, 12, 6, 12, 15, 1, 13, 14, 13, 4, 13, 99, -1, 0, 1, 9]
         self.inp = [0]
         ans = self._run(prog, self.inp, self.out)
@@ -172,7 +172,7 @@ class TestIntCode(unittest.TestCase):
 
         self.assertEqual(self.out, [0, 1, 0, 1])
 
-    def test_larger(self):
+    def test_larger(self) -> None:
         prog = [
             3,
             21,
@@ -228,5 +228,5 @@ class TestIntCode(unittest.TestCase):
         self._run(prog, self.inp, self.out)
         self.assertEqual(self.out, [999, 1000, 1001])
 
-    def tearDown(self):
+    def tearDown(self) -> None:
         self.assertEqual(self.inp, [])

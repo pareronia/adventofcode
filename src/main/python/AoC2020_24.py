@@ -14,11 +14,13 @@ import aocd
 import re
 from functools import lru_cache
 from dataclasses import dataclass
+from typing import Iterator
 from aoc import my_aocd
 from aoc.common import log
 from aoc.geometry import Position
 from aoc.navigation import Heading, Waypoint, NavigationWithWaypoint
 
+Tile = tuple[int, int]
 
 E = "e"
 SE = "se"
@@ -36,16 +38,16 @@ class NavigationInstruction:
 
 @dataclass(frozen=True)
 class Floor:
-    tiles: set[tuple[int, int]]
+    tiles: set[Tile]
 
-    def flip(self, tile: tuple[int, int]):
+    def flip(self, tile: Tile) -> None:
         if tile in self.tiles:
             self.tiles.remove(tile)
         else:
             self.tiles.add(tile)
 
 
-def _parse(inputs: tuple[str]) -> list[list[NavigationInstruction]]:
+def _parse(inputs: tuple[str, ...]) -> list[list[NavigationInstruction]]:
     navs = list[list[NavigationInstruction]]()
     for input_ in inputs:
         nav = list[NavigationInstruction]()
@@ -82,27 +84,28 @@ def _build_floor(navs: list[list[NavigationInstruction]]) -> Floor:
     floor = Floor(set())
     for nav in navs:
         navigation = NavigationWithWaypoint(Position(0, 0), Waypoint(0, 0))
-        [_navigate_with_waypoint(navigation, n) for n in nav]
+        for n in nav:
+            _navigate_with_waypoint(navigation, n)
         floor.flip((navigation.waypoint.x, navigation.waypoint.y))
     return floor
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     navs = _parse(inputs)
     floor = _build_floor(navs)
     return len(floor.tiles)
 
 
 @lru_cache(maxsize=11000)
-def _get_neighbours(x: int, y: int) -> list[Position]:
+def _get_neighbours(x: int, y: int) -> list[Tile]:
     return [
-        ((x + dx, y + dy))
+        (x + dx, y + dy)
         for dx, dy in [(-1, 1), (0, 1), (-1, 0), (1, 0), (0, -1), (1, -1)]
     ]
 
 
 def _run_cycle(floor: Floor) -> Floor:
-    def to_check():
+    def to_check() -> Iterator[Tile]:
         for tile in floor.tiles:
             # check the positions of all existing black tiles
             yield tile
@@ -128,7 +131,7 @@ def _run_cycle(floor: Floor) -> Floor:
     return Floor(new_tiles)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     navs = _parse(inputs)
     floor = _build_floor(navs)
     log(len(floor.tiles))
@@ -167,14 +170,15 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2020, 24)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == 10
-    assert part_2(TEST) == 2208
+    assert part_1(TEST) == 10  # type:ignore[arg-type]
+    assert part_2(TEST) == 2208  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 316)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

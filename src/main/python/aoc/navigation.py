@@ -43,10 +43,12 @@ class Waypoint(Vector):
 
 class Navigation:
     _position: Position
-    bounds: Callable[[Position], bool]
+    bounds: Callable[[Position], bool] | None
     visited_positions: list[Position]
 
-    def __init__(self, position: Position, bounds: Callable[[Position], bool]):
+    def __init__(
+        self, position: Position, bounds: Callable[[Position], bool] | None
+    ):
         self._position = position
         self.bounds = bounds
         self.visited_positions = list[Position]()
@@ -78,7 +80,7 @@ class Navigation:
             return self.visited_positions[1:]
 
     @property
-    def position(self):
+    def position(self) -> Position:
         return self._position
 
 
@@ -89,7 +91,7 @@ class NavigationWithHeading(Navigation):
         self,
         position: Position,
         heading: Heading,
-        bounds: Callable[[Position], bool] = None,
+        bounds: Callable[[Position], bool] | None = None,
     ):
         super().__init__(position, bounds)
         self.heading = heading
@@ -105,12 +107,6 @@ class NavigationWithHeading(Navigation):
     def turn(self, turn: Turn) -> None:
         self.heading = self.heading.turn(turn)
 
-    def right(self, degrees: int) -> None:
-        self.heading = Heading.rotate(self.heading, degrees)
-
-    def left(self, degrees: int) -> None:
-        self.heading = Heading.rotate(self.heading, -degrees)
-
     def forward(self, amount: int) -> None:
         self._translate(vector=self.heading.vector, amount=amount)
 
@@ -125,7 +121,7 @@ class NavigationWithWaypoint(Navigation):
         self,
         position: Position,
         waypoint: Waypoint,
-        bounds: Callable[[Position], bool] = None,
+        bounds: Callable[[Position], bool] | None = None,
     ):
         super().__init__(position, bounds)
         self.waypoint = waypoint

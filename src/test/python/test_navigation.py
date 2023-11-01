@@ -9,7 +9,7 @@ from aoc.geometry import Position, Turn
 
 class TestNavigation(unittest.TestCase):
 
-    def test_navigation_with_waypoint(self):
+    def test_navigation_with_waypoint(self) -> None:
         navigation = NavigationWithWaypoint(
             Position(0, 0),
             Waypoint(0, 0),
@@ -33,7 +33,7 @@ class TestNavigation(unittest.TestCase):
                                              Position(-1, 1),
                                              Position(4, 1)])
 
-    def test_navigation_with_heading(self):
+    def test_navigation_with_heading(self) -> None:
         navigation = NavigationWithHeading(
             Position(0, 0),
             Heading.NORTH,

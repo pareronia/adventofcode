@@ -3,6 +3,7 @@
 # Advent of Code 2016 Day 2
 #
 
+from typing import Callable
 import aocd
 from aoc import my_aocd
 from aoc.navigation import NavigationWithHeading, Heading
@@ -38,14 +39,20 @@ KEYPAD_2 = {
 }
 
 
-def _navigate(ins: str, start: Position, in_bounds) -> NavigationWithHeading:
+def _navigate(
+    ins: str, start: Position, in_bounds: Callable[[Position], bool]
+) -> NavigationWithHeading:
     navigation = NavigationWithHeading(start, Heading.NORTH, in_bounds)
-    for i in range(len(ins)):
-        navigation.drift(Heading.from_str(ins[i]), 1)
+    for c in ins:
+        navigation.drift(Heading.from_str(c), 1)
     return navigation
 
 
-def _solve(inputs: tuple[str], in_bounds, get) -> str:
+def _solve(
+    inputs: tuple[str, ...],
+    in_bounds: Callable[[Position], bool],
+    get: Callable[[Position], str],
+) -> str:
     code = str()
     start = Position.of(0, 0)
     for ins in inputs:
@@ -58,7 +65,7 @@ def _solve(inputs: tuple[str], in_bounds, get) -> str:
     return code
 
 
-def part_1(inputs: tuple[str]) -> str:
+def part_1(inputs: tuple[str, ...]) -> str:
     return _solve(
         inputs,
         lambda pos: (pos.x, pos.y) in KEYPAD_1,
@@ -66,7 +73,7 @@ def part_1(inputs: tuple[str]) -> str:
     )
 
 
-def part_2(inputs: tuple[str]) -> str:
+def part_2(inputs: tuple[str, ...]) -> str:
     return _solve(
         inputs,
         lambda pos: (pos.x, pos.y) in KEYPAD_2,
@@ -86,8 +93,8 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2016, 2)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == "1985"
-    assert part_2(TEST) == "5DB3"
+    assert part_1(TEST) == "1985"  # type:ignore[arg-type]
+    assert part_2(TEST) == "5DB3"  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 5)
     result1 = part_1(inputs)

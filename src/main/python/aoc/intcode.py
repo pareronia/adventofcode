@@ -31,23 +31,25 @@ class IntCode:
     def halted(self) -> bool:
         return self._halted
 
-    def run(
-        self, inputs: list[int] = [], outputs: list[int] = []
-    ) -> list[int]:
+    def run(self, inputs: list[int] = [], outputs: list[int] = []) -> None:
         return self._do_run(inputs, outputs)
 
-    def run_till_input_required(self, inputs: list[int], outputs: list[int]):
+    def run_till_input_required(
+        self, inputs: list[int], outputs: list[int]
+    ) -> None:
         self._run_till_input_required = True
         self._do_run(inputs, outputs)
 
-    def run_till_has_output(self, inputs: list[int], outputs: list[int]):
+    def run_till_has_output(
+        self, inputs: list[int], outputs: list[int]
+    ) -> None:
         self._run_till_has_output = True
         self._do_run(inputs, outputs)
 
-    def get_program(self) -> tuple[int]:
-        return tuple(self.prog)
+    def get_program(self) -> tuple[int, ...]:
+        return tuple(_ for _ in self.prog)
 
-    def _do_run(self, inputs: list[int], outputs: list[int]) -> list[int]:
+    def _do_run(self, inputs: list[int], outputs: list[int]) -> None:
         while True:
             op = self.prog[self.ip]
             opcode = op % 100
@@ -65,7 +67,7 @@ class IntCode:
                 self[addr[3]] = self[addr[1]] * self[addr[2]]
                 self.ip += 4
             elif opcode == INP:
-                if self.run_till_input_required and len(inputs) == 0:
+                if self._run_till_input_required and len(inputs) == 0:
                     self._run_till_input_required = False
                     return
                 self[addr[1]] = inputs.pop(0)
@@ -95,7 +97,7 @@ class IntCode:
             else:
                 raise ValueError(f"Invalid opcode '{opcode}'")
 
-    def _get_addr(self, modes: list[int]) -> dict[int]:
+    def _get_addr(self, modes: list[int]) -> dict[int, int]:
         addr = dict()
         try:
             for i in [1, 2, 3]:
@@ -117,7 +119,7 @@ class IntCode:
             return 0
         return self.prog[addr]
 
-    def __setitem__(self, addr: int, value: int):
+    def __setitem__(self, addr: int, value: int) -> None:
         assert addr >= 0
         size = len(self.prog)
         if addr >= size:

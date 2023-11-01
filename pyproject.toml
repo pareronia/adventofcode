@@ -11,3 +11,11 @@ skips = ["B101"]
 [[tool.mypy.overrides]]
 module = "aocd.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "prettyprinter.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "advent_of_code_ocr.*"
+ignore_missing_imports = true

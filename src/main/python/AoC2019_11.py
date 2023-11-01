@@ -19,18 +19,18 @@ FILL = "▒"
 EMPTY = " "
 
 
-def _parse(inputs: tuple[str]) -> tuple[int]:
+def _parse(inputs: tuple[str, ...]) -> list[int]:
     return [int(_) for _ in inputs[0].split(",")]
 
 
 def _paint(
-    ints: tuple[int], start: int
+    ints: list[int], start: int
 ) -> tuple[set[tuple[int, int]], set[tuple[int, int]]]:
     white = set[tuple[int, int]]()
     nav = NavigationWithHeading(Position.of(0, 0), Heading.NORTH)
     int_code = IntCode(ints)
     input = [start]
-    out = []
+    out: list[int] = []
     int_code.run_till_input_required(input, out)
     while True:
         if int_code.halted:
@@ -47,7 +47,7 @@ def _paint(
     return white, visited
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     _, visited = _paint(_parse(inputs), BLACK)
     return len(visited)
 
@@ -67,11 +67,12 @@ def _draw(positions: set[tuple[int, int]], fill: str, empty: str) -> list[str]:
     return list(reversed(strings))
 
 
-def part_2(inputs: tuple[str]) -> str:
+def part_2(inputs: tuple[str, ...]) -> str:
     white, _ = _paint(_parse(inputs), WHITE)
     drawing = _draw(white, FILL, EMPTY)
-    [log(_) for _ in drawing]
-    return convert_6(
+    for _ in drawing:
+        log(_)
+    return convert_6(  # type:ignore[no-any-return]
         "\n".join(drawing), fill_pixel=FILL, empty_pixel=EMPTY
     )
 

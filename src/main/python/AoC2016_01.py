@@ -9,7 +9,7 @@ from aoc.navigation import NavigationWithHeading, Heading
 from aoc.geometry import Position, Turn
 
 
-def _parse(inputs: tuple[str]) -> list[str]:
+def _parse(inputs: tuple[str, ...]) -> list[str]:
     assert len(inputs) == 1
     return inputs[0].split(", ")
 
@@ -23,13 +23,13 @@ def _navigate(steps: list[str]) -> NavigationWithHeading:
     return navigation
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     steps = _parse(inputs)
     navigation = _navigate(steps)
     return abs(navigation.position.x) + abs(navigation.position.y)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     steps = _parse(inputs)
     navigation = _navigate(steps)
     seen = set()
@@ -52,10 +52,10 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2016, 1)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST1) == 5
-    assert part_1(TEST2) == 2
-    assert part_1(TEST3) == 12
-    assert part_2(TEST4) == 4
+    assert part_1(TEST1) == 5  # type:ignore[arg-type]
+    assert part_1(TEST2) == 2  # type:ignore[arg-type]
+    assert part_1(TEST3) == 12  # type:ignore[arg-type]
+    assert part_2(TEST4) == 4  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 1)
     result1 = part_1(inputs)

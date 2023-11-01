@@ -14,11 +14,13 @@ def _count_unique_positions(positions: list[Position]) -> int:
     return len({(p.x, p.y) for p in positions})
 
 
-def _add_navigation_instruction(navigation: NavigationWithHeading, c: str):
+def _add_navigation_instruction(
+    navigation: NavigationWithHeading, c: str
+) -> None:
     navigation.drift(Heading.from_str(c), 1)
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     assert len(inputs) == 1
     navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
     for c in inputs[0]:
@@ -26,7 +28,7 @@ def part_1(inputs: tuple[str]) -> int:
     return _count_unique_positions(navigation.get_visited_positions(True))
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     assert len(inputs) == 1
     santa_navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
     robot_navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
@@ -50,12 +52,12 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2015, 3)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST1) == 2
-    assert part_1(TEST2) == 4
-    assert part_1(TEST3) == 2
-    assert part_2(TEST4) == 3
-    assert part_2(TEST2) == 3
-    assert part_2(TEST3) == 11
+    assert part_1(TEST1) == 2  # type:ignore[arg-type]
+    assert part_1(TEST2) == 4  # type:ignore[arg-type]
+    assert part_1(TEST3) == 2  # type:ignore[arg-type]
+    assert part_2(TEST4) == 3  # type:ignore[arg-type]
+    assert part_2(TEST2) == 3  # type:ignore[arg-type]
+    assert part_2(TEST3) == 11  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 1)
     result1 = part_1(inputs)

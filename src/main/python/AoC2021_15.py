@@ -3,7 +3,7 @@
 # Advent of Code 2021 Day 15
 #
 
-from collections.abc import Generator
+from collections.abc import Iterator
 from aoc import my_aocd
 from aoc.geometry import Direction
 from aoc.graph import a_star
@@ -14,7 +14,7 @@ START = (0, 0)
 Cell = tuple[int, int]
 
 
-def _parse(inputs: tuple[str]) -> IntGrid:
+def _parse(inputs: tuple[str, ...]) -> IntGrid:
     return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
 
@@ -31,7 +31,7 @@ def _get_risk(grid: IntGrid, row: int, col: int) -> int:
 
 def _find_neighbours(
     grid: IntGrid, tiles: int, seen: set[Cell], row: int, col: int
-) -> Generator[Cell, None, None]:
+) -> Iterator[Cell]:
     seen.add((row, col))
     return (
         (row + d.x, col + d.y)
@@ -56,12 +56,12 @@ def _solve(grid: IntGrid, tiles: int) -> int:
     return risk
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     grid = _parse(inputs)
     return _solve(grid, 1)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     grid = _parse(inputs)
     return _solve(grid, 5)
 

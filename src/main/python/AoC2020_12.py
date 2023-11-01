@@ -40,7 +40,7 @@ class NavigationInstruction(NamedTuple):
     value: int
 
 
-def _parse(inputs: tuple[str]) -> list[NavigationInstruction]:
+def _parse(inputs: tuple[str, ...]) -> list[NavigationInstruction]:
     return [
         NavigationInstruction(Action.from_str(i[0]), int(i[1:]))
         for i in inputs
@@ -60,7 +60,7 @@ def _navigate_with_heading(
         navigation.drift(heading=Heading[nav.action.name], amount=nav.value)
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     navs = _parse(inputs)
     navigation = NavigationWithHeading(
         position=Position(0, 0), heading=Heading.EAST
@@ -89,7 +89,7 @@ def _navigate_with_waypoint(
         raise ValueError("invalid input")
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     navs = _parse(inputs)
     start = Waypoint(10, 1)
     navigation = NavigationWithWaypoint(Position(0, 0), start)
@@ -112,10 +112,9 @@ F11
 def main() -> None:
     puzzle = aocd.models.Puzzle(2020, 12)
     my_aocd.print_header(puzzle.year, puzzle.day)
-    my_aocd.print_header(2020, 12)
 
-    assert part_1(TEST) == 25
-    assert part_2(TEST) == 286
+    assert part_1(TEST) == 25  # type:ignore[arg-type]
+    assert part_2(TEST) == 286  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 785)
     result1 = part_1(inputs)
