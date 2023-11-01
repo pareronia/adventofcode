@@ -141,10 +141,10 @@ class IntGrid(NamedTuple):
             lambda cell: self.get_value(cell) == value
         )
 
-    def get_max_row_index(self) -> int:
+    def get_max_col_index(self) -> int:
         return self.get_width() - 1
 
-    def get_max_col_index(self) -> int:
+    def get_max_row_index(self) -> int:
         return self.get_height() - 1
 
     def is_valid_row_index(self, row: int) -> bool:
@@ -154,6 +154,6 @@ class IntGrid(NamedTuple):
         return 0 <= col <= self.get_max_col_index()
 
     def is_in_bounds(self, cell: Cell) -> bool:
-        return self.is_valid_col_index(cell.row) and self.is_valid_col_index(
+        return self.is_valid_row_index(cell.row) and self.is_valid_col_index(
             cell.col
         )

@@ -47,7 +47,7 @@ def _find_neighbours(
 def _solve(grid: IntGrid, tiles: int) -> int:
     seen = set[Cell]()
     end = (tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
-    risk, _ = a_star(
+    risk, _, _ = a_star(
         START,
         lambda cell: cell == end,
         lambda cell: _find_neighbours(grid, tiles, seen, *cell),
