@@ -9,9 +9,8 @@ from aoc.navigation import NavigationWithHeading, Heading
 from aoc.geometry import Position
 
 
-# TODO: make geometry.Position hashable ?
 def _count_unique_positions(positions: list[Position]) -> int:
-    return len({(p.x, p.y) for p in positions})
+    return len({p for p in positions})
 
 
 def _add_navigation_instruction(

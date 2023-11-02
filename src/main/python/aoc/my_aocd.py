@@ -4,7 +4,7 @@ import aocd
 from typing import Any
 
 
-def to_blocks(inputs: tuple[str]) -> list[list[str]]:
+def to_blocks(inputs: tuple[str, ...]) -> list[list[str]]:
     blocks = list[list[str]]()
     idx = 0
     blocks.append([])

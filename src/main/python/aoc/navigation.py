@@ -3,7 +3,6 @@ from collections.abc import Callable
 from enum import Enum, unique
 from copy import deepcopy
 from aoc.geometry import Position, Vector, Direction, Turn
-from dataclasses import dataclass
 
 
 @unique
@@ -36,9 +35,7 @@ class Heading(Enum):
         return Heading.from_direction(self.value.turn(turn))
 
 
-@dataclass
-class Waypoint(Vector):
-    pass
+Waypoint = Vector
 
 
 class Navigation:
@@ -63,7 +60,7 @@ class Navigation:
     def _translate(self, vector: Vector, amount: int) -> None:
         new_position = Position.copy(self._position)
         for _ in range(amount):
-            new_position.translate(vector=vector, amplitude=1)
+            new_position = new_position.translate(vector=vector, amplitude=1)
             if self._in_bounds(new_position):
                 self._position = Position.copy(new_position)
         self._remember_visited_position(self._position)
@@ -135,13 +132,13 @@ class NavigationWithWaypoint(Navigation):
         )
 
     def right(self, degrees: int) -> None:
-        self.waypoint.rotate(degrees)
+        self.waypoint = self.waypoint.rotate(degrees)
 
     def left(self, degrees: int) -> None:
-        self.waypoint.rotate(-degrees)
+        self.waypoint = self.waypoint.rotate(-degrees)
 
     def forward(self, amount: int) -> None:
         self._translate(vector=self.waypoint, amount=amount)
 
     def update_waypoint(self, heading: Heading, amount: int) -> None:
-        self.waypoint.add(heading.vector, amplitude=amount)
+        self.waypoint = self.waypoint.add(heading.vector, amplitude=amount)

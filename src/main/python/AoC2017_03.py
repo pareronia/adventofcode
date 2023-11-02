@@ -2,14 +2,14 @@
 #
 # Advent of Code 2017 Day 3
 #
-from collections.abc import Generator
+from collections.abc import Iterator
 from aoc import my_aocd
 from aoc.geometry import Position, Direction
 import aocd
 
 
 class DirectionsAndPeriods:
-    def __init__(self):
+    def __init__(self) -> None:
         self.periods = [1, 1, 2, 2]
         self.directions = [
             Direction.RIGHT,
@@ -26,12 +26,12 @@ class DirectionsAndPeriods:
         return direction, period
 
 
-def _parse(inputs: tuple[str]) -> int:
+def _parse(inputs: tuple[str, ...]) -> int:
     assert len(inputs) == 1
     return int(inputs[0])
 
 
-def _coordinates() -> Generator[tuple[int, int]]:
+def _coordinates() -> Iterator[tuple[int, int]]:
     x = y = j = k = 0
     directions_and_periods = DirectionsAndPeriods()
     direction, period = directions_and_periods.apply(k)
@@ -47,7 +47,7 @@ def _coordinates() -> Generator[tuple[int, int]]:
         yield (x, y)
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     square = _parse(inputs)
     if square == 1:
         return 0
@@ -61,7 +61,7 @@ def part_1(inputs: tuple[str]) -> int:
     raise ValueError
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     square = _parse(inputs)
     if square == 1:
         return 1
