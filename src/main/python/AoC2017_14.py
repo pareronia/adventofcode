@@ -3,11 +3,11 @@
 # Advent of Code 2017 Day 14
 #
 
-from collections import deque
 from collections.abc import Iterator
 from aoc import my_aocd
 from aoc.knothash import KnotHash
 from aoc.grid import IntGrid, Cell
+from aoc.graph import flood_fill
 
 import aocd
 
@@ -20,16 +20,14 @@ def _hashes(input_: str) -> Iterator[str]:
 
 
 def _find_region(grid: IntGrid, start: Cell) -> set[Cell]:
-    seen = set[Cell]()
-    q = deque[Cell]()
-    q.append(start)
-    while len(q) > 0:
-        cell = q.popleft()
-        for n in grid.get_capital_neighbours(cell):
-            if grid.get_value(n) == ON and n not in seen:
-                q.append(n)
-                seen.add(n)
-    return seen
+    return flood_fill(
+        start,
+        lambda cell: (
+            c
+            for c in grid.get_capital_neighbours(cell)
+            if grid.get_value(c) == ON
+        ),
+    )
 
 
 def part_1(inputs: tuple[str, ...]) -> int:

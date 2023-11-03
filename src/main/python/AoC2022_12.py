@@ -2,62 +2,63 @@
 #
 # Advent of Code 2022 Day 12
 #
-
-from collections import deque
-from itertools import product
-from typing import Callable
+# TODO CharGrid
 
 import aocd
+from itertools import product
+from typing import Iterator
 from aoc import my_aocd
 from aoc.common import log
+from aoc.graph import bfs
 
 Cell = tuple[int, int]
+DIRS = [
+    (-1, 0),
+    (1, 0),
+    (0, -1),
+    (0, 1),
+]
 
 
-def _solve(inputs: tuple[str], is_end: Callable[[bool], Cell]) -> int:
-    def get_value(cell: Cell) -> int:
-        ch = inputs[cell[0]][cell[1]]
-        return ord("a") if ch == "S" else ord("z") if ch == "E" else ord(ch)
-
+def _solve(inputs: tuple[str, ...], end_points: set[str]) -> int:
     height = len(inputs)
     width = len(inputs[0])
+
+    def is_end(cell: Cell) -> bool:
+        return inputs[cell[0]][cell[1]] in end_points
+
+    def adjacent(cell: Cell) -> Iterator[Cell]:
+        def get_value(cell: Cell) -> int:
+            ch = inputs[cell[0]][cell[1]]
+            return (
+                ord("a") if ch == "S" else ord("z") if ch == "E" else ord(ch)
+            )
+
+        r, c = cell
+        for dr, dc in DIRS:
+            rr, cc = r + dr, c + dc
+            if (
+                0 <= rr < height
+                and 0 <= cc < width
+                and get_value((r, c)) - get_value((rr, cc)) <= 1
+            ):
+                yield (rr, cc)
+
     start = [
         (r, c)
         for r, c in product(range(height), range(width))
         if inputs[r][c] == "E"
     ][0]
     log(f"start: {start}")
-    q = deque[tuple[Cell, int]]()
-    q.append((start, 0))
-    seen = set[Cell]()
-    seen.add(start)
-    while q:
-        (r, c), d = q.popleft()
-        if is_end((r, c)):
-            log(f"end: {(r, c)}")
-            return d
-        for rr, cc in [(r + 1, c), (r - 1, c), (r, c + 1), (r, c - 1)]:
-            if rr < 0 or rr >= height or cc < 0 or cc >= width:
-                continue
-            if (rr, cc) in seen:
-                continue
-            if get_value((r, c)) - get_value((rr, cc)) > 1:
-                continue
-            seen.add((rr, cc))
-            q.append(((rr, cc), d + 1))
-    raise ValueError("Unsolvable")
+    return bfs(start, is_end, adjacent)
 
 
-def part_1(inputs: tuple[str]) -> int:
-    return _solve(inputs, lambda cell: inputs[cell[0]][cell[1]] == "S")
+def part_1(inputs: tuple[str, ...]) -> int:
+    return _solve(inputs, {"S"})
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return _solve(
-        inputs,
-        lambda cell: inputs[cell[0]][cell[1]] == "S"
-        or inputs[cell[0]][cell[1]] == "a",
-    )
+def part_2(inputs: tuple[str, ...]) -> int:
+    return _solve(inputs, {"S", "a"})
 
 
 TEST = """\
@@ -73,8 +74,8 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2022, 12)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == 31
-    assert part_2(TEST) == 29
+    assert part_1(TEST) == 31  # type:ignore[arg-type]
+    assert part_2(TEST) == 29  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 41)
     result1 = part_1(inputs)
