@@ -2,55 +2,29 @@
 #
 # Advent of Code 2022 Day 12
 #
-# TODO CharGrid
 
 import aocd
-from itertools import product
-from typing import Iterator
 from aoc import my_aocd
-from aoc.common import log
 from aoc.graph import bfs
-
-Cell = tuple[int, int]
-DIRS = [
-    (-1, 0),
-    (1, 0),
-    (0, -1),
-    (0, 1),
-]
+from aoc.grid import CharGrid, Cell
 
 
 def _solve(inputs: tuple[str, ...], end_points: set[str]) -> int:
-    height = len(inputs)
-    width = len(inputs[0])
+    grid = CharGrid([_ for _ in inputs])
 
-    def is_end(cell: Cell) -> bool:
-        return inputs[cell[0]][cell[1]] in end_points
+    def get_value(cell: Cell) -> int:
+        ch = grid.get_value(cell)
+        return ord("a") if ch == "S" else ord("z") if ch == "E" else ord(ch)
 
-    def adjacent(cell: Cell) -> Iterator[Cell]:
-        def get_value(cell: Cell) -> int:
-            ch = inputs[cell[0]][cell[1]]
-            return (
-                ord("a") if ch == "S" else ord("z") if ch == "E" else ord(ch)
-            )
-
-        r, c = cell
-        for dr, dc in DIRS:
-            rr, cc = r + dr, c + dc
-            if (
-                0 <= rr < height
-                and 0 <= cc < width
-                and get_value((r, c)) - get_value((rr, cc)) <= 1
-            ):
-                yield (rr, cc)
-
-    start = [
-        (r, c)
-        for r, c in product(range(height), range(width))
-        if inputs[r][c] == "E"
-    ][0]
-    log(f"start: {start}")
-    return bfs(start, is_end, adjacent)
+    return bfs(
+        next(grid.get_all_equal_to("E")),
+        lambda cell: grid.get_value(cell) in end_points,
+        lambda cell: (
+            n
+            for n in grid.get_capital_neighbours(cell)
+            if get_value(cell) - get_value(n) <= 1
+        ),
+    )
 
 
 def part_1(inputs: tuple[str, ...]) -> int:

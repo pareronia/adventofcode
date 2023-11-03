@@ -1,8 +1,12 @@
 from __future__ import annotations
 from collections.abc import Iterator
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum, unique
-from typing import NamedTuple, Callable
+from typing import NamedTuple, Callable, TypeVar, Generic
 from aoc.geometry import Direction
+
+T = TypeVar("T")
 
 
 class Cell(NamedTuple):
@@ -38,8 +42,8 @@ class IterDir(Enum):
 
 
 class GridIterator(Iterator[Cell]):
-    def __init__(self, grid: IntGrid, next: Cell, direction: IterDir):
-        self.grid: IntGrid = grid
+    def __init__(self, grid: Grid[T], next: Cell, direction: IterDir):
+        self.grid: Grid[T] = grid
         self.next: Cell | None = next
         self.direction: IterDir = direction
 
@@ -78,31 +82,29 @@ class GridIterator(Iterator[Cell]):
             return self.next
 
 
-# TODO numpy?
-class IntGrid(NamedTuple):
-    values: list[list[int]]
-
+class Grid(ABC, Generic[T]):
+    @abstractmethod
     def get_width(self) -> int:
-        assert len(self.values) > 0
-        return len(self.values[0])
+        pass
 
+    @abstractmethod
     def get_height(self) -> int:
-        return len(self.values)
+        pass
+
+    @abstractmethod
+    def get_value(self, c: Cell) -> T:
+        pass
+
+    @abstractmethod
+    def get_value_at(self, row: int, col: int) -> T:
+        pass
+
+    @abstractmethod
+    def set_value(self, c: Cell, value: T) -> None:
+        pass
 
     def size(self) -> int:
         return self.get_height() * self.get_width()
-
-    def get_value(self, c: Cell) -> int:
-        return self.values[c.row][c.col]
-
-    def get_value_at(self, row: int, col: int) -> int:
-        return self.values[row][col]
-
-    def set_value(self, c: Cell, value: int) -> None:
-        self.values[c.row][c.col] = value
-
-    def increment(self, c: Cell) -> None:
-        self.values[c.row][c.col] += 1
 
     def get_cells(self) -> Iterator[Cell]:
         return (
@@ -136,7 +138,7 @@ class IntGrid(NamedTuple):
     ) -> Iterator[Cell]:
         return (cell for cell in self.get_cells() if predicate(cell))
 
-    def get_all_equal_to(self, value: int) -> Iterator[Cell]:
+    def get_all_equal_to(self, value: T) -> Iterator[Cell]:
         return self.find_all_matching(
             lambda cell: self.get_value(cell) == value
         )
@@ -157,3 +159,48 @@ class IntGrid(NamedTuple):
         return self.is_valid_row_index(cell.row) and self.is_valid_col_index(
             cell.col
         )
+
+
+@dataclass(frozen=True)
+class IntGrid(Grid[int]):
+    values: list[list[int]]
+
+    def get_width(self) -> int:
+        assert len(self.values) > 0
+        return len(self.values[0])
+
+    def get_height(self) -> int:
+        return len(self.values)
+
+    def get_value(self, c: Cell) -> int:
+        return self.values[c.row][c.col]
+
+    def get_value_at(self, row: int, col: int) -> int:
+        return self.values[row][col]
+
+    def set_value(self, c: Cell, value: int) -> None:
+        self.values[c.row][c.col] = value
+
+    def increment(self, c: Cell) -> None:
+        self.values[c.row][c.col] += 1
+
+
+@dataclass(frozen=True)
+class CharGrid(Grid[str]):
+    values: list[list[str]]
+
+    def get_width(self) -> int:
+        assert len(self.values) > 0
+        return len(self.values[0])
+
+    def get_height(self) -> int:
+        return len(self.values)
+
+    def get_value(self, c: Cell) -> str:
+        return self.values[c.row][c.col]
+
+    def get_value_at(self, row: int, col: int) -> str:
+        return self.values[row][col]
+
+    def set_value(self, c: Cell, value: str) -> None:
+        self.values[c.row][c.col] = value
