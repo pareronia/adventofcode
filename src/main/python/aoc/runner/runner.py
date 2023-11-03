@@ -198,6 +198,10 @@ def run_for(
     hide_missing=False,
 ) -> int:
     def _get_expected(puzzle, part, result, autosubmit):
+        if puzzle.user.token.startswith("offline|"):
+            answer_fname = getattr(puzzle, f"answer_{part}_fname")
+            if not os.path.exists(answer_fname):
+                return None
         expected = None
         try:
             expected = getattr(puzzle, "answer_" + part)
@@ -266,14 +270,20 @@ def run_for(
         progress = "{}/{:<2d} - {:<39}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
         progress = progress.format(year, day, title, plugin[0], dataset)
-        result_a, result_b, walltime, error = run_one(
-            year=year,
-            day=day,
-            input_data=puzzle.input_data,
-            plugin=plugin,
-            timeout=timeout,
-            progress=progress,
-        )
+        if token.startswith("offline|") \
+                and not os.path.exists(puzzle.input_data_fname):
+            result_a, result_b, walltime, error = (
+                Result.missing(), Result.missing(), 0, None
+            )
+        else:
+            result_a, result_b, walltime, error = run_one(
+                year=year,
+                day=day,
+                input_data=puzzle.input_data,
+                plugin=plugin,
+                timeout=timeout,
+                progress=progress,
+            )
         time = (0 if result_a.duration is None else result_a.duration / 1e9) \
             + (0 if result_b.duration is None else result_b.duration / 1e9)
         runtime = format_time(time, timeout)
