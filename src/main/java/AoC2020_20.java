@@ -401,11 +401,11 @@ public class AoC2020_20 extends AoCBase {
 		}
 		
 		private boolean haveCommonEdge(final Tile tile1, final Tile tile2) {
-			return getEdgesForMatching(tile1).stream()
+		    return tile1.getAllEdges().stream()
 				.flatMap(edge1 -> getEdgesForMatching(tile2).stream()
 									.map(edge2 -> new char[][] { edge1, edge2 }))
 				.filter(p -> Arrays.equals(p[0], p[1]))
-				.count() == 2;
+				.count() == 1;
 		}
 		
 		public Set<Tile> findCorners() {
@@ -504,16 +504,18 @@ public class AoC2020_20 extends AoCBase {
 	
 	static final class NessieFinder {
 		
-		private static final char NESSIE_CHAR = '\u2592';
+		private static final Pattern PATTERN2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#");
+        private static final Pattern PATTERN1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#");
+        private static final char NESSIE_CHAR = '\u2592';
 
 		public static Map<Integer,Integer> findNessies(final CharGrid grid) {
 			final Map<Integer, Integer> nessies = new HashMap<>();
 			for (int i = 1; i < grid.getHeight(); i++) {
-				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.getRowAsString(i));
+				final Matcher m1 = PATTERN1.matcher(grid.getRowAsString(i));
 				while (m1.find()) {
 					final int tail = m1.start(0);
 					if ("#".equals(grid.getRowAsString(i - 1).substring(tail + 18, tail + 19))) {
-						final Matcher m2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#")
+						final Matcher m2 = PATTERN2
 								.matcher(grid.getRowAsString(i + 1).substring(tail));
 						if (m2.find()) {
 							nessies.put(i, tail);
