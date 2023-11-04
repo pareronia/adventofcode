@@ -274,7 +274,9 @@ def run_for(
                 correction = f"(expected: {expected})"
             answer = f"{result.answer[:cutoff]} {correction}"
         else:
-            raise ValueError("Invalid state")
+            raise ValueError(
+                f"Invalid state: {result=} {correct=} {expected=} {error=}"
+            )
         return icon, answer
 
     aoc_now = datetime.now(tz=AOC_TZ)
