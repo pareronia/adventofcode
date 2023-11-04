@@ -19,34 +19,32 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import pebble
 import itertools
-import time
-import sys
-import os
-import tempfile
 import logging
-import json
+import os
+import sys
+import tempfile
+import time
 from argparse import ArgumentParser
 from collections import OrderedDict
 from datetime import datetime
-from termcolor import colored
-from dateutil.tz import gettz
 from typing import Any
-from aocd.exceptions import AocdError
-from aocd.models import AOCD_CONFIG_DIR
-from aocd.models import Puzzle
-from aocd.models import default_user
+
+import pebble
+from dateutil.tz import gettz
+from termcolor import colored
+
 from . import Result
+from .aocd import AocdHelper
+from .aocd import Puzzle
+from .bash import Bash
 from .config import config
+from .cpp import Cpp
+from .java import Java
+from .julia import Julia
 from .plugin import Plugin
 from .py import Py
-from .java import Java
-from .bash import Bash
-from .cpp import Cpp
-from .julia import Julia
 from .rust import Rust
-
 
 DEFAULT_TIMEOUT = config.default_timeout
 AOC_TZ = gettz("America/New_York")
@@ -64,22 +62,10 @@ all_plugins = OrderedDict(
 
 
 def main() -> None:
-    def _tokens_path() -> str:
-        return os.path.join(AOCD_CONFIG_DIR, "tokens.json")
-
-    def _load_users() -> dict[str, str] | Any:
-        path = _tokens_path()  # os.path.join(AOCD_CONFIG_DIR, "tokens.json")
-        try:
-            with open(path) as f:
-                users = json.load(f)
-        except IOError:
-            users = {"default": default_user().token}
-        return users
-
     aoc_now = datetime.now(tz=AOC_TZ)
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
-    users = _load_users()
+    users = AocdHelper.load_users()
     log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
     parser = ArgumentParser(description="AoC runner")
     parser.add_argument(
@@ -97,14 +83,14 @@ def main() -> None:
     )
     parser.add_argument("--log-level", default="WARNING", choices=log_levels)
     args = parser.parse_args()
-    if not users:
-        print(
-            "There are no datasets available to use.\n"
-            "Either export your AOC_SESSION or put some auth "
-            "tokens into {}".format(_tokens_path()),
-            file=sys.stderr,
-        )
-        sys.exit(1)
+    # if not users:
+    #     print(
+    #         "There are no datasets available to use.\n"
+    #         "Either export your AOC_SESSION or put some auth "
+    #         "tokens into {}".format(AocdHelper._tokens_path()),
+    #         file=sys.stderr,
+    #     )
+    #     sys.exit(1)
     logging.basicConfig(level=getattr(logging, args.log_level))
     plugins = OrderedDict(
         {k: all_plugins[k] for k in args.plugins or all_plugins}
@@ -218,33 +204,6 @@ def run_for(
     autosubmit: bool = True,
     hide_missing: bool = False,
 ) -> int:
-    def _get_expected(
-        puzzle: Puzzle, part: str, result: Result, autosubmit: bool
-    ) -> str | None:
-        if puzzle.user.token.startswith("offline|"):
-            answer_fname = getattr(puzzle, f"answer_{part}_fname")
-            if not os.path.exists(answer_fname):
-                return None
-        expected = None
-        try:
-            expected = getattr(puzzle, "answer_" + part)
-        except AttributeError:
-            post = result.is_ok and (
-                part == "a" or (part == "b" and puzzle.answered_a)
-            )
-            if autosubmit and post:
-                try:
-                    puzzle._submit(
-                        result.answer, part, reopen=False, quiet=True
-                    )
-                except AocdError as err:
-                    log.warning("error submitting - %s", err)
-                try:
-                    expected = getattr(puzzle, "answer_" + part)
-                except AttributeError:
-                    pass
-        return expected
-
     def _get_icon_and_answer(
         result: Result | None,
         correct: bool | None,
@@ -295,16 +254,16 @@ def run_for(
         if year == aoc_now.year and day > aoc_now.day:
             continue
         token = datasets[dataset]
-        os.environ["AOC_SESSION"] = token
-        puzzle = Puzzle(year=year, day=day)
+        puzzle = Puzzle.create(
+            year=year, day=day, token=token, autosubmit=autosubmit
+        )
         title = puzzle.title
         progress = "{}/{:<2d} - {:<39}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
         progress = progress.format(year, day, title, plugin[0], dataset)
         walltime = 0.0
-        if token.startswith("offline|") and not os.path.exists(
-            puzzle.input_data_fname
-        ):
+        input_data = puzzle.input_data
+        if input_data is None:
             result_a, result_b, walltime, error = (
                 Result.missing(),
                 Result.missing(),
@@ -315,7 +274,7 @@ def run_for(
             result_a, result_b, walltime, error = run_one(
                 year=year,
                 day=day,
-                input_data=puzzle.input_data,
+                input_data=input_data,
                 plugin=plugin,
                 timeout=timeout,
                 progress=progress,
@@ -344,7 +303,7 @@ def run_for(
                         result, None, None, None
                     )
                 else:
-                    expected = _get_expected(puzzle, part, result, autosubmit)
+                    expected = puzzle.get_expected(part, result.answer)
                     correct = (
                         expected is not None and str(expected) == result.answer
                     )
