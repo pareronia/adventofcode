@@ -206,7 +206,7 @@ public class AoC2016_22 extends AoCBase {
                 .collect(toSet());
         assertTrue(holeYs.size() == 1, () -> "Expected all unusable nodes in 1 row");
         final Integer holeY = holeYs.iterator().next();
-        if (holeY <= 2) {
+        if (holeY <= 1) {
             throw new IllegalStateException("Unsolvable");
         }
         assertFalse(unusableNodes.stream()
@@ -230,7 +230,7 @@ public class AoC2016_22 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-         return solve2Cheat();
+        return solve2Cheat();
     }
     
     public static void main(final String[] args) throws Exception {
