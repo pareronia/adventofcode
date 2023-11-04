@@ -32,12 +32,14 @@ from collections import OrderedDict
 from datetime import datetime
 from termcolor import colored
 from dateutil.tz import gettz
+from typing import Any
 from aocd.exceptions import AocdError
 from aocd.models import AOCD_CONFIG_DIR
 from aocd.models import Puzzle
 from aocd.models import default_user
 from . import Result
 from .config import config
+from .plugin import Plugin
 from .py import Py
 from .java import Java
 from .bash import Bash
@@ -49,20 +51,23 @@ from .rust import Rust
 DEFAULT_TIMEOUT = config.default_timeout
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
-all_plugins = OrderedDict({"py": Py(),
-                           "java": Java(),
-                           "bash": Bash(),
-                           "cpp": Cpp(),
-                           "julia": Julia(),
-                           "rust": Rust(),
-                           })
+all_plugins = OrderedDict(
+    {
+        "py": Py(),
+        "java": Java(),
+        "bash": Bash(),
+        "cpp": Cpp(),
+        "julia": Julia(),
+        "rust": Rust(),
+    }
+)
 
 
-def main():
-    def _tokens_path():
+def main() -> None:
+    def _tokens_path() -> str:
         return os.path.join(AOCD_CONFIG_DIR, "tokens.json")
 
-    def _load_users():
+    def _load_users() -> dict[str, str] | Any:
         path = _tokens_path()  # os.path.join(AOCD_CONFIG_DIR, "tokens.json")
         try:
             with open(path) as f:
@@ -77,16 +82,19 @@ def main():
     users = _load_users()
     log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
     parser = ArgumentParser(description="AoC runner")
-    parser.add_argument("-p", "--plugins", nargs="+",
-                        choices=all_plugins.keys())
+    parser.add_argument(
+        "-p", "--plugins", nargs="+", choices=all_plugins.keys()
+    )
     parser.add_argument("-y", "--years", type=int, nargs="+", choices=years)
     parser.add_argument("-d", "--days", type=int, nargs="+", choices=days)
     parser.add_argument("-u", "--users", nargs="+", choices=users)
     parser.add_argument("-t", "--timeout", type=int, default=DEFAULT_TIMEOUT)
-    parser.add_argument("-s", "--no-submit", action="store_true",
-                        help="disable autosubmit")
-    parser.add_argument("-m", "--hide-missing", action="store_true",
-                        help="hide missing")
+    parser.add_argument(
+        "-s", "--no-submit", action="store_true", help="disable autosubmit"
+    )
+    parser.add_argument(
+        "-m", "--hide-missing", action="store_true", help="hide missing"
+    )
     parser.add_argument("--log-level", default="WARNING", choices=log_levels)
     args = parser.parse_args()
     if not users:
@@ -98,8 +106,9 @@ def main():
         )
         sys.exit(1)
     logging.basicConfig(level=getattr(logging, args.log_level))
-    plugins = OrderedDict({k: all_plugins[k]
-                           for k in args.plugins or all_plugins})
+    plugins = OrderedDict(
+        {k: all_plugins[k] for k in args.plugins or all_plugins}
+    )
     for p in plugins:
         plugins[p].start()
     try:
@@ -118,19 +127,25 @@ def main():
     sys.exit(rc)
 
 
-def run_with_timeout(plugin, timeout, progress, dt=0.005, **kwargs):
+def run_with_timeout(  # type:ignore[no-untyped-def]
+    plugin: tuple[str, Plugin],
+    timeout: int,
+    progress: str | None,
+    dt: float = 0.005,
+    **kwargs,
+) -> tuple[Result, Result, float, str]:
     # TO_DO : multi-process over the different tokens
     spinner = itertools.cycle(r"\|/-")
     pool = pebble.ProcessPool(max_workers=1)
     line = elapsed = format_time(0)
     with pool:
         t0 = time.time()
-        future = pool.schedule(
-            plugin[1].run, kwargs=kwargs, timeout=timeout)
+        future = pool.schedule(plugin[1].run, kwargs=kwargs, timeout=timeout)
         while not future.done():
             if progress is not None:
-                line = "\r" + elapsed + "   " + progress \
-                        + "   " + next(spinner)
+                line = (
+                    "\r" + elapsed + "   " + progress + "   " + next(spinner)
+                )
                 sys.stderr.write(line)
                 sys.stderr.flush()
             time.sleep(dt)
@@ -150,7 +165,7 @@ def run_with_timeout(plugin, timeout, progress, dt=0.005, **kwargs):
     return result_a, result_b, walltime, error
 
 
-def format_time(t, timeout=DEFAULT_TIMEOUT):
+def format_time(t: float, timeout: float = DEFAULT_TIMEOUT) -> str:
     if t < timeout / 4:
         color = "green"
     elif t < timeout / 2:
@@ -164,8 +179,14 @@ def format_time(t, timeout=DEFAULT_TIMEOUT):
     return runtime
 
 
-def run_one(year, day, input_data, plugin,
-            timeout=DEFAULT_TIMEOUT, progress=None):
+def run_one(
+    year: int,
+    day: int,
+    input_data: str,
+    plugin: tuple[str, Plugin],
+    timeout: int = DEFAULT_TIMEOUT,
+    progress: str | None = None,
+) -> tuple[Result, Result, float, str]:
     prev = os.getcwd()
     scratch = tempfile.mkdtemp(prefix="{}-{:02d}-".format(year, day))
     os.chdir(scratch)
@@ -189,15 +210,17 @@ def run_one(year, day, input_data, plugin,
 
 
 def run_for(
-    plugins,
-    years,
-    days,
-    datasets,
-    timeout=DEFAULT_TIMEOUT,
-    autosubmit=True,
-    hide_missing=False,
+    plugins: OrderedDict[str, Plugin],
+    years: Any,
+    days: Any,
+    datasets: dict[str, str],
+    timeout: int = DEFAULT_TIMEOUT,
+    autosubmit: bool = True,
+    hide_missing: bool = False,
 ) -> int:
-    def _get_expected(puzzle, part, result, autosubmit):
+    def _get_expected(
+        puzzle: Puzzle, part: str, result: Result, autosubmit: bool
+    ) -> str | None:
         if puzzle.user.token.startswith("offline|"):
             answer_fname = getattr(puzzle, f"answer_{part}_fname")
             if not os.path.exists(answer_fname):
@@ -206,13 +229,14 @@ def run_for(
         try:
             expected = getattr(puzzle, "answer_" + part)
         except AttributeError:
-            post = (result.is_ok
-                    and (part == "a"
-                         or (part == "b" and puzzle.answered_a)))
+            post = result.is_ok and (
+                part == "a" or (part == "b" and puzzle.answered_a)
+            )
             if autosubmit and post:
                 try:
-                    puzzle._submit(result.answer, part,
-                                   reopen=False, quiet=True)
+                    puzzle._submit(
+                        result.answer, part, reopen=False, quiet=True
+                    )
                 except AocdError as err:
                     log.warning("error submitting - %s", err)
                 try:
@@ -221,22 +245,27 @@ def run_for(
                     pass
         return expected
 
-    def _get_icon_and_answer(result, correct, expected, error):
+    def _get_icon_and_answer(
+        result: Result | None,
+        correct: bool | None,
+        expected: str | None,
+        error: str | None,
+    ) -> tuple[str, str]:
         # longest correct answer seen so far has been 32 chars
         cutoff = 50
         if error:
             icon = colored("❌", "red")
             answer = error[:cutoff]
-        elif result.is_missing:
+        elif result and result.is_missing:
             icon = "⭕"
             answer = "- missing -"
-        elif result.is_skipped:
+        elif result and result.is_skipped:
             icon = "⌚"
             answer = "- skipped -"
-        elif correct:
+        elif result and result.answer and correct:
             icon = colored("✅", "green")
             answer = f"{result.answer[:cutoff]}"
-        elif not correct:
+        elif result and result.answer and not correct:
             if expected is None:
                 icon = colored("?", "magenta")
                 correction = "(correct answer unknown)"
@@ -258,8 +287,8 @@ def run_for(
         userpad = len(max(plugins.keys(), key=len))
     if datasets:
         datasetpad = len(max(datasets, key=len))
-    total_time = 0
-    total_walltime = 0
+    total_time = 0.0
+    total_walltime = 0.0
     for year, day, plugin, dataset in it:
         if year == aoc_now.year and day > aoc_now.day:
             continue
@@ -270,10 +299,15 @@ def run_for(
         progress = "{}/{:<2d} - {:<39}   {:>%d}/{:<%d}"
         progress %= (userpad, datasetpad)
         progress = progress.format(year, day, title, plugin[0], dataset)
-        if token.startswith("offline|") \
-                and not os.path.exists(puzzle.input_data_fname):
+        walltime = 0.0
+        if token.startswith("offline|") and not os.path.exists(
+            puzzle.input_data_fname
+        ):
             result_a, result_b, walltime, error = (
-                Result.missing(), Result.missing(), 0, None
+                Result.missing(),
+                Result.missing(),
+                0,
+                None,
             )
         else:
             result_a, result_b, walltime, error = run_one(
@@ -284,8 +318,9 @@ def run_for(
                 timeout=timeout,
                 progress=progress,
             )
-        time = (0 if result_a.duration is None else result_a.duration / 1e9) \
-            + (0 if result_b.duration is None else result_b.duration / 1e9)
+        time = (
+            0 if result_a.duration is None else result_a.duration / 1e9
+        ) + (0 if result_b.duration is None else result_b.duration / 1e9)
         runtime = format_time(time, timeout)
         total_time += time
         total_walltime += walltime
@@ -304,13 +339,16 @@ def run_for(
                     continue
                 if result.is_missing or result.is_skipped:
                     icon, answer = _get_icon_and_answer(
-                        result, None, None, None)
+                        result, None, None, None
+                    )
                 else:
                     expected = _get_expected(puzzle, part, result, autosubmit)
-                    correct = expected is not None \
-                        and str(expected) == result.answer
+                    correct = (
+                        expected is not None and str(expected) == result.answer
+                    )
                     icon, answer = _get_icon_and_answer(
-                        result, correct, expected, None)
+                        result, correct, expected, None
+                    )
                     if not correct:
                         n_incorrect += 1
                 if part == "a":
@@ -318,10 +356,13 @@ def run_for(
                 line += f"   {icon} part {part}: {answer}"
         print(line)
     print()
-    print("Total run time: {:8.4f}s\nTook: {:8.4f}s"
-          .format(total_time, total_walltime))
+    print(
+        "Total run time: {:8.4f}s\nTook: {:8.4f}s".format(
+            total_time, total_walltime
+        )
+    )
     return n_incorrect
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

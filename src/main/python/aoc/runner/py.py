@@ -6,7 +6,7 @@ from .config import config
 
 
 class Py(Plugin):
-    def run(self, year: int, day: int, data: str):
+    def run(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         def skip_part(part: int) -> bool:
             return (
                 "skip" in config.py
@@ -22,7 +22,7 @@ class Py(Plugin):
                 start = time.time()
                 answer = call(inputs)
                 duration = (time.time() - start) * 1e9
-                return Result.ok(answer, duration)
+                return Result.ok(answer, int(duration))
 
         day_mod_name = config.py["day_format"].format(year=year, day=day)
         self.log.debug(day_mod_name)

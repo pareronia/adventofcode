@@ -19,3 +19,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "advent_of_code_ocr.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "pebble.*"
+ignore_missing_imports = true

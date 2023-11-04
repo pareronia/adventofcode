@@ -7,12 +7,12 @@ from . import Result
 from .plugin import Plugin
 from .config import config
 
-proc: subprocess.Popen
+proc: subprocess.Popen  # type:ignore[type-arg]
 
 
 class Julia(Plugin):
 
-    def _julia(self, year: int, day: int, data: str):
+    def _julia(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         def run_part(part: int) -> Result:
             file_name = config.julia['day_format'].format(year=year, day=day) \
                     + config.julia['ext']
@@ -38,7 +38,7 @@ class Julia(Plugin):
 
         return run_part(1), run_part(2)
 
-    def start_julia(self):
+    def start_julia(self) -> None:
         global proc
         proc = subprocess.Popen(  # nosec
             config.julia['server']['command'],
@@ -67,7 +67,7 @@ class Julia(Plugin):
         if cnt == retries:
             raise RuntimeError("No response from Julia")
 
-    def stop_julia(self):
+    def stop_julia(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((config.julia['server']['host'],
                        config.julia['server']['port']))
@@ -80,11 +80,11 @@ class Julia(Plugin):
             except subprocess.TimeoutExpired:
                 proc.terminate()
 
-    def start(self):
+    def start(self) -> None:
         self.log.debug("Starting")
         self.start_julia()
 
-    def run(self, year: int, day: int, data: str):
+    def run(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         def run_part(part: int) -> Result:
             input_file = os.path.abspath(config.scratch_file)
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -96,10 +96,10 @@ class Julia(Plugin):
                 s.send(f'{input_file}\r\n'.encode('UTF-8'))
                 s.send(b'END\r\n')
                 data = s.recv(1024)
-            result = data.decode('UTF-8').rstrip()
-            self.log.debug(f"Result: {result}")
-            if result:
-                result = json.loads(result)
+            result_ = data.decode('UTF-8').rstrip()
+            self.log.debug(f"Result: {result_}")
+            if result_:
+                result = json.loads(result_)
                 return Result.ok(
                     result["part" + str(part)]["answer"],
                     result["part" + str(part)]["duration"],
@@ -109,6 +109,6 @@ class Julia(Plugin):
 
         return run_part(1), run_part(2)
 
-    def stop(self):
+    def stop(self) -> None:
         self.log.debug("Stopping")
         self.stop_julia()
