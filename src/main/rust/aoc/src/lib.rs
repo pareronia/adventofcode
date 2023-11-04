@@ -259,8 +259,10 @@ pub trait Puzzle {
             if cfg!(debug_assertions) {
                 self.samples();
             }
+            let start = Instant::now();
             let input = self.parse_input(self.get_input_data());
             println!();
+            println!("Input took {:?}", start.elapsed());
             let solution1 = solution!(Part::Part1, self, part_1, &input);
             println!("{}", solution1);
             let solution2 = solution!(Part::Part2, self, part_2, &input);
