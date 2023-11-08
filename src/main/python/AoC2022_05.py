@@ -6,8 +6,8 @@
 
 import re
 
-import aocd
 from aoc import my_aocd
+from aoc.common import aoc_main
 
 Move = tuple[int, int, int]
 
@@ -15,17 +15,15 @@ CM_9000 = "CrateMover 9000"
 CM_9001 = "CrateMover 9001"
 
 
-def _parse(inputs: tuple[str]) -> tuple[list[list[str]], list[Move]]:
+def _parse(inputs: tuple[str, ...]) -> tuple[list[list[str]], list[Move]]:
     blocks = my_aocd.to_blocks(inputs)
     size = int(blocks[0][-1].replace(" ", "")[-1])
-    stacks = [[] for _ in range(size)]
+    stacks: list[list[str]] = [[] for _ in range(size)]
     for i in range(len(blocks[0]) - 2, -1, -1):
         line = blocks[0][i]
-        [
-            stacks[j // 4].append(line[j])
-            for j in range(len(line))
-            if j % 4 == 1 and line[j] != " "
-        ]
+        for j in range(len(line)):
+            if j % 4 == 1 and line[j] != " ":
+                stacks[j // 4].append(line[j])
     moves = [
         (n1, n2 - 1, n3 - 1)
         for n1, n2, n3 in (
@@ -47,16 +45,17 @@ def _simulate_for(
                 tmp.append(crate)
             else:
                 tmp.insert(0, crate)
-        [stacks[to].append(c) for c in tmp]
+        for c in tmp:
+            stacks[to].append(c)
     return "".join(stack[-1] for stack in stacks)
 
 
-def part_1(inputs: tuple[str]) -> str:
+def part_1(inputs: tuple[str, ...]) -> str:
     stacks, moves = _parse(inputs)
     return _simulate_for(stacks, moves, CM_9000)
 
 
-def part_2(inputs: tuple[str]) -> str:
+def part_2(inputs: tuple[str, ...]) -> str:
     stacks, moves = _parse(inputs)
     return _simulate_for(stacks, moves, CM_9001)
 
@@ -76,19 +75,10 @@ TEST = tuple(
 )
 
 
+@aoc_main(2022, 5, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 5)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == "CMZ"
     assert part_2(TEST) == "MCD"
-
-    inputs = my_aocd.get_input_data(puzzle, 512)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

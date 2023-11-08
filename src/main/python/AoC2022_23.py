@@ -6,8 +6,7 @@
 
 from collections import defaultdict
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 from aoc.common import log
 
 ELF = "#"
@@ -26,7 +25,7 @@ ALL_DIRS = {N, NE, E, SE, S, SW, W, NW}
 DIRS = {N: {N, NE, NW}, S: {S, SE, SW}, W: {W, NW, SW}, E: {E, NE, SE}}
 
 
-def _parse(inputs: tuple[str]) -> set[Tile]:
+def _parse(inputs: tuple[str, ...]) -> set[Tile]:
     return {
         (r, c)
         for r, line in enumerate(inputs)
@@ -58,7 +57,7 @@ def _draw(elves: set[Tile]) -> None:
 def _calculate_moves(
     elves: set[Tile], order: list[Direction]
 ) -> dict[Tile, list[Tile]]:
-    moves = defaultdict(list[Tile])
+    moves: dict[Tile, list[Tile]] = defaultdict(list[Tile])
     for r, c in elves:
         if all((r + dr, c + dc) not in elves for dr, dc in ALL_DIRS):
             continue
@@ -71,7 +70,7 @@ def _calculate_moves(
 
 def _execute_moves(
     elves: set[Tile], moves: dict[Tile, list[Tile]]
-) -> list[Tile]:
+) -> set[Tile]:
     for move, candidates in moves.items():
         if len(candidates) > 1:
             continue
@@ -80,7 +79,7 @@ def _execute_moves(
     return elves
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     elves = _parse(inputs)
     order = [N, S, W, E]
     for i in range(10):
@@ -94,7 +93,7 @@ def part_1(inputs: tuple[str]) -> int:
     return (max_r - min_r + 1) * (max_c - min_c + 1) - len(elves)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     elves = _parse(inputs)
     order = [N, S, W, E]
     for i in range(1000):
@@ -120,19 +119,10 @@ TEST = tuple(
 )
 
 
+@aoc_main(2022, 23, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 23)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == 110
     assert part_2(TEST) == 20
-
-    inputs = my_aocd.get_input_data(puzzle, 70)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

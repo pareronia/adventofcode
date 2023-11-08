@@ -5,11 +5,11 @@
 
 
 from __future__ import annotations
+
 from collections import defaultdict
 from typing import NamedTuple
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 from aoc.graph import a_star
 
 
@@ -134,19 +134,10 @@ Valve JJ has flow rate=21; tunnel leads to valve II
 """.splitlines()
 
 
+@aoc_main(2022, 16, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 16)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == 1651  # type:ignore[arg-type]
     assert solve_2(TEST, True) == 1707  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 59)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

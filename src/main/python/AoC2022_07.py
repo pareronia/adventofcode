@@ -6,12 +6,10 @@
 
 from collections import defaultdict
 
-import aocd
-
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 
-def get_sizes(inputs: tuple[str]) -> dict[str, int]:
+def get_sizes(inputs: tuple[str, ...]) -> dict[str, int]:
     path = list[str]()
     sizes = defaultdict[str, int](int)
     for line in inputs[1:]:
@@ -31,11 +29,11 @@ def get_sizes(inputs: tuple[str]) -> dict[str, int]:
     return sizes
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return sum(v for v in get_sizes(inputs).values() if v <= 100_000)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     sizes = get_sizes(inputs)
     wanted = 30_000_000 - (70_000_000 - sizes["/"])
     return next(v for v in sorted(sizes.values()) if v >= wanted)
@@ -68,19 +66,10 @@ $ ls
 """.splitlines()
 
 
+@aoc_main(2022, 7, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 7)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 95_437
-    assert part_2(TEST) == 24_933_642
-
-    inputs = my_aocd.get_input_data(puzzle, 1027)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    assert part_1(TEST) == 95_437  # type:ignore[arg-type]
+    assert part_2(TEST) == 24_933_642  # type:ignore[arg-type]
 
 
 if __name__ == "__main__":

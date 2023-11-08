@@ -9,11 +9,12 @@ from __future__ import annotations
 import re
 from typing import Callable
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 
-def _solve(inputs: tuple[str], f: Callable[[set[int], set[int]], bool]) -> int:
+def _solve(
+    inputs: tuple[str, ...], f: Callable[[set[int], set[int]], bool]
+) -> int:
     return sum(
         f(
             set(range(n1, n2 + 1)),
@@ -25,11 +26,11 @@ def _solve(inputs: tuple[str], f: Callable[[set[int], set[int]], bool]) -> int:
     )
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return _solve(inputs, lambda s1, s2: s1.issubset(s2) or s2.issubset(s1))
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     return _solve(inputs, lambda s1, s2: not s1.isdisjoint(s2))
 
 
@@ -43,19 +44,10 @@ TEST = """\
 """.splitlines()
 
 
+@aoc_main(2022, 4, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 4)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 2
-    assert part_2(TEST) == 4
-
-    inputs = my_aocd.get_input_data(puzzle, 1000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    assert part_1(TEST) == 2  # type:ignore[arg-type]
+    assert part_2(TEST) == 4  # type:ignore[arg-type]
 
 
 if __name__ == "__main__":

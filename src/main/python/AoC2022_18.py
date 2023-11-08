@@ -4,11 +4,11 @@
 #
 
 
-from collections import defaultdict, deque
+from collections import defaultdict
+from collections import deque
 from itertools import product
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 Cube = tuple[int, int, int]
 DIRS = [
@@ -116,20 +116,11 @@ TEST2 = tuple(
 )
 
 
+@aoc_main(2022, 18, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 18)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST1) == 10
     assert part_1(TEST2) == 64
     assert part_2(TEST2) == 58
-
-    inputs = my_aocd.get_input_data(puzzle, 2136)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

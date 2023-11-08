@@ -4,15 +4,13 @@
 #
 
 
-import aocd
-
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 Position = tuple[int, int]
-SOURCE = Position((500, 0))
+SOURCE: Position = (500, 0)
 
 
-def _parse(inputs: tuple[str]) -> tuple[list[list[bool]], int]:
+def _parse(inputs: tuple[str, ...]) -> tuple[list[list[bool]], int]:
     rocks = set[Position]()
     max_x = 0
     max_y = 0
@@ -23,7 +21,7 @@ def _parse(inputs: tuple[str]) -> tuple[list[list[bool]], int]:
             y1, y2 = sorted([y1, y2])
             for x in range(x1, x2 + 1):
                 for y in range(y1, y2 + 1):
-                    rocks.add(Position((x, y)))
+                    rocks.add((x, y))
                     max_x = max(max_x, x)
                     max_y = max(max_y, y)
     occupied = [[False] * (max_x + 150) for _ in range(max_y + 2)]
@@ -32,7 +30,7 @@ def _parse(inputs: tuple[str]) -> tuple[list[list[bool]], int]:
     return occupied, max_y
 
 
-def _drop(occupied: list[list[bool]], max_y: int) -> Position:
+def _drop(occupied: list[list[bool]], max_y: int) -> Position | None:
     curr = SOURCE
     while True:
         p = curr
@@ -63,12 +61,12 @@ def _solve(occupied: list[list[bool]], max_y: int) -> int:
     return cnt
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     occupied, max_y = _parse(inputs)
     return _solve(occupied, max_y)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     occupied, max_y = _parse(inputs)
     return _solve(occupied, max_y + 2)
 
@@ -81,19 +79,10 @@ TEST = tuple(
 )
 
 
+@aoc_main(2022, 14, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 14)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == 24
     assert part_2(TEST) == 93
-
-    inputs = my_aocd.get_input_data(puzzle, 164)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

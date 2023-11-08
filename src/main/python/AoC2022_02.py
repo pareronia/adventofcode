@@ -5,8 +5,7 @@
 
 from typing import Callable
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 ROCK = "rock"
 PAPER = "paper"
@@ -27,7 +26,7 @@ outcome_points = {LOSS: 0, DRAW: 3, WIN: 6}
 
 
 def _solve(
-    inputs: tuple[str], f: Callable[[str, str], tuple[str, str]]
+    inputs: tuple[str, ...], f: Callable[[str, str], tuple[str, str]]
 ) -> int:
     ans = 0
     for line in inputs:
@@ -36,7 +35,7 @@ def _solve(
     return ans
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     outcomes = {
         (ROCK, ROCK): DRAW,
         (ROCK, SCISSORS): LOSS,
@@ -57,7 +56,7 @@ def part_1(inputs: tuple[str]) -> int:
     return _solve(inputs, f)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     outcomes = {"X": LOSS, "Y": DRAW, "Z": WIN}
     responses = {
         (ROCK, LOSS): SCISSORS,
@@ -86,19 +85,10 @@ C Z
 """.splitlines()
 
 
+@aoc_main(2022, 2, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 2)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 15
-    assert part_2(TEST) == 12
-
-    inputs = my_aocd.get_input_data(puzzle, 2500)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    assert part_1(TEST) == 15  # type:ignore[arg-type]
+    assert part_2(TEST) == 12  # type:ignore[arg-type]
 
 
 if __name__ == "__main__":

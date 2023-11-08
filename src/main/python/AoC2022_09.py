@@ -6,8 +6,7 @@
 
 from itertools import product
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 Position = tuple[int, int]
 Move = tuple[int, int]
@@ -15,7 +14,7 @@ Move = tuple[int, int]
 MOVES = {"U": (0, 1), "D": (0, -1), "L": (-1, 0), "R": (1, 0)}
 
 
-def _parse(inputs: tuple[str]) -> list[Move]:
+def _parse(inputs: tuple[str, ...]) -> list[Move]:
     return [
         MOVES[m]
         for move, amount in [line.split() for line in inputs]
@@ -43,16 +42,18 @@ def _move_rope(rope: list[Position], move: Move) -> list[Position]:
 
 def _solve(size: int, moves: list[Move]) -> int:
     rope = [(0, 0)] * size
-    seen = {(rope := _move_rope(rope, move))[-1] for move in moves}  # noqa F841
+    seen = {
+        (rope := _move_rope(rope, move))[-1] for move in moves  # noqa F841
+    }
     return len(seen)
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     moves = _parse(inputs)
     return _solve(2, moves)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     moves = _parse(inputs)
     return _solve(10, moves)
 
@@ -79,20 +80,11 @@ U 20
 """.splitlines()
 
 
+@aoc_main(2022, 9, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 9)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST1) == 13
-    assert part_2(TEST1) == 1
-    assert part_2(TEST2) == 36
-
-    inputs = my_aocd.get_input_data(puzzle, 2000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    assert part_1(TEST1) == 13  # type:ignore[arg-type]
+    assert part_2(TEST1) == 1  # type:ignore[arg-type]
+    assert part_2(TEST2) == 36  # type:ignore[arg-type]
 
 
 if __name__ == "__main__":

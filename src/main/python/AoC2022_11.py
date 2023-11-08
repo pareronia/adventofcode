@@ -10,8 +10,8 @@ from collections import defaultdict
 from typing import Callable
 from typing import NamedTuple
 
-import aocd
 from aoc import my_aocd
+from aoc.common import aoc_main
 
 
 class Monkey(NamedTuple):
@@ -21,7 +21,7 @@ class Monkey(NamedTuple):
     throw: tuple[int, int]
 
 
-def _parse(inputs: tuple[str]) -> list[Monkey]:
+def _parse(inputs: tuple[str, ...]) -> list[Monkey]:
     def parse_monkey(block: list[str]) -> Monkey:
         items = [int(n) for n in re.findall(r"[0-9]+", block[1])]
         operation = eval("lambda old: " + block[2].split("=")[1])  # nosec
@@ -37,7 +37,7 @@ def _round(
     monkeys: list[Monkey],
     counter: dict[int, int],
     manage: Callable[[int], int],
-):
+) -> None:
     for i, monkey in enumerate(monkeys):
         for item in monkey.items:
             level = manage(monkey.operation(item))
@@ -46,19 +46,21 @@ def _round(
         monkey.items.clear()
 
 
-def _solve(monkeys: list[Monkey], rounds: int, manage: str) -> int:
+def _solve(
+    monkeys: list[Monkey], rounds: int, manage: Callable[[int], int]
+) -> int:
     counter = defaultdict[int, int](int)
     for _ in range(rounds):
         _round(monkeys, counter, manage)
     return math.prod(sorted(counter.values())[-2:])
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     monkeys = _parse(inputs)
     return _solve(monkeys, 20, lambda x: x // 3)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     monkeys = _parse(inputs)
     mod = math.prod(monkey.test for monkey in monkeys)
     return _solve(monkeys, 10_000, lambda x: x % mod)
@@ -95,19 +97,10 @@ Monkey 3:
 """.splitlines()
 
 
+@aoc_main(2022, 11, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 11)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 10_605
-    assert part_2(TEST) == 2_713_310_158
-
-    inputs = my_aocd.get_input_data(puzzle, 55)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    assert part_1(TEST) == 10_605  # type:ignore[arg-type]
+    assert part_2(TEST) == 2_713_310_158  # type:ignore[arg-type]
 
 
 if __name__ == "__main__":

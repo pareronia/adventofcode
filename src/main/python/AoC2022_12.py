@@ -3,10 +3,10 @@
 # Advent of Code 2022 Day 12
 #
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 from aoc.graph import bfs
-from aoc.grid import CharGrid, Cell
+from aoc.grid import Cell
+from aoc.grid import CharGrid
 
 
 def _solve(inputs: tuple[str, ...], end_points: set[str]) -> int:
@@ -44,19 +44,10 @@ abdefghi
 """.splitlines()
 
 
+@aoc_main(2022, 12, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 12)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == 31  # type:ignore[arg-type]
     assert part_2(TEST) == 29  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 41)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

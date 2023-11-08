@@ -4,18 +4,17 @@
 #
 
 
-from collections.abc import Generator
+from typing import Iterator
 
 import advent_of_code_ocr as ocr
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 from aoc.common import log
 
 FILL = "▒"
 EMPTY = " "
 
 
-def _run_program(inputs: tuple[str]) -> Generator[tuple[int, int]]:
+def _run_program(inputs: tuple[str, ...]) -> Iterator[tuple[int, int]]:
     x = 1
     cycles = 0
     for line in inputs:
@@ -31,7 +30,7 @@ def _run_program(inputs: tuple[str]) -> Generator[tuple[int, int]]:
             x += int(splits[1])
 
 
-def _check(cycles, x) -> int:
+def _check(cycles: int, x: int) -> int:
     return x * cycles if cycles % 40 == 20 else 0
 
 
@@ -39,20 +38,20 @@ def _draw(cycles: int, x: int) -> str:
     return FILL if cycles % 40 in set(range(x - 1, x + 2)) else EMPTY
 
 
-def _get_pixels(inputs: tuple[str]) -> list[str]:
+def _get_pixels(inputs: tuple[str, ...]) -> list[str]:
     pixels = "".join(_draw(cycles, x) for cycles, x in _run_program(inputs))
     return [pixels[i * 40 : i * 40 + 40] for i in range(6)]  # noqa
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return sum(_check(cycles + 1, x) for cycles, x in _run_program(inputs))
 
 
-def part_2(inputs: tuple[str]) -> str:
+def part_2(inputs: tuple[str, ...]) -> str:
     pixels = _get_pixels(inputs)
     log(pixels)
-    return ocr.convert_6(
-        "\n".join(pixels), fill_pixel=FILL, empty_pixel=EMPTY
+    return str(
+        ocr.convert_6("\n".join(pixels), fill_pixel=FILL, empty_pixel=EMPTY)
     )
 
 
@@ -206,13 +205,10 @@ noop
 """.splitlines()
 
 
+@aoc_main(2022, 10, part_1, part_2)
 def main() -> None:
-    aocd.get_data(year=2022, day=10, block=True)
-    puzzle = aocd.models.Puzzle(2022, 10)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 13_140
-    assert _get_pixels(TEST) == [
+    assert part_1(TEST) == 13_140  # type:ignore[arg-type]
+    assert _get_pixels(TEST) == [  # type:ignore[arg-type]
         "▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ",
         "▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒ ",
         "▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ",
@@ -220,13 +216,6 @@ def main() -> None:
         "▒▒▒▒▒▒      ▒▒▒▒▒▒      ▒▒▒▒▒▒      ▒▒▒▒",
         "▒▒▒▒▒▒▒       ▒▒▒▒▒▒▒       ▒▒▒▒▒▒▒     ",
     ]
-
-    inputs = my_aocd.get_input_data(puzzle, 138)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":
