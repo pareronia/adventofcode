@@ -4,9 +4,18 @@ from abc import ABC
 from abc import abstractmethod
 from typing import Iterable
 
+from junitparser import Attr
+from junitparser import Error
+from junitparser import Failure
+from junitparser import IntAttr
+from junitparser import JUnitXml
+from junitparser import Skipped
+from junitparser import TestCase
+from junitparser import TestSuite
 from termcolor import colored
 
 from . import Result
+from .config import config
 
 
 class Listener(ABC):
@@ -60,6 +69,64 @@ class Listener(ABC):
     @abstractmethod
     def stop(self) -> None:
         pass
+
+
+class Listeners(Listener):
+    def __init__(self, listeners: list[Listener]) -> None:
+        self.listeners = listeners
+
+    def start(
+        self, year: int, day: int, title: str, plugin: str, user_id: str
+    ) -> None:
+        for listener in self.listeners:
+            listener.start(year, day, title, plugin, user_id)
+
+    def elapsed(self, amount: int) -> None:
+        for listener in self.listeners:
+            listener.elapsed(amount)
+
+    def finished(self) -> None:
+        for listener in self.listeners:
+            listener.finished()
+
+    def finalize(self, time: int, walltime: float) -> None:
+        for listener in self.listeners:
+            listener.finalize(time, walltime)
+
+    def finalize_with_error(
+        self, time: int, walltime: float, error: str
+    ) -> None:
+        for listener in self.listeners:
+            listener.finalize_with_error(time, walltime, error)
+
+    def finalize_part_with_missing(
+        self, time: int, part: str, result: Result
+    ) -> None:
+        for listener in self.listeners:
+            listener.finalize_part_with_missing(time, part, result)
+
+    def finalize_part_with_skipped(
+        self, time: int, part: str, result: Result
+    ) -> None:
+        for listener in self.listeners:
+            listener.finalize_part_with_skipped(time, part, result)
+
+    def finalize_part_with_ok(
+        self,
+        time: int,
+        part: str,
+        result: Result,
+        expected: str | None,
+        correct: bool,
+    ) -> None:
+        for listener in self.listeners:
+            listener.finalize_part_with_ok(
+                time, part, result, expected, correct
+            )
+
+    def stop(self) -> None:
+        for listener in self.listeners:
+            listener.stop()
 
 
 class CLIListener(Listener):
@@ -221,3 +288,70 @@ class CLIListener(Listener):
                 f"Invalid state: {result=} {correct=} {expected=} {error=}"
             )
         return icon, answer
+
+
+class JUnitXmlListener(Listener):
+    def __init__(self) -> None:
+        self.suite = TestSuite("Advent of Code")
+        TestCase.year = IntAttr("year")
+        TestCase.day = IntAttr("day")
+        TestCase.title = Attr("title")
+        TestCase.plugin = Attr("plugin")
+        TestCase.user_id = Attr("user_id")
+
+    def start(
+        self, year: int, day: int, title: str, plugin: str, user_id: str
+    ) -> None:
+        self.case = TestCase(name=f"{year}/{day:02}/{plugin}/{user_id}")
+        self.case.year = year
+        self.case.day = day
+        self.case.title = title
+        self.case.plugin = plugin
+        self.case.user_id = user_id
+        self.missing = self.skipped = self.failed = False
+
+    def elapsed(self, amount: int) -> None:
+        pass
+
+    def finished(self) -> None:
+        pass
+
+    def finalize(self, time: int, walltime: float) -> None:
+        self.case.time = walltime
+        if self.missing:
+            return
+        if self.failed:
+            self.case.result = [Failure()]
+        elif self.skipped:
+            self.case.result = [Skipped()]
+        self.suite.add_testcase(self.case)
+
+    def finalize_with_error(
+        self, time: int, walltime: float, error: str
+    ) -> None:
+        self.case.result = [Error(error)]
+
+    def finalize_part_with_missing(
+        self, time: int, part: str, result: Result
+    ) -> None:
+        self.missing = True
+
+    def finalize_part_with_skipped(
+        self, time: int, part: str, result: Result
+    ) -> None:
+        self.skipped = True
+
+    def finalize_part_with_ok(
+        self,
+        time: int,
+        part: str,
+        result: Result,
+        expected: str | None,
+        correct: bool,
+    ) -> None:
+        self.failed = self.failed or not correct
+
+    def stop(self) -> None:
+        xml = JUnitXml()
+        xml.add_testsuite(self.suite)
+        xml.write(filepath=config.junitxml["filepath"], pretty=True)

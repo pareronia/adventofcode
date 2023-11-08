@@ -1,8 +1,9 @@
+import logging
 import os
 import re
-import yaml
-import logging
 from typing import Any
+
+import yaml
 
 
 class Config:
@@ -41,6 +42,12 @@ class Config:
     @property
     def root(self) -> Any:
         return self.runner["root"]  # type:ignore[attr-defined]
+
+    @property
+    def junitxml(self) -> Any:
+        return self.runner["listeners"][  # type:ignore[attr-defined]
+            "junitxml"
+        ]
 
 
 def path_constructor(

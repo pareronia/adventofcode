@@ -104,3 +104,6 @@ runner:
         rust:
             base_dir: src/main/rust
             day_format: target/release/AoC{year}_{day:0>2}
+    listeners:
+      junitxml:
+        filepath: build/junit.xml

@@ -45,7 +45,9 @@ from .cpp import Cpp
 from .java import Java
 from .julia import Julia
 from .listener import CLIListener
+from .listener import JUnitXmlListener
 from .listener import Listener
+from .listener import Listeners
 from .plugin import Plugin
 from .py import Py
 from .rust import Rust
@@ -96,9 +98,10 @@ def main() -> None:
     datasets = {k: users[k] for k in (args.users or users)}
     timeout = args.timeout
     hide_missing = args.hide_missing
-    listener = CLIListener(
+    cli_listener = CLIListener(
         plugins.keys(), datasets.keys(), timeout, hide_missing
     )
+    junitxml_listener = JUnitXmlListener()
 
     with use_plugins(plugins):
         rc = run_for(
@@ -108,7 +111,7 @@ def main() -> None:
             datasets=datasets,
             timeout=timeout,
             autosubmit=not args.no_submit,
-            listener=listener,
+            listener=Listeners([cli_listener, junitxml_listener]),
         )
 
     sys.exit(rc)
