@@ -1,10 +1,12 @@
 """ Some aocd util methods """
 import os
-import aocd
 from typing import Any
+from typing import Iterable
+
+import aocd
 
 
-def to_blocks(inputs: tuple[str, ...]) -> list[list[str]]:
+def to_blocks(inputs: Iterable[str]) -> list[list[str]]:
     blocks = list[list[str]]()
     idx = 0
     blocks.append([])
