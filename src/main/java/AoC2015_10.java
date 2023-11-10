@@ -1,24 +1,19 @@
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2015_10 extends AoCBase {
+public class AoC2015_10 extends SolutionBase<String, Integer, Integer> {
     
-    private final String input;
-    
-    private AoC2015_10(final List<String> inputs, final boolean debug) {
+    private AoC2015_10(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = inputs.get(0);
     }
 
-    public static final AoC2015_10 create(final List<String> input) {
-        return new AoC2015_10(input, false);
+    public static final AoC2015_10 create() {
+        return new AoC2015_10(false);
     }
 
-    public static final AoC2015_10 createDebug(final List<String> input) {
-        return new AoC2015_10(input, true);
+    public static final AoC2015_10 createDebug() {
+        return new AoC2015_10(true);
     }
     
     private String lookAndSay(final String string) {
@@ -36,8 +31,14 @@ public class AoC2015_10 extends AoCBase {
         return result.toString();
     }
     
-    private String solve(final int iterations) {
-        String string = this.input;
+    @Override
+    protected String parseInput(final List<String> inputs) {
+        assert inputs.size() == 1;
+        return inputs.get(0);
+    }
+
+    private String solve(final String input, final int iterations) {
+        String string = input;
         for (int i = 0; i < iterations; i++) {
             string = lookAndSay(string);
             log(i + ": " + string.length());
@@ -46,22 +47,18 @@ public class AoC2015_10 extends AoCBase {
     }
 
     @Override
-    public Integer solvePart1() {
-        return solve(40).length();
+    public Integer solvePart1(final String input) {
+        return solve(input, 40).length();
     }
 
     @Override
-    public Integer solvePart2() {
-        return solve(50).length();
+    public Integer solvePart2(final String input) {
+        return solve(input, 50).length();
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2015_10.createDebug(List.of("1")).solve(5).equals("312211");
+        assert AoC2015_10.createDebug().solve("1", 5).equals("312211");
 
-        final Puzzle puzzle = Aocd.puzzle(2015, 10);
-        puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_10.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_10.create(puzzle.getInputData()).solvePart2())
-        );
+        AoC2015_10.create().run();
     }
 }

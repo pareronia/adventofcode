@@ -2,10 +2,41 @@ package com.github.pareronia.aoc;
 import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.CharArrayUtils.addAll;
 import static com.github.pareronia.aoc.CharArrayUtils.subarray;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public class StringOps {
     
+	public static List<String> splitLines(final String input) {
+		return asList((Objects.requireNonNull(input) + "\n").split("\\r?\\n"));
+	}
+	
+	public static List<List<String>> toBlocks(final List<String> inputs) {
+		if (inputs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		final List<List<String>> blocks = new ArrayList<>();
+		int i = 0;
+		final int last = inputs.size() - 1;
+		blocks.add(new ArrayList<String>());
+		for (int j = 0; j <= last; j++) {
+			if (inputs.get(j).isEmpty()) {
+				if (j != last) {
+					blocks.add(new ArrayList<String>());
+					i++;
+				}
+			} else {
+				blocks.get(i).add(inputs.get(j));
+			}
+		}
+		return blocks;
+	}
+	
     public static Integer[] getDigits(final String s, final int expected) {
         final Integer[] digits = Utils.asCharacterStream(s)
                 .filter(Character::isDigit)

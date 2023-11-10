@@ -3,35 +3,39 @@ import static com.github.pareronia.aoc.StringUtils.countMatches;
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2015_08 extends AoCBase {
+public class AoC2015_08 extends SolutionBase<List<String>, Integer, Integer> {
     
     private static final Pattern HEX = Pattern.compile("\\\\x[0-9a-f]{2}");
 
-    private final transient List<String> inputs;
-
-    private AoC2015_08(final List<String> input, final boolean debug) {
+    private AoC2015_08(final boolean debug) {
         super(debug);
-        this.inputs = input;
     }
 
-    public static final AoC2015_08 create(final List<String> input) {
-        return new AoC2015_08(input, false);
+    public static final AoC2015_08 create() {
+        return new AoC2015_08(false);
     }
 
-    public static final AoC2015_08 createDebug(final List<String> input) {
-        return new AoC2015_08(input, true);
-    }
-
-    @Override
-    public Integer solvePart1() {
-        return this.inputs.stream().mapToInt(this::countDecodingOverhead).sum();
+    public static final AoC2015_08 createDebug() {
+        return new AoC2015_08(true);
     }
 
     @Override
-    public Integer solvePart2() {
-        return this.inputs.stream().mapToInt(this::countEncodingOverhead).sum();
+    protected List<String> parseInput(final List<String> inputs) {
+        return inputs;
+    }
+
+    @Override
+    public Integer solvePart1(final List<String> inputs) {
+        return inputs.stream().mapToInt(this::countDecodingOverhead).sum();
+    }
+
+    @Override
+    public Integer solvePart2(final List<String> inputs) {
+        return inputs.stream().mapToInt(this::countEncodingOverhead).sum();
     }
 
     private int countDecodingOverhead(String str) {
@@ -50,22 +54,21 @@ public class AoC2015_08 extends AoCBase {
         return 2 + countMatches(str, "\\") + countMatches(str, "\"");
     }
 
-    public static void main(final String[] args) throws Exception {
-        assert AoC2015_08.createDebug(TEST).solvePart1() == 12;
-        assert AoC2015_08.createDebug(TEST).solvePart2() == 19;
-
-		final Puzzle puzzle = Puzzle.create(2015, 8);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2015_08.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2015_08.create(input)::solvePart2)
-		);
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "12"),
+        @Sample(method = "part2", input = TEST, expected = "19"),
+    })
+    public void samples() {
     }
 
-    private static final List<String> TEST = splitLines(
+    public static void main(final String[] args) throws Exception {
+        AoC2015_08.create().run();
+    }
+
+    private static final String TEST =
             "\"\"\r\n" +
             "\"abc\"\r\n" +
             "\"aaa\\\"aaa\"\r\n" +
-            "\"\\x27\""
-    );
+            "\"\\x27\"";
 }

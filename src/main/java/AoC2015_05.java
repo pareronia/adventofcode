@@ -1,9 +1,12 @@
 import java.util.List;
 import java.util.regex.Pattern;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2015_05 extends AoCBase {
+public final class AoC2015_05
+            extends SolutionBase<List<String>, Integer, Integer> {
     
     private static final Pattern VOWEL = Pattern.compile("(a|e|i|o|u)");
     private static final Pattern TWIN = Pattern.compile("([a-z])\\1");
@@ -11,19 +14,16 @@ public final class AoC2015_05 extends AoCBase {
     private static final Pattern TWO_TWINS = Pattern.compile("([a-z]{2})[a-z]*\\1");
     private static final Pattern THREE_LETTER_PALINDROME = Pattern.compile("([a-z])[a-z]\\1");
 
-    private final transient List<String> input;
-
-    private AoC2015_05(final List<String> inputs, final boolean debug) {
+    private AoC2015_05(final boolean debug) {
         super(debug);
-        this.input = inputs;
     }
 
-    public static AoC2015_05 create(final List<String> input) {
-        return new AoC2015_05(input, false);
+    public static AoC2015_05 create() {
+        return new AoC2015_05(false);
     }
 
-    public static AoC2015_05 createDebug(final List<String> input) {
-        return new AoC2015_05(input, true);
+    public static AoC2015_05 createDebug() {
+        return new AoC2015_05(true);
     }
     
     private int countMatches(final Pattern pattern, final String str) {
@@ -31,8 +31,13 @@ public final class AoC2015_05 extends AoCBase {
     }
     
     @Override
-    public Integer solvePart1() {
-        return (int) this.input.stream()
+    protected List<String> parseInput(final List<String> inputs) {
+        return inputs;
+    }
+
+    @Override
+    public Integer solvePart1(final List<String> input) {
+        return (int) input.stream()
                 .filter(s -> countMatches(VOWEL, s) >= 3)
                 .filter(s -> countMatches(TWIN, s) >= 1)
                 .filter(s -> countMatches(BAD, s) == 0)
@@ -40,39 +45,42 @@ public final class AoC2015_05 extends AoCBase {
     }
 
     @Override
-    public Integer solvePart2() {
-        return (int) this.input.stream()
+    public Integer solvePart2(final List<String> input) {
+        return (int) input.stream()
                 .filter(s -> countMatches(TWO_TWINS, s) >= 1)
                 .filter(s -> countMatches(THREE_LETTER_PALINDROME, s) >= 1)
                 .count();
     }
 
-    public static void main(final String[] args) throws Exception {
-        assert AoC2015_05.createDebug(TEST1).solvePart1() == 1;
-        assert AoC2015_05.createDebug(TEST2).solvePart1() == 1;
-        assert AoC2015_05.createDebug(TEST3).solvePart1() == 0;
-        assert AoC2015_05.createDebug(TEST4).solvePart1() == 0;
-        assert AoC2015_05.createDebug(TEST5).solvePart1() == 0;
-        assert AoC2015_05.createDebug(TEST6).solvePart2() == 1;
-        assert AoC2015_05.createDebug(TEST7).solvePart2() == 1;
-        assert AoC2015_05.createDebug(TEST8).solvePart2() == 0;
-        assert AoC2015_05.createDebug(TEST9).solvePart2() == 0;
-        assert AoC2015_05.createDebug(TEST10).solvePart2() == 1;
-
-        final List<String> input = Aocd.getData(2015, 5);
-        lap("Part 1", () -> AoC2015_05.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_05.create(input).solvePart2());
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "1"),
+        @Sample(method = "part1", input = TEST2, expected = "1"),
+        @Sample(method = "part1", input = TEST3, expected = "0"),
+        @Sample(method = "part1", input = TEST4, expected = "0"),
+        @Sample(method = "part1", input = TEST5, expected = "0"),
+        @Sample(method = "part2", input = TEST6, expected = "1"),
+        @Sample(method = "part2", input = TEST7, expected = "1"),
+        @Sample(method = "part2", input = TEST8, expected = "0"),
+        @Sample(method = "part2", input = TEST9, expected = "0"),
+        @Sample(method = "part2", input = TEST10, expected = "1"),
+    })
+    public void samples() {
     }
 
-    private static final List<String> TEST1 = splitLines("ugknbfddgicrmopn");
-    private static final List<String> TEST2 = splitLines("aaa");
-    private static final List<String> TEST3 = splitLines("jchzalrnumimnmhp");
-    private static final List<String> TEST4 = splitLines("haegwjzuvuyypxyu");
-    private static final List<String> TEST5 = splitLines("dvszwmarrgswjxmb");
-    private static final List<String> TEST6 = splitLines("qjhvhtzxzqqjkmpb");
-    private static final List<String> TEST7 = splitLines("xxyxx");
-    private static final List<String> TEST8 = splitLines("uurcxstgmygtbstg");
-    private static final List<String> TEST9 = splitLines("ieodomkazucvgmuy");
-    private static final List<String> TEST10 = splitLines("xyxy");
+    public static void main(final String[] args) throws Exception {
+        AoC2015_05.create().run();
+    }
+
+    private static final String TEST1 = "ugknbfddgicrmopn";
+    private static final String TEST2 = "aaa";
+    private static final String TEST3 = "jchzalrnumimnmhp";
+    private static final String TEST4 = "haegwjzuvuyypxyu";
+    private static final String TEST5 = "dvszwmarrgswjxmb";
+    private static final String TEST6 = "qjhvhtzxzqqjkmpb";
+    private static final String TEST7 = "xxyxx";
+    private static final String TEST8 = "uurcxstgmygtbstg";
+    private static final String TEST9 = "ieodomkazucvgmuy";
+    private static final String TEST10 = "xyxy";
 
 }

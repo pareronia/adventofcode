@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.StringOps.splitLines;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
@@ -7,33 +8,36 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2015_19 extends AoCBase {
+import lombok.RequiredArgsConstructor;
+
+public class AoC2015_19 extends SolutionBase<ReplacementsAndMolecule, Integer, Integer> {
     
-    private final Map<String, List<String>> replacements;
-    private final String molecule;
-    
-    private AoC2015_19(final List<String> inputs, final boolean debug) {
+    private AoC2015_19(final boolean debug) {
         super(debug);
-        final List<List<String>> blocks = toBlocks(inputs);
-        this.replacements = blocks.get(0).stream()
-            .map(s -> s.split(" => "))
-            .collect(groupingBy(sp -> sp[0], mapping(s -> s[1], toList())));
-        assert blocks.get(1).size() == 1;
-        this.molecule = blocks.get(1).get(0);
     }
 
-    public static final AoC2015_19 create(final List<String> input) {
-        return new AoC2015_19(input, false);
+    public static final AoC2015_19 create() {
+        return new AoC2015_19(false);
     }
 
-    public static final AoC2015_19 createDebug(final List<String> input) {
-        return new AoC2015_19(input, true);
+    public static final AoC2015_19 createDebug() {
+        return new AoC2015_19(true);
     }
     
-    private Set<String> runReplacement(final String m) {
+    @Override
+    protected ReplacementsAndMolecule parseInput(final List<String> inputs) {
+        return ReplacementsAndMolecule.fromInput(inputs);
+    }
+
+    private Set<String> runReplacement(
+            final Map<String, List<String>> replacements,
+            final String m
+    ) {
         final Set<String> molecules = new HashSet<>();
         String key = "";
         for (int i = 0; i < m.length(); i ++) {
@@ -42,25 +46,30 @@ public class AoC2015_19 extends AoCBase {
                 continue;
             }
             final String c = m.substring(i, i + 1);
-            if (this.replacements.containsKey(c)) {
+            if (replacements.containsKey(c)) {
                 key = c;
             } else if (i + 2 <= m.length()) {
                 final String cc = m.substring(i, i + 2);
-                if (this.replacements.containsKey(cc)) {
+                if (replacements.containsKey(cc)) {
                     key = cc;
                 } else {
                     continue;
                 }
             }
-            for (final String r : this.replacements.get(key)) {
+            for (final String r : replacements.get(key)) {
                 molecules.add(m.substring(0, i) + r + m.substring(i + key.length()));
             }
         }
         return molecules;
     }
     
-    private int fabricate(final String target, final String molecule, final int cnt) {
-        final Set<String> newMolecules = runReplacement(molecule);
+    private int fabricate(
+            final Map<String, List<String>> replacements,
+            final String target,
+            final String molecule,
+            final int cnt
+    ) {
+        final Set<String> newMolecules = runReplacement(replacements, molecule);
         if (newMolecules.contains(target)) {
             return cnt + 1;
         }
@@ -68,7 +77,7 @@ public class AoC2015_19 extends AoCBase {
             if (m.length() > target.length()) {
                 return 0;
             }
-            final int result = fabricate(target, m, cnt + 1);
+            final int result = fabricate(replacements, target, m, cnt + 1);
             if (result > 0) {
                 return result;
             }
@@ -76,16 +85,16 @@ public class AoC2015_19 extends AoCBase {
         return 0;
     }
     
-    private int solve2bis() {
-        return fabricate(this.molecule, "e", 0);
+    private int solve2bis(final ReplacementsAndMolecule input) {
+        return fabricate(input.replacements, input.molecule, "e", 0);
     }
     
-    private int solve2() {
+    private int solve2(final ReplacementsAndMolecule input) {
         int cnt = 0;
-        String newMolecule = new String(this.molecule);
+        String newMolecule = new String(input.molecule);
         while (!"e".equals(newMolecule)) {
-            for (final String new_ : this.replacements.keySet()) {
-                for (final String old : this.replacements.get(new_)) {
+            for (final String new_ : input.replacements.keySet()) {
+                for (final String old : input.replacements.get(new_)) {
                     if (newMolecule.contains(old)) {
                         newMolecule = newMolecule.replaceFirst(old, new_);
                         cnt++;
@@ -97,50 +106,50 @@ public class AoC2015_19 extends AoCBase {
     }
 
     @Override
-    public Integer solvePart1() {
-        return runReplacement(this.molecule).size();
+    protected Integer solvePart1(final ReplacementsAndMolecule input) {
+        return runReplacement(input.replacements, input.molecule).size();
     }
 
     @Override
-    public Integer solvePart2() {
-        return solve2();
+    protected Integer solvePart2(final ReplacementsAndMolecule input) {
+        return solve2(input);
+    }
+
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "4"),
+        @Sample(method = "part1", input = TEST2, expected = "7"),
+        @Sample(method = "part1", input = TEST3, expected = "6"),
+    })
+    public void samples() {
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2015_19.createDebug(TEST1).solvePart1() == 4;
-        assert AoC2015_19.createDebug(TEST2).solvePart1() == 7;
-        assert AoC2015_19.createDebug(TEST3).solvePart1() == 6;
-        assert AoC2015_19.createDebug(TEST4).solve2bis() == 3;
-        assert AoC2015_19.createDebug(TEST5).solve2bis() == 6;
+        final AoC2015_19 test = AoC2015_19.createDebug();
+        assert test.solve2bis(test.parseInput(TEST4)) == 3;
+        assert test.solve2bis(test.parseInput(TEST5)) == 6;
         
-        final Puzzle puzzle = Aocd.puzzle(2015, 19);
-        puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_19.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_19.create(puzzle.getInputData()).solvePart2())
-        );
+        AoC2015_19.create().run();
     }
     
-    private static final List<String> TEST1 = splitLines(
+    private static final String TEST1 =
               "H => HO\r\n"
             + "H => OH\r\n"
             + "O => HH\r\n"
             + "\r\n"
-            + "HOH"
-    );
-    private static final List<String> TEST2 = splitLines(
+            + "HOH";
+    private static final String TEST2 =
               "H => HO\r\n"
             + "H => OH\r\n"
             + "O => HH\r\n"
             + "\r\n"
-            + "HOHOHO"
-    );
-    private static final List<String> TEST3 = splitLines(
+            + "HOHOHO";
+    private static final String TEST3 =
               "H => HO\r\n"
             + "H => OH\r\n"
             + "Oo => HH\r\n"
             + "\r\n"
-            + "HOHOHO"
-    );
+            + "HOHOHO";
     private static final List<String> TEST4 = splitLines(
                 "e => H\r\n"
               + "e => O\r\n"
@@ -159,4 +168,21 @@ public class AoC2015_19 extends AoCBase {
               + "\r\n"
               + "HOHOHO"
     );
+}
+
+@RequiredArgsConstructor
+final class ReplacementsAndMolecule {
+    
+    final Map<String, List<String>> replacements;
+    final String molecule;
+    
+    public static ReplacementsAndMolecule fromInput(final List<String> inputs) {
+        final List<List<String>> blocks = StringOps.toBlocks(inputs);
+        final Map<String, List<String>> replacements = blocks.get(0).stream()
+            .map(s -> s.split(" => "))
+            .collect(groupingBy(sp -> sp[0], mapping(s -> s[1], toList())));
+        assert blocks.get(1).size() == 1;
+        final String molecule = blocks.get(1).get(0);
+        return new ReplacementsAndMolecule(replacements, molecule);
+    }
 }

@@ -9,70 +9,73 @@ import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2015_03 extends AoCBase {
+public final class AoC2015_03 extends SolutionBase<List<Direction>, Long, Long> {
 
-    private final transient List<Direction> input;
-
-    private AoC2015_03(final List<String> inputs, final boolean debug) {
+    private AoC2015_03(final boolean debug) {
         super(debug);
+    }
+
+    public static AoC2015_03 create() {
+        return new AoC2015_03(false);
+    }
+
+    public static AoC2015_03 createDebug() {
+        return new AoC2015_03(true);
+    }
+ 
+    @Override
+    protected List<Direction> parseInput(final List<String> inputs) {
         assert inputs.size() == 1;
-        this.input = Utils.asCharacterStream(inputs.get(0))
+        return Utils.asCharacterStream(inputs.get(0))
                 .map(Direction::fromChar).collect(toList());
     }
 
-    public static AoC2015_03 create(final List<String> input) {
-        return new AoC2015_03(input, false);
-    }
-
-    public static AoC2015_03 createDebug(final List<String> input) {
-        return new AoC2015_03(input, true);
-    }
-    
     @Override
-    public Long solvePart1() {
+    public Long solvePart1(final List<Direction> input) {
         final HouseVisits houseVisits = new HouseVisits();
-        this.input.forEach(houseVisits::goVisit);
+        input.forEach(houseVisits::goVisit);
         return houseVisits.getUniqueVisits().count();
     }
 
     @Override
-    public Long solvePart2() {
+    public Long solvePart2(final List<Direction> input) {
         final HouseVisits santaVisits = new HouseVisits();
-        range(0, this.input.size(), 2).intStream()
-                .mapToObj(this.input::get)
+        range(0, input.size(), 2).intStream()
+                .mapToObj(input::get)
                 .forEach(santaVisits::goVisit);
         final HouseVisits robotVisits = new HouseVisits();
-        range(1, this.input.size(), 2).intStream()
-                .mapToObj(this.input::get)
+        range(1, input.size(), 2).intStream()
+                .mapToObj(input::get)
                 .forEach(robotVisits::goVisit);
         return Stream.concat(
                     santaVisits.getUniqueVisits(), robotVisits.getUniqueVisits())
                 .distinct().count();
     }
 
-    public static void main(final String[] args) throws Exception {
-        assert AoC2015_03.createDebug(TEST1).solvePart1() == 2;
-        assert AoC2015_03.createDebug(TEST2).solvePart1() == 4;
-        assert AoC2015_03.createDebug(TEST3).solvePart1() == 2;
-        assert AoC2015_03.createDebug(TEST4).solvePart2() == 3;
-        assert AoC2015_03.createDebug(TEST2).solvePart2() == 3;
-        assert AoC2015_03.createDebug(TEST3).solvePart2() == 11;
-
-        final Puzzle puzzle = Aocd.puzzle(2015, 3);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2015_03.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2015_03.create(inputData)::solvePart2)
-        );
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "2"),
+        @Sample(method = "part1", input = TEST2, expected = "4"),
+        @Sample(method = "part1", input = TEST3, expected = "2"),
+        @Sample(method = "part2", input = TEST4, expected = "3"),
+        @Sample(method = "part2", input = TEST2, expected = "3"),
+        @Sample(method = "part2", input = TEST3, expected = "11"),
+    })
+    public void samples() {
     }
 
-    private static final List<String> TEST1 = splitLines(">");
-    private static final List<String> TEST2 = splitLines("^>v<");
-    private static final List<String> TEST3 = splitLines("^v^v^v^v^v");
-    private static final List<String> TEST4 = splitLines("^v");
+    public static void main(final String[] args) throws Exception {
+        AoC2015_03.create().run();
+    }
+
+    private static final String TEST1 = ">";
+    private static final String TEST2 = "^>v<";
+    private static final String TEST3 = "^v^v^v^v^v";
+    private static final String TEST4 = "^v";
     
     private static final class HouseVisits {
         private final NavigationWithHeading nav

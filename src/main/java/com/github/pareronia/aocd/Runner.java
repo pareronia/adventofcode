@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Json;
+import com.github.pareronia.aoc.solution.SolutionBase;
 import com.github.pareronia.aocd.RunServer.RequestHandler;
 
 import lombok.Getter;
@@ -57,11 +58,19 @@ class Runner {
 		} catch (final ClassNotFoundException e) {
 			return Response.EMPTY;
 		}
-        warmUpPart(1, klass, List.copyOf(request.inputs));
-		final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
-		warmUpPart(2, klass, List.copyOf(request.inputs));
-		final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
-		return Response.create(result1, result2);
+		if (SolutionBase.class.isAssignableFrom(klass)) {
+		    warmUpSolutionPart(1, klass, List.copyOf(request.inputs));
+		    final Result result1 = runSolutionPart(1, klass, List.copyOf(request.inputs));
+		    warmUpSolutionPart(2, klass, List.copyOf(request.inputs));
+		    final Result result2 = runSolutionPart(2, klass, List.copyOf(request.inputs));
+		    return Response.create(result1, result2);
+		} else {
+		    warmUpPart(1, klass, List.copyOf(request.inputs));
+		    final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
+		    warmUpPart(2, klass, List.copyOf(request.inputs));
+		    final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
+		    return Response.create(result1, result2);
+		}
 	}
 
     private void warmUpPart(final int part, final Class<?> klass, final List<String> input) {
@@ -69,6 +78,15 @@ class Runner {
             final Object puzzle = createPuzzle(klass, input);
             final Method method = klass.getDeclaredMethod("solvePart" + part);
             method.invoke(puzzle);
+        } catch (final Exception e) {
+        }
+    }
+
+    private void warmUpSolutionPart(final int part, final Class<?> klass, final List<String> input) {
+        try {
+            final Object puzzle = createPuzzle(klass);
+            final Method method = klass.getDeclaredMethod("part" + part);
+            method.invoke(puzzle, input);
         } catch (final Exception e) {
         }
     }
@@ -86,11 +104,31 @@ class Runner {
 		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
 		return new Result(answer, duration);
     }
+    
+    private Result runSolutionPart(
+            final int part,
+            final Class<?> klass,
+            final List<String> input)
+        throws Exception
+    {
+        final Object puzzle = createPuzzle(klass);
+        final Method method = SolutionBase.class.getDeclaredMethod("part" + part, List.class);
+		final long start = systemUtils.getSystemNanoTime();
+		final Object answer = method.invoke(puzzle, input);
+		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
+		return new Result(answer, duration);
+    }
 
     private Object createPuzzle(final Class<?> klass, final List<String> input) throws Exception {
         return klass
 		        .getDeclaredMethod("create", List.class)
 		        .invoke(null, input);
+    }
+	
+    private Object createPuzzle(final Class<?> klass) throws Exception {
+        return klass
+		        .getDeclaredMethod("create")
+		        .invoke(null);
     }
 	
 	@RequiredArgsConstructor

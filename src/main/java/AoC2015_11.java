@@ -2,49 +2,53 @@ import static com.github.pareronia.aoc.StringOps.nextLetter;
 
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2015_11 extends AoCBase {
+public class AoC2015_11 extends SolutionBase<String, String, String> {
     
-    private final String input;
-    
-    private AoC2015_11(final List<String> inputs, final boolean debug) {
+    private AoC2015_11(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = inputs.get(0);
     }
 
-    public static final AoC2015_11 create(final List<String> input) {
-        return new AoC2015_11(input, false);
+    public static final AoC2015_11 create() {
+        return new AoC2015_11(false);
     }
 
-    public static final AoC2015_11 createDebug(final List<String> input) {
-        return new AoC2015_11(input, true);
+    public static final AoC2015_11 createDebug() {
+        return new AoC2015_11(true);
     }
     
     @Override
-    public String solvePart1() {
-        return PasswordGenerator.generateFrom(this.input);
+    protected String parseInput(final List<String> inputs) {
+        assert inputs.size() == 1;
+        return inputs.get(0);
     }
 
     @Override
-    public String solvePart2() {
-        return PasswordGenerator.generateFrom(PasswordGenerator.generateFrom(this.input));
+    public String solvePart1(final String input) {
+        return PasswordGenerator.generateFrom(input);
+    }
+
+    @Override
+    public String solvePart2(final String input) {
+        return PasswordGenerator.generateFrom(PasswordGenerator.generateFrom(input));
+    }
+
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = "abcdefgh", expected = "abcdffaa"),
+        @Sample(method = "part1", input = "ghijklmn", expected = "ghjaabcc"),
+        @Sample(method = "part1", input = "heqaabcc", expected = "heqbbcdd"),
+    })
+    public void samples() {
     }
 
     public static void main(final String[] args) throws Exception {
         assert PasswordChecker.isOk("heqaabcc".toCharArray()) == true;
-        assert PasswordGenerator.generateFrom("abcdefgh").equals("abcdffaa");
-        assert PasswordGenerator.generateFrom("ghijklmn").equals("ghjaabcc");
-        assert PasswordGenerator.generateFrom("heqaabcc").equals("heqbbcdd");
 
-        final Puzzle puzzle = Aocd.puzzle(2015, 11);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2015_11.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2015_11.create(inputData)::solvePart2)
-        );
+        AoC2015_11.create().run();
     }
     
     private static final class PasswordChecker {

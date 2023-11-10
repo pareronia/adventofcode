@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.github.pareronia.aoc.solution.SolutionBase;
 import com.github.pareronia.aocd.Runner.ClassFactory;
 import com.github.pareronia.aocd.Runner.Request;
 import com.github.pareronia.aocd.Runner.Response;
@@ -101,11 +102,20 @@ public class RunnerTestCase {
                         "8",
                         "line1" + System.lineSeparator() + "line2", "line3"});
 	    final ClassFactory classFactory = className -> Stub.class;
+	    final ClassFactory classFactory2 = className -> AoC2020_01.class;
 		when(systemUtils.getLocalDate()).thenReturn(LocalDate.of(2021, Month.DECEMBER, 7));
-		when(systemUtils.getSystemNanoTime()).thenReturn(1_000L, 2_000L, 5_000L, 8_000L);
-		final Response response = Runner.create(systemUtils, classFactory).run(request);
+		when(systemUtils.getSystemNanoTime()).thenReturn(
+		    1_000L, 2_000L, 5_000L, 8_000L, 9_000L, 10_000L, 11_000L, 14_000L);
 		
+		final Response response = Runner.create(systemUtils, classFactory).run(request);
 		assertThat(response.toString()).isEqualTo(
+		        "{\"part1\":"
+		        + "{\"answer\":\"3\",\"duration\":1000},"
+		        + "\"part2\":"
+		        + "{\"answer\":\"3\",\"duration\":3000}}");
+		
+		final Response response2 = Runner.create(systemUtils, classFactory2).run(request);
+		assertThat(response2.toString()).isEqualTo(
 		        "{\"part1\":"
 		        + "{\"answer\":\"3\",\"duration\":1000},"
 		        + "\"part2\":"
@@ -139,5 +149,31 @@ public class RunnerTestCase {
 		public Integer solvePart2() {
 		    return this.strings.size();
 		}
+	}
+	
+	private static final class AoC2020_01 extends SolutionBase<List<String>, Integer, Integer> {
+	    protected AoC2020_01(final boolean debug) {
+            super(debug);
+        }
+
+        @SuppressWarnings("unused")
+	    public static AoC2020_01 create() {
+	        return new AoC2020_01(false);
+	    }
+	    
+	    @Override
+        public Integer solvePart1(final List<String> strings) {
+	        return strings.size();
+	    }
+	    
+	    @Override
+        public Integer solvePart2(final List<String> strings) {
+	        return strings.size();
+	    }
+
+        @Override
+        protected List<String> parseInput(final List<String> inputs) {
+            return inputs;
+        }
 	}
 }
