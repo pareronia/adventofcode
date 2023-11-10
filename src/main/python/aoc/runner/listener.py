@@ -1,9 +1,12 @@
 import itertools
+import socket
 import sys
 from abc import ABC
 from abc import abstractmethod
+from datetime import datetime
 from typing import Iterable
 
+from dateutil import tz
 from junitparser import Attr
 from junitparser import Error
 from junitparser import Failure
@@ -14,53 +17,48 @@ from junitparser import TestCase
 from junitparser import TestSuite
 from termcolor import colored
 
-from . import Result
 from .config import config
 
 
 class Listener(ABC):
     @abstractmethod
-    def start(
+    def puzzle_started(
         self, year: int, day: int, title: str, plugin: str, user_id: str
     ) -> None:
         pass
 
     @abstractmethod
-    def elapsed(self, amount: int) -> None:
+    def run_elapsed(self, amount: int) -> None:
         pass
 
     @abstractmethod
-    def finished(self) -> None:
+    def run_finished(self) -> None:
         pass
 
     @abstractmethod
-    def finalize(self, time: int, walltime: float) -> None:
+    def puzzle_finished(self, time: int, walltime: float) -> None:
         pass
 
     @abstractmethod
-    def finalize_with_error(
+    def puzzle_finished_with_error(
         self, time: int, walltime: float, error: str
     ) -> None:
         pass
 
     @abstractmethod
-    def finalize_part_with_missing(
-        self, time: int, part: str, result: Result
-    ) -> None:
+    def part_missing(self, time: int, part: str) -> None:
         pass
 
     @abstractmethod
-    def finalize_part_with_skipped(
-        self, time: int, part: str, result: Result
-    ) -> None:
+    def part_skipped(self, time: int, part: str) -> None:
         pass
 
     @abstractmethod
-    def finalize_part_with_ok(
+    def part_finished(
         self,
         time: int,
         part: str,
-        result: Result,
+        answer: str | None,
         expected: str | None,
         correct: bool,
     ) -> None:
@@ -75,54 +73,48 @@ class Listeners(Listener):
     def __init__(self, listeners: list[Listener]) -> None:
         self.listeners = listeners
 
-    def start(
+    def puzzle_started(
         self, year: int, day: int, title: str, plugin: str, user_id: str
     ) -> None:
         for listener in self.listeners:
-            listener.start(year, day, title, plugin, user_id)
+            listener.puzzle_started(year, day, title, plugin, user_id)
 
-    def elapsed(self, amount: int) -> None:
+    def run_elapsed(self, amount: int) -> None:
         for listener in self.listeners:
-            listener.elapsed(amount)
+            listener.run_elapsed(amount)
 
-    def finished(self) -> None:
+    def run_finished(self) -> None:
         for listener in self.listeners:
-            listener.finished()
+            listener.run_finished()
 
-    def finalize(self, time: int, walltime: float) -> None:
+    def puzzle_finished(self, time: int, walltime: float) -> None:
         for listener in self.listeners:
-            listener.finalize(time, walltime)
+            listener.puzzle_finished(time, walltime)
 
-    def finalize_with_error(
+    def puzzle_finished_with_error(
         self, time: int, walltime: float, error: str
     ) -> None:
         for listener in self.listeners:
-            listener.finalize_with_error(time, walltime, error)
+            listener.puzzle_finished_with_error(time, walltime, error)
 
-    def finalize_part_with_missing(
-        self, time: int, part: str, result: Result
-    ) -> None:
+    def part_missing(self, time: int, part: str) -> None:
         for listener in self.listeners:
-            listener.finalize_part_with_missing(time, part, result)
+            listener.part_missing(time, part)
 
-    def finalize_part_with_skipped(
-        self, time: int, part: str, result: Result
-    ) -> None:
+    def part_skipped(self, time: int, part: str) -> None:
         for listener in self.listeners:
-            listener.finalize_part_with_skipped(time, part, result)
+            listener.part_skipped(time, part)
 
-    def finalize_part_with_ok(
+    def part_finished(
         self,
         time: int,
         part: str,
-        result: Result,
+        answer: str | None,
         expected: str | None,
         correct: bool,
     ) -> None:
         for listener in self.listeners:
-            listener.finalize_part_with_ok(
-                time, part, result, expected, correct
-            )
+            listener.part_finished(time, part, answer, expected, correct)
 
     def stop(self) -> None:
         for listener in self.listeners:
@@ -130,6 +122,9 @@ class Listeners(Listener):
 
 
 class CLIListener(Listener):
+    # longest correct answer seen so far has been 32 chars
+    cutoff = 50
+
     def __init__(
         self,
         plugins: Iterable[str],
@@ -150,7 +145,7 @@ class CLIListener(Listener):
         self.total_time = 0.0
         self.total_walltime = 0.0
 
-    def start(
+    def puzzle_started(
         self, year: int, day: int, title: str, plugin: str, user_id: str
     ) -> None:
         self.line = self._format_time(0, self.timeout)
@@ -158,7 +153,7 @@ class CLIListener(Listener):
         progress %= (self.plugin_pad, self.user_pad)
         self.progress = progress.format(year, day, title, plugin, user_id)
 
-    def elapsed(self, amount: int) -> None:
+    def run_elapsed(self, amount: int) -> None:
         if self.progress is not None:
             self.line = (
                 "\r"
@@ -171,54 +166,61 @@ class CLIListener(Listener):
             sys.stderr.write(self.line)
             sys.stderr.flush()
 
-    def finished(self) -> None:
+    def run_finished(self) -> None:
         if self.progress is not None:
             sys.stderr.write("\r" + " " * len(self.line) + "\r")
             sys.stderr.flush()
 
-    def finalize(self, time: int, walltime: float) -> None:
+    def puzzle_finished(self, time: int, walltime: float) -> None:
         if not (self.is_missing and self.hide_missing):
             print(self.line)
         self.is_missing = False
         self.total_time += time
         self.total_walltime += walltime
 
-    def finalize_with_error(
+    def puzzle_finished_with_error(
         self, time: int, walltime: float, error: str
     ) -> None:
         self._init_line(time)
-        icon, answer = self._get_icon_and_answer(None, None, None, error)
-        self.line += f"   {icon} {answer}"
+        icon = colored("❌", "red")
+        string = error[: CLIListener.cutoff]
+        self.line += f"   {icon} {string}"
         self.total_time += time
         self.total_walltime += walltime
 
-    def finalize_part_with_missing(
-        self, time: int, part: str, result: Result
-    ) -> None:
+    def part_missing(self, time: int, part: str) -> None:
         self.is_missing = True
         if self.hide_missing:
             return
-        icon, answer = self._get_icon_and_answer(result, None, None, None)
-        self._update_part(time, part, answer, icon)
+        icon = colored("⭕", "light_green")
+        string = "- missing -"
+        self._update_part(time, part, string, icon)
 
-    def finalize_part_with_skipped(
-        self, time: int, part: str, result: Result
-    ) -> None:
-        icon, answer = self._get_icon_and_answer(result, None, None, None)
-        self._update_part(time, part, answer, icon)
+    def part_skipped(self, time: int, part: str) -> None:
+        icon = "⌚"
+        string = "- skipped -"
+        self._update_part(time, part, string, icon)
 
-    def finalize_part_with_ok(
+    def part_finished(
         self,
         time: int,
         part: str,
-        result: Result,
+        answer: str | None,
         expected: str | None,
         correct: bool,
     ) -> None:
-        icon, answer = self._get_icon_and_answer(
-            result, correct, expected, None
-        )
-        self._update_part(time, part, answer, icon)
+        if answer and correct:
+            icon = colored("✅", "green")
+            string = f"{answer[:CLIListener.cutoff]}"
+        elif answer and not correct:
+            if expected is None:
+                icon = colored("?", "magenta")
+                correction = "(correct answer unknown)"
+            else:
+                icon = colored("❌", "red")
+                correction = f"(expected: {expected})"
+            string = f"{answer[:CLIListener.cutoff]} {correction}"
+        self._update_part(time, part, string, icon)
 
     def stop(self) -> None:
         print()
@@ -254,102 +256,86 @@ class CLIListener(Listener):
             runtime = colored("{: 8.4f}s".format(t), color)
         return runtime
 
-    def _get_icon_and_answer(
-        self,
-        result: Result | None,
-        correct: bool | None,
-        expected: str | None,
-        error: str | None,
-    ) -> tuple[str, str]:
-        # longest correct answer seen so far has been 32 chars
-        cutoff = 50
-        if error:
-            icon = colored("❌", "red")
-            answer = error[:cutoff]
-        elif result and result.is_missing:
-            icon = colored("⭕", "light_green")
-            answer = "- missing -"
-        elif result and result.is_skipped:
-            icon = "⌚"
-            answer = "- skipped -"
-        elif result and result.answer and correct:
-            icon = colored("✅", "green")
-            answer = f"{result.answer[:cutoff]}"
-        elif result and result.answer and not correct:
-            if expected is None:
-                icon = colored("?", "magenta")
-                correction = "(correct answer unknown)"
-            else:
-                icon = colored("❌", "red")
-                correction = f"(expected: {expected})"
-            answer = f"{result.answer[:cutoff]} {correction}"
-        else:
-            raise ValueError(
-                f"Invalid state: {result=} {correct=} {expected=} {error=}"
-            )
-        return icon, answer
-
 
 class JUnitXmlListener(Listener):
     def __init__(self) -> None:
         self.suite = TestSuite("Advent of Code")
+        self.suite.timestamp = datetime.now(tz.UTC)
+        self.suite.hostname = socket.gethostname()
         TestCase.year = IntAttr("year")
         TestCase.day = IntAttr("day")
+        TestCase.part = Attr("part")
         TestCase.title = Attr("title")
         TestCase.plugin = Attr("plugin")
         TestCase.user_id = Attr("user_id")
 
-    def start(
+    def puzzle_started(
         self, year: int, day: int, title: str, plugin: str, user_id: str
     ) -> None:
-        self.case = TestCase(name=f"{year}/{day:02}/{plugin}/{user_id}")
-        self.case.year = year
-        self.case.day = day
-        self.case.title = title
-        self.case.plugin = plugin
-        self.case.user_id = user_id
-        self.missing = self.skipped = self.failed = False
+        self.year = year
+        self.day = day
+        self.title = title
+        self.plugin = plugin
+        self.user_id = user_id
 
-    def elapsed(self, amount: int) -> None:
+    def run_elapsed(self, amount: int) -> None:
         pass
 
-    def finished(self) -> None:
+    def run_finished(self) -> None:
         pass
 
-    def finalize(self, time: int, walltime: float) -> None:
-        self.case.time = walltime
-        if self.missing:
-            return
-        if self.failed:
-            self.case.result = [Failure()]
-        elif self.skipped:
-            self.case.result = [Skipped()]
-        self.suite.add_testcase(self.case)
+    def puzzle_finished(self, time: int, walltime: float) -> None:
+        pass
 
-    def finalize_with_error(
+    def puzzle_finished_with_error(
         self, time: int, walltime: float, error: str
     ) -> None:
-        self.case.result = [Error(error)]
+        case = TestCase(
+            name=f"{self.year}/{self.day:02}/{self.plugin}/{self.user_id}"
+        )
+        case.year = self.year
+        case.day = self.day
+        case.plugin = self.plugin
+        case.user_id = self.user_id
+        case.time = walltime
+        case.result = [Error(error)]
+        self.suite.add_testcase(case)
 
-    def finalize_part_with_missing(
-        self, time: int, part: str, result: Result
-    ) -> None:
-        self.missing = True
+    def part_missing(self, time: int, part: str) -> None:
+        pass
 
-    def finalize_part_with_skipped(
-        self, time: int, part: str, result: Result
-    ) -> None:
-        self.skipped = True
+    def part_skipped(self, time: int, part: str) -> None:
+        case = TestCase(
+            name=f"{self.year}/{self.day:02}/{part}/{self.plugin}/{self.user_id}"  # noqa E501
+        )
+        case.year = self.year
+        case.day = self.day
+        case.part = part
+        case.plugin = self.plugin
+        case.user_id = self.user_id
+        case.result = [Skipped()]
+        self.suite.add_testcase(case)
 
-    def finalize_part_with_ok(
+    def part_finished(
         self,
         time: int,
         part: str,
-        result: Result,
+        answer: str | None,
         expected: str | None,
         correct: bool,
     ) -> None:
-        self.failed = self.failed or not correct
+        case = TestCase(
+            name=f"{self.year}/{self.day:02}/{part}/{self.plugin}/{self.user_id}"  # noqa E501
+        )
+        case.year = self.year
+        case.day = self.day
+        case.part = part
+        case.plugin = self.plugin
+        case.user_id = self.user_id
+        case.time = time / 1e9
+        if not correct:
+            case.result = [Failure(f"Expected '{expected}', was: '{answer}'")]
+        self.suite.add_testcase(case)
 
     def stop(self) -> None:
         xml = JUnitXml()

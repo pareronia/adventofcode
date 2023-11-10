@@ -132,7 +132,7 @@ def run_with_timeout(
         # future = pool.schedule(plugin.run, kwargs=kwargs, timeout=timeout)
         future = pool.schedule(callable, kwargs=args, timeout=timeout)
         while not future.done():
-            listener.elapsed(elapsed)
+            listener.run_elapsed(elapsed)
             time.sleep(dt)
             elapsed = time.time_ns() - t0
         walltime = time.time() - (t0 / 1e9)
@@ -145,7 +145,7 @@ def run_with_timeout(
             error = repr(err)
         else:
             error = ""
-    listener.finished()
+    listener.run_finished()
     return result_a, result_b, walltime, error
 
 
@@ -195,7 +195,7 @@ def run_for(
             continue
         token = datasets[user_id]
         puzzle = Puzzle.create(token, year, day, autosubmit)
-        listener.start(year, day, puzzle.title, plugin[0], user_id)
+        listener.puzzle_started(year, day, puzzle.title, plugin[0], user_id)
         walltime = 0.0
         input_data = puzzle.input_data
         if input_data is None:
@@ -219,26 +219,26 @@ def run_for(
         if error:
             assert result_a.answer == result_b.answer == ""
             n_incorrect += 1
-            listener.finalize_with_error(time, walltime, error)
+            listener.puzzle_finished_with_error(time, walltime, error)
         else:
             for result, part in zip((result_a, result_b), "ab"):
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
                     continue
                 if result.is_missing:
-                    listener.finalize_part_with_missing(time, part, result)
+                    listener.part_missing(time, part)
                 elif result.is_skipped:
-                    listener.finalize_part_with_skipped(time, part, result)
+                    listener.part_skipped(time, part)
                 else:
                     expected = puzzle.get_expected(part, result.answer)
                     correct = (
                         expected is not None and str(expected) == result.answer
                     )
-                    listener.finalize_part_with_ok(
-                        time, part, result, expected, correct
+                    listener.part_finished(
+                        time, part, result.answer, expected, correct
                     )
                     if not correct:
                         n_incorrect += 1
-        listener.finalize(time, walltime)
+        listener.puzzle_finished(time, walltime)
     listener.stop()
     return n_incorrect
