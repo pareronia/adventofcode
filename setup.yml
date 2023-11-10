@@ -107,3 +107,10 @@ runner:
     listeners:
       junitxml:
         filepath: build/junit.xml
+generator:
+    languages:
+        - language: python
+          template: src/main/resources/generator/template.py
+          base_dir: *python-base_dir
+          pattern: *python-file_pattern
+          ext: *python-file_ext
