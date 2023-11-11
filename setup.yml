@@ -114,3 +114,8 @@ generator:
           base_dir: *python-base_dir
           pattern: *python-file_pattern
           ext: *python-file_ext
+        - language: java
+          template: src/main/resources/generator/template.java
+          base_dir: *java-base_dir
+          pattern: *java-file_pattern
+          ext: *java-file_ext
