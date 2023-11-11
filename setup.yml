@@ -110,12 +110,16 @@ runner:
 generator:
     languages:
         - language: python
-          template: src/main/resources/generator/template.py
-          base_dir: *python-base_dir
-          pattern: *python-file_pattern
-          ext: *python-file_ext
+          templates:
+            - source: src/main/resources/generator/template.py
+              destination: src/main/python/AoC{year}_{day:0>2}.py
         - language: java
-          template: src/main/resources/generator/template.java
-          base_dir: *java-base_dir
-          pattern: *java-file_pattern
-          ext: *java-file_ext
+          templates:
+            - source: src/main/resources/generator/template.java
+              destination: src/main/java/AoC{year}_{day:0>2}.java
+        - language: rust
+          templates:
+            - source: src/main/resources/generator/template.rs
+              destination: src/main/rust/AoC{year}_{day:0>2}/src/main.rs
+            - source: src/main/resources/generator/Cargo.toml
+              destination: src/main/rust/AoC{year}_{day:0>2}/Cargo.toml

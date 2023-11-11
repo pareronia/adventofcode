@@ -5,30 +5,33 @@ import os
 from typing import NamedTuple
 
 import yaml
+from prettyprinter import cpprint
 
 log = logging.getLogger(__name__)
 
 
+class Template(NamedTuple):
+    source: str
+    destination: str
+
+
 class Language(NamedTuple):
     language: str
-    template: str
-    base_dir: str
-    pattern: str
-    ext: str
+    templates: list[Template]
 
 
 class Config:
     def get_languages(self) -> dict[str, Language]:
-        rows = dict[str, Language]()
-        for row in getattr(self, "generator")["languages"]:
-            rows[row["language"]] = Language(
-                row["language"],
-                row["template"],
-                row["base_dir"],
-                row["pattern"],
-                row["ext"],
+        return {
+            lang["language"]: Language(
+                lang["language"],
+                [
+                    Template(template["source"], template["destination"])
+                    for template in lang["templates"]
+                ],
             )
-        return rows
+            for lang in getattr(self, "generator")["languages"]
+        }
 
 
 with open(os.path.join(".", "setup.yml"), "r") as f:
@@ -41,4 +44,4 @@ log.debug(config.__dict__)
 
 
 if __name__ == "__main__":
-    print(config.get_languages())
+    cpprint(config.get_languages())
