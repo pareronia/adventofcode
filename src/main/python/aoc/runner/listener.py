@@ -122,8 +122,8 @@ class Listeners(Listener):
 
 
 class CLIListener(Listener):
-    # longest correct answer seen so far has been 32 chars
-    cutoff = 50
+    # longest correct answer seen so far has been 57 chars
+    cutoff = 60
 
     def __init__(
         self,

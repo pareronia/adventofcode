@@ -29,6 +29,7 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 from contextlib import contextmanager
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 from typing import Callable
 from typing import Generator
@@ -72,45 +73,104 @@ def main() -> None:
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
     users = AocdHelper.load_users()
-    log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
     parser = ArgumentParser(description="AoC runner")
     parser.add_argument(
-        "-p", "--plugins", nargs="+", choices=all_plugins.keys()
+        "-p",
+        "--plugins",
+        nargs="+",
+        choices=all_plugins.keys(),
+        default=all_plugins.keys(),
+        help=(
+            "List of plugins (solvers) to evaluate. "
+            "Runs against all available plugins by default."
+        ),
     )
-    parser.add_argument("-y", "--years", type=int, nargs="+", choices=years)
-    parser.add_argument("-d", "--days", type=int, nargs="+", choices=days)
-    parser.add_argument("-u", "--users", nargs="+", choices=users)
-    parser.add_argument("-t", "--timeout", type=int, default=DEFAULT_TIMEOUT)
     parser.add_argument(
-        "-s", "--no-submit", action="store_true", help="disable autosubmit"
+        "-y",
+        "--years",
+        type=int,
+        nargs="+",
+        choices=years,
+        default=years,
+        help="AoC years to run. Runs all available by default.",
     )
     parser.add_argument(
-        "-m", "--hide-missing", action="store_true", help="hide missing"
+        "-d",
+        "--days",
+        type=int,
+        nargs="+",
+        choices=days,
+        default=days,
+        help="AoC days to run. Runs all 1-25 by default.",
     )
-    parser.add_argument("--log-level", default="WARNING", choices=log_levels)
+    parser.add_argument(
+        "-u",
+        "--users",
+        nargs="+",
+        choices=users,
+        default=users,
+        help="Users to run each plugin with.",
+    )
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        type=int,
+        default=DEFAULT_TIMEOUT,
+        help=(
+            "Kill a solver if it exceeds this timeout, in seconds "
+            "(default: %(default)s)."
+        ),
+    )
+    parser.add_argument(
+        "-s",
+        "--no-submit",
+        action="store_false",
+        dest="autosubmit",
+        help=(
+            "Disable autosubmit. "
+            "By default, the runner will submit answers if necessary."
+        ),
+    )
+    parser.add_argument(
+        "-m",
+        "--hide-missing",
+        action="store_true",
+        help="Hide missing solvers.",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        help=(
+            "Increased logging (-v INFO, -vv DEBUG). "
+            "Default level is logging.WARNING."
+        ),
+    )
     args = parser.parse_args()
 
-    logging.basicConfig(level=getattr(logging, args.log_level))
-    plugins = OrderedDict(
-        {k: all_plugins[k] for k in args.plugins or all_plugins}
-    )
+    if args.verbose is None:
+        log_level = logging.WARNING
+    elif args.verbose == 1:
+        log_level = logging.INFO
+    else:
+        log_level = logging.DEBUG
+    logging.basicConfig(level=log_level)
+    plugins = OrderedDict({k: all_plugins[k] for k in args.plugins})
     log.debug(plugins)
-    datasets = {k: users[k] for k in (args.users or users)}
-    timeout = args.timeout
-    hide_missing = args.hide_missing
+    datasets = {k: users[k] for k in args.users}
     cli_listener = CLIListener(
-        plugins.keys(), datasets.keys(), timeout, hide_missing
+        args.plugins, args.users, args.timeout, args.hide_missing
     )
     junitxml_listener = JUnitXmlListener()
 
     with use_plugins(plugins):
         rc = run_for(
             plugins=plugins,
-            years=[_ for _ in args.years or years],
-            days=[_ for _ in args.days or days],
+            years=args.years,
+            days=args.days,
             datasets=datasets,
-            timeout=timeout,
-            autosubmit=not args.no_submit,
+            timeout=args.timeout,
+            autosubmit=args.autosubmit,
             listener=Listeners([cli_listener, junitxml_listener]),
         )
 
@@ -124,27 +184,25 @@ def run_with_timeout(
     listener: Listener,
     dt: float = 0.005,
 ) -> tuple[Result, Result, float, str]:
-    # TO_DO : multi-process over the different tokens
-    pool = pebble.ProcessPool(max_workers=1)
     elapsed = 0
-    with pool:
-        t0 = time.time_ns()
-        # future = pool.schedule(plugin.run, kwargs=kwargs, timeout=timeout)
-        future = pool.schedule(callable, kwargs=args, timeout=timeout)
-        while not future.done():
-            listener.run_elapsed(elapsed)
-            time.sleep(dt)
-            elapsed = time.time_ns() - t0
-        walltime = time.time() - (t0 / 1e9)
-        try:
-            result_a, result_b = future.result()
-        except Exception as err:
-            log.error(err)
-            result_a = Result.ok("")
-            result_b = Result.ok("")
-            error = repr(err)
-        else:
-            error = ""
+    t0 = time.time_ns()
+    future = pebble.concurrent.process(daemon=False, timeout=timeout)(
+        callable
+    )(**args)
+    while not future.done():
+        listener.run_elapsed(elapsed)
+        time.sleep(dt)
+        elapsed = time.time_ns() - t0
+    walltime = time.time() - (t0 / 1e9)
+    try:
+        result_a, result_b = future.result()
+    except Exception as err:
+        log.error(err)
+        result_a = Result.ok("")
+        result_b = Result.ok("")
+        error = repr(err)
+    else:
+        error = ""
     listener.run_finished()
     return result_a, result_b, walltime, error
 
@@ -165,17 +223,22 @@ def scratch_file(
     name: str, year: int, day: int, input_data: str
 ) -> Generator[None, None, None]:
     prev = os.getcwd()
-    scratch = tempfile.mkdtemp(prefix="{}-{:02d}-".format(year, day))
+    scratch = tempfile.mkdtemp(prefix=f"{year}-{day:02d}-")
     os.chdir(scratch)
-    assert not os.path.exists(name)
+    input_path = Path(name)
+    assert not input_path.exists()
     try:
-        with open(name, "w") as f:
-            f.write(input_data)
+        input_path.write_text(input_data, encoding="utf-8")
         yield
     finally:
-        os.unlink(name)
+        input_path.unlink(missing_ok=True)
         os.chdir(prev)
-        os.rmdir(scratch)
+        try:
+            os.rmdir(scratch)
+        except Exception as err:
+            log.warning(
+                "failed to remove scratch %s (%s: %s)", scratch, type(err), err
+            )
 
 
 def run_for(
