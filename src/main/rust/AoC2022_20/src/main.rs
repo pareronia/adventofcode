@@ -5,7 +5,7 @@ use aoc::Puzzle;
 struct AoC2022_20;
 
 impl AoC2022_20 {
-    fn solve(&self, numbers: &Vec<i64>, rounds: usize, factor: i64) -> i64 {
+    fn solve(&self, numbers: &[i64], rounds: usize, factor: i64) -> i64 {
         let nums = numbers.iter().map(|num| num * factor).collect::<Vec<i64>>();
         let mut idxs: Vec<usize> = (0..nums.len()).collect();
         (0..rounds).for_each(|_| {

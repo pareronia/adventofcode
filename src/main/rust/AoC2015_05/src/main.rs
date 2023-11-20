@@ -15,7 +15,7 @@ lazy_static! {
 struct AoC2015_05 {}
 
 impl AoC2015_05 {
-    fn count_matches(&self, line: &String, regex: &Regex) -> usize {
+    fn count_matches(&self, line: &str, regex: &Regex) -> usize {
         regex.find_iter(line).count()
     }
 }
@@ -34,18 +34,18 @@ impl aoc::Puzzle for AoC2015_05 {
     fn part_1(&self, lines: &Vec<String>) -> usize {
         lines
             .iter()
-            .filter(|line| self.count_matches(line, &*VOWEL) >= 3)
-            .filter(|line| self.count_matches(line, &*BAD) == 0)
-            .filter(|line| self.count_matches(line, &*TWIN) >= 1)
+            .filter(|line| self.count_matches(line, &VOWEL) >= 3)
+            .filter(|line| self.count_matches(line, &BAD) == 0)
+            .filter(|line| self.count_matches(line, &TWIN) >= 1)
             .count()
     }
 
     fn part_2(&self, lines: &Vec<String>) -> usize {
         lines
             .iter()
-            .filter(|line| self.count_matches(line, &*TWO_TWINS) >= 1)
+            .filter(|line| self.count_matches(line, &TWO_TWINS) >= 1)
             .filter(|line| {
-                self.count_matches(line, &*THREE_LETTER_PALINDROME) >= 1
+                self.count_matches(line, &THREE_LETTER_PALINDROME) >= 1
             })
             .count()
     }

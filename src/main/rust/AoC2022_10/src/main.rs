@@ -13,8 +13,8 @@ const MAX: usize = 220;
 struct AoC2022_10;
 
 enum OpCode {
-    NOOP,
-    ADDX,
+    Noop,
+    Addx,
 }
 
 #[derive(Debug)]
@@ -25,8 +25,8 @@ impl FromStr for OpCode {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "noop" => Ok(OpCode::NOOP),
-            "addx" => Ok(OpCode::ADDX),
+            "noop" => Ok(OpCode::Noop),
+            "addx" => Ok(OpCode::Addx),
             _ => Err(ParseOpCodeError {}),
         }
     }
@@ -44,11 +44,11 @@ impl FromStr for Instruction {
     type Err = ParseInstructionError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let splits: Vec<&str> = s.split(" ").collect();
+        let splits: Vec<&str> = s.split_whitespace().collect();
         let operation = splits[0].parse().unwrap();
         let operand = match operation {
-            OpCode::NOOP => None,
-            OpCode::ADDX => splits[1].parse().ok(),
+            OpCode::Noop => None,
+            OpCode::Addx => splits[1].parse().ok(),
         };
         Ok(Instruction { operation, operand })
     }
@@ -57,21 +57,21 @@ impl FromStr for Instruction {
 impl Instruction {
     fn get_operand(&self) -> i32 {
         match self.operation {
-            OpCode::NOOP => panic!("NOOP has no operand"),
-            OpCode::ADDX => self.operand.unwrap(),
+            OpCode::Noop => panic!("NOOP has no operand"),
+            OpCode::Addx => self.operand.unwrap(),
         }
     }
 }
 
 impl AoC2022_10 {
-    fn get_x_values(&self, input: &Vec<Instruction>) -> Vec<i32> {
+    fn get_x_values(&self, input: &[Instruction]) -> Vec<i32> {
         let mut xs: Vec<i32> = vec![];
         let mut x = 1;
         input.iter().for_each(|ins| match ins.operation {
-            OpCode::NOOP => {
+            OpCode::Noop => {
                 xs.push(x);
             }
-            OpCode::ADDX => {
+            OpCode::Addx => {
                 xs.push(x);
                 xs.push(x);
                 x += ins.get_operand();
@@ -80,10 +80,10 @@ impl AoC2022_10 {
         xs
     }
 
-    fn get_pixels(&self, input: &Vec<Instruction>) -> Vec<String> {
+    fn get_pixels(&self, input: &[Instruction]) -> Vec<String> {
         fn draw(cycle: usize, x: i32) -> char {
             match (cycle % PERIOD) as i32 - x {
-                val if -1 <= val && val <= 1 => FILL,
+                val if (-1..=1).contains(&val) => FILL,
                 _ => EMPTY,
             }
         }

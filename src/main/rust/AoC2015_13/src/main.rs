@@ -9,12 +9,12 @@ struct Happiness {
 }
 
 impl Happiness {
-    fn from_input(input: &Vec<String>) -> Self {
+    fn from_input(input: &[String]) -> Self {
         let mut map: HashMap<String, usize> = HashMap::new();
         let mut cnt = 0;
         let values: HashMap<(usize, usize), i16> = input
             .iter()
-            .map(|line| line.replace(".", ""))
+            .map(|line| line.replace('.', ""))
             .map(|line| {
                 line.split_whitespace()
                     .map(str::to_string)
@@ -23,26 +23,20 @@ impl Happiness {
             .map(|splits| {
                 let d1 = splits[0].clone();
                 let d2 = splits[10].clone();
-                let idx1 = map
-                    .entry(d1)
-                    .or_insert_with(|| {
-                        let x = cnt;
-                        cnt += 1;
-                        x
-                    })
-                    .clone();
-                let idx2 = map
-                    .entry(d2)
-                    .or_insert_with(|| {
-                        let x = cnt;
-                        cnt += 1;
-                        x
-                    })
-                    .clone();
+                let idx1 = *map.entry(d1).or_insert_with(|| {
+                    let x = cnt;
+                    cnt += 1;
+                    x
+                });
+                let idx2 = *map.entry(d2).or_insert_with(|| {
+                    let x = cnt;
+                    cnt += 1;
+                    x
+                });
                 let key = (idx1, idx2);
                 let val = splits[3].parse::<i16>().unwrap();
                 match &splits[2][..] {
-                    "lose" => (key, -1 * val),
+                    "lose" => (key, -val),
                     _ => (key, val),
                 }
             })

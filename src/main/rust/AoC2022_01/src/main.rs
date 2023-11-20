@@ -5,7 +5,7 @@ use aoc::Puzzle;
 struct AoC2022_01;
 
 impl AoC2022_01 {
-    fn solve(&self, groups: &Vec<Vec<u32>>, count: usize) -> u32 {
+    fn solve(&self, groups: &[Vec<u32>], count: usize) -> u32 {
         let mut sums: Vec<u32> =
             groups.iter().map(|group| group.iter().sum()).collect();
         sums.sort();

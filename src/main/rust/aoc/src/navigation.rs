@@ -8,9 +8,9 @@ pub enum Heading {
     West,
 }
 
-impl Into<Direction> for Heading {
-    fn into(self) -> Direction {
-        match self {
+impl From<Heading> for Direction {
+    fn from(heading: Heading) -> Self {
+        match heading {
             Heading::North => Direction::Up,
             Heading::East => Direction::Right,
             Heading::South => Direction::Down,
@@ -94,6 +94,6 @@ impl<'a> NavigationWithHeading<'a> {
                 self.position = new_position;
             }
         });
-        self.remember_visited_position(self.position.clone());
+        self.remember_visited_position(self.position);
     }
 }

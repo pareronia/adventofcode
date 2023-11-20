@@ -22,11 +22,11 @@ impl AoC2022_14 {
                 let x = curr_x;
                 let y = curr_y;
                 let yy = y + 1;
-                for xx in vec![x, x - 1, x + 1] {
+                for xx in [x, x - 1, x + 1] {
                     match cave.occupied.get(yy) {
                         None => continue,
                         Some(row) => match row.get(xx) {
-                            Some(val) if *val == false => {
+                            Some(val) if !(*val) => {
                                 (curr_x, curr_y) = (xx, yy);
                                 break;
                             }
@@ -76,15 +76,15 @@ impl aoc::Puzzle for AoC2022_14 {
                 .split(" -> ")
                 .map(|split| {
                     split
-                        .split(",")
+                        .split(',')
                         .map(|s| s.parse::<usize>().unwrap())
                         .collect::<Vec<usize>>()
                 })
                 .collect::<Vec<Vec<usize>>>();
             let mut c1 = c.clone();
             for (v1, v2) in c.iter_mut().zip(c1[1..].iter_mut()) {
-                let mut xs = vec![v1[0], v2[0]];
-                let mut ys = vec![v1[1], v2[1]];
+                let mut xs = [v1[0], v2[0]];
+                let mut ys = [v1[1], v2[1]];
                 xs.sort_unstable();
                 ys.sort_unstable();
                 for x in xs[0]..=xs[1] {

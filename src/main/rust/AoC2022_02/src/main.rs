@@ -150,7 +150,7 @@ impl aoc::Puzzle for AoC2022_02 {
         lines
             .iter()
             .map(|line| {
-                line.split(" ")
+                line.split_whitespace()
                     .map(|s| s.to_string())
                     .collect_tuple()
                     .unwrap()

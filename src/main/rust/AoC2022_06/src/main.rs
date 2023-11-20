@@ -6,7 +6,7 @@ use itertools::Itertools;
 struct AoC2022_06;
 
 impl AoC2022_06 {
-    fn solve(&self, line: &String, count: usize) -> usize {
+    fn solve(&self, line: &str, count: usize) -> usize {
         for i in count..line.chars().count() {
             if line.chars().skip(i - count).take(count).unique().count()
                 == count

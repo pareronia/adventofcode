@@ -22,11 +22,11 @@ impl AoC2019_01 {
         total_fuel
     }
 
-    fn solve<F>(&self, input: &Vec<u32>, mut method: F) -> u32
+    fn solve<F>(&self, input: &[u32], method: F) -> u32
     where
         F: FnMut(&u32) -> u32,
     {
-        input.iter().map(|m| method(m)).sum()
+        input.iter().map(method).sum()
     }
 }
 

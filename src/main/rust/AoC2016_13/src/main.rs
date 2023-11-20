@@ -31,8 +31,8 @@ impl AoC2016_13 {
         AStar::execute(*START, |_| false, adjacent, |_| 1)
     }
 
-    fn get_distance(&self, input: usize, cell: &Cell) -> usize {
-        self.run_astar(input).get_distance(&cell).unwrap()
+    fn get_distance(&self, input: usize, cell: Cell) -> usize {
+        self.run_astar(input).get_distance(cell).unwrap()
     }
 }
 
@@ -48,7 +48,7 @@ impl aoc::Puzzle for AoC2016_13 {
     }
 
     fn part_1(&self, input: &usize) -> usize {
-        self.get_distance(*input, &Cell::at(31, 39))
+        self.get_distance(*input, Cell::at(31, 39))
     }
 
     fn part_2(&self, input: &usize) -> usize {
@@ -61,8 +61,8 @@ impl aoc::Puzzle for AoC2016_13 {
 
     fn samples(&self) {
         let test = 10;
-        assert_eq!(self.get_distance(test, &Cell::at(1, 1)), 0);
-        assert_eq!(self.get_distance(test, &Cell::at(7, 4)), 11);
+        assert_eq!(self.get_distance(test, Cell::at(1, 1)), 0);
+        assert_eq!(self.get_distance(test, Cell::at(7, 4)), 11);
     }
 }
 

@@ -9,29 +9,25 @@ struct Distances {
 }
 
 impl Distances {
-    fn from_input(input: &Vec<String>) -> Self {
+    fn from_input(input: &[String]) -> Self {
         let mut map: HashMap<String, usize> = HashMap::new();
         let mut cnt = 0;
         let values: HashMap<(usize, usize), u16> = input
             .iter()
             .map(|line| line.split_whitespace().collect::<Vec<&str>>())
             .flat_map(|splits| {
-                let idx1 = map
-                    .entry(splits[0].to_string())
-                    .or_insert_with(|| {
+                let idx1 =
+                    *map.entry(splits[0].to_string()).or_insert_with(|| {
                         let x = cnt;
                         cnt += 1;
                         x
-                    })
-                    .clone();
-                let idx2 = map
-                    .entry(splits[2].to_string())
-                    .or_insert_with(|| {
+                    });
+                let idx2 =
+                    *map.entry(splits[2].to_string()).or_insert_with(|| {
                         let x = cnt;
                         cnt += 1;
                         x
-                    })
-                    .clone();
+                    });
                 let val = splits[4].parse::<u16>().unwrap();
                 [((idx1, idx2), val), ((idx2, idx1), val)]
             })
@@ -43,9 +39,9 @@ impl Distances {
         Self { matrix }
     }
 
-    fn get_distances_of_complete_routes<'a>(
-        &'a self,
-    ) -> impl Iterator<Item = u16> + 'a {
+    fn get_distances_of_complete_routes(
+        &self,
+    ) -> impl Iterator<Item = u16> + '_ {
         let len = self.matrix.len();
         (0..len)
             .permutations(len)

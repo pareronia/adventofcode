@@ -7,7 +7,7 @@ struct AoC2022_03 {}
 
 impl AoC2022_03 {
     fn priority(&self, ch: char) -> u32 {
-        match 'a' <= ch && ch <= 'z' {
+        match ch.is_ascii_lowercase() {
             true => ch as u32 - 'a' as u32 + 1,
             false => ch as u32 - 'A' as u32 + 27,
         }
@@ -44,9 +44,9 @@ impl aoc::Puzzle for AoC2022_03 {
                 let s1: HashSet<char> = lines[i].chars().collect();
                 let s2: HashSet<char> = lines[i + 1].chars().collect();
                 let s3: HashSet<char> = lines[i + 2].chars().collect();
-                let intersection = vec![&s2, &s3]
+                let intersection = [&s2, &s3]
                     .iter()
-                    .fold(s1, |i, s| i.intersection(&s).map(|x| *x).collect());
+                    .fold(s1, |i, s| i.intersection(s).copied().collect());
                 self.priority(*intersection.iter().next().unwrap())
             })
             .sum()

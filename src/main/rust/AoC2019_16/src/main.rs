@@ -3,7 +3,7 @@
 use aoc::Puzzle;
 use std::iter::zip;
 
-static ELEMENTS: &'static [i16] = &[0, 1, 0, -1];
+static ELEMENTS: &[i16] = &[0, 1, 0, -1];
 const PHASES: usize = 100;
 
 struct Pattern {

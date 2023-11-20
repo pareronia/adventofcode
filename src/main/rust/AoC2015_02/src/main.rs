@@ -9,9 +9,9 @@ struct Present {
 }
 
 impl Present {
-    fn from_input(s: &String) -> Self {
+    fn from_input(s: &str) -> Self {
         let sp: Vec<usize> = s
-            .split("x")
+            .split('x')
             .map(|sp| sp.parse::<usize>().unwrap())
             .collect();
         Self {
@@ -22,7 +22,7 @@ impl Present {
     }
 
     fn required_area(&self) -> usize {
-        let sides = vec![
+        let sides = [
             2 * self.length * self.width,
             2 * self.width * self.height,
             2 * self.height * self.length,
@@ -31,7 +31,7 @@ impl Present {
     }
 
     fn required_length(&self) -> usize {
-        let circumferences = vec![
+        let circumferences = [
             2 * (self.length + self.width),
             2 * (self.width + self.height),
             2 * (self.height + self.length),
@@ -53,7 +53,7 @@ impl aoc::Puzzle for AoC2015_02 {
     aoc::puzzle_year_day!(2015, 2);
 
     fn parse_input(&self, lines: Vec<String>) -> Vec<Present> {
-        lines.iter().map(Present::from_input).collect()
+        lines.iter().map(|s| Present::from_input(s)).collect()
     }
 
     fn part_1(&self, presents: &Vec<Present>) -> usize {

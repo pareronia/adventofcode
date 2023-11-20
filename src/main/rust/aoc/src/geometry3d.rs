@@ -94,9 +94,7 @@ impl Cuboid {
     pub fn get_points(&self) -> impl Iterator<Item = XYZ> + '_ {
         self.x.clone().flat_map(move |x| {
             self.y.clone().flat_map(move |y| {
-                self.z
-                    .clone()
-                    .map(move |z| XYZ::of(x.clone(), y.clone(), z.clone()))
+                self.z.clone().map(move |z| XYZ::of(x, y, z))
             })
         })
     }

@@ -268,7 +268,7 @@ pub trait Puzzle {
             let solution2 = solution!(Part::Part2, self, part_2, &input);
             println!("{}", solution2);
             println!();
-            let check: Check = vec![solution1, solution2]
+            let check: Check = [solution1, solution2]
                 .iter()
                 .map(|solution| PartCheck {
                     part: solution.part,
@@ -283,12 +283,12 @@ pub trait Puzzle {
     }
 }
 
-pub fn to_blocks(lines: &Vec<String>) -> Vec<Vec<&String>> {
+pub fn to_blocks(lines: &[String]) -> Vec<Vec<&String>> {
     let mut blocks = vec![];
     let mut idx: usize = 0;
     blocks.push(vec![]);
     lines.iter().for_each(|line| {
-        if line.len() == 0 {
+        if line.is_empty() {
             blocks.push(vec![]);
             idx += 1;
         } else {
@@ -299,7 +299,7 @@ pub fn to_blocks(lines: &Vec<String>) -> Vec<Vec<&String>> {
 }
 
 pub fn split_lines(s: &str) -> Vec<String> {
-    s.lines().map(|line| String::from(line)).collect()
+    s.lines().map(String::from).collect()
 }
 
 pub fn ints_with_check(line: &str, expected_count: usize) -> Vec<i32> {

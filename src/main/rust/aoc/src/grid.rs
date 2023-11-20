@@ -276,12 +276,7 @@ pub trait Grid {
             &self.get_data()[cell_range.from.row..cell_range.to.row];
         row_slice
             .iter()
-            .map(|row| {
-                (&row[cell_range.from.col..cell_range.to.col])
-                    .iter()
-                    .map(|c| c.clone())
-                    .collect()
-            })
+            .map(|row| (row[cell_range.from.col..cell_range.to.col]).to_vec())
             .collect()
     }
 }

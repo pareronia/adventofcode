@@ -47,11 +47,11 @@ where
         let mut seen: HashSet<T> = HashSet::new();
         seen.insert(start);
         while let Some(state) = q.pop_front() {
-            if is_end(state.node.clone()) {
+            if is_end(state.node) {
                 return state.distance;
             }
-            adjacent(state.node.clone()).iter().for_each(|n| {
-                if !seen.contains(&n) {
+            adjacent(state.node).iter().for_each(|n| {
+                if !seen.contains(n) {
                     seen.insert(*n);
                     q.push_back(State {
                         node: *n,
@@ -69,8 +69,8 @@ where
         let mut seen: HashSet<T> = HashSet::new();
         seen.insert(start);
         while let Some(node) = q.pop_front() {
-            adjacent(node.clone()).iter().for_each(|n| {
-                if !seen.contains(&n) {
+            adjacent(node).iter().for_each(|n| {
+                if !seen.contains(n) {
                     seen.insert(*n);
                     q.push_back(*n);
                 }
@@ -88,8 +88,8 @@ where
         let mut seen: HashSet<T> = HashSet::new();
         seen.insert(start);
         while let Some(node) = q.pop_front() {
-            adjacent(node.clone()).iter().for_each(|n| {
-                if !seen.contains(&n) {
+            adjacent(node).iter().for_each(|n| {
+                if !seen.contains(n) {
                     seen.insert(*n);
                     q.push_back(*n);
                 }
@@ -111,26 +111,26 @@ impl<T> Result<T>
 where
     T: Eq + Copy + Hash,
 {
-    pub fn get_distance(&self, t: &T) -> Option<usize> {
-        self.distances.get(t).cloned()
+    pub fn get_distance(&self, t: T) -> Option<usize> {
+        self.distances.get(&t).cloned()
     }
 
     pub fn get_distances(&self) -> &HashMap<T, usize> {
         &self.distances
     }
 
-    pub fn get_path(&self, t: &T) -> Option<Vec<T>> {
+    pub fn get_path(&self, t: T) -> Option<Vec<T>> {
         match self.get_distance(t) {
             None => None,
             Some(_) => {
                 let mut path = vec![];
-                let mut parent = Some(t.clone());
-                let source = self.start.clone();
-                if *t != self.start {
+                let mut parent = Some(t);
+                let source = self.start;
+                if t != self.start {
                     while parent.is_some() && parent.unwrap() != self.start {
-                        let p = parent.unwrap().clone();
+                        let p = parent.unwrap();
                         path.insert(0, p);
-                        parent = self.paths.get(&p).cloned()
+                        parent = self.paths.get(&p).copied()
                     }
                     path.insert(0, source);
                 } else {
@@ -161,15 +161,14 @@ where
         distances.insert(start, 0);
         let mut paths: HashMap<T, T> = HashMap::new();
         while let Some(state) = q.pop() {
-            if is_end(state.node.clone()) {
+            if is_end(state.node) {
                 break;
             }
-            let total =
-                distances.get(&state.node).unwrap_or(&usize::MAX).clone();
+            let total = *distances.get(&state.node).unwrap_or(&usize::MAX);
             if state.distance > total {
                 continue;
             }
-            adjacent(state.node.clone()).iter().for_each(|n| {
+            adjacent(state.node).iter().for_each(|n| {
                 let risk = total + cost(*n);
                 if risk < *distances.get(n).unwrap_or(&usize::MAX) {
                     distances.insert(*n, risk);
@@ -280,10 +279,10 @@ mod tests {
             adjacent,
             |_| 1,
         );
-        assert_eq!(result.get_distance(&Cell::at(2, 2)).unwrap(), 4);
-        assert_eq!(result.get_distance(&Cell::at(4, 3)).unwrap(), 7);
+        assert_eq!(result.get_distance(Cell::at(2, 2)).unwrap(), 4);
+        assert_eq!(result.get_distance(Cell::at(4, 3)).unwrap(), 7);
         assert_eq!(
-            result.get_path(&Cell::at(2, 2)).unwrap(),
+            result.get_path(Cell::at(2, 2)).unwrap(),
             vec![
                 Cell::at(0, 0),
                 Cell::at(1, 0),
@@ -292,7 +291,7 @@ mod tests {
                 Cell::at(2, 2)
             ]
         );
-        assert!(result.get_distance(&Cell::at(4, 0)).is_none());
-        assert!(result.get_path(&Cell::at(4, 0)).is_none());
+        assert!(result.get_distance(Cell::at(4, 0)).is_none());
+        assert!(result.get_path(Cell::at(4, 0)).is_none());
     }
 }

@@ -42,7 +42,7 @@ impl AoC2022_09 {
         });
     }
 
-    fn solve(&self, moves: &Vec<Direction>, size: usize) -> usize {
+    fn solve(&self, moves: &[Direction], size: usize) -> usize {
         let mut rope = vec![XY::of(0, 0); size];
         moves
             .iter()
@@ -66,7 +66,7 @@ impl aoc::Puzzle for AoC2022_09 {
         lines
             .iter()
             .flat_map(|line| {
-                let splits: Vec<&str> = line.split(" ").collect();
+                let splits: Vec<&str> = line.split_whitespace().collect();
                 let n = splits[1].parse::<usize>().unwrap();
                 let direction = Direction::from_str(splits[0]).unwrap();
                 std::iter::repeat(direction).take(n)

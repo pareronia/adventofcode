@@ -1,4 +1,5 @@
 #![allow(non_snake_case)]
+#![allow(clippy::too_many_arguments)]
 
 use aoc::{self, graph::BFS};
 use rayon::prelude::*;
@@ -16,8 +17,8 @@ struct Blueprint {
 }
 
 impl Blueprint {
-    fn from_input(line: &String) -> Self {
-        let nums = aoc::uints_with_check(&line, 7);
+    fn from_input(line: &str) -> Self {
+        let nums = aoc::uints_with_check(line, 7);
         let id = nums[0] as u8;
         let ore_cost = nums[1] as u8;
         let clay_cost = nums[2] as u8;
@@ -25,11 +26,10 @@ impl Blueprint {
         let obsidian_clay_cost = nums[4] as u8;
         let geode_ore_cost = nums[5] as u8;
         let geode_obsidian_cost = nums[6] as u8;
-        let max_ore =
-            *vec![ore_cost, clay_cost, obsidian_ore_cost, geode_ore_cost]
-                .iter()
-                .max()
-                .unwrap() as u8;
+        let max_ore = *[ore_cost, clay_cost, obsidian_ore_cost, geode_ore_cost]
+            .iter()
+            .max()
+            .unwrap() as u8;
         Self {
             id,
             ore_cost,

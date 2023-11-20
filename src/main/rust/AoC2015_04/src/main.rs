@@ -10,8 +10,7 @@ impl AdventCoinsMiner {
     fn find_md5_starting_with_zeroes(&self, zeroes: usize) -> usize {
         fn check_zeroes(digest: &[u8], zeroes: usize) -> bool {
             let mut cnt = 0;
-            for i in 0..zeroes / 2 + zeroes % 2 {
-                let c = digest[i];
+            for c in digest.iter().take(zeroes / 2 + zeroes % 2) {
                 if c & 0xF0 != 0 {
                     break;
                 }
@@ -25,14 +24,13 @@ impl AdventCoinsMiner {
         }
 
         (1..)
-            .skip_while(|i| {
+            .find(|i| {
                 let mut hasher = Md5::new();
                 let data = String::from(&self.secret_key) + &i.to_string();
                 hasher.update(data);
                 let hash = hasher.finalize();
-                !check_zeroes(hash.as_slice(), zeroes)
+                check_zeroes(hash.as_slice(), zeroes)
             })
-            .next()
             .unwrap()
     }
 }

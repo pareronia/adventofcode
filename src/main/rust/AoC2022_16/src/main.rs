@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 #![allow(unused)]
+#![allow(clippy::upper_case_acronyms)]
 
 use aoc::{
     graph::{AStar, Result},
@@ -31,7 +32,7 @@ impl Cave {
                 |v| 1,
             );
             for j in relevant_valves.iter().copied() {
-                distances[i][j] = result.get_distance(&j).unwrap();
+                distances[i][j] = result.get_distance(j).unwrap();
             }
         }
         distances
@@ -98,14 +99,14 @@ impl AoC2022_16 {
     fn solve_1(&self, cave: &Cave) -> usize {
         let distances = cave.get_distances();
         let mut dfs = DFS::new(30, false);
-        dfs.dfs(&cave, &distances, cave.start, 0);
+        dfs.dfs(cave, &distances, cave.start, 0);
         *dfs.best_per_used.values().max().unwrap()
     }
 
     fn solve_2(&self, cave: &Cave, sample: bool) -> usize {
         let distances = cave.get_distances();
         let mut dfs = DFS::new(26, sample);
-        dfs.dfs(&cave, &distances, cave.start, 0);
+        dfs.dfs(cave, &distances, cave.start, 0);
         dfs.best_per_used
             .iter()
             .flat_map(|(&used1, v1)| {
@@ -139,8 +140,8 @@ impl aoc::Puzzle for AoC2022_16 {
         let mut tunnels = vec![HashSet::<usize>::new(); lines.len()];
         lines
             .iter()
-            .map(|line| line.replace(",", ""))
-            .map(|line| line.replace(";", ""))
+            .map(|line| line.replace(',', ""))
+            .map(|line| line.replace(';', ""))
             .enumerate()
             .for_each(|(i, line)| {
                 let splits = line.split_ascii_whitespace().collect_vec();
@@ -151,7 +152,7 @@ impl aoc::Puzzle for AoC2022_16 {
                 valves[i] = String::from(name);
                 map.insert(String::from(name), i);
                 rates[i] = splits[4]
-                    .split("=")
+                    .split('=')
                     .nth(1)
                     .unwrap()
                     .parse::<usize>()

@@ -44,7 +44,7 @@ impl AoC2022_08 {
         grid.cells_capital_directions(cell)
             .iter()
             .map(|dir| self.viewing_distance(grid, dir, grid.get(cell)))
-            .fold(1, |acc, val| acc * val)
+            .product()
     }
 }
 

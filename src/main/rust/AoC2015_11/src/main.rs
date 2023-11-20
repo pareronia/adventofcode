@@ -30,7 +30,7 @@ impl AoC2015_11 {
 
     fn generate_from(&self, input: &String) -> String {
         fn increment(password: &mut [u8], i: usize) {
-            password[i] = 'a' as u8 + (password[i] - 'a' as u8 + 1) % 26;
+            password[i] = b'a' + (password[i] - b'a' + 1) % 26;
             if password[i] as char == 'a' {
                 increment(password, i - 1);
             }

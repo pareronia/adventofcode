@@ -21,15 +21,14 @@ impl aoc::Puzzle for AoC2022_07 {
         let mut sizes: HashMap<String, u32> = HashMap::new();
         let mut path: VecDeque<&str> = VecDeque::new();
         lines.iter().skip(1).for_each(|line| {
-            if line.starts_with("$ cd ") {
-                let name = &line["$ cd ".len()..];
+            if let Some(name) = line.strip_prefix("$ cd ") {
                 if name == ".." {
                     path.pop_back();
                 } else {
                     path.push_back(name);
                 }
-            } else if !line.starts_with("$") {
-                let split = line.split(" ").next().unwrap();
+            } else if !line.starts_with('$') {
+                let split = line.split_whitespace().next().unwrap();
                 if !split.starts_with("dir") {
                     let size = split.parse::<u32>().unwrap();
                     for i in 0..=path.len() {
@@ -52,7 +51,7 @@ impl aoc::Puzzle for AoC2022_07 {
     }
 
     fn part_2(&self, sizes: &HashMap<String, u32>) -> u32 {
-        let total = sizes.get(ROOT.into()).unwrap();
+        let total = sizes.get(ROOT).unwrap();
         let wanted = 30_000_000 - (70_000_000 - total);
         *sizes
             .values()

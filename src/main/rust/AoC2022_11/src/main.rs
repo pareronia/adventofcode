@@ -37,7 +37,7 @@ impl AoC2022_11 {
                 Operation::Add => item + operand.unwrap(),
                 Operation::Multiply => item * operand.unwrap(),
             };
-            level = level / divider;
+            level /= divider;
             modulus.map_or(level, |mo| level % mo)
         };
         let mut round = || {
@@ -60,13 +60,13 @@ impl AoC2022_11 {
         };
 
         (0..rounds).for_each(|_| round());
-        let mut values: Vec<usize> = counter.values().map(|v| *v).collect();
+        let mut values: Vec<usize> = counter.values().copied().collect();
         values.sort();
         values
             .iter()
             .rev()
             .take(2)
-            .fold(1 as u64, |acc, x| acc * *x as u64)
+            .fold(1_u64, |acc, x| acc * *x as u64)
     }
 }
 
@@ -78,8 +78,8 @@ impl aoc::Puzzle for AoC2022_11 {
     aoc::puzzle_year_day!(2022, 11);
 
     fn parse_input(&self, lines: Vec<String>) -> Vec<Monkey> {
-        fn parse_last_word(line: &String) -> u32 {
-            line.split(" ").last().unwrap().parse().unwrap()
+        fn parse_last_word(line: &str) -> u32 {
+            line.split_whitespace().last().unwrap().parse().unwrap()
         }
 
         aoc::to_blocks(&lines)
@@ -89,8 +89,12 @@ impl aoc::Puzzle for AoC2022_11 {
                     .iter()
                     .map(|u| *u as u64)
                     .collect();
-                let splits: Vec<&str> =
-                    block[2].split(" = ").nth(1).unwrap().split(" ").collect();
+                let splits: Vec<&str> = block[2]
+                    .split(" = ")
+                    .nth(1)
+                    .unwrap()
+                    .split_whitespace()
+                    .collect();
                 let (operation, operand) = match splits[2] {
                     "old" => (Operation::Square, None),
                     _ => {
@@ -124,8 +128,7 @@ impl aoc::Puzzle for AoC2022_11 {
     fn part_2(&self, input: &Vec<Monkey>) -> u64 {
         let mut monkeys: Vec<Monkey> =
             input.iter().map(Monkey::clone).collect();
-        let modulus: u64 =
-            monkeys.iter().map(|m| m.test).fold(1, |acc, x| acc * x);
+        let modulus: u64 = monkeys.iter().map(|m| m.test).product();
         self.solve(&mut monkeys, 10_000, 1, Some(modulus))
     }
 

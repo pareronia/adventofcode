@@ -1,3 +1,5 @@
+#![allow(clippy::needless_return)]
+
 use serde_json::Value;
 use std::{
     collections::HashMap,
@@ -61,7 +63,7 @@ fn token() -> String {
         Ok(val) => val,
         Err(_) => {
             let filepath = aocd_dir().join("token");
-            let file = fs::File::open(&filepath).expect("Missing token");
+            let file = fs::File::open(filepath).expect("Missing token");
             let lines = lines_from_file(&file);
             match lines.len() {
                 1 => lines[0].clone(),

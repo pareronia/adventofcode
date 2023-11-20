@@ -32,10 +32,10 @@ struct AoC2022_04 {}
 impl AoC2022_04 {
     fn solve2(
         &self,
-        input: &Vec<RangePair>,
+        input: &[RangePair],
         method: impl Fn(&RangePair) -> bool,
     ) -> usize {
-        input.iter().filter(|pair| method(&pair)).count()
+        input.iter().filter(|pair| method(pair)).count()
     }
 }
 

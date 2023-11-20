@@ -23,7 +23,7 @@ impl AoC2022_18 {
         cubes
             .iter()
             .flat_map(|cube| cube.capital_neighbours())
-            .filter(|n| !cubes.contains(&n))
+            .filter(|n| !cubes.contains(n))
             .count()
     }
 
@@ -52,8 +52,8 @@ impl AoC2022_18 {
             );
             let adjacent = |xyz: XYZ| {
                 xyz.capital_neighbours()
-                    .filter(|n| search_space.contains(&n))
-                    .filter(|n| !cubes.contains(&n))
+                    .filter(|n| search_space.contains(n))
+                    .filter(|n| !cubes.contains(n))
                     .collect::<Vec<XYZ>>()
             };
             BFS::flood_fill(start, adjacent)
@@ -65,8 +65,8 @@ impl AoC2022_18 {
             Cuboid::of(bounds.x.clone(), bounds.y.clone(), bounds.z.clone());
         cuboid
             .get_points()
-            .filter(|p| !cubes.contains(&p))
-            .filter(|p| !outside.contains(&p))
+            .filter(|p| !cubes.contains(p))
+            .filter(|p| !outside.contains(p))
             .collect()
     }
 }
@@ -81,7 +81,7 @@ impl aoc::Puzzle for AoC2022_18 {
     fn parse_input(&self, lines: Vec<String>) -> HashSet<XYZ> {
         lines
             .iter()
-            .map(|line| aoc::uints_with_check(&line, 3).into_iter().collect())
+            .map(|line| aoc::uints_with_check(line, 3).into_iter().collect())
             .collect()
     }
 
