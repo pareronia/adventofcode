@@ -4,34 +4,37 @@
 #
 import re
 from operator import xor
+from typing import Callable
+
+import aocd
+
 from aoc import my_aocd
-from aoc.common import log
 
 
-def _parse(input_: str) -> (int, int, str, str):
-    m = re.search(r'^(\d{1,2})-(\d{1,2}) ([a-z]{1}): ([a-z]+)$', input_)
-    return (int(m.group(1)), int(m.group(2)), m.group(3), m.group(4))
+def _solve(
+    inputs: tuple[str], check_valid: Callable[[int, int, str, str], bool]
+) -> str:
+    def _parse(line: str) -> (int, int, str, str):
+        m = re.search(r"^(\d{1,2})-(\d{1,2}) ([a-z]{1}): ([a-z]+)$", line)
+        return (int(m.group(1)), int(m.group(2)), m.group(3), m.group(4))
+
+    return str(sum(1 for line in inputs if check_valid(*_parse(line))))
 
 
-def part_1(inputs: tuple[str]) -> int:
-    def _check_valid_1(input_: str) -> bool:
-        first, second, wanted, passw = _parse(input_)
-        cnt = passw.count(wanted)
-        check = cnt in range(first, second + 1)
-        log(f"{input_}, {(first, second, wanted, passw, cnt)}, {check}")
-        return check
-    return sum(1 for i in inputs if _check_valid_1(i))
+def part_1(inputs: tuple[str]) -> str:
+    def check_valid(first: int, second: int, wanted: str, passw: str):
+        return passw.count(wanted) in range(first, second + 1)
+
+    return _solve(inputs, check_valid)
 
 
-def part_2(inputs: tuple[str]) -> int:
-    def _check_valid_2(input_: str) -> bool:
-        first, second, wanted, passw = _parse(input_)
+def part_2(inputs: tuple[str]) -> str:
+    def check_valid(first: int, second: int, wanted: str, passw: str):
         first_matched = passw[first - 1] == wanted
         second_matched = passw[second - 1] == wanted
-        check = xor(first_matched, second_matched)
-        log(f"{input_}, {(first, second, wanted, passw)}, {check}")
-        return check
-    return sum(1 for i in inputs if _check_valid_2(i))
+        return xor(first_matched, second_matched)
+
+    return _solve(inputs, check_valid)
 
 
 TEST = """\
@@ -42,17 +45,19 @@ TEST = """\
 
 
 def main() -> None:
-    my_aocd.print_header(2020, 2)
+    puzzle = aocd.models.Puzzle(2020, 2)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 2
     assert part_2(TEST) == 1
 
-    inputs = my_aocd.get_input(2020, 2, 1000)
+    inputs = my_aocd.get_input_data(puzzle, 1000)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

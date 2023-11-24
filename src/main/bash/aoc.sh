@@ -11,7 +11,7 @@ NC='\033[0m' # No Color
 #
 assert () {
     if [ -z "$2" ]; then  #  Not enough parameters passed to assert() function.
-        return $E_PARAM_ERR   #  No damage done.
+        return "$E_PARAM_ERR"   #  No damage done.
     fi
 
     local lineno=$2

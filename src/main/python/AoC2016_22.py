@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 from typing import NamedTuple
+import aocd
 import re
 from aoc import my_aocd
 
@@ -64,16 +65,18 @@ Filesystem            Size  Used  Avail  Use%
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 22)
+    puzzle = aocd.models.Puzzle(2016, 22)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 7
     assert part_2(TEST) == 0
 
-    inputs = my_aocd.get_input(2016, 22, 1052)
+    inputs = my_aocd.get_input_data(puzzle, 1052)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':

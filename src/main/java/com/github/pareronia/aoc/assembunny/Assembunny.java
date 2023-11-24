@@ -1,15 +1,14 @@
 package com.github.pareronia.aoc.assembunny;
 
 import static java.util.Arrays.asList;
+import static java.util.Arrays.copyOfRange;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.vm.Instruction;
 
 import lombok.Value;
@@ -26,7 +25,7 @@ public class Assembunny {
     public static List<AssembunnyInstruction> parse(final List<String> inputs) {
         return inputs.stream()
                 .map(input -> input.split(" "))
-                .map(s -> new AssembunnyInstruction(s[0], asList(subarray(s, 1, s.length))))
+                .map(s -> new AssembunnyInstruction(s[0], asList(copyOfRange(s, 1, s.length))))
                 .collect(toList());
     }
     

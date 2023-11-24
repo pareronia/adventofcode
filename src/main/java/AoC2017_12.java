@@ -1,16 +1,15 @@
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2017_12 extends AoCBase {
 
@@ -20,10 +19,12 @@ public final class AoC2017_12 extends AoCBase {
         super(debug);
         this.input = inputs.stream()
                 .map(s -> {
-                    final String[] sp = s.split(" <-> ");
-                    return Tuples.pair(sp[0], asList(sp[1].split(", ")));
+                    final String[] sp1 = s.split(" <-> ");
+                    final List<String> list = new ArrayList<>(List.of(sp1[0]));
+                    list.addAll(asList(sp1[1].split(", ")));
+                    return list;
                 })
-                .collect(toMap(Pair::getOne, Pair::getTwo));
+                .collect(toMap(l -> l.get(0), l -> l.subList(1, l.size())));
         log(this.input);
     }
 
@@ -69,9 +70,12 @@ public final class AoC2017_12 extends AoCBase {
         assert AoC2017_12.createDebug(TEST).solvePart1() == 6;
         assert AoC2017_12.createDebug(TEST).solvePart2() == 2;
 
-        final List<String> input = Aocd.getData(2017, 12);
-        lap("Part 1", () -> AoC2017_12.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_12.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 12);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2017_12.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2017_12.create(inputData)::solvePart2)
+        );
     }
     
     private static final List<String> TEST = splitLines(

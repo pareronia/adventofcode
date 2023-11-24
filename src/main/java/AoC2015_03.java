@@ -1,91 +1,92 @@
-import static org.apache.commons.collections4.ListUtils.union;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2015_03 extends AoCBase {
+public final class AoC2015_03 extends SolutionBase<List<Direction>, Long, Long> {
 
-    private final transient String input;
-
-    private AoC2015_03(final List<String> inputs, final boolean debug) {
+    private AoC2015_03(final boolean debug) {
         super(debug);
+    }
+
+    public static AoC2015_03 create() {
+        return new AoC2015_03(false);
+    }
+
+    public static AoC2015_03 createDebug() {
+        return new AoC2015_03(true);
+    }
+ 
+    @Override
+    protected List<Direction> parseInput(final List<String> inputs) {
         assert inputs.size() == 1;
-        this.input = inputs.get(0);
-    }
-
-    public static AoC2015_03 create(final List<String> input) {
-        return new AoC2015_03(input, false);
-    }
-
-    public static AoC2015_03 createDebug(final List<String> input) {
-        return new AoC2015_03(input, true);
-    }
-    
-    private void addNavigationInstruction(final NavigationWithHeading nav, final Character ch) {
-        final Heading heading;
-        switch (ch) {
-        case '>':
-            heading = Headings.EAST.get();
-            break;
-        case 'v':
-            heading = Headings.SOUTH.get();
-            break;
-        case '<':
-            heading = Headings.WEST.get();
-            break;
-        case '^':
-            heading = Headings.NORTH.get();
-            break;
-        default:
-            throw new IllegalArgumentException("Invalid input");
-        }
-        nav.drift(heading, 1);
-    }
-    
-    private Integer countUniquePositions(final List<Position> positions) {
-        return (int) positions.stream().distinct().count();
-    }
-    
-    @Override
-    public Integer solvePart1() {
-        final NavigationWithHeading nav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
-        Utils.asCharacterStream(this.input).forEach(ch -> addNavigationInstruction(nav, ch));
-        return countUniquePositions(nav.getVisitedPositions(true));
+        return Utils.asCharacterStream(inputs.get(0))
+                .map(Direction::fromChar).collect(toList());
     }
 
     @Override
-    public Integer solvePart2() {
-        final NavigationWithHeading santaNav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
-        final NavigationWithHeading robotNav = new NavigationWithHeading(Position.of(0, 0), Headings.NORTH.get());
-        Stream.iterate(0, i -> i < this.input.length(), i -> i + 2)
-                .forEach(i -> addNavigationInstruction(santaNav, this.input.charAt(i)));
-        Stream.iterate(1, i -> i < this.input.length(), i -> i + 2)
-                .forEach(i -> addNavigationInstruction(robotNav, this.input.charAt(i)));
-        return countUniquePositions(union(santaNav.getVisitedPositions(true), robotNav.getVisitedPositions(true)));
+    public Long solvePart1(final List<Direction> input) {
+        final HouseVisits houseVisits = new HouseVisits();
+        input.forEach(houseVisits::goVisit);
+        return houseVisits.getUniqueVisits().count();
+    }
+
+    @Override
+    public Long solvePart2(final List<Direction> input) {
+        final HouseVisits santaVisits = new HouseVisits();
+        range(0, input.size(), 2).intStream()
+                .mapToObj(input::get)
+                .forEach(santaVisits::goVisit);
+        final HouseVisits robotVisits = new HouseVisits();
+        range(1, input.size(), 2).intStream()
+                .mapToObj(input::get)
+                .forEach(robotVisits::goVisit);
+        return Stream.concat(
+                    santaVisits.getUniqueVisits(), robotVisits.getUniqueVisits())
+                .distinct().count();
+    }
+
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "2"),
+        @Sample(method = "part1", input = TEST2, expected = "4"),
+        @Sample(method = "part1", input = TEST3, expected = "2"),
+        @Sample(method = "part2", input = TEST4, expected = "3"),
+        @Sample(method = "part2", input = TEST2, expected = "3"),
+        @Sample(method = "part2", input = TEST3, expected = "11"),
+    })
+    public void samples() {
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2015_03.createDebug(TEST1).solvePart1() == 2;
-        assert AoC2015_03.createDebug(TEST2).solvePart1() == 4;
-        assert AoC2015_03.createDebug(TEST3).solvePart1() == 2;
-        assert AoC2015_03.createDebug(TEST4).solvePart2() == 3;
-        assert AoC2015_03.createDebug(TEST2).solvePart2() == 3;
-        assert AoC2015_03.createDebug(TEST3).solvePart2() == 11;
-
-        final List<String> input = Aocd.getData(2015, 3);
-        lap("Part 1", () -> AoC2015_03.create(input).solvePart1());
-        lap("Part 2", () -> AoC2015_03.create(input).solvePart2());
+        AoC2015_03.create().run();
     }
 
-    private static final List<String> TEST1 = splitLines(">");
-    private static final List<String> TEST2 = splitLines("^>v<");
-    private static final List<String> TEST3 = splitLines("^v^v^v^v^v");
-    private static final List<String> TEST4 = splitLines("^v");
+    private static final String TEST1 = ">";
+    private static final String TEST2 = "^>v<";
+    private static final String TEST3 = "^v^v^v^v^v";
+    private static final String TEST4 = "^v";
+    
+    private static final class HouseVisits {
+        private final NavigationWithHeading nav
+                = new NavigationWithHeading(Position.ORIGIN, Heading.NORTH);
+        
+        public void goVisit(final Direction direction) {
+            this.nav.navigate(Heading.fromDirection(direction), 1);
+        }
+        
+        public Stream<Position> getUniqueVisits() {
+            return nav.getVisitedPositions(true).stream().distinct();
+        }
+    }
 }

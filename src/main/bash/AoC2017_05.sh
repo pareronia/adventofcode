@@ -13,7 +13,7 @@ part1() {
     local -i i=0
     while [ "$i" -lt "$size" ]; do
         local -i jump="${jumps[$i]}"
-        jumps[$i]=$((jump + 1))
+        jumps[i]=$((jump + 1))
         ((i += jump))
         ((ans++))
     done
@@ -29,9 +29,9 @@ part2() {
     while [ "$i" -lt "$size" ]; do
         local -i jump="${jumps[$i]}"
         if [ "$jump" -lt 3 ]; then
-            jumps[$i]=$((jump + 1))
+            jumps[i]=$((jump + 1))
         else
-            jumps[$i]=$((jump - 1))
+            jumps[i]=$((jump - 1))
         fi
         ((i += jump))
         ((ans++))

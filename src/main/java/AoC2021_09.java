@@ -1,18 +1,13 @@
 import static java.util.stream.Collectors.summingInt;
 
-import java.util.ArrayDeque;
 import java.util.Comparator;
-import java.util.Deque;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
 import com.github.pareronia.aoc.IntGrid;
-import com.github.pareronia.aoc.IntGrid.Cell;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -32,19 +27,10 @@ public class AoC2021_09 extends AoCBase {
     public static final AoC2021_09 createDebug(final List<String> input) {
         return new AoC2021_09(input, true);
     }
-    
-    private Stream<Cell> findNeighbours(final Cell c) {
-        return Headings.CAPITAL.stream()
-            .filter(n -> c.getRow() + n.getX() >= 0)
-            .filter(n -> c.getRow() + n.getX() < this.grid.getHeight())
-            .filter(n -> c.getCol() + n.getY() >= 0)
-            .filter(n -> c.getCol() + n.getY() < this.grid.getWidth())
-            .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
-    }
 
     private Stream<Cell> findLows() {
         return this.grid.getCells()
-            .filter(c -> findNeighbours(c).allMatch(
+            .filter(c -> this.grid.getCapitalNeighbours(c).allMatch(
                         n -> this.grid.getValue(n) > this.grid.getValue(c)));
     }
     
@@ -57,22 +43,10 @@ public class AoC2021_09 extends AoCBase {
     }
     
     private int sizeOfBasinAroundLow(final Cell low) {
-        final MutableInt cnt = new MutableInt(0);
-        final Set<Cell> seen = new HashSet<>();
-        final Deque<Cell> q = new ArrayDeque<>();
-        q.add(low);
-        while (!q.isEmpty()) {
-            final Cell cell = q.poll();
-            findNeighbours(cell)
-                .filter(n -> !seen.contains(n))
-                .filter(n -> this.grid.getValue(n) != 9)
-                .forEach(n -> {
-                    q.add(n);
-                    seen.add(n);
-                    cnt.increment();
-                });
-        }
-        return cnt.intValue();
+        final Function<Cell, Stream<Cell>> adjacent =
+                cell -> this.grid.getCapitalNeighbours(cell)
+                        .filter(n -> this.grid.getValue(n) != 9);
+        return BFS.floodFill(low, adjacent).size();
     }
 
     @Override

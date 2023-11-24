@@ -2,13 +2,10 @@ import static java.util.stream.Collectors.joining;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.mutable.MutableInt;
 
 import com.github.pareronia.aoc.IntGrid;
-import com.github.pareronia.aoc.IntGrid.Cell;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -40,19 +37,10 @@ public class AoC2021_11 extends AoCBase {
         return new AoC2021_11(input, true);
     }
     
-    private Stream<Cell> findNeighbours(final Cell c) {
-        return Headings.OCTANTS.stream()
-            .filter(n -> c.getRow() + n.getX() >= 0)
-            .filter(n -> c.getRow() + n.getX() < this.grid.getHeight())
-            .filter(n -> c.getCol() + n.getY() >= 0)
-            .filter(n -> c.getCol() + n.getY() < this.grid.getWidth())
-            .map(n -> Cell.at(c.getRow() + n.getX(), c.getCol() + n.getY()));
-    }
-    
     private void flash(final Cell c, final MutableInt flashes) {
         this.grid.setValue(c, 0);
         flashes.increment();
-        findNeighbours(c)
+        this.grid.getAllNeighbours(c)
             .filter(n -> this.grid.getValue(n) != 0)
             .forEach(n -> {
                 this.grid.increment(n);

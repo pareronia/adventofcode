@@ -12,8 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.Range;
-
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Builder;

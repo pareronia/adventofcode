@@ -1,3 +1,5 @@
+import static com.github.pareronia.aoc.AssertUtils.assertFalse;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.summingInt;
@@ -14,11 +16,11 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Point;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
@@ -70,9 +72,7 @@ public class AoC2016_22 extends AoCBase {
         final List<Node> emptyNodes = nodes.stream()
                 .filter(n -> n.getUsed() == 0)
                 .collect(toList());
-        if (emptyNodes.size() != 1) {
-            throw new IllegalArgumentException("Expected 1 empty node");
-        }
+        assertTrue(emptyNodes.size() == 1, () -> "Expected 1 empty node");
         return emptyNodes.get(0);
     }
     
@@ -204,19 +204,16 @@ public class AoC2016_22 extends AoCBase {
         final Set<Integer> holeYs = unusableNodes.stream()
                 .map(Node::getY)
                 .collect(toSet());
-        if (holeYs.size() != 1) {
-            throw new IllegalArgumentException("Expected all unusable nodes in 1 row");
-        }
+        assertTrue(holeYs.size() == 1, () -> "Expected all unusable nodes in 1 row");
         final Integer holeY = holeYs.iterator().next();
-        if (holeY <= 2) {
+        if (holeY <= 1) {
             throw new IllegalStateException("Unsolvable");
         }
-        if (unusableNodes.stream()
-                .max(comparing(Node::getX))
-                .map(Node::getX)
-                .orElseThrow() != getMaxX()) {
-            throw new IllegalArgumentException("Expected unusable row to touch side");
-        }
+        assertFalse(unusableNodes.stream()
+                    .max(comparing(Node::getX))
+                    .map(Node::getX)
+                    .orElseThrow() != getMaxX(),
+                () -> "Expected unusable row to touch side");
         final Integer holeX = unusableNodes.stream()
                 .min(comparing(Node::getX))
                 .map(Node::getX)
@@ -233,16 +230,19 @@ public class AoC2016_22 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-         return solve2Cheat();
+        return solve2Cheat();
     }
     
     public static void main(final String[] args) throws Exception {
         assert AoC2016_22.createDebug(TEST).solvePart1() == 7;
         assert AoC2016_22.createDebug(TEST).solve2() == 7;
 
-        final List<String> input = Aocd.getData(2016, 22);
-        lap("Part 1", () -> AoC2016_22.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_22.createDebug(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2016, 22);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_22.createDebug(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_22.createDebug(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST = splitLines(
@@ -261,10 +261,6 @@ public class AoC2016_22 extends AoCBase {
     
     @RequiredArgsConstructor
     private static final class PathFinder {
-        private static final List<Heading> DIRECTIONS = List.of(
-                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
-                .stream().map(Headings::get).collect(toList());
-
         private final Position start;
         private final Position destination;
         private final Position max;
@@ -280,7 +276,7 @@ public class AoC2016_22 extends AoCBase {
                 if (path.isAt(this.destination)) {
                     continue;
                 }
-                for (final Heading direction : DIRECTIONS) {
+                for (final Direction direction : Direction.CAPITAL) {
                     final Path newPath = buildNewPath(path, direction);
                     if (isInBounds(newPath.getPosition())
                             && isUsable(newPath.getPosition())
@@ -292,10 +288,9 @@ public class AoC2016_22 extends AoCBase {
             }
         }
         
-        private Path buildNewPath(final Path path, final Heading direction) {
+        private Path buildNewPath(final Path path, final Direction direction) {
             return new Path(path.getLength() + 1,
-                    Position.of(path.getPosition().getX() + direction.getX(),
-                                path.getPosition().getY() + direction.getY()));
+                    path.getPosition().translate(direction));
         }
         
         private boolean isInBounds(final Position position) {

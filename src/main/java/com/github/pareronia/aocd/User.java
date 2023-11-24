@@ -24,6 +24,7 @@ SOFTWARE.
 package com.github.pareronia.aocd;
 
 import java.nio.file.Path;
+import java.util.Map;
 
 public class User {
 	
@@ -56,6 +57,13 @@ public class User {
 	public static User getDefaultUser() {
 		final SystemUtils systemUtils = new SystemUtils();
 		final String token = systemUtils.getToken();
+		return new User(systemUtils, token);
+	}
+	
+	public static User getUser(final String name) {
+		final SystemUtils systemUtils = new SystemUtils();
+		final Map<String, String> tokens = systemUtils.getTokens();
+		final String token = tokens.get(name);
 		return new User(systemUtils, token);
 	}
 }

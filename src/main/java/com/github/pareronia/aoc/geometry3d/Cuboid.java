@@ -1,8 +1,11 @@
 package com.github.pareronia.aoc.geometry3d;
 
 import java.util.Optional;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.Range;
+import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.geometry.Position;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -27,6 +30,20 @@ public class Cuboid {
             final int z1, final int z2) {
         assert x1 <= x2 && y1 <= y2 && z1 <= z2;
         return new Cuboid(x1, x2, y1, y2, z1, z2);
+    }
+    
+    public Stream<Position3D> positions() {
+        return IntStream.rangeClosed(x1, x2).boxed()
+            .flatMap(x -> IntStream.rangeClosed(y1, y2)
+                        .mapToObj(y -> Position.of(x, y)))
+            .flatMap(p -> IntStream.rangeClosed(z1, z2)
+                        .mapToObj(z -> Position3D.of(p.getX(), p.getY(), z)));
+    }
+    
+    public boolean contains(final Position3D position) {
+        return x1 <= position.getX() && position.getX() <= x2
+            && y1 <= position.getY() && position.getY() <= y2
+            && z1 <= position.getZ() && position.getZ() <= z2;
     }
     
     public long getVolume() {

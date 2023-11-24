@@ -1,12 +1,11 @@
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.Collections.emptyList;
 import static java.util.Comparator.comparing;
-import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.collections4.ListUtils.intersection;
-import static org.eclipse.collections.impl.tuple.Tuples.pair;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,16 +15,14 @@ import java.util.Map.Entry;
 import java.util.PriorityQueue;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.math3.util.CombinatoricsUtils;
-import org.eclipse.collections.api.tuple.Pair;
-
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 import lombok.AccessLevel;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.Value;
 import lombok.With;
@@ -54,10 +51,8 @@ public final class AoC2016_11 extends AoCBase {
                    continue;
                 } else if ("generator".equals(s[2])) {
                     generators.put(s[1], i + 1);
-                } else if ("microchip".equals(s[2])) {
-                    chips.put(StringUtils.substringBefore(s[1], "-"), i + 1);
                 } else {
-                    throw new IllegalArgumentException("Invalid input");
+                    chips.put(StringUtils.substringBefore(s[1], "-"), i + 1);
                 }
              }
         }
@@ -72,33 +67,27 @@ public final class AoC2016_11 extends AoCBase {
         return new AoC2016_11(input, true);
     }
     
-    private Integer scoreStep(final Pair<Integer, State> p) {
-        final Integer numberOfSteps = p.getOne();
-        final State state = p.getTwo();
-        return -state.getDiff() * numberOfSteps;
-    }
-    
     private Integer solve(final State initialState) {
         Integer numberOfSteps = 0;
-        final PriorityQueue<Pair<Integer, State>> steps
-                = new PriorityQueue<>(comparing(this::scoreStep));
-        steps.add(pair(0, initialState));
+        final PriorityQueue<Step> steps
+                = new PriorityQueue<>(comparing(Step::score));
+        steps.add(Step.of(0, initialState));
         final Set<Integer> seen = new HashSet<>();
         seen.add(initialState.equivalentState());
         int cnt = 0;
         while (!steps.isEmpty()) {
-            final Pair<Integer, State> step = steps.poll();
+            final Step step = steps.poll();
             cnt++;
-            final State state = step.getTwo();
+            final State state = step.state;
             if (state.isDestination()) {
-                numberOfSteps = step.getOne();
+                numberOfSteps = step.numberOfSteps;
                 break;
             }
             state.moves().stream()
                     .filter(m -> !seen.contains(m.equivalentState()))
                     .forEach(m -> {
                         seen.add(m.equivalentState());
-                        steps.add(pair(step.getOne() + 1, m));
+                        steps.add(Step.of(step.numberOfSteps + 1, m));
                     });
         }
         log(cnt);
@@ -132,9 +121,10 @@ public final class AoC2016_11 extends AoCBase {
         assert AoC2016_11.createDebug(TEST).solvePart1() == 11;
 
         final Puzzle puzzle = Aocd.puzzle(2016, 11);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2016_11.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2016_11.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2016_11.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_11.create(inputData)::solvePart2)
         );
     }
     
@@ -147,9 +137,9 @@ public final class AoC2016_11 extends AoCBase {
     
     @Value
     static final class State {
-        private static final Set<Integer> FLOORS = Set.of(1, 2, 3, 4);
-        private static final int TOP = FLOORS.stream().max(naturalOrder()).orElseThrow();
-        private static final int BOTTOM = FLOORS.stream().min(naturalOrder()).orElseThrow();
+        private static final List<Integer> FLOORS = List.of(1, 2, 3, 4);
+        private static final int TOP = FLOORS.stream().mapToInt(Integer::intValue).max().getAsInt();
+        private static final int BOTTOM = FLOORS.stream().mapToInt(Integer::intValue).min().getAsInt();
         private static final int MAX_ITEMS_PER_MOVE = 2;
         
         @Getter(AccessLevel.PRIVATE)
@@ -232,7 +222,7 @@ public final class AoC2016_11 extends AoCBase {
             assert this.isSafe();
             final StringBuilder eq = new StringBuilder();
             eq.append(this.elevator);
-            for (int f = 1; f <= FLOORS.size(); f++) {
+            for (final int f : FLOORS) {
                 eq.append(this.chipsPerFloor.getOrDefault(f, emptyList()).size());
                 eq.append(this.gennysPerFloor.getOrDefault(f, emptyList()).size());
             }
@@ -262,11 +252,10 @@ public final class AoC2016_11 extends AoCBase {
                 final List<String> chipsOnFloor) {
             final List<State> states = new ArrayList<>();
             if (chipsOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
-                CombinatoricsUtils.combinationsIterator(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE)
-                    .forEachRemaining(c -> {
-                        final List<String> chipsToMove
-                            = List.of(chipsOnFloor.get(c[0]),
-                                      chipsOnFloor.get(c[1]));
+                combinations(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
+                    c -> {
+                        final List<String> chipsToMove = Arrays.stream(c)
+                                .mapToObj(chipsOnFloor::get).collect(toList());
                         states.add(moveUpWithChips(chipsToMove));
                         if (!floorsBelowEmpty(floor)) {
                             states.add(moveDownWithChips(chipsToMove));
@@ -294,11 +283,10 @@ public final class AoC2016_11 extends AoCBase {
                 final List<String> gennysOnFloor) {
             final List<State> states = new ArrayList<>();
             if (gennysOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
-                CombinatoricsUtils.combinationsIterator(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE)
-                    .forEachRemaining(c -> {
-                        final List<String> gennysToMove
-                            = List.of(gennysOnFloor.get(c[0]),
-                                      gennysOnFloor.get(c[1]));
+                combinations(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
+                    c -> {
+                        final List<String> gennysToMove = Arrays.stream(c)
+                                .mapToObj(gennysOnFloor::get).collect(toList());
                         states.add(moveUpWitGennys(gennysToMove));
                         if (!floorsBelowEmpty(floor)) {
                             states.add(moveDownWithGennys(gennysToMove));
@@ -326,7 +314,9 @@ public final class AoC2016_11 extends AoCBase {
                 final List<String> chipsOnFloor,
                 final List<String> gennysOnFloor) {
             final List<State> states = new ArrayList<>();
-            for (final String match : intersection(chipsOnFloor, gennysOnFloor)) {
+            final List<String> intersection = new ArrayList<>(chipsOnFloor);
+            intersection.retainAll(gennysOnFloor);
+            for (final String match : intersection) {
                 states.add(withChipsTo(List.of(match), floor + 1)
                         .withGennysTo(List.of(match), floor + 1)
                         .withElevator(floor + 1)
@@ -387,6 +377,16 @@ public final class AoC2016_11 extends AoCBase {
                 }
             }
             return true;
+        }
+    }
+    
+    @RequiredArgsConstructor(staticName = "of")
+    private static final class Step {
+        private final int numberOfSteps;
+        private final State state;
+        
+        public int score() {
+            return -state.getDiff() * numberOfSteps;
         }
     }
 }

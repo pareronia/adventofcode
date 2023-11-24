@@ -1,9 +1,8 @@
 import java.util.List;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2017_15 extends AoCBase {
     
@@ -86,9 +85,12 @@ public final class AoC2017_15 extends AoCBase {
         assert AoC2017_15.createDebug(TEST).solvePart1().equals(588);
         assert AoC2017_15.createDebug(TEST).solvePart2().equals(309);
 
-        final List<String> input = Aocd.getData(2017, 15);
-        lap("Part 1", () -> AoC2017_15.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_15.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2017, 15);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2017_15.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2017_15.create(input)::solvePart2)
+		);
     }
     
     private static final List<String> TEST = splitLines(

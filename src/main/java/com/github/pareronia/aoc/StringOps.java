@@ -1,22 +1,50 @@
 package com.github.pareronia.aoc;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
+import static com.github.pareronia.aoc.CharArrayUtils.addAll;
+import static com.github.pareronia.aoc.CharArrayUtils.subarray;
+import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.addAll;
-import static org.apache.commons.lang3.ArrayUtils.subarray;
 
-import org.apache.commons.lang3.ArrayUtils;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 public class StringOps {
     
+	public static List<String> splitLines(final String input) {
+		return asList((Objects.requireNonNull(input) + "\n").split("\\r?\\n"));
+	}
+	
+	public static List<List<String>> toBlocks(final List<String> inputs) {
+		if (inputs.isEmpty()) {
+			return Collections.emptyList();
+		}
+		final List<List<String>> blocks = new ArrayList<>();
+		int i = 0;
+		final int last = inputs.size() - 1;
+		blocks.add(new ArrayList<String>());
+		for (int j = 0; j <= last; j++) {
+			if (inputs.get(j).isEmpty()) {
+				if (j != last) {
+					blocks.add(new ArrayList<String>());
+					i++;
+				}
+			} else {
+				blocks.get(i).add(inputs.get(j));
+			}
+		}
+		return blocks;
+	}
+	
     public static Integer[] getDigits(final String s, final int expected) {
         final Integer[] digits = Utils.asCharacterStream(s)
                 .filter(Character::isDigit)
                 .map(c -> Integer.valueOf(Character.digit(c, 10)))
                 .collect(toList())
                 .toArray(Integer[]::new);
-        if (digits.length != expected) {
-            throw new IllegalArgumentException(
-                String.format("Expected %d, got %d", expected, digits.length));
-        }
+        AssertUtils.assertTrue(digits.length == expected,
+                () -> String.format("Expected %d, got %d", expected, digits.length));
         return digits;
     }
     
@@ -26,10 +54,8 @@ public class StringOps {
                 .map(c -> Integer.valueOf(Character.digit(c, 10)))
                 .mapToInt(Integer::intValue)
                 .toArray();
-        if (digits.length != expected) {
-            throw new IllegalArgumentException(
-                    String.format("Expected %d, got %d", expected, digits.length));
-        }
+        AssertUtils.assertTrue(digits.length == expected,
+                () -> String.format("Expected %d, got %d", expected, digits.length));
         return digits;
     }
     
@@ -48,9 +74,7 @@ public class StringOps {
     }
     
     public static char[] move(final char[] ch, final int from, final int to) {
-        if (from == to) {
-            throw new IllegalArgumentException("Expected from and to to be different");
-        }
+        assertTrue(from != to, () -> "Expected from and to to be different");
         if (from < to) {
             final char[] ch1 = subarray(ch, 0, from);
             final char[] ch2 = new char[] { ch[from] };
@@ -78,8 +102,8 @@ public class StringOps {
     }
     
     public static char[] swap(final char[] ch, final char first, final char second) {
-        final int i1 = ArrayUtils.indexOf(ch, first);
-        final int i2 = ArrayUtils.indexOf(ch, second);
+        final int i1 = CharArrayUtils.indexOf(ch, first);
+        final int i2 = CharArrayUtils.indexOf(ch, second);
         final char temp = ch[i1];
         ch[i1] = ch[i2];
         ch[i2] = temp;
@@ -91,5 +115,16 @@ public class StringOps {
         ch[first] = ch[second];
         ch[second] = temp;
         return ch;
+    }
+    
+    public static char nextLetter(final char c, final int shift) {
+        AssertUtils.assertTrue(shift >= 0, () -> "expected shift to be non-negative");
+        if (Character.isLowerCase(c)) {
+            return (char) ((c + shift - 97) % 26 + 97);
+        } else if (Character.isUpperCase(c)) {
+            return (char) ((c + shift - 65) % 26 + 65);
+        } else {
+            throw new IllegalArgumentException("Expected alphabetic char");
+        }
     }
 }

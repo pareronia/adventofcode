@@ -1,16 +1,20 @@
-#include <bits/stdc++.h>
+#include <assert.h>
+
+#include <algorithm>
+#include <climits>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "../../aoc/aoc.hpp"
+#include "../../aoc/geometry3d/geometry3d.hpp"
 #include "../../aocd/aocd.hpp"
 
 using namespace std;
-using Position3D = tuple<int, int, int>;
-using Vector3D = tuple<int, int, int>;
-
-#define Position3D(x, y, z) make_tuple(x, y, z)
-#define Vector3D(x, y, z) make_tuple(x, y, z)
 
 const Position3D ORIGIN = Position3D(0, 0, 0);
-const unordered_map<string, Position3D> HEADING = {
+// clang-format off
+const unordered_map<string, Vector3D> HEADING = {
     {"n",  Vector3D(  0, -1,  1)},
     {"ne", Vector3D(  1, -1,  0)},
     {"se", Vector3D(  1,  0, -1)},
@@ -18,34 +22,27 @@ const unordered_map<string, Position3D> HEADING = {
     {"sw", Vector3D( -1,  1,  0)},
     {"nw", Vector3D( -1,  0,  1)}
 };
+// clang-format on
 
 vector<Vector3D> parse(const vector<string>& input) {
     assert(input.size() == 1);
     const auto& splits = aoc::split(input[0], ",");
     vector<Vector3D> path;
     transform(splits.begin(), splits.end(), back_inserter(path),
-            [](const string s) { return HEADING.at(s); });
+              [](const string s) { return HEADING.at(s); });
     return path;
-}
-
-Position3D translate(const Position3D& position, const Vector3D& vector) {
-    return Position3D(
-        get<0>(position) + get<0>(vector),
-        get<1>(position) + get<1>(vector),
-        get<2>(position) + get<2>(vector)
-    );
 }
 
 vector<Position3D> positions(const vector<Vector3D>& path) {
     vector<Position3D> positions = {ORIGIN};
     for (const Vector3D& v : path) {
-        positions.push_back(translate(positions.back(), v));
+        positions.push_back(positions.back().translate(v));
     }
     return positions;
 }
 
-int steps(const Position3D& p) {
-    return (abs(get<0>(p)) + abs(get<1>(p)) + abs(get<2>(p))) / 2;
+inline int steps(const Position3D& p) {
+    return p.manhattanDistance(ORIGIN) / 2;
 }
 
 int part1(const vector<string>& input) {
@@ -55,18 +52,18 @@ int part1(const vector<string>& input) {
 
 int part2(const vector<string>& input) {
     const vector<Vector3D>& path = parse(input);
-    vector<int> s;
+    int ans = -INT_MAX;
     for (const Position3D& p : positions(path)) {
-        s.push_back(steps(p));
+        ans = max(ans, steps(p));
     }
-    return *max_element(s.begin(), s.end());
+    return ans;
 }
 
 void samples() {
-    assert(part1({ "ne,ne,ne" }) == 3);
-    assert(part1({ "ne,ne,sw,sw" }) == 0);
-    assert(part1({ "ne,ne,s,s" }) == 2);
-    assert(part1({ "se,sw,se,sw,sw" }) == 3);
+    assert(part1({"ne,ne,ne"}) == 3);
+    assert(part1({"ne,ne,sw,sw"}) == 0);
+    assert(part1({"ne,ne,s,s"}) == 2);
+    assert(part1({"se,sw,se,sw,sw"}) == 3);
 }
 
 MAIN(2017, 11)

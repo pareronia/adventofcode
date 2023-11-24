@@ -1,14 +1,13 @@
-import static java.util.stream.Collectors.summingInt;
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsIterator;
 
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.IntSummaryStatistics;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2017_02 extends AoCBase {
 
@@ -31,21 +30,15 @@ public final class AoC2017_02 extends AoCBase {
         return new AoC2017_02(input, true);
     }
     
-    private Integer differenceHighestLowest(final List<Integer> numbers) {
-        final Integer max = numbers.stream()
-                .max(Comparator.naturalOrder())
-                .orElseThrow();
-        final Integer min = numbers.stream()
-                .min(Comparator.naturalOrder())
-                .orElseThrow();
-        return max - min;
+    private int differenceHighestLowest(final List<Integer> numbers) {
+        final IntSummaryStatistics stats = numbers.stream()
+                .mapToInt(Integer::intValue)
+                .summaryStatistics();
+        return stats.getMax() - stats.getMin();
     }
     
-    private Integer evenlyDivisibleQuotient(final List<Integer> numbers) {
-        final Iterator<int[]> combinations
-                = combinationsIterator(numbers.size(), 2);
-        while (combinations.hasNext()) {
-            final int[] c = combinations.next();
+    private int evenlyDivisibleQuotient(final List<Integer> numbers) {
+        for (final int[] c : combinations(numbers.size(), 2)) {
             final int n1 = numbers.get(c[0]);
             final int n2 = numbers.get(c[1]);
             if (n1 > n2) {
@@ -59,10 +52,8 @@ public final class AoC2017_02 extends AoCBase {
         throw new IllegalStateException("Unsolvable");
     }
     
-    private Integer sum(final Function<List<Integer>, Integer> mapper) {
-        return this.input.stream()
-                .map(mapper)
-                .collect(summingInt(Integer::valueOf));
+    private int sum(final ToIntFunction<List<Integer>> mapper) {
+        return this.input.stream().mapToInt(mapper).sum();
     }
 
     @Override
@@ -79,9 +70,12 @@ public final class AoC2017_02 extends AoCBase {
         assert AoC2017_02.createDebug(TEST1).solvePart1() == 18;
         assert AoC2017_02.createDebug(TEST2).solvePart2() == 9;
 
-        final List<String> input = Aocd.getData(2017, 2);
-        lap("Part 1", () -> AoC2017_02.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_02.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 2);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2017_02.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2017_02.create(inputData)::solvePart2)
+        );
     }
     
     private static final List<String> TEST1 = splitLines(

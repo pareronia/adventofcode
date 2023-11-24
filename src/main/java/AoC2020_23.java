@@ -1,10 +1,9 @@
-import static com.github.pareronia.aoc.Utils.max;
-import static com.github.pareronia.aoc.Utils.min;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toCollection;
 import static java.util.stream.Collectors.toList;
 
 import java.util.HashMap;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -22,7 +21,7 @@ public class AoC2020_23 extends AoCBase {
 	
 	private final List<Integer> labels;
 	
-	private AoC2020_23(List<String> input, boolean debug) {
+	private AoC2020_23(final List<String> input, final boolean debug) {
 		super(debug);
 		assert input.size() == 1;
 		this.labels = Utils.asCharacterStream(input.get(0))
@@ -31,11 +30,11 @@ public class AoC2020_23 extends AoCBase {
 				.collect(toList());
 	}
 	
-	public static final AoC2020_23 create(List<String> input) {
+	public static final AoC2020_23 create(final List<String> input) {
 		return new AoC2020_23(input, false);
 	}
 
-	public static final AoC2020_23 createDebug(List<String> input) {
+	public static final AoC2020_23 createDebug(final List<String> input) {
 		return new AoC2020_23(input, true);
 	}
 	
@@ -59,7 +58,7 @@ public class AoC2020_23 extends AoCBase {
 		return cups;
 	}
 	
-	private Cup doMove(Map<Integer, Cup> cups, Cup current, Integer size, Integer min, Integer max) {
+	private Cup doMove(final Map<Integer, Cup> cups, final Cup current, final Integer size, final Integer min, final Integer max) {
 		final Cup p1 = current.getNext();
 		final Cup p2 = p1.getNext();
 		final Cup p3 = p2.getNext();
@@ -85,8 +84,10 @@ public class AoC2020_23 extends AoCBase {
 	public Long solvePart1() {
 		final Map<Integer, Cup> cups = prepareCups();
 		final int size = this.labels.size();
-		final Integer min = min(this.labels.stream());
-		final Integer max = max(this.labels.stream());
+		final IntSummaryStatistics stats
+		    = this.labels.stream().mapToInt(Integer::valueOf).summaryStatistics();
+		final Integer min = stats.getMin();
+		final Integer max = stats.getMax();
 		Cup current = cups.get(this.labels.get(0));
 		for (int i = 0; i < 100; i++) {
 			current = doMove(cups, current, size, min, max);
@@ -102,8 +103,10 @@ public class AoC2020_23 extends AoCBase {
 	
 	@Override
 	public Long solvePart2() {
-		final Integer min = min(this.labels.stream());
-		final Integer max = max(this.labels.stream());
+		final IntSummaryStatistics stats
+		    = this.labels.stream().mapToInt(Integer::valueOf).summaryStatistics();
+		final Integer min = stats.getMin();
+		final Integer max = stats.getMax();
 		Stream.iterate(max + 1, i -> i + 1).limit(1_000_000 - this.labels.size())
 			.collect(toCollection(() -> this.labels));
 		final Map<Integer, Cup> cups = prepareCups();
@@ -117,7 +120,7 @@ public class AoC2020_23 extends AoCBase {
 		return star1 * star2;
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_23.createDebug(TEST).solvePart1() == 67384529;
 		assert AoC2020_23.createDebug(TEST).solvePart2() == 149245887792L;
 		

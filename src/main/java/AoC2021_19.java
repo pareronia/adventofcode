@@ -14,9 +14,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aoc.geometry3d.Position3D;
 import com.github.pareronia.aoc.geometry3d.Transformations3D;
 import com.github.pareronia.aoc.geometry3d.Vector3D;
@@ -67,10 +64,12 @@ public class AoC2021_19 extends AoCBase {
         assert sc0.getId() == 0;
         while (!q.isEmpty()) {
             final ScannerData sc = q.pop();
-            final Optional<Pair<ScannerData, Vector3D>> overlapping
+            final Optional<OverlappingScanner> overlapping
                     = locateOverlappingScanner(sc, lockedIn);
             if (overlapping.isPresent()) {
-                lockedIn.put(overlapping.get().getOne(), overlapping.get().getTwo());
+                lockedIn.put(
+                        overlapping.get().getScannerData(),
+                        overlapping.get().getVector());
             } else {
                 q.add(sc);
             }
@@ -80,7 +79,7 @@ public class AoC2021_19 extends AoCBase {
     }
     
     private
-    Optional<Pair<ScannerData, Vector3D>>
+    Optional<OverlappingScanner>
     locateOverlappingScanner(final ScannerData sc,
                              final Map<ScannerData, Vector3D> lockedIn)
     {
@@ -94,7 +93,7 @@ public class AoC2021_19 extends AoCBase {
                     final ScannerData overlapping = new ScannerData(
                             sc.getId(),
                             Transformations3D.translate(positions, vector));
-                    return Optional.of(Tuples.pair(overlapping, vector));
+                    return Optional.of(new OverlappingScanner(overlapping, vector));
                 }
             }
         }
@@ -109,7 +108,7 @@ public class AoC2021_19 extends AoCBase {
     {
         final List<Vector3D> overlaptx
             = other.beacons.stream()
-                .flatMap(b -> positions.stream().map(p -> Tuples.pair(b, p)))
+                .flatMap(b -> positions.stream().map(p -> new Position3DPair(b, p)))
                 .collect(groupingBy(t -> Vector3D.from(t.getTwo(), t.getOne()),
                                     counting()))
                 .entrySet().stream()
@@ -140,7 +139,7 @@ public class AoC2021_19 extends AoCBase {
         final Map<ScannerData, Vector3D> scanners = solve();
         return scanners.values().stream()
             .flatMap(v1 -> scanners.values().stream()
-                            .map(v2 -> Tuples.pair(v1, v2)))
+                            .map(v2 -> new Vector3DPair(v1, v2)))
             .filter(t -> !t.getOne().equals(t.getTwo()))
             .map(t -> Position3D.of(0, 0, 0).translate(t.getOne())
                         .manhattanDistance(
@@ -154,9 +153,10 @@ public class AoC2021_19 extends AoCBase {
         assert AoC2021_19.create(TEST).solvePart2() == 3621;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 19);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_19.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_19.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_19.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_19.create(inputData)::solvePart2)
         );
     }
 
@@ -336,5 +336,26 @@ public class AoC2021_19 extends AoCBase {
     static final class ScannerData {
         private final int id;
         private final List<Position3D> beacons;
+    }
+    
+    @RequiredArgsConstructor
+    @Getter
+    private static final class OverlappingScanner {
+        private final ScannerData scannerData;
+        private final Vector3D vector;
+    }
+    
+    @RequiredArgsConstructor
+    @Getter
+    private static final class Position3DPair {
+        private final Position3D one;
+        private final Position3D two;
+    }
+    
+    @RequiredArgsConstructor
+    @Getter
+    private static final class Vector3DPair {
+        private final Vector3D one;
+        private final Vector3D two;
     }
 }

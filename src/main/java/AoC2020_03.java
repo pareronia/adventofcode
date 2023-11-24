@@ -5,11 +5,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.CollectionUtils;
-
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -18,27 +17,27 @@ public class AoC2020_03 extends AoCBase {
 	
 	private final Slope slope;
 
-	private AoC2020_03(List<String> input, boolean debug) {
+	private AoC2020_03(final List<String> input, final boolean debug) {
 		super(debug);
 		this.slope = parse(input);
 	}
 	
-	public static AoC2020_03 create(List<String> input) {
+	public static AoC2020_03 create(final List<String> input) {
 		return new AoC2020_03(input, false);
 	}
 
-	public static AoC2020_03 createDebug(List<String> input) {
+	public static AoC2020_03 createDebug(final List<String> input) {
 		return new AoC2020_03(input, true);
 	}
 	
-	private Slope parse(List<String> inputs) {
-		final Grid grid = Grid.from(inputs);
+	private Slope parse(final List<String> inputs) {
+		final CharGrid grid = CharGrid.from(inputs);
 		return new Slope(grid.getAllEqualTo('#').collect(toSet()),
 						 grid.getWidth(),
 						 grid.getHeight());
 	}
 	
-	private List<Cell> path(Steps steps) {
+	private List<Cell> path(final Steps steps) {
 		final List<Cell> path = new ArrayList<>();
 		for (int row = 0, col = 0;
 				row < slope.getHeight();
@@ -48,8 +47,8 @@ public class AoC2020_03 extends AoCBase {
 		return path;
 	}
 	
-	private int doRun(Steps steps) {
-		return CollectionUtils.intersection(path(steps), slope.trees).size();
+	private int doRun(final Steps steps) {
+	    return (int) path(steps).stream().filter(slope.trees::contains).count();
 	}
 	
 	@Override
@@ -69,7 +68,7 @@ public class AoC2020_03 extends AoCBase {
 				.reduce(1L, (a, b) -> a * b);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_03.createDebug(TEST).doRun(Steps.of(1, 1)) == 2;
 		assert AoC2020_03.createDebug(TEST).doRun(Steps.of(1, 3)) == 7;
 		assert AoC2020_03.createDebug(TEST).doRun(Steps.of(1, 5)) == 3;
@@ -77,9 +76,12 @@ public class AoC2020_03 extends AoCBase {
 		assert AoC2020_03.createDebug(TEST).doRun(Steps.of(2, 1)) == 2;
 		assert AoC2020_03.createDebug(TEST).solvePart2() == 336;
 		
-		final List<String> input = Aocd.getData(2020, 3);
-		lap("Part 1", () -> AoC2020_03.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_03.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2020, 3);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2020_03.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2020_03.create(inputData)::solvePart2)
+        );
 	}
 	
 	private static final List<String> TEST = splitLines(
@@ -110,7 +112,7 @@ public class AoC2020_03 extends AoCBase {
 		private final Integer down;
 		private final Integer right;
 		
-		public static Steps of(Integer down, Integer right) {
+		public static Steps of(final Integer down, final Integer right) {
 			return new Steps(down, right);
 		}
 	}

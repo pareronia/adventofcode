@@ -1,34 +1,33 @@
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2016_16 extends AoCBase {
 	
     private final String initialState;
 	
-	private AoC2016_16(List<String> input, boolean debug) {
+	private AoC2016_16(final List<String> input, final boolean debug) {
 		super(debug);
 		assert input.size() == 1;
 		this.initialState = input.get(0);
 	}
 	
-	public static AoC2016_16 create(List<String> input) {
+	public static AoC2016_16 create(final List<String> input) {
 		return new AoC2016_16(input, false);
 	}
 
-	public static AoC2016_16 createDebug(List<String> input) {
+	public static AoC2016_16 createDebug(final List<String> input) {
 		return new AoC2016_16(input, true);
 	}
 	
-	private String dragonCurve(String input) {
+	private String dragonCurve(final String input) {
 	    final String a = new String(input);
 	    final String b = StringUtils.reverse(input).replace('0', '-').replace('1', '0').replace('-', '1');
 	    return new StringBuilder().append(a).append("0").append(b).toString();
 	}
 	
-	private char[] checkSum(char[] data) {
+	private char[] checkSum(final char[] data) {
 	    final char[] pairs = new char[data.length / 2];
 	    for (int i = 0; i < data.length - 1; i += 2) {
 	        if (data[i] == data[i + 1]) {
@@ -44,7 +43,7 @@ public class AoC2016_16 extends AoCBase {
 	    }
 	}
 	
-	private String solve(Integer size) {
+	private String solve(final Integer size) {
 	    String data = this.initialState;
 	    while (data.length() < size) {
 	        data = dragonCurve(data);
@@ -62,12 +61,15 @@ public class AoC2016_16 extends AoCBase {
 	    return solve(35651584);
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2016_16.createDebug(TEST).solve(20).equals("01100");
 
-		final List<String> input = Aocd.getData(2016, 16);
-		lap("Part 1", () -> AoC2016_16.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_16.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2016, 16);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2016_16.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2016_16.create(input)::solvePart2)
+		);
 	}
 	
 	private static final List<String> TEST = splitLines("10000");

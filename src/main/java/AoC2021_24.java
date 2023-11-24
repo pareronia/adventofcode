@@ -1,7 +1,6 @@
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.ArrayUtils.subarray;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,8 +12,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
-
-import org.apache.commons.lang3.StringUtils;
 
 import com.github.pareronia.aoc.vm.Instruction;
 import com.github.pareronia.aoc.vm.Program;
@@ -43,7 +40,7 @@ public class AoC2021_24 extends AoCBase {
         this.addx = getOperandsAt(input, 5);
         this.monadInstructions = input.stream()
                 .map(s -> s.split(" "))
-                .map(s -> new MonadInstruction(s[0], asList(subarray(s, 1, s.length))))
+                .map(s -> new MonadInstruction(s[0], asList(s).subList(1, s.length)))
                 .collect(toList());
     }
     
@@ -67,19 +64,13 @@ public class AoC2021_24 extends AoCBase {
         return new AoC2021_24(input, true);
     }
     
-    private static boolean isNumeric(final String s) {
-        return StringUtils.isNumeric(s.replace("-", ""));
-    }
-    
     private static String getOperand(final MonadInstruction line, final int idx) {
         final String operand_ = line.operands.get(idx);
         final String operand;
         if (REGISTERS.contains(operand_)) {
             operand = "*" + operand_;
-        } else if (isNumeric(operand_)) {
-            operand = operand_;
         } else {
-            throw new IllegalArgumentException("Invalid operands for " + line.operator);
+            operand = operand_;
         }
         return operand;
     }
@@ -102,11 +93,9 @@ public class AoC2021_24 extends AoCBase {
 	        } else if (line.operator.equals("mod")) {
 	            final String value = getOperand(line, 1);
 	            instructions.add(Instruction.MOD(register, value));
-	        } else if (line.operator.equals("eql")) {
+	        } else {
 	            final String value = getOperand(line, 1);
 	            instructions.add(Instruction.EQL(register, value));
-	        } else {
-	            throw new IllegalArgumentException("Invalid operation");
 	        }
         }
         log(instructions);
@@ -239,7 +228,7 @@ public class AoC2021_24 extends AoCBase {
             }
             wzz.put(i, zz);
             log(String.format("digit: %d, divz: %d, addx: %d, addy: %d, z-values (%d): %s",
-                    i + 1, this.divz[i], this.addx[i], this.addy[i], zz.size(), new TreeSet<Long>(zz)));
+                    i + 1, this.divz[i], this.addx[i], this.addy[i], zz.size(), new TreeSet<>(zz)));
         }
         final long[] ans = new long[DIGITS];
         Arrays.fill(ans, -1L);
@@ -287,9 +276,10 @@ public class AoC2021_24 extends AoCBase {
         assert AoC2021_24.create(TEST4).runProgram("1").get("z") == 15;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 24);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_24.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_24.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_24.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_24.create(inputData)::solvePart2)
         );
     }
 

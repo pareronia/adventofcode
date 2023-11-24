@@ -1,36 +1,47 @@
 package com.github.pareronia.aoc.navigation;
 
+import com.github.pareronia.aoc.geometry.Direction;
+import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.geometry.Vector;
 
-import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.ToString;
 
-@EqualsAndHashCode(callSuper = true)
-public class Heading extends Vector {
-
-    public Heading(Integer x, Integer y) {
-        super(x, y);
+@ToString
+public class Heading {
+    public static final Heading NORTH = Heading.fromDirection(Direction.UP);
+    public static final Heading NORTHEAST = Heading.fromDirection(Direction.RIGHT_AND_UP);
+    public static final Heading EAST = Heading.fromDirection(Direction.RIGHT);
+    public static final Heading SOUTHEAST = Heading.fromDirection(Direction.RIGHT_AND_DOWN);
+    public static final Heading SOUTH = Heading.fromDirection(Direction.DOWN);
+    public static final Heading SOUTHWEST = Heading.fromDirection(Direction.LEFT_AND_DOWN);
+    public static final Heading WEST = Heading.fromDirection(Direction.LEFT);
+    public static final Heading NORTHWEST = Heading.fromDirection(Direction.LEFT_AND_UP);
+    
+    @Getter
+    private final Vector vector;
+    
+    private Heading(final Vector direction) {
+        this.vector = direction;
     }
     
-    public static Heading of(Integer x, Integer y) {
-        return new Heading(x, y);
+    public static final Heading of(final int x, final int y) {
+        return new Heading(Vector.of(x, y));
     }
     
-    public static Heading from(Vector vector) {
-        return new Heading(vector.getX(), vector.getY());
+    public static Heading fromDirection(final Direction direction) {
+        return new Heading(direction.getVector());
     }
-
-    @Override
-    public Heading rotate(Integer degrees) {
-        return Heading.from(super.rotate(degrees));
+    
+    public static Heading fromString(final String string) {
+        return Heading.fromDirection(Direction.fromString(string));
     }
-
-    @Override
-    public String toString() {
-        for (final Headings h : Headings.values()) {
-            if (this.equals(h.get())) {
-                return h.name();
-            }
-        }
-        return super.toString();
+    
+    public Heading turn(final Turn turn) {
+        return new Heading(this.vector.rotate(turn));
+    }
+    
+    public Heading add(final Direction direction, final int amplitude) {
+        return new Heading(this.getVector().add(direction.getVector(), amplitude));
     }
 }

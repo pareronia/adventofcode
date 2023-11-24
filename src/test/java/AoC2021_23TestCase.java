@@ -1,10 +1,9 @@
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AoC2021_23TestCase {
 
@@ -26,7 +25,7 @@ public class AoC2021_23TestCase {
             new AoC2021_23.Amphipod[] { A, D });
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.size(), is(28));
+        assertThat(moves).hasSize(28);
     }
 
     @Test
@@ -41,7 +40,7 @@ public class AoC2021_23TestCase {
                 new AoC2021_23.Amphipod[] { A, C, A, D });
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.size(), is(28));
+        assertThat(moves).hasSize(28);
     }
 
     @Test
@@ -56,7 +55,7 @@ public class AoC2021_23TestCase {
                 new AoC2021_23.Amphipod[] { D, D });
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.size(), is(0));
+        assertThat(moves).isEmpty();
     }
 
     @Test
@@ -71,7 +70,7 @@ public class AoC2021_23TestCase {
                 new AoC2021_23.Amphipod[] { D, D, D, D });
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.size(), is(0));
+        assertThat(moves).isEmpty();
     }
     
     @Test
@@ -88,8 +87,8 @@ public class AoC2021_23TestCase {
         assert diagram.getHallway().getAmphipods().length == 11;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.size(), is(4));
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway).count(), is(0L));
+        assertThat(moves).hasSize(4);
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
     }
     
     @Test
@@ -103,8 +102,8 @@ public class AoC2021_23TestCase {
         assert diagram.getHallway().getAmphipods().length == 11;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveToHallway).count(), is(0L));
-        assertThat(moves.size(), is(1));
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveToHallway)).isEmpty();
+        assertThat(moves).hasSize(1);
     }
 
     @Test
@@ -121,9 +120,9 @@ public class AoC2021_23TestCase {
         assert diagram.getHallway().getAmphipods().length == 11;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveToHallway).count(), is(0L));
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway).count(), is(1L));
-        assertThat(moves.size(), is(1));
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveToHallway)).isEmpty();
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).hasSize(1);
+        assertThat(moves).hasSize(1);
     }
     
     @Test
@@ -139,8 +138,8 @@ public class AoC2021_23TestCase {
         assert diagram.freeRightFromA().size() == 5;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.size(), is(24));
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway).count(), is(0L));
+        assertThat(moves).hasSize(24);
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
     }
 
     @Test
@@ -156,8 +155,8 @@ public class AoC2021_23TestCase {
         assert diagram.freeRightFromA().size() == 5;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway).count(), is(0L));
-        assertThat(moves.size(), is(24));
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
+        assertThat(moves).hasSize(24);
     }
 
     @Test
@@ -173,8 +172,8 @@ public class AoC2021_23TestCase {
         assert diagram.freeRightFromA().size() == 5;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway).count(), is(0L));
-        assertThat(moves.size(), is(20));
+        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
+        assertThat(moves).hasSize(20);
     }
     
     @Test
@@ -186,7 +185,7 @@ public class AoC2021_23TestCase {
         
         final int ans = room.vacancyFor(A);
         
-        assertThat(ans, is(1));
+        assertThat(ans).isEqualTo(1);
     }
 
     @Test
@@ -200,7 +199,7 @@ public class AoC2021_23TestCase {
         
         final int ans = room.vacancyFor(A);
         
-        assertThat(ans, is(2));
+        assertThat(ans).isEqualTo(2);
     }
 
     @Test
@@ -212,7 +211,7 @@ public class AoC2021_23TestCase {
         
         final int ans = room.vacancyFor(A);
         
-        assertThat(ans, is(-1));
+        assertThat(ans).isEqualTo(-1);
     }
 
     @Test
@@ -226,7 +225,7 @@ public class AoC2021_23TestCase {
         
         final int ans = room.vacancyFor(A);
         
-        assertThat(ans, is(-1));
+        assertThat(ans).isEqualTo(-1);
     }
     
     @Test
@@ -240,7 +239,7 @@ public class AoC2021_23TestCase {
         
         final int ans = room.vacancyFor(A);
         
-        assertThat(ans, is(2));
+        assertThat(ans).isEqualTo(2);
     }
     
     @Test
@@ -254,6 +253,6 @@ public class AoC2021_23TestCase {
         
         final int ans = room.availableToMove();
         
-        assertThat(ans, is(2));
+        assertThat(ans).isEqualTo(2);
     }
 }

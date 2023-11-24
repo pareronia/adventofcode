@@ -10,10 +10,10 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.SetUtils;
-
+import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2021_08 extends AoCBase {
     
@@ -84,7 +84,7 @@ public class AoC2021_08 extends AoCBase {
 
     private boolean sharesAllSegmentsWith(final String container, final String contained) {
         final Set<Character> cd = asCharSet(contained);
-        return SetUtils.intersection(cd, asCharSet(container)).toSet().equals(cd);
+        return SetUtils.intersection(cd, asCharSet(container)).equals(cd);
     }
     
     private Integer solve(final int i) {
@@ -154,9 +154,12 @@ public class AoC2021_08 extends AoCBase {
         assert AoC2021_08.create(TEST).solvePart1() == 26;
         assert AoC2021_08.create(TEST).solvePart2() == 61229;
 
-        final List<String> input = Aocd.getData(2021, 8);
-        lap("Part 1", () -> AoC2021_08.create(input).solvePart1());
-        lap("Part 2", () -> AoC2021_08.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2021, 8);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2021_08.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_08.create(inputData)::solvePart2)
+        );
     }
 
     private static final List<String> TEST = splitLines(

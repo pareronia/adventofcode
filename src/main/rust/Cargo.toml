@@ -1,0 +1,4 @@
+[workspace]
+members = ["AoC????_??"]
+
+resolver = "2"

@@ -13,15 +13,29 @@ include("aoc.jl")
 
 using MD5
 
-function solve(input, zeroes)
-    i = 0
-    val = input
-    target = repeat('0', zeroes)
-    while val[1:zeroes] != target
-        i += 1
-        val = bytes2hex(md5(input * string(i)))
+function checkZeroes(digest, zeroes)
+    chars = zeroes ÷ 2 + zeroes % 2
+    cnt = 0
+    for j ∈ 1:chars
+        ch::UInt8 = digest[j][1]
+        if (ch & 0xF0) == 0
+            cnt += 1
+            if (ch & 0x0F) == 0
+                cnt += 1
+                continue
+            end
+        end
+        break
     end
-    return i
+    return cnt == zeroes
+end
+
+function solve(input, zeroes)
+    i = 1
+    while true
+        checkZeroes(md5(input * string(i)), zeroes) && return i
+        i += 1
+    end
 end
 
 function part1(input)

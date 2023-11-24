@@ -1,43 +1,28 @@
 package com.github.pareronia.aoc;
 
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.regex.MatchResult;
+import java.util.regex.Pattern;
 import java.util.stream.Collector;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.Range;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 public class Utils {
 
 	public static Stream<Character> asCharacterStream(final String string) {
-		return Arrays.stream(
-				ArrayUtils.toObject(
-						Objects.requireNonNull(string).toCharArray()));
+	    AssertUtils.assertNotNull(string, () -> "Expected string to be non-null");
+	    
+	    return IntStream.range(0, string.length())
+	            .mapToObj(i -> Character.valueOf(string.charAt(i)));
 	}
-	
-	public static <T extends Comparable<T>> T max(final Stream<T> stream) {
-		return max(stream, "Empty stream");
-	}
-	
-	public static <T extends Comparable<T>> T max(final Stream<T> stream, final String message) {
-		return Objects.requireNonNull(stream)
-				.max(Comparator.<T> naturalOrder())
-				.orElseThrow(() -> new RuntimeException(message));
-	}
-
-	public static <T extends Comparable<T>> T min(final Stream<T> stream) {
-		return min(stream, "Empty stream");
-	}
-	
-	public static <T extends Comparable<T>> T min(final Stream<T> stream, final String message) {
-		return Objects.requireNonNull(stream)
-				.min(Comparator.<T> naturalOrder())
-				.orElseThrow(() -> new RuntimeException(message));
-	}
-	
+    
 	public static Collector<Character, StringBuilder, String> toAString() {
 		return Collector.of(
 				StringBuilder::new,
@@ -45,26 +30,69 @@ public class Utils {
 				StringBuilder::append,
 				StringBuilder::toString);
 	}
-	
-    public static Iterator<Integer> iterator(final Range<Integer> range) {
-        return new Iterator<>() {
-            private int i = range.getMinimum();
-
-            @Override
-            public Integer next() {
-                return i++;
-            }
-            
-            @Override
-            public boolean hasNext() {
-                return i <= range.getMaximum();
-            }
-        };
-    }
     
     public static <T> Stream<T> stream(final Iterator<T> iterator) {
         return Stream.generate(() -> null)
                 .takeWhile(x -> iterator.hasNext())
                 .map(n -> iterator.next());
+    }
+	
+	public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
+	    return stream(new Iterator<Enumerated<T>>() {
+	        private final Iterator<T> iterator = stream.iterator();
+	        private int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Enumerated<T> next() {
+                return new Enumerated<>(i++, iterator.next());
+            }
+        });
+	}
+    
+    public static <T> T last(final List<T> list) {
+        return Objects.requireNonNull(list).get(list.size() - 1);
+    }
+    
+    public static <T> T last(final T[] list) {
+        return Objects.requireNonNull(list)[list.length - 1];
+    }
+    
+    public static char last(final String string) {
+        return Objects.requireNonNull(string).charAt(string.length() - 1);
+    }
+    
+    public static <T> List<T> concat(final List<T> list1, final T item) {
+        final ArrayList<T> ans = new ArrayList<>(list1);
+        ans.add(item);
+        return ans;
+    }
+    
+    private static final Pattern REGEX_N = Pattern.compile("[0-9]+");
+    public static final int[] naturalNumbers(final String string) {
+        return REGEX_N.matcher(string).results()
+                .map(MatchResult::group)
+                .mapToInt(Integer::parseInt)
+                .toArray();
+    }
+    
+    private static final Pattern REGEX_Z = Pattern.compile("-?[0-9]+");
+    public static final int[] integerNumbers(final String string) {
+        return REGEX_Z.matcher(string).results()
+                .map(MatchResult::group)
+                .mapToInt(Integer::parseInt)
+                .toArray();
+    }
+    
+    @RequiredArgsConstructor
+    @Getter
+    @ToString
+    public static final class Enumerated<T> {
+        private final int index;
+        private final T value;
     }
 }

@@ -1,11 +1,9 @@
-import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Collections;
 import java.util.List;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AoCBaseTestCase {
 
@@ -15,51 +13,51 @@ public class AoCBaseTestCase {
 		
 		final List<List<String>> result = AoCBase.toBlocks(inputs);
 		
-		assertThat(result.size(), is(0));
+		assertThat(result).isEmpty();
 	}
 	
 	@Test
 	public void toBlocks_one_line() {
-		final List<String> inputs = asList("1");
+		final List<String> inputs = List.of("1");
 		
 		final List<List<String>> result = AoCBase.toBlocks(inputs);
 		
-		assertThat(result, is(asList(asList("1"))));
+		assertThat(result).containsExactly(List.of("1"));
 	}
 	
 	@Test
 	public void toBlocks_one_block() {
-		final List<String> inputs = asList("1", "2");
+		final List<String> inputs = List.of("1", "2");
 		
 		final List<List<String>> result = AoCBase.toBlocks(inputs);
 		
-		assertThat(result, is(asList(asList("1", "2"))));
+		assertThat(result).containsExactly(List.of("1", "2"));
 	}
 	
 	@Test
 	public void toBlocks_one_block_last_empty() {
-		final List<String> inputs = asList("1", "2", "");
+		final List<String> inputs = List.of("1", "2", "");
 		
 		final List<List<String>> result = AoCBase.toBlocks(inputs);
 		
-		assertThat(result, is(asList(asList("1", "2"))));
+		assertThat(result).containsExactly(List.of("1", "2"));
 	}
 	
 	@Test
 	public void toBlocks_multiple_blocks() {
-		final List<String> inputs = asList("1", "", "2");
+		final List<String> inputs = List.of("1", "", "2");
 		
 		final List<List<String>> result = AoCBase.toBlocks(inputs);
 		
-		assertThat(result, is(asList(asList("1"), asList("2"))));
+		assertThat(result).containsExactly(List.of("1"), List.of("2"));
 	}
 	
 	@Test
 	public void toBlocks_multiple_blocks_last_empty() {
-		final List<String> inputs = asList("1", "2", "", "3", "");
+		final List<String> inputs = List.of("1", "2", "", "3", "");
 		
 		final List<List<String>> result = AoCBase.toBlocks(inputs);
 		
-		assertThat(result, is(asList(asList("1", "2"), asList("3"))));
+		assertThat(result).containsExactly(List.of("1", "2"), List.of("3"));
 	}
 }

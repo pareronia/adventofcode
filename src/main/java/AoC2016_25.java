@@ -4,14 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.assembunny.Assembunny;
 import com.github.pareronia.aoc.assembunny.Assembunny.AssembunnyInstruction;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;
 import com.github.pareronia.aoc.vm.VirtualMachine.InfiniteLoopException;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2016_25 extends AoCBase {
     
@@ -83,9 +82,12 @@ public final class AoC2016_25 extends AoCBase {
     public static void main(final String[] args) throws Exception {
         assert AoC2016_25.createDebug(TEST).solveCheat() == 182;
 
-        final List<String> input = Aocd.getData(2016, 25);
-        lap("Part 1", () -> AoC2016_25.createDebug(input).solvePart1());
-        lap("Part 2", () -> AoC2016_25.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2016, 25);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2016_25.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2016_25.create(input)::solvePart2)
+		);
     }
 
     private static final List<String> TEST = splitLines(

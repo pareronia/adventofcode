@@ -1,21 +1,19 @@
 package com.github.pareronia.aoc.vm;
 
 import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.CoreMatchers.nullValue;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 public class VirtualMachineTestCase {
     
     private VirtualMachine vm;
     
-    @Before
+    @BeforeEach
     public void setUp() {
         vm = new VirtualMachine();
     }
@@ -50,13 +48,13 @@ public class VirtualMachineTestCase {
         
         vm.runProgram(program);
         
-        assertThat(program.getMemory().size(), is(0));
-        assertThat(program.getRegisters().get("A"), is(54L));
-        assertThat(program.getRegisters().get("B"), is(2L));
-        assertThat(program.getRegisters().get("C"), is(0L));
-        assertThat(program.getRegisters().get("D"), is(nullValue()));
-        assertThat(program.getRegisters().get("E"), is(7L));
-        assertThat(program.getInstructionPointer(), is(21));
-        assertThat(output, is(List.of(6L, 7L)));
+        assertThat(program.getMemory().size()).isEqualTo(0);
+        assertThat(program.getRegisters().get("A")).isEqualTo(54);
+        assertThat(program.getRegisters().get("B")).isEqualTo(2L);
+        assertThat(program.getRegisters().get("C")).isEqualTo(0L);
+        assertThat(program.getRegisters().get("D")).isNull();
+        assertThat(program.getRegisters().get("E")).isEqualTo(7L);
+        assertThat(program.getInstructionPointer()).isEqualTo(21);
+        assertThat(output).containsExactly(6L, 7L);
     }
 }

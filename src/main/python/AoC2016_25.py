@@ -3,13 +3,14 @@
 # Advent of Code 2015 Day 25
 #
 
+import aocd
 from aoc import my_aocd
 from aoc.vm import Program, VirtualMachine
 from aoc.assembunny import Assembunny
 from aoc.common import log
 
 
-def _run_program(inputs: tuple[str], init_a) -> int:
+def _run_program(inputs: tuple[str], init_a: int) -> list[str]:
     inss = Assembunny.parse(inputs)
     output = list()
     program = Program(Assembunny.translate(inss),
@@ -19,7 +20,7 @@ def _run_program(inputs: tuple[str], init_a) -> int:
     program.set_register_value("a", init_a)
     try:
         VirtualMachine().run_program(program)
-    except RuntimeError:
+    finally:
         return output
 
 
@@ -29,13 +30,13 @@ def _solve_vm(inputs: tuple[str]) -> int:
         output = _run_program(inputs, n)
         ok = True
         for i, v in enumerate(output):
-            ok = ok and (i % 2 == v)
+            ok = ok and (i % 2 == int(v))
         if ok:
             return n
         n += 1
 
 
-def _solve(inputs: tuple[str]) -> int:
+def _solve(inputs: tuple[str, ...]) -> int:
     values = list(map(lambda i: int(i),
                       filter(lambda i: i.isnumeric(),
                              map(lambda i: i.operands[0],
@@ -44,12 +45,12 @@ def _solve(inputs: tuple[str]) -> int:
     return 2730 - values[0] * 182
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return _solve(inputs)
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return
+def part_2(inputs: tuple[str, ...]) -> None:
+    return None
 
 
 TEST = '''\
@@ -87,15 +88,17 @@ jnz 1 -21
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 25)
+    puzzle = aocd.models.Puzzle(2016, 25)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert _solve_vm(TEST) == 182
+    assert _solve_vm(TEST) == 182  # type:ignore[arg-type]
 
-    inputs = my_aocd.get_input(2016, 25, 30)
+    inputs = my_aocd.get_input_data(puzzle, 30)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
+    result2 = None
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':

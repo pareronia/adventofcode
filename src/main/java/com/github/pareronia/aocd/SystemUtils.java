@@ -23,22 +23,30 @@ SOFTWARE.
  */
 package com.github.pareronia.aocd;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.google.gson.Gson;
+import com.github.pareronia.aoc.Json;
+import com.github.pareronia.aoc.StringUtils;
 
 public class SystemUtils {
 
@@ -46,10 +54,10 @@ public class SystemUtils {
 		final String env = System.getenv("AOCD_DIR");
 		if (StringUtils.isNotBlank(env)) {
 			return Paths.get(env);
-		} else if (org.apache.commons.lang3.SystemUtils.IS_OS_WINDOWS) {
+		} else if (isOsWindows()) {
 			return Paths.get(System.getenv("APPDATA"), "aocd");
-		} else if (org.apache.commons.lang3.SystemUtils.IS_OS_UNIX) {
-			final Path userHome = org.apache.commons.lang3.SystemUtils.getUserHome().toPath();
+		} else if (isOsLinux()) {
+			final Path userHome = getUserHome().toPath();
 			return userHome.resolve(".config").resolve("aocd");
 		} else {
 			throw new UnsupportedOperationException("OS not supported");
@@ -61,7 +69,7 @@ public class SystemUtils {
 		if (StringUtils.isNotBlank(tokenFromEnv)) {
 			return tokenFromEnv;
 		}
-		return readAlLines(getAocdDir().resolve("token")).stream()
+		return readAllLines(getAocdDir().resolve("token")).stream()
 				.findFirst()
 				.orElseThrow(() -> new AocdException("Missing session ID"));
 	}
@@ -69,7 +77,16 @@ public class SystemUtils {
 	@SuppressWarnings("unchecked")
     public Map<String, String> getUserIds() {
 	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("token2id.json"))) {
-	        return new Gson().fromJson(reader, Map.class);
+	        return Json.fromJson(reader, Map.class);
+        } catch (final IOException e) {
+			throw new AocdException(e);
+        }
+	}
+
+	@SuppressWarnings("unchecked")
+    public Map<String, String> getTokens() {
+	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("tokens.json"))) {
+	        return Json.fromJson(reader, Map.class);
         } catch (final IOException e) {
 			throw new AocdException(e);
         }
@@ -79,7 +96,7 @@ public class SystemUtils {
  		if (Files.notExists(Objects.requireNonNull(path))) {
 			return Collections.emptyList();
 		}
-		return readAlLines(path);
+		return readAllLines(path);
 	}
 	
 	public Optional<String> readFirstLineIfExists(final Path path) {
@@ -90,11 +107,41 @@ public class SystemUtils {
 	    return LocalDate.now(Aocd.AOC_TZ);
 	}
 	
+	public LocalDateTime getLocalDateTime() {
+	    return LocalDateTime.now(Aocd.AOC_TZ);
+	}
+	
 	public long getSystemNanoTime() {
 	    return System.nanoTime();
 	}
 	
-	private List<String> readAlLines(final Path path) {
+	public void getInput(final int year, final int day, final Path path) {
+	    final HttpClient http = HttpClient.newHttpClient();
+	    final HttpRequest request = HttpRequest.newBuilder()
+	            .uri(URI.create(String.format("https://adventofcode.com/%d/day/%d/input", year, day)))
+	            .header("Cookie", "session=" + getToken())
+	            .build();
+        try {
+            http.send(request, BodyHandlers.ofFile(path));
+        } catch (IOException | InterruptedException e) {
+			throw new AocdException(e);
+        }
+	}
+	
+	public Stream<String> getAllSolutions() {
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(
+                Path.of("src", "main", "java"), "AoC????_??.java")) {
+	        final Builder<String> builder = Stream.builder();
+	        ds.iterator().forEachRemaining(path ->
+	            builder.add(path.getFileName().toString()
+	                            .substring(0, "AoCyyyy_dd".length())));
+	        return builder.build();
+        } catch (final IOException e) {
+			throw new AocdException(e);
+        }
+	}
+	
+	public List<String> readAllLines(final Path path) {
 		try {
 			return Collections.unmodifiableList(
 					Files.readAllLines(Objects.requireNonNull(path),
@@ -102,5 +149,25 @@ public class SystemUtils {
 		} catch (final IOException e) {
 			throw new AocdException(e);
 		}
+	}
+	
+	private boolean isOsWindows() {
+	    return getOsName().startsWith("Windows");
+	}
+	
+	private boolean isOsLinux() {
+	    return getOsName().toLowerCase().startsWith("linux");
+	}
+    
+	public File getUserHome() {
+        return new File(getSystemProperty("user.home"));
+    }
+
+    private String getOsName() {
+        return getSystemProperty("os.name");
+    }
+	
+	private String getSystemProperty(final String property) {
+	    return System.getProperty(property);
 	}
 }

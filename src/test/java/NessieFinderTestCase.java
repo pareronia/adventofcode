@@ -1,47 +1,43 @@
-import static java.util.Arrays.asList;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 
 public class NessieFinderTestCase {
 	
-	private Grid grid;
+	private CharGrid grid;
 
-	@Before
+	@BeforeEach
 	public void setUp() {
 		final List<String> lines = new ArrayList<>();
 		lines.add(".#.#...#.###...#.##.##..");
 		lines.add("#.#.##.###.#.##.##.#####");
 		lines.add("..##.###.####..#.####.##");
-		grid = Grid.from(lines);
+		grid = CharGrid.from(lines);
 	}
 	
 	@Test
 	public void findNessies() {
-		final List<Pair<Integer, Integer>> result = AoC2020_20.NessieFinder.findNessies(grid);
+		final Map<Integer, Integer> result = AoC2020_20.NessieFinder.findNessies(grid);
 		
-		assertThat(result.size(), is(1));
-		assertThat(result.get(0).getLeft(), is(1));
-		assertThat(result.get(0).getRight(), is(2));
+		assertThat(result).hasSize(1);
+		assertThat(result).containsEntry(1, 2);
 	}
 	
 	@Test
 	public void markNessies() {
-		final Grid result = AoC2020_20.NessieFinder.markNessies(asList(Pair.of(1, 2)), grid);
+		final CharGrid result = AoC2020_20.NessieFinder.markNessies(Map.of(1, 2), grid);
 		
 		final List<String> expected = new ArrayList<>();
 		expected.add("_~_~___~_~~~___~_~~_\u2592~__");
 		expected.add("~_\u2592_~~_\u2592\u2592~_~_\u2592\u2592_~~_\u2592\u2592\u2592~~");
 		expected.add("__~\u2592_~\u2592~_\u2592~~\u2592__\u2592_~\u2592~~_~~");
-		assertThat(result.getRowsAsStringList(), equalTo(expected));
+		assertThat(result.getRowsAsStringList()).isEqualTo(expected);
 	}
 }

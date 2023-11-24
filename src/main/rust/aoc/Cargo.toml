@@ -1,0 +1,9 @@
+[package]
+name = "aoc"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aocd = { path = "../aocd" }
+regex = "1.9"
+lazy_static = "1.4"

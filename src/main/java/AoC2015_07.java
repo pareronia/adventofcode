@@ -1,88 +1,68 @@
+import static com.github.pareronia.aoc.StringOps.splitLines;
 import static java.util.Arrays.asList;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import com.github.pareronia.aocd.Aocd;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-public class AoC2015_07 extends AoCBase {
+public class AoC2015_07 extends SolutionBase<List<Gate>, Integer, Integer> {
 
-	private static final int BIT_SIZE = 16;
-
-	private final List<String> inputs;
-	
-	private AoC2015_07(List<String> input, boolean debug) {
+	private AoC2015_07(final boolean debug) {
 		super(debug);
-		this.inputs = input;
 	}
 	
-	public static final AoC2015_07 create(List<String> input) {
-		return new AoC2015_07(input, false);
+	public static final AoC2015_07 create() {
+		return new AoC2015_07(false);
 	}
 
-	public static final AoC2015_07 createDebug(List<String> input) {
-		return new AoC2015_07(input, true);
+	public static final AoC2015_07 createDebug() {
+		return new AoC2015_07(true);
 	}
 	
-	private Circuit parse() {
-		final List<Gate> gates = new ArrayList<>();
-		for (final String input : inputs) {
-			final String[] splits = input.split(" -> ");
-			if (splits[0].contains("AND")) {
-				final String[] andSplits = splits[0].split(" AND ");
-				gates.add(Gate.and(splits[1], andSplits[0], andSplits[1]));
-			} else if (splits[0].contains("OR")) {
-				final String[] orSplits = splits[0].split(" OR ");
-				gates.add(Gate.or(splits[1], orSplits[0], orSplits[1]));
-			} else if (splits[0].contains("LSHIFT")) {
-				final String[] shSplits = splits[0].split(" LSHIFT ");
-				gates.add(Gate.lshift(splits[1], shSplits[0], shSplits[1]));
-			} else if (splits[0].contains("RSHIFT")) {
-				final String[] shSplits = splits[0].split(" RSHIFT ");
-				gates.add(Gate.rshift(splits[1], shSplits[0], shSplits[1]));
-			} else if (splits[0].contains("NOT")) {
-				final String in = splits[0].substring("NOT ".length());
-				gates.add(Gate.not(splits[1], in));
-			} else {
-				gates.add(Gate.set(splits[1], splits[0]));
-			}
-		}
-		return Circuit.of(gates);
-	}
-	
-	int part1(String wire) {
-		final Circuit circuit = parse();
+	@Override
+    protected List<Gate> parseInput(final List<String> inputs) {
+		return inputs.stream().map(Gate::fromInput).collect(toList());
+    }
+
+    int part1(final List<Gate> inputs, final String wire) {
+		final Circuit circuit = Circuit.of(inputs);
 		log(circuit);
 		return circuit.getValue(wire);
 	}
 	
 	@Override
-	public Integer solvePart1() {
-		return part1("a");
+	public Integer solvePart1(final List<Gate> inputs) {
+		return part1(inputs, "a");
 	}
 	
 	@Override
-	public Integer solvePart2() {
-		final long a = part1("a");
-		final Circuit circuit = parse();
-		circuit.setGate("b", Gate.set("b", String.valueOf(a)));
-		return circuit.getValue("a");
+	public Integer solvePart2(final List<Gate> inputs) {
+	    final List<Gate> clone = inputs.stream().map(Gate::cloneGate).collect(toList());
+		final Circuit circuit1 = Circuit.of(inputs);
+		final int a = circuit1.getValue("a");
+		final Circuit circuit2 = Circuit.of(clone);
+		circuit2.setGate("b", Gate.set("b", String.valueOf(a)));
+		return circuit2.getValue("a");
 	}
 	
-	public void visualize(OutputStream os) throws IOException {
-		final Circuit circuit = parse();
+	public void visualize(final List<String> inputs, final OutputStream os) throws IOException {
+		final Circuit circuit = Circuit.of(this.parseInput(inputs));
 		final StringBuilder sb = new StringBuilder("digraph circuit {");
 		sb.append("rankdir=LR charset=UTF-8 ");
 		sb.append("node [ shape=rect ]; " );
@@ -130,27 +110,26 @@ public class AoC2015_07 extends AoCBase {
 			sb.append("];");
 		}
 		sb.append("}").append(System.lineSeparator());
-		IOUtils.write(sb.toString(), os, Charset.forName("UTF-8"));
+		os.write(sb.toString().getBytes(Charset.forName("UTF-8")));
 	}
 	
-	public static void main(String[] args) throws Exception {
-		assert AoC2015_07.createDebug(TEST).part1("x") == 123;
-		assert AoC2015_07.createDebug(TEST).part1("y") == 456;
-		assert AoC2015_07.createDebug(TEST).part1("d") == 72;
-		assert AoC2015_07.createDebug(TEST).part1("e") == 507;
-		assert AoC2015_07.createDebug(TEST).part1("f") == 492;
-		assert AoC2015_07.createDebug(TEST).part1("g") == 114;
-		assert AoC2015_07.createDebug(TEST).part1("h") == 65412;
-		assert AoC2015_07.createDebug(TEST).part1("i") == 65079;
-		assert AoC2015_07.createDebug(TEST).part1("j") == 65079;
+	public static void main(final String[] args) throws Exception {
+		final AoC2015_07 test = AoC2015_07.createDebug();
+		final List<Gate> inputs = test.parseInput(TEST);
+        assert test.part1(inputs, "x") == 123;
+		assert test.part1(inputs, "y") == 456;
+		assert test.part1(inputs, "d") == 72;
+		assert test.part1(inputs, "e") == 507;
+		assert test.part1(inputs, "f") == 492;
+		assert test.part1(inputs, "g") == 114;
+		assert test.part1(inputs, "h") == 65412;
+		assert test.part1(inputs, "i") == 65079;
+		assert test.part1(inputs, "j") == 65079;
 
-		final List<String> input = Aocd.getData(2015, 7);
-		
-		lap("Part 1", () -> AoC2015_07.create(input).solvePart1());
-		lap("Part 2", () -> AoC2015_07.create(input).solvePart2());
-		
-		AoC2015_07.create(TEST).visualize(System.out);
-		AoC2015_07.create(input).visualize(System.out);
+		final AoC2015_07 solution = AoC2015_07.create();
+        solution.run();
+		solution.visualize(TEST, System.out);
+		solution.visualize(solution.getInputData(), System.out);
 	}
 
 	private static final List<String> TEST = splitLines(
@@ -164,171 +143,189 @@ public class AoC2015_07 extends AoCBase {
 			"NOT y -> i\r\n" +
 			"i -> j"
 	);
+}
 	
-	private static final class Gate {
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+final class Gate implements Cloneable {
 
-		private enum Op { SET, NOT, AND, OR, LSHIFT, RSHIFT }
-		
-		private final String name;
-		private final String in1;
-		private final String in2;
-		private final Op op;
-		private final Integer arg;
-		private Integer result;
-		
-		private Gate(String name, String in1, String in2, Op op, Integer arg) {
-			this.name = name;
-			this.in1 = in1;
-			this.in2 = in2;
-			this.op = op;
-			this.arg = arg;
-		}
-		
-		public static Gate not(String name, String in) {
-			return new Gate(name, in, null, Op.NOT, null);
-		}
-		
-		public static Gate and(String name, String in1, String in2) {
-			return new Gate(name, in1, in2, Op.AND, null);
-		}
-		
-		public static Gate or(String name, String in1, String in2) {
-			return new Gate(name, in1, in2, Op.OR, null);
-		}
-		
-		public static Gate lshift(String name, String in, String value) {
-			final Integer arg = Integer.valueOf(value);
-			assert arg < BIT_SIZE : "Shifting more than 15 positions";
-			return new Gate(name, in, null, Op.LSHIFT, arg);
-		}
-		
-		public static Gate rshift(String name, String in, String value) {
-			final Integer arg = Integer.valueOf(value);
-			assert arg < BIT_SIZE : "Shifting more than 15 positions";
-			return new Gate(name, in, null, Op.RSHIFT, arg);
-		}
-		
-		public static Gate set(String name, String in) {
-			return new Gate(name, in, null, Op.SET, null);
-		}
+    private static final int BIT_SIZE = 16;
+    
+    enum Op { SET, NOT, AND, OR, LSHIFT, RSHIFT }
+    
+    @Getter
+    final String name;
+    final String in1;
+    final String in2;
+    final Op op;
+    final Integer arg;
+    @Getter
+    private Integer result;
+    
+    public static Gate fromInput(final String input) {
+        final String[] splits = input.split(" -> ");
+        if (splits[0].contains("AND")) {
+            final String[] andSplits = splits[0].split(" AND ");
+            return Gate.and(splits[1], andSplits[0], andSplits[1]);
+        } else if (splits[0].contains("OR")) {
+            final String[] orSplits = splits[0].split(" OR ");
+            return Gate.or(splits[1], orSplits[0], orSplits[1]);
+        } else if (splits[0].contains("LSHIFT")) {
+            final String[] shSplits = splits[0].split(" LSHIFT ");
+            return Gate.lshift(splits[1], shSplits[0], shSplits[1]);
+        } else if (splits[0].contains("RSHIFT")) {
+            final String[] shSplits = splits[0].split(" RSHIFT ");
+            return Gate.rshift(splits[1], shSplits[0], shSplits[1]);
+        } else if (splits[0].contains("NOT")) {
+            final String in = splits[0].substring("NOT ".length());
+            return Gate.not(splits[1], in);
+        } else {
+            return Gate.set(splits[1], splits[0]);
+        }
+        
+    }
 
-		public String getName() {
-			return name;
-		}
+    @Override
+    protected Gate clone() throws CloneNotSupportedException {
+        return new Gate(this.name, this.in1, this.in2, this.op, this.arg);
+    }
+    
+    public static Gate cloneGate(final Gate gate) {
+        try {
+            return gate.clone();
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    
+    public static Gate not(final String name, final String in) {
+        return new Gate(name, in, null, Op.NOT, null);
+    }
+    
+    public static Gate and(final String name, final String in1, final String in2) {
+        return new Gate(name, in1, in2, Op.AND, null);
+    }
+    
+    public static Gate or(final String name, final String in1, final String in2) {
+        return new Gate(name, in1, in2, Op.OR, null);
+    }
+    
+    public static Gate lshift(final String name, final String in, final String value) {
+        final Integer arg = Integer.valueOf(value);
+        assert arg < BIT_SIZE : "Shifting more than 15 positions";
+        return new Gate(name, in, null, Op.LSHIFT, arg);
+    }
+    
+    public static Gate rshift(final String name, final String in, final String value) {
+        final Integer arg = Integer.valueOf(value);
+        assert arg < BIT_SIZE : "Shifting more than 15 positions";
+        return new Gate(name, in, null, Op.RSHIFT, arg);
+    }
+    
+    public static Gate set(final String name, final String in) {
+        return new Gate(name, in, null, Op.SET, null);
+    }
 
-		public Integer getResult() {
-			return result;
-		}
+    public Integer updateResult(final Integer in1, final Integer in2) {
+        switch (this.op) {
+        case SET:
+            this.result = in1;
+            break;
+        case AND:
+            this.result = in1 & in2;
+            break;
+        case LSHIFT:
+            this.result = in1 << arg;
+            break;
+        case NOT:
+            this.result = (int) (Math.pow(2, BIT_SIZE) + ~in1);
+            break;
+        case OR:
+            this.result = in1 | in2;
+            break;
+        case RSHIFT:
+            this.result = in1 >>> arg;
+            break;
+        default:
+            throw new IllegalStateException();
+        }
+        return this.result;
+    }
 
-		public Integer updateResult(Integer in1, Integer in2) {
-			switch (this.op) {
-			case SET:
-				this.result = in1;
-				break;
-			case AND:
-				this.result = in1 & in2;
-				break;
-			case LSHIFT:
-				this.result = in1 << arg;
-				break;
-			case NOT:
-				this.result = (int) (Math.pow(2, BIT_SIZE) + ~in1);
-				break;
-			case OR:
-				this.result = in1 | in2;
-				break;
-			case RSHIFT:
-				this.result = in1 >>> arg;
-				break;
-			default:
-				throw new IllegalStateException();
-			}
-			return this.result;
-		}
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        switch (this.op) {
+        case SET:
+            sb.append(this.in1);
+            break;
+        case AND:
+            sb.append(this.in1).append(" AND ").append(this.in2);
+            break;
+        case LSHIFT:
+            sb.append(this.in1).append(" LSHIFT ").append(arg);
+            break;
+        case NOT:
+            sb.append("NOT ").append(this.in1);
+            break;
+        case OR:
+            sb.append(this.in1).append(" OR ").append(this.in2);
+            break;
+        case RSHIFT:
+            sb.append(this.in1).append(" RSHIFT ").append(arg);
+            break;
+        default:
+            throw new IllegalStateException();
+        }
+        return sb.toString();
+    }
+}
 
-		@Override
-		public String toString() {
-			final StringBuilder sb = new StringBuilder();
-			switch (this.op) {
-			case SET:
-				sb.append(this.in1);
-				break;
-			case AND:
-				sb.append(this.in1).append(" AND ").append(this.in2);
-				break;
-			case LSHIFT:
-				sb.append(this.in1).append(" LSHIFT ").append(arg);
-				break;
-			case NOT:
-				sb.append("NOT ").append(this.in1);
-				break;
-			case OR:
-				sb.append(this.in1).append(" OR ").append(this.in2);
-				break;
-			case RSHIFT:
-				sb.append(this.in1).append(" RSHIFT ").append(arg);
-				break;
-			default:
-				throw new IllegalStateException();
-			}
-			return sb.toString();
-		}
-	}
-	
-	private static final class Circuit {
-		private final Map<String, Gate> gates;
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@ToString
+final class Circuit {
+    private final Map<String, Gate> gates;
 
-		private Circuit(Map<String, Gate> gates) {
-			this.gates = gates;
-		}
-		
-		public static Circuit of(Collection<Gate> gates) {
-			return new Circuit(requireNonNull(gates).stream()
-								.collect(toMap(Gate::getName, identity())));
-		}
-		
-		public Collection<Gate> getGates() {
-			return this.gates.values();
-		}
-		
-		public Gate getGate(String name) {
-			return this.gates.get(requireNonNull(name));
-		}
-		
-		public void setGate(String name, Gate gate) {
-			this.gates.put(requireNonNull(name), requireNonNull(gate));
-		}
-		
-		public Optional<Gate> getGateIn1(String name) {
-			final Gate gate = this.getGate(name);
-			return Optional.ofNullable(gate.in1).map(this::getGate);
-		}
-		
-		public Optional<Gate> getGateIn2(String name) {
-			final Gate gate = this.getGate(name);
-			return Optional.ofNullable(gate.in2).map(this::getGate);
-		}
-		
-		public int getValue(String name) {
-			assert name != null && !name.isEmpty(): "name is empty";
-			if (StringUtils.isNumeric(name)) {
-				final int out = Integer.valueOf(name);
-				return out;
-			}
-			final Gate gate = getGate(name);
-			assert gate != null : "Gate '" + name + "' not found";
-			final Integer result = gate.getResult();
-			if (result != null) {
-				return result;
-			}
-			final Integer in1 = getValue(gate.in1);
-			final Integer in2 = gate.in2 != null ? getValue(gate.in2) : null;
-			return gate.updateResult(in1, in2);
-		}
-
-		@Override
-		public String toString() {
-			return "Circuit [gates=" + gates + "]";
-		}
-	}
+    public static Circuit of(final Collection<Gate> gates) {
+        return new Circuit(requireNonNull(gates).stream()
+                            .collect(toMap(Gate::getName, identity())));
+    }
+    
+    public Collection<Gate> getGates() {
+        return this.gates.values();
+    }
+    
+    public Gate getGate(final String name) {
+        return this.gates.get(requireNonNull(name));
+    }
+    
+    public void setGate(final String name, final Gate gate) {
+        this.gates.put(requireNonNull(name), requireNonNull(gate));
+    }
+    
+    public Optional<Gate> getGateIn1(final String name) {
+        final Gate gate = this.getGate(name);
+        return Optional.ofNullable(gate.in1).map(this::getGate);
+    }
+    
+    public Optional<Gate> getGateIn2(final String name) {
+        final Gate gate = this.getGate(name);
+        return Optional.ofNullable(gate.in2).map(this::getGate);
+    }
+    
+    public int getValue(final String name) {
+        assert name != null && !name.isEmpty(): "name is empty";
+        if (StringUtils.isNumeric(name)) {
+            final int out = Integer.valueOf(name);
+            return out;
+        }
+        final Gate gate = getGate(name);
+        assert gate != null : "Gate '" + name + "' not found";
+        final Integer result = gate.getResult();
+        if (result != null) {
+            return result;
+        }
+        final Integer in1 = getValue(gate.in1);
+        final Integer in2 = gate.in2 != null ? getValue(gate.in2) : null;
+        return gate.updateResult(in1, in2);
+    }
 }

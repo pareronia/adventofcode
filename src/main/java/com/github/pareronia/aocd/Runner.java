@@ -1,5 +1,7 @@
 package com.github.pareronia.aocd;
 
+import static com.github.pareronia.aoc.AssertUtils.assertFalse;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static java.util.stream.Collectors.toList;
 
 import java.lang.reflect.Method;
@@ -9,14 +11,15 @@ import java.time.Month;
 import java.util.List;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.Json;
+import com.github.pareronia.aoc.solution.SolutionBase;
 import com.github.pareronia.aocd.RunServer.RequestHandler;
-import com.google.gson.Gson;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class Runner {
+class Runner {
 
 	public static void main(final String[] args) throws Exception {
 	    final SystemUtils systemUtils = new SystemUtils();
@@ -33,7 +36,7 @@ public class Runner {
 		};
 	}
 
-	private static Runner create(final SystemUtils systemUtils) {
+	static Runner create(final SystemUtils systemUtils) {
 		return new Runner(systemUtils,
 						  className -> Class.forName(className));
 	}
@@ -55,11 +58,19 @@ public class Runner {
 		} catch (final ClassNotFoundException e) {
 			return Response.EMPTY;
 		}
-        warmUpPart(1, klass, List.copyOf(request.inputs));
-		final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
-		warmUpPart(2, klass, List.copyOf(request.inputs));
-		final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
-		return Response.create(result1, result2);
+		if (SolutionBase.class.isAssignableFrom(klass)) {
+		    warmUpSolutionPart(1, klass, List.copyOf(request.inputs));
+		    final Result result1 = runSolutionPart(1, klass, List.copyOf(request.inputs));
+		    warmUpSolutionPart(2, klass, List.copyOf(request.inputs));
+		    final Result result2 = runSolutionPart(2, klass, List.copyOf(request.inputs));
+		    return Response.create(result1, result2);
+		} else {
+		    warmUpPart(1, klass, List.copyOf(request.inputs));
+		    final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
+		    warmUpPart(2, klass, List.copyOf(request.inputs));
+		    final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
+		    return Response.create(result1, result2);
+		}
 	}
 
     private void warmUpPart(final int part, final Class<?> klass, final List<String> input) {
@@ -67,6 +78,15 @@ public class Runner {
             final Object puzzle = createPuzzle(klass, input);
             final Method method = klass.getDeclaredMethod("solvePart" + part);
             method.invoke(puzzle);
+        } catch (final Exception e) {
+        }
+    }
+
+    private void warmUpSolutionPart(final int part, final Class<?> klass, final List<String> input) {
+        try {
+            final Object puzzle = createPuzzle(klass);
+            final Method method = klass.getDeclaredMethod("part" + part);
+            method.invoke(puzzle, input);
         } catch (final Exception e) {
         }
     }
@@ -84,11 +104,31 @@ public class Runner {
 		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
 		return new Result(answer, duration);
     }
+    
+    private Result runSolutionPart(
+            final int part,
+            final Class<?> klass,
+            final List<String> input)
+        throws Exception
+    {
+        final Object puzzle = createPuzzle(klass);
+        final Method method = SolutionBase.class.getDeclaredMethod("part" + part, List.class);
+		final long start = systemUtils.getSystemNanoTime();
+		final Object answer = method.invoke(puzzle, input);
+		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
+		return new Result(answer, duration);
+    }
 
     private Object createPuzzle(final Class<?> klass, final List<String> input) throws Exception {
         return klass
 		        .getDeclaredMethod("create", List.class)
 		        .invoke(null, input);
+    }
+	
+    private Object createPuzzle(final Class<?> klass) throws Exception {
+        return klass
+		        .getDeclaredMethod("create")
+		        .invoke(null);
     }
 	
 	@RequiredArgsConstructor
@@ -104,18 +144,16 @@ public class Runner {
 		private final List<String> inputs;
 		
 		public static Request create(final LocalDate date, final String args[]) {
-			if (args == null || args.length < 3) {
-				throw new IllegalArgumentException("Missing args: year, day, input");
-			}
+		    assertTrue(args != null && args.length >= 3,
+		            () -> "Missing args: year, day, input");
 			final Integer year = Integer.valueOf(args[0]);
-			if (year < 2015 || year > date.getYear()) {
-				throw new IllegalArgumentException("Invalid year");
-			}
+			assertTrue(year >= 2015 && year <= date.getYear(),
+			        () -> "Invalid year");
 			final Integer day = Integer.valueOf(args[1]);
-			if ((year == date.getYear() && date.getMonth() == Month.DECEMBER && day > date.getDayOfMonth())
-					|| day < 1 || day > 25) {
-				throw new IllegalArgumentException("Invalid day");
-			}
+			assertFalse(
+			    (year == date.getYear() && date.getMonth() == Month.DECEMBER && day > date.getDayOfMonth())
+					    || day < 1 || day > 25,
+				() -> "Invalid day");
 			final List<String> inputs
 			        = Stream.iterate(2, i -> i + 1).limit(args.length - 2)
 							.map(i -> args[i])
@@ -142,7 +180,7 @@ public class Runner {
 
         @Override
 		public String toString() {
-            return new Gson().toJson(this);
+            return Json.toJson(this);
 		}
         
         @RequiredArgsConstructor

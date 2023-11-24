@@ -26,15 +26,13 @@ package com.github.pareronia.aocd;
 import java.time.ZoneId;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
-
 public class Aocd {
 	
 	public static final ZoneId AOC_TZ = ZoneId.of("America/New_York");
 	
 	public static List<String> getData(final Integer year, final Integer day) {
 	    final List<String> inputData = puzzle(year, day).getInputData();
-	    if (CollectionUtils.isEmpty(inputData)) {
+	    if (inputData.isEmpty()) {
 	        System.err.println("!! INPUT DATA MISSING !!");
 	    }
 	    return inputData;
@@ -42,5 +40,9 @@ public class Aocd {
 	
 	public static Puzzle puzzle(final Integer year, final Integer day) {
 		return Puzzle.create(year, day);
+	}
+
+	public static Puzzle puzzle(final Integer year, final Integer day, final String name) {
+	    return Puzzle.create(year, day, name);
 	}
 }

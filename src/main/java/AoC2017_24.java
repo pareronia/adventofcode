@@ -1,17 +1,15 @@
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
-import org.apache.commons.lang3.tuple.Pair;
-
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -29,7 +27,7 @@ public final class AoC2017_24 extends AoCBase {
             final Integer[] ports = Arrays.stream(input.split("/"))
                     .map(Integer::parseInt)
                     .toArray(Integer[]::new);
-            return new Component(Pair.of(ports[0], ports[1]));
+            return new Component(ports[0], ports[1]);
         };
         this.components = inputs.stream().map(parseComponent).collect(toSet());
         log(this.components);
@@ -44,22 +42,12 @@ public final class AoC2017_24 extends AoCBase {
     }
         
     private Set<Bridge> getBridges() {
-        final Set<Bridge> bridges = new HashSet<>();
-        final Deque<Bridge> q = new ArrayDeque<>();
-        q.add(new Bridge(Set.of(), 0, 0));
-        while (!q.isEmpty()) {
-            final Bridge b = q.poll();
-            this.components.stream()
-                .filter(c -> c.hasPort(b.getLast()))
-                .filter(c -> !b.contains(c))
-                .map(c -> b.extend(c))
-                .filter(nb -> !bridges.contains(nb))
-                .forEach(nb -> {
-                    bridges.add(nb);
-                    q.add(nb);
-                });
-        }
-        return bridges;
+        final Function<Bridge, Stream<Bridge>> adjacent
+            = bridge -> this.components.stream()
+                .filter(c -> c.hasPort(bridge.getLast()))
+                .filter(c -> !bridge.contains(c))
+                .map(c -> bridge.extend(c));
+        return BFS.floodFill(new Bridge(Set.of(), 0, 0), adjacent);
     }
     
     @Override
@@ -105,15 +93,16 @@ public final class AoC2017_24 extends AoCBase {
     @RequiredArgsConstructor
     @EqualsAndHashCode
     private static final class Component {
-        private final Pair<Integer, Integer> ports;
+        private final Integer leftPort;
+        private final Integer rightPort;
         
         public boolean hasPort(final int port) {
-            return ports.getLeft() == port || ports.getRight() == port;
+            return leftPort == port || rightPort == port;
         }
 
         @Override
         public String toString() {
-            return String.format("%d/%d", ports.getLeft(), ports.getRight());
+            return String.format("%d/%d", leftPort, rightPort);
         }
     }
     
@@ -138,8 +127,8 @@ public final class AoC2017_24 extends AoCBase {
         public Bridge extend(final Component component) {
             final Set<Component> newComponents = new HashSet<>(this.components);
             newComponents.add(component);
-            final int left = component.ports.getLeft();
-            final int right = component.ports.getRight();
+            final int left = component.leftPort;
+            final int right = component.rightPort;
             final int newStrength = this.strength + left + right;
             final int newLast = left == this.last ? right : left;
             return new Bridge(newComponents, newStrength, newLast);

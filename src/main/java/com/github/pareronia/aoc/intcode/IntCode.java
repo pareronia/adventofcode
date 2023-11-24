@@ -1,6 +1,16 @@
 package com.github.pareronia.aoc.intcode;
 
+import static java.util.stream.Collectors.toUnmodifiableList;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Deque;
 import java.util.List;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+
+import com.github.pareronia.aoc.AssertUtils;
 
 public class IntCode {
     
@@ -12,124 +22,191 @@ public class IntCode {
     private static final int JIF = 6;
     private static final int LT = 7;
     private static final int EQ = 8;
+    private static final int BASE = 9;
     private static final int EXIT = 99;
+
+    private static final int POSITION = 0;
+    private static final int IMMEDIATE = 1;
+    private static final int RELATIVE = 2;
 
 	private final boolean debug;
     
-    private Integer output;
+    private int ip;
+    private int base;
+    private final List<Long> program;
+    private boolean runTillInputRequired;
+    private boolean runTillHasOutput;
+    private boolean halted;
 
-    public IntCode(boolean debug) {
+    public IntCode(final List<Long> instructions, final boolean debug) {
         this.debug = debug;
+        this.program = new ArrayList<>(instructions);
     }
 
-    public void run(List<Integer> program) {
-       run(program, null);
+    public void run(final List<Long> program) {
+        run(new ArrayDeque<>(), new ArrayDeque<>());
     }
     
-    public void run(List<Integer> program, Integer input) {
-        log(program.size());
-        for (int i = 0; i < program.size(); ) {
-            final Integer op = program.get(i);
-            final Integer opcode = op % 100;
-            final int mode1 = (op / 100) % 10;
-            final int mode2 = (op / 1000) % 10;
+    public void run(
+            final long input,
+            final Deque<Long> output
+    ) {
+        run(new ArrayDeque<>(List.of(input)), output);
+    }
+    
+    public void run(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.ip = 0;
+        this.base = 0;
+        doRun(input, output);
+    }
+    
+    public void runTillInputRequired(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.runTillInputRequired = true;
+        doRun(input, output);
+    }
+    
+    public void runTillHasOutput(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        this.runTillHasOutput = true;
+        doRun(input, output);
+    }
+    
+    private void doRun(
+            final Deque<Long> input,
+            final Deque<Long> output
+    ) {
+        while (true) {
+            final Long op = program.get(ip);
+            final int opcode = (int) (op % 100);
+            final int[] modes = new int[] {
+                -1,
+                (int) ((op / 100) % 10),
+                (int) ((op / 1000) % 10),
+                (int) ((op / 10000) % 10),
+            };
+            final int[] addr = getAddr(modes);
             switch (opcode) {
             case ADD:
-                final Integer summand1 = getParam1(program, mode1, i);
-                final Integer summand2 = getParam2(program, mode2, i);
-                final Integer destinationADD = getParam3(program, 1, i);
-                program.set(destinationADD, summand1 + summand2);
-                i += 4;
+                set(addr[3], get(addr[1]) + get(addr[2]));
+                ip += 4;
                 break;
             case MUL:
-                final Integer factor1 = getParam1(program, mode1, i);
-                final Integer factor2 = getParam2(program, mode2, i);
-                final Integer destinationMUL = getParam3(program, 1, i);
-                program.set(destinationMUL, factor1 * factor2);
-                i += 4;
+                set(addr[3], get(addr[1]) * get(addr[2]));
+                ip += 4;
                 break;
             case INPUT:
-                program.set(getParam1(program, 1, i), input);
-                i += 2;
+                if (this.runTillInputRequired && input.isEmpty()) {
+                    this.runTillInputRequired = false;
+                    return;
+                }
+                set(addr[1], input.pop());
+                ip += 2;
                 break;
             case OUTPUT:
-                this.output = getParam1(program, mode1, i);
-                log(i + ": " + this.output + "(" + mode1 + ")");
-                i += 2;
+                output.add(get(addr[1]));
+                ip += 2;
+                if (this.runTillHasOutput) {
+                    this.runTillHasOutput = false;
+                    return;
+                }
                 break;
             case JIT:
-                if (getParam1(program, mode1, i) != 0) {
-                    i = getParam2(program, mode2, i);
-                } else {
-                    i += 3;
-                }
+                ip = get(addr[1]) != 0 ? getInt(addr[2]) : ip + 3;
                 break;
             case JIF:
-                if (getParam1(program, mode1, i) == 0) {
-                    i = getParam2(program, mode2, i);
-                } else {
-                    i += 3;
-                }
+                ip = get(addr[1]) == 0 ? getInt(addr[2]) : ip + 3;
                 break;
             case LT:
-                final Integer destinationLT = getParam3(program, 1, i);
-                if (getParam1(program, mode1, i) < getParam2(program, mode2, i)) {
-                    program.set(destinationLT, 1);
-                } else {
-                    program.set(destinationLT, 0);
-                }
-                i += 4;
+                set(addr[3], get(addr[1]) < get(addr[2]) ? 1 : 0);
+                ip += 4;
                 break;
             case EQ:
-                final Integer destinationEQ = getParam3(program, 1, i);
-                if (getParam1(program, mode1, i) == getParam2(program, mode2, i)) {
-                    program.set(destinationEQ, 1);
-                } else {
-                    program.set(destinationEQ, 0);
-                }
-                i += 4;
+                set(addr[3], get(addr[1]) == get(addr[2]) ? 1 : 0);
+                ip += 4;
+                break;
+            case BASE:
+                base += get(addr[1]);
+                ip += 2;
                 break;
             case EXIT:
-                log(i + ": EXIT");
+                log(String.format("%d: EXIT", ip));
+                this.halted = true;
                 return;
             default:
-                throw new IllegalStateException("Invalid opcode: "+ opcode);
+                throw new IllegalStateException(
+                        String.format("Invalid opcode: '%d'", opcode));
             }
         }
-        throw new IllegalStateException("Intcode program did not exit normally");
-    }
-
-    public Integer getOutput() {
-        return output;
-    }
-
-    private Integer getParam1(List<Integer> program, int mode, int i) {
-        return getParam(program, mode, i, 1);
-    }
-
-    private Integer getParam2(List<Integer> program, int mode, int i) {
-        return getParam(program, mode, i, 2);
     }
     
-    private Integer getParam3(List<Integer> program, int mode, int i) {
-        return getParam(program, mode, i, 3);
-    }
-    
-    private Integer getParam(List<Integer> program, int mode, int i, int j) {
-        if (mode == 0) {
-            return program.get(program.get(i + j));
-        } else if (mode == 1) {
-            return program.get(i + j);
-        } else {
-            throw new IllegalStateException("Invalid mode: " + mode);
+    private long get(final int addr) {
+        AssertUtils.assertTrue(addr >= 0, () -> "index out of range");
+        if (addr >= this.program.size()) {
+            return 0;
         }
+        return this.program.get(addr);
     }
 
-	private void log(Object obj) {
+    private int getInt(final int addr) {
+        return Math.toIntExact(this.get(addr));
+    }
+    
+    private void set(final int addr, final long value) {
+        AssertUtils.assertTrue(addr >= 0, () -> "index out of range");
+        if (addr >= this.program.size()) {
+        IntStream.range(0, addr - this.program.size() + 1)
+                .mapToLong(i -> 0L)
+                .forEach(this.program::add);
+        }
+        this.program.set(addr, value);
+    }
+    
+    private int[] getAddr(final int[] modes) {
+        final int[] addr = new int[4];
+        try {
+            for (int i = 1; i <= 3; i++) {
+                if (modes[i] == POSITION) {
+                    addr[i] = Math.toIntExact(this.program.get(this.ip + i));
+                } else if (modes[i] == IMMEDIATE) {
+                    addr[i] = this.ip + i;
+                } else if (modes[i] == RELATIVE) {
+                    addr[i] = Math.toIntExact(this.program.get(this.ip + i) + this.base);
+                } else {
+                    throw new IllegalArgumentException(
+                            String.format("Invalid mode '%d'", modes[i]));
+                }
+            }
+        } catch (final IndexOutOfBoundsException | ArithmeticException e) {
+        }
+        return addr;
+    }
+
+	public boolean isHalted() {
+        return halted;
+    }
+	
+	public List<Long> getProgram() {
+	    return Collections.unmodifiableList(this.program);
+	}
+
+    private void log(final Object obj) {
 		if (!debug) {
 			return;
 		}
 		System.out.println(obj);
 	}
-
+	
+	public static List<Long> parse(final String input) {
+        return Stream.of(input.split(","))
+                .map(Long::valueOf)
+                .collect(toUnmodifiableList());
+	}
 }

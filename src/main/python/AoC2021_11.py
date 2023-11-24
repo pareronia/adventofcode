@@ -3,14 +3,12 @@
 # Advent of Code 2021 Day 11
 #
 
-from collections.abc import Generator
 from aoc import my_aocd
-from aoc.navigation import Headings
 from aoc.grid import Cell, IntGrid
 import aocd
 
 
-class Flashes():
+class Flashes:
     value: int
 
     def __init__(self):
@@ -23,15 +21,6 @@ class Flashes():
         return self.value
 
 
-def _find_neighbours(grid: IntGrid, c: Cell) -> Generator[Cell]:
-    return (Cell(c.row + d.x, c.col + d.y)
-            for d in Headings.OCTANTS()
-            if c.row + d.x >= 0
-            and c.row + d.x < grid.get_height()
-            and c.col + d.y >= 0
-            and c.col + d.y < grid.get_width())
-
-
 def _parse(inputs: tuple[str]) -> IntGrid:
     return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
@@ -39,7 +28,7 @@ def _parse(inputs: tuple[str]) -> IntGrid:
 def _flash(grid: IntGrid, c: Cell, flashes: Flashes) -> None:
     grid.set_value(c, 0)
     flashes.increment()
-    for n in _find_neighbours(grid, c):
+    for n in grid.get_all_neighbours(c):
         if grid.get_value(n) == 0:
             continue
         grid.increment(n)
@@ -50,16 +39,18 @@ def _flash(grid: IntGrid, c: Cell, flashes: Flashes) -> None:
 def _cycle(grid: IntGrid) -> int:
     [grid.increment(c) for c in grid.get_cells()]
     flashes = Flashes()
-    [_flash(grid, c, flashes)
-     for c in grid.get_cells()
-     if grid.get_value(c) > 9]
+    [
+        _flash(grid, c, flashes)
+        for c in grid.get_cells()
+        if grid.get_value(c) > 9
+    ]
     return flashes.get()
 
 
 def part_1(inputs: tuple[str]) -> int:
     grid = _parse(inputs)
     flashes = 0
-    for cycle in range(100):
+    for _ in range(100):
         flashes += _cycle(grid)
     return flashes
 
@@ -104,5 +95,5 @@ def main() -> None:
     my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

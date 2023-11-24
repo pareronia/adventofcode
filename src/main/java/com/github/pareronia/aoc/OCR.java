@@ -12,126 +12,126 @@ import com.github.pareronia.aoc.Grid.Cell;
 
 public class OCR {
 
-	private static final Grid A6 = Grid.from(asList(".##.",
+	private static final CharGrid A6 = CharGrid.from(asList(".##.",
 													"#..#",
 													"#..#",
 													"####",
 													"#..#",
 													"#..#"));
 
-	private static final Grid B6 = Grid.from(asList("###.",
+	private static final CharGrid B6 = CharGrid.from(asList("###.",
 													"#..#",
 													"###.",
 													"#..#",
 													"#..#",
 													"###."));
 
-	private static final Grid C6 = Grid.from(asList(".##.",
+	private static final CharGrid C6 = CharGrid.from(asList(".##.",
 													"#..#",
 													"#...",
 													"#...",
 													"#..#",
 													".##."));
 
-	private static final Grid E6 = Grid.from(asList("####",
+	private static final CharGrid E6 = CharGrid.from(asList("####",
 													"#...",
 													"###.",
 													"#...",
 													"#...",
 													"####"));
 
-	private static final Grid F6 = Grid.from(asList("####",
+	private static final CharGrid F6 = CharGrid.from(asList("####",
 													"#...",
 													"###.",
 													"#...",
 													"#...",
 													"#..."));
 
-	private static final Grid G6 = Grid.from(asList(".##.",
+	private static final CharGrid G6 = CharGrid.from(asList(".##.",
 													"#..#",
 													"#...",
 													"#.##",
 													"#..#",
 													".###"));
 	
-	private static final Grid H6 = Grid.from(asList("#..#",
+	private static final CharGrid H6 = CharGrid.from(asList("#..#",
 													"#..#",
 													"####",
 													"#..#",
 													"#..#",
 													"#..#"));
 	
-	private static final Grid I6 = Grid.from(asList(".###",
+	private static final CharGrid I6 = CharGrid.from(asList(".###",
 													"..#.",
 													"..#.",
 													"..#.",
 													"..#.",
 													".###"));
 	
-	private static final Grid J6 = Grid.from(asList("..##",
+	private static final CharGrid J6 = CharGrid.from(asList("..##",
 													"...#",
 													"...#",
 													"...#",
 													"#..#",
 													".##."));
 	
-	private static final Grid K6 = Grid.from(asList("#..#",
+	private static final CharGrid K6 = CharGrid.from(asList("#..#",
 													"#.#.",
 													"##..",
 													"#.#.",
 													"#.#.",
 													"#..#"));
 	
-	private static final Grid L6 = Grid.from(asList("#...",
+	private static final CharGrid L6 = CharGrid.from(asList("#...",
 													"#...",
 													"#...",
 													"#...",
 													"#...",
 													"####"));
 	
-	private static final Grid O6 = Grid.from(asList(".##.",
+	private static final CharGrid O6 = CharGrid.from(asList(".##.",
 													"#..#",
 													"#..#",
 													"#..#",
 													"#..#",
 													".##."));
 	
-	private static final Grid P6 = Grid.from(asList("###.",
+	private static final CharGrid P6 = CharGrid.from(asList("###.",
 													"#..#",
 													"#..#",
 													"###.",
 													"#...",
 													"#..."));
 	
-	private static final Grid R6 = Grid.from(asList("###.",
+	private static final CharGrid R6 = CharGrid.from(asList("###.",
 													"#..#",
 													"#..#",
 													"###.",
 													"#.#.",
 													"#..#"));
 	
-	private static final Grid S6 = Grid.from(asList(".###",
+	private static final CharGrid S6 = CharGrid.from(asList(".###",
 													"#...",
 													"#...",
 													".##.",
 													"...#",
 													"###."));
 	
-	private static final Grid U6 = Grid.from(asList("#..#",
+	private static final CharGrid U6 = CharGrid.from(asList("#..#",
 													"#..#",
 													"#..#",
 													"#..#",
 													"#..#",
 													".##."));
 	
-	private static final Grid Y6 = Grid.from(asList("#...",
+	private static final CharGrid Y6 = CharGrid.from(asList("#...",
 													"#...",
 													".#.#",
 													"..#.",
 													"..#.",
 													"..#."));
 	
-	private static final Grid Z6 = Grid.from(asList("####",
+	private static final CharGrid Z6 = CharGrid.from(asList("####",
 													"...#",
 													"..#.",
 													".#..",
@@ -139,7 +139,7 @@ public class OCR {
 													"####"));
 	
 	@SuppressWarnings("serial")
-	private static final Map<Grid, Character> glyphs = new HashMap<Grid, Character>() {
+	private static final Map<CharGrid, Character> glyphs = new HashMap<CharGrid, Character>() {
 		{
 			put(A6, 'A');
 			put(B6, 'B');
@@ -171,7 +171,7 @@ public class OCR {
 		}
 	};
 	
-	public static String convert6(Grid grid, Character fillChar, Character emptyChar) {
+	public static String convert6(CharGrid grid, Character fillChar, Character emptyChar) {
 		return Stream.iterate(0,  i -> i + 5).limit(grid.getWidth() / 5)
 				.map(i -> grid.subGrid(Cell.at(0, i), Cell.at(grid.getHeight(), i + 4)))
 				.map(g -> g.replace(fillChar, '#'))

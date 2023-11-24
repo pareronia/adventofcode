@@ -1,9 +1,12 @@
-''' Some aocd util methods '''
+""" Some aocd util methods """
 import os
+from typing import Any
+from typing import Iterable
+
 import aocd
 
 
-def to_blocks(inputs: tuple[str]) -> list[list[str]]:
+def to_blocks(inputs: Iterable[str]) -> list[list[str]]:
     blocks = list[list[str]]()
     idx = 0
     blocks.append([])
@@ -16,28 +19,34 @@ def to_blocks(inputs: tuple[str]) -> list[list[str]]:
     return blocks
 
 
-def check_input_data(inputs, expected: int = None) -> None:
+def check_input_data(inputs: list[str], expected: int | None = None) -> None:
     if expected is not None and len(inputs) != expected:
         raise AssertionError(f"Expected {expected} lines")
 
 
-def get_input_data(puzzle: aocd.models.Puzzle,
-                   expected: int = None) -> tuple[str]:
-    inputs = puzzle.input_data.splitlines()
+def get_input_data(
+    puzzle: aocd.models.Puzzle, expected: int | None = None
+) -> tuple[str, ...]:
+    inputs: list[str] = puzzle.input_data.splitlines()
     check_input_data(inputs, expected)
     return tuple(inputs)
 
 
-def get_input(year: int, day: int, expected: int = None) -> tuple[str]:
-    inputs = aocd.get_data(year=year, day=day).splitlines()
+def get_input(
+    year: int, day: int, expected: int | None = None
+) -> tuple[str, ...]:
+    inputs: list[str] = aocd.get_data(year=year, day=day).splitlines()
     check_input_data(inputs, expected)
     return tuple(inputs)
 
 
 def print_header(year: int, day: int) -> None:
-    s = "AoC {year} Day {day}" \
-        " - https://adventofcode.com/{year}/day/{day}" \
-        .format(year=year, day=day)
+    s = (
+        "AoC {year} Day {day}"
+        " - https://adventofcode.com/{year}/day/{day}".format(
+            year=year, day=day
+        )
+    )
     print("=" * len(s))
     print(s)
     print("=" * len(s))
@@ -47,7 +56,9 @@ def print_header(year: int, day: int) -> None:
     print("")
 
 
-def check_results(puzzle: aocd.models.Puzzle, result1, result2) -> None:
+def check_results(
+    puzzle: aocd.models.Puzzle, result1: Any, result2: Any
+) -> None:
     try:
         fail_a, fail_b = "", ""
         if puzzle.answered_a and result1 is not None:

@@ -3,14 +3,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 // TODO: add iterative verson
@@ -79,7 +78,7 @@ public class AoC2021_21 extends AoCBase {
         }
     }
     
-    private final Map<Game, Pair<Long, Long>> winsCache = new HashMap<>();
+    private final Map<Game, LongPair> winsCache = new HashMap<>();
     private static final Map<Integer, Integer> ROLLS = Map.of(
         3, 1,
         4, 3,
@@ -90,20 +89,20 @@ public class AoC2021_21 extends AoCBase {
         9, 1
     );
     
-    private Pair<Long, Long> solve2(final Game game) {
+    private LongPair solve2(final Game game) {
         if (winsCache.containsKey(game)) {
             return winsCache.get(game);
         }
-        Pair<Long, Long> wins = Tuples.pair(0L, 0L);
+        LongPair wins = new LongPair(0L, 0L);
         for (final Entry<Integer, Integer> roll : ROLLS.entrySet()) {
             final int nPos = (game.pos1 + roll.getKey()) % 10;
             final int nScore = game.score1 + nPos + 1;
             if (nScore >= 21 ) {
-                wins = Tuples.pair(wins.getOne() + roll.getValue(), wins.getTwo());
+                wins = new LongPair(wins.getOne() + roll.getValue(), wins.getTwo());
             } else {
                 final Game newGame = new Game(game.pos2, nPos, game.score2, nScore);
-                final Pair<Long, Long> nwins = solve2(newGame);
-                wins = Tuples.pair(
+                final LongPair nwins = solve2(newGame);
+                wins = new LongPair(
                         wins.getOne() + roll.getValue() * nwins.getTwo(),
                         wins.getTwo() + roll.getValue() * nwins.getOne());
             }
@@ -114,7 +113,7 @@ public class AoC2021_21 extends AoCBase {
     
     @Override
     public Long solvePart2() {
-        final Pair<Long, Long> ans
+        final LongPair ans
             = solve2(new Game(this.p1 - 1, this.p2 - 1, 0, 0));
         log(ans);
         return Math.max(ans.getOne(), ans.getTwo());
@@ -125,9 +124,10 @@ public class AoC2021_21 extends AoCBase {
         assert AoC2021_21.create(TEST).solvePart2() == 444_356_092_776_315L;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 21);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_21.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_21.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_21.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_21.create(inputData)::solvePart2)
         );
     }
 
@@ -135,4 +135,11 @@ public class AoC2021_21 extends AoCBase {
         "Player 1 starting position: 4\r\n" +
         "Player 2 starting position: 8"
     );
+    
+    @RequiredArgsConstructor
+    @Getter
+    private static final class LongPair {
+        private final Long one;
+        private final Long two;
+    }
 }

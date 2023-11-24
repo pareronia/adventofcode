@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayDeque;
@@ -5,8 +6,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.stream.LongStream;
-
-import org.apache.commons.lang3.ArrayUtils;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aocd.Aocd;
@@ -194,7 +193,7 @@ public class AoC2021_16 extends AoCBase {
                 final StringBuilder value = new StringBuilder();
                 while (true) {
                     final char proceed = binData[i];
-                    value.append(ArrayUtils.subarray(binData, i + 1, i + 5));
+                    value.append(subarray(binData, i + 1, i + 5));
                     i += 5;
                     if (proceed == '0') {
                         break;
@@ -235,7 +234,7 @@ public class AoC2021_16 extends AoCBase {
             private int binToDec(final char[] binData,
                             final int startInc, final int endExc) {
                 final String s = String.valueOf(
-                        ArrayUtils.subarray(binData, startInc, endExc));
+                        subarray(binData, startInc, endExc));
                 return Integer.parseInt(s, 2);
             }
         }
@@ -305,11 +304,9 @@ public class AoC2021_16 extends AoCBase {
             } else if (packet.getTypeId() == 6) {
                 assert values.size() == 2;
                 return values.get(0) < values.get(1) ? 1L : 0L;
-            } else if (packet.getTypeId() == 7) {
+            } else {
                 assert values.size() == 2;
                 return values.get(0).equals(values.get(1)) ? 1L : 0L;
-            } else {
-                throw new IllegalArgumentException("unexpected type_id");
             }
         }
         
