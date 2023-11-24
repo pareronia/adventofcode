@@ -1,38 +1,29 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2022_09 extends AoCBase {
     
-    private static final Map<String, Heading> MOVES = Map.of(
-            "U", Headings.NORTH.get(),
-            "D", Headings.SOUTH.get(),
-            "L", Headings.WEST.get(),
-            "R", Headings.EAST.get()
-    );
-    
-    private final List<Heading> moves;
+    private final List<Direction> moves;
     
     private AoC2022_09(final List<String> input, final boolean debug) {
         super(debug);
         this.moves = input.stream()
             .flatMap(line -> {
                 final String[] splits = line.split(" ");
-                final Heading[] h = new Heading[Integer.parseInt(splits[1])];
-                Arrays.fill(h, MOVES.get(splits[0]));
+                final Direction[] h = new Direction[Integer.parseInt(splits[1])];
+                Arrays.fill(h, Direction.fromString(splits[0]));
                 return Arrays.stream(h);
             })
             .collect(toList());
@@ -64,9 +55,9 @@ public class AoC2022_09 extends AoCBase {
         return tail;
     }
 
-    private void moveRope(final Position[] rope, final Heading move) {
+    private void moveRope(final Position[] rope, final Direction move) {
         rope[0] = rope[0].translate(move);
-        Range.range(1, rope.length, 1).forEach(j ->
+        range(1, rope.length, 1).forEach(j ->
                 rope[j] = catchup(rope[j - 1], rope[j]));
         printRope(rope);
     }

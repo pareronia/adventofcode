@@ -4,8 +4,7 @@
 #
 
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 
 def _priority(ch: str) -> int:
@@ -15,7 +14,7 @@ def _priority(ch: str) -> int:
         return ord(ch) - ord("A") + 27
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     ans = 0
     for input_ in inputs:
         ln = len(input_) // 2
@@ -26,7 +25,7 @@ def part_1(inputs: tuple[str]) -> int:
     return ans
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     ans = 0
     for i in range(0, len(inputs), 3):
         s1 = {_ for _ in inputs[i]}
@@ -47,19 +46,10 @@ CrZsJsPPZsGzwwsLwLmpwMDw
 """.splitlines()
 
 
+@aoc_main(2022, 3, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 3)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 157
-    assert part_2(TEST) == 70
-
-    inputs = my_aocd.get_input_data(puzzle, 300)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    assert part_1(TEST) == 157  # type:ignore[arg-type]
+    assert part_2(TEST) == 70  # type:ignore[arg-type]
 
 
 if __name__ == "__main__":

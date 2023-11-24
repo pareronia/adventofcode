@@ -1,26 +1,34 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
+import static com.github.pareronia.aoc.Utils.enumerate;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.OCR;
-import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.RequiredArgsConstructor;
+
 public class AoC2022_10 extends AoCBase {
+    private static final int PERIOD = 40;
+    private static final int MAX = 220;
     private static final char FILL = '▒';
     private static final char EMPTY = ' ';
     
-    private final List<String> input;
+    private final List<Instruction> input;
     
     private AoC2022_10(final List<String> input, final boolean debug) {
         super(debug);
-        this.input = input;
+        this.input = input.stream()
+                .map(Instruction::fromString)
+                .collect(toList());
     }
     
     public static final AoC2022_10 create(final List<String> input) {
@@ -31,55 +39,47 @@ public class AoC2022_10 extends AoCBase {
         return new AoC2022_10(input, true);
     }
     
-    private Stream<State> program() {
-        final var cycles = new MutableInt(0);
-        final var x = new MutableInt(1);
-        final var builder = Stream.<State>builder();
-        this.input.forEach(line -> {
-            final var splits = line.split(" ");
-            if (splits[0].equals("noop")) {
-                builder.add(new State(cycles.getValue(), x.getValue()));
-                cycles.increment();
-            } else if (splits[0].equals("addx")) {
-                builder.add(new State(cycles.getValue(), x.getValue()));
-                cycles.increment();
-                builder.add(new State(cycles.getValue(), x.getValue()));
-                cycles.increment();
-                x.add(Integer.parseInt(splits[1]));
+    private Stream<Integer> getXValues() {
+        final MutableInt x = new MutableInt(1);
+        final Builder<Integer> builder = Stream.builder();
+        this.input.forEach(ins -> {
+            if (ins.operation == OpCode.NOOP) {
+                builder.add(x.getValue());
+            } else {
+                builder.add(x.getValue());
+                builder.add(x.getValue());
+                x.add(ins.operand.get());
             }
         });
         return builder.build();
     }
     
-    private int check(final int cycles, final int x) {
-        return cycles % 40 == 20 ? x * cycles : 0;
-    }
-    
-    private char draw(final int cycles, final int x) {
-        return Math.abs(x - cycles % 40) <= 1 ? FILL : EMPTY;
+    private char draw(final int cycle, final int x) {
+        return Math.abs(cycle % PERIOD - x) <= 1 ? FILL : EMPTY;
     }
     
     private List<String> getPixels() {
-        final String pixels = program()
-                .map(state -> draw(state.cycles, state.x))
+        final String pixels = enumerate(getXValues())
+                .map(e -> draw(e.getIndex(), e.getValue()))
                 .collect(toAString());
-        return Range.range(6).stream()
-                .map(i -> pixels.substring(i * 40, i * 40 + 40))
+        return rangeClosed(0, MAX, PERIOD).stream()
+                .map(i -> pixels.substring(i, i + PERIOD))
                 .collect(toList());
     }
     
     @Override
     public Integer solvePart1() {
-        return program()
-            .mapToInt(state -> check(state.cycles + 1, state.x))
-            .sum();
+        final List<Integer> xs = getXValues().collect(toList());
+        return rangeClosed(20, MAX, PERIOD).intStream()
+                .map(i -> i * xs.get(i - 1))
+                .sum();
     }
 
     @Override
     public String solvePart2() {
         final List<String> pixels = getPixels();
         pixels.forEach(this::log);
-        return OCR.convert6(Grid.from(pixels), FILL, EMPTY);
+        return OCR.convert6(CharGrid.from(pixels), FILL, EMPTY);
     }
 
     public static void main(final String[] args) throws Exception {
@@ -250,5 +250,30 @@ public class AoC2022_10 extends AoCBase {
         noop
         """);
     
-    private static final record State(int cycles, int x) { }
+    private enum OpCode {
+        NOOP, ADDX;
+        
+        public static OpCode fromString(final String value) {
+            return Stream.of(values())
+                    .filter(v -> v.name().equalsIgnoreCase(value))
+                    .findFirst().orElseThrow();
+        }
+    }
+    
+    @RequiredArgsConstructor
+    private static final class Instruction {
+        private final OpCode operation;
+        private final Optional<Integer> operand;
+        
+        public static Instruction fromString(final String value) {
+            final String[] splits = value.split(" ");
+            final OpCode operation = OpCode.fromString(splits[0]);
+            if (operation == OpCode.NOOP) {
+                return new Instruction(operation, Optional.empty());
+            } else {
+                final Optional<Integer> operand = Optional.of(Integer.parseInt(splits[1]));
+                return new Instruction(operation, operand);
+            }
+        }
+    }
 }

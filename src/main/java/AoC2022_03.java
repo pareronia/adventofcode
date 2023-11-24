@@ -1,11 +1,11 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.collections4.SetUtils;
-
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -46,7 +46,7 @@ public class AoC2022_03 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        return Range.range(this.input.size()).intStream()
+        return range(this.input.size()).intStream()
                 .map(i -> {
                     final String line = input.get(i);
                     final int cuttoff = line.length() / 2;
@@ -59,7 +59,7 @@ public class AoC2022_03 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        return Range.range(0, this.input.size(), 3).intStream()
+        return range(0, this.input.size(), 3).intStream()
                 .map(i -> {
                     final var s1 = toSet(this.input.get(i));
                     final var s2 = toSet(this.input.get(i + 1));

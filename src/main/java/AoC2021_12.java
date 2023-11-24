@@ -6,9 +6,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
-
+import com.github.pareronia.aoc.MutableInt;
+import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -112,9 +111,10 @@ public class AoC2021_12 extends AoCBase {
         assert AoC2021_12.create(TEST3).solvePart2() == 3509;
 
         final Puzzle puzzle = Aocd.puzzle(2021, 12);
+        final List<String> inputData = puzzle.getInputData();
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_12.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_12.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_12.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_12.create(inputData)::solvePart2)
         );
     }
 

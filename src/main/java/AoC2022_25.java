@@ -10,12 +10,12 @@ public class AoC2022_25 extends AoCBase {
     private static final Map<Character, Integer> DECODE = Map.of(
             '0', 0, '1', 1, '2', 2, '-', -1, '=', -2);
     private static final Map<Long, DigitAndCarry> ENCODE = Map.of(
-            0L, DigitAndCarry.of("0", 0),
-            1L, DigitAndCarry.of("1", 0),
-            2L, DigitAndCarry.of("2", 0),
-            3L, DigitAndCarry.of("=", 1),
-            4L, DigitAndCarry.of("-", 1),
-            5L, DigitAndCarry.of("0", 1));
+            0L, new DigitAndCarry("0", 0),
+            1L, new DigitAndCarry("1", 0),
+            2L, new DigitAndCarry("2", 0),
+            3L, new DigitAndCarry("=", 1),
+            4L, new DigitAndCarry("-", 1),
+            5L, new DigitAndCarry("0", 1));
 
     private final List<String> input;
 
@@ -45,9 +45,9 @@ public class AoC2022_25 extends AoCBase {
             .sum();
         final StringBuilder ans = new StringBuilder();
         while (total > 0) {
-            final DigitAndCarry digitAndCarry = ENCODE.get(total % 5);
-            ans.append(digitAndCarry.digit);
-            total = total / 5 + digitAndCarry.carry;
+            final DigitAndCarry pair = ENCODE.get(total % 5);
+            ans.append(pair.digit());
+            total = total / 5 + pair.carry();
         }
         return ans.reverse().toString();
     }
@@ -91,12 +91,5 @@ public class AoC2022_25 extends AoCBase {
     private static final List<String> TEST2 = List.of("1-0---0");
     private static final List<String> TEST3 = List.of("1121-1110-1=0");
     
-    private static final record DigitAndCarry(
-            String digit,
-            int carry
-    ) {
-        public static DigitAndCarry of(final String digit, final int carry) {
-            return new DigitAndCarry(digit, carry);
-        }
-    }
+    private static final record DigitAndCarry(String digit, int carry) { }
 }

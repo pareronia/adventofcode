@@ -6,10 +6,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -22,13 +21,13 @@ public class AoC2020_11 extends AoCBase {
     private static final char EMPTY = 'L';
     private static final char OCCUPIED = '#';
 
-	private final Grid grid;
+	private final CharGrid grid;
 	private final Map<Cell, Set<Cell>> adjacentCache;
 	private final Map<Cell, Set<Cell>> visibleCache;
 	
 	private AoC2020_11(final List<String> input, final boolean debug) {
 		super(debug);
-		this.grid = Grid.from(input);
+		this.grid = CharGrid.from(input);
 		this.adjacentCache = new HashMap<>();
 		this.visibleCache = new HashMap<>();
 	}
@@ -46,14 +45,7 @@ public class AoC2020_11 extends AoCBase {
 	}
 	
 	private Set<Cell> findAdjacent(final Cell cell) {
-	    return IntStream.rangeClosed(cell.getRow() - 1, cell.getRow() + 1)
-	            .filter(rr -> 0 <= rr && rr < this.grid.getHeight())
-	            .boxed()
-	            .flatMap(rr -> IntStream.rangeClosed(cell.getCol() - 1, cell.getCol() + 1)
-	                            .filter(cc -> 0 <= cc && cc < this.grid.getWidth())
-	                            .mapToObj(cc -> Cell.at(rr, cc)))
-	            .filter(c -> !c.equals(cell))
-	            .collect(toSet());
+	    return grid.getAllNeighbours(cell).collect(toSet());
 	}
 	
 	private Stream<Cell> visible(final Cell cell) {
@@ -72,23 +64,23 @@ public class AoC2020_11 extends AoCBase {
 	            this.grid.getCellsW(cell),
 	            this.grid.getCellsNW(cell)
 	    )) {
-	        stream.filter(c -> this.grid.getValueAt(c) != FLOOR).findFirst().ifPresent(cells::add);
+	        stream.filter(c -> this.grid.getValue(c) != FLOOR).findFirst().ifPresent(cells::add);
 	    }
 	    return cells;
 	}
 	
-	private long countOccupied(final Grid grid, final Cell cell, final Function<Cell, Stream<Cell>> strategy) {
-	    return strategy.apply(cell).filter(c -> grid.getValueAt(c) == OCCUPIED).count();
+	private long countOccupied(final CharGrid grid, final Cell cell, final Function<Cell, Stream<Cell>> strategy) {
+	    return strategy.apply(cell).filter(c -> grid.getValue(c) == OCCUPIED).count();
 	}
 	
-	private CycleResult runCycle(final Grid grid, final Function<Cell, Stream<Cell>> strategy, final int tolerance) {
+	private CycleResult runCycle(final CharGrid grid, final Function<Cell, Stream<Cell>> strategy, final int tolerance) {
 	    final char[][] newGrid = new char[grid.getHeight()][grid.getWidth()];
 	    boolean changed = false;
 	    for (int rr = 0; rr < grid.getHeight(); rr++) {
 	        final char[] newRow = new char[grid.getWidth()];
 	        for (int cc = 0; cc < grid.getWidth(); cc++) {
 	            final Cell cell = Cell.at(rr, cc);
-                final char value = grid.getValueAt(cell);
+                final char value = grid.getValue(cell);
                 if (value == EMPTY && countOccupied(grid, cell, strategy) == 0) {
                     newRow[cc] = OCCUPIED;
                     changed = true;
@@ -101,11 +93,11 @@ public class AoC2020_11 extends AoCBase {
 	        }
 	        newGrid[rr] = newRow;
 	    }
-	    return new CycleResult(new Grid(newGrid), changed);
+	    return new CycleResult(new CharGrid(newGrid), changed);
 	}
 	
 	private int findCountOfEquilibrium(final Function<Cell, Stream<Cell>> strategy, final int tolerance) {
-	    Grid grid = this.grid;
+	    CharGrid grid = this.grid;
 	    while (true) {
 	        final CycleResult result = runCycle(grid, strategy, tolerance);
 	        if (!result.changed) {
@@ -151,7 +143,7 @@ public class AoC2020_11 extends AoCBase {
 	
 	@RequiredArgsConstructor
 	private static final class CycleResult {
-	    private final Grid grid;
+	    private final CharGrid grid;
 	    private final boolean changed;
 	}
 }

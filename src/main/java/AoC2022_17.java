@@ -5,26 +5,25 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
+import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
 // TODO: needs more cleanup
 public class AoC2022_17 extends AoCBase {
@@ -57,13 +56,13 @@ public class AoC2022_17 extends AoCBase {
         Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(1, 0), Position.of(1, 1))
     );
 
-    private final List<Heading> jets;
+    private final List<Direction> jets;
     private final Map<State, List<Cycle>> states;
     
     private AoC2022_17(final List<String> input, final boolean debug) {
         super(debug);
         this.jets = Utils.asCharacterStream(input.get(0))
-            .map(c -> c== '>' ? Headings.EAST.get() : Headings.WEST.get())
+            .map(Direction::fromChar)
             .collect(toList());
         this.states = new HashMap<>();
     }
@@ -116,7 +115,7 @@ public class AoC2022_17 extends AoCBase {
                     .add(new Cycle(dropIndex, stack.getTop()));
             }
             trace(() -> "move " + jet.toString());
-            Rock moved = rock.move(jet);
+            Rock moved = rock.move(jet.getVector());
             if (!moved.insideX(0, WIDTH)) {
                 trace(() -> "hit side: undo");
             } else if (stack.overlappedBy(moved)) {
@@ -125,7 +124,7 @@ public class AoC2022_17 extends AoCBase {
                 rock = moved;
             }
             trace(() -> "move down");
-            moved = rock.move(Headings.SOUTH.get());
+            moved = rock.move(Direction.DOWN.getVector());
             if (stack.overlappedBy(moved)) {
                 trace(() -> "hit stack: undo");
                 break;
@@ -277,42 +276,23 @@ public class AoC2022_17 extends AoCBase {
     }
     
     @RequiredArgsConstructor
-    public static final class JetSupplier implements Supplier<Heading> {
-        private final List<Heading> jets;
+    public static final class JetSupplier implements Supplier<Direction> {
+        private final List<Direction> jets;
         private int idx = 0;
 
         @Override
-        public Heading get() {
+        public Direction get() {
             return this.jets.get(idx++ % jets.size());
         }
     }
     
-    private static final record State(int shape, int[] tops, Heading jet) {
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + Arrays.hashCode(tops);
-            result = prime * result + Objects.hash(jet, shape);
-            return result;
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final State other = (State) obj;
-            return Objects.equals(jet, other.jet)
-                    && shape == other.shape && Arrays.equals(tops, other.tops);
-        }
+    @RequiredArgsConstructor
+    @EqualsAndHashCode
+    @ToString
+    private static final class State {
+        private final int shape;
+        private final int[] tops;
+        private final Direction jet;
     }
     
     private static final record Cycle(int cycle, int top) { }

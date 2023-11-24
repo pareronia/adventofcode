@@ -19,294 +19,289 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
-import pebble
 import itertools
-import time
-import sys
-import os
-import tempfile
 import logging
-import json
+import os
+import sys
+import tempfile
+import time
 from argparse import ArgumentParser
 from collections import OrderedDict
+from contextlib import contextmanager
 from datetime import datetime
-from termcolor import colored
-from dateutil.tz import gettz
-from aocd.exceptions import AocdError
-from aocd.models import AOCD_CONFIG_DIR
-from aocd.models import Puzzle
-from aocd.models import default_user
-from . import Result
-from .config import config
-from .py import Py
-from .java import Java
-from .bash import Bash
-from .cpp import Cpp
-from .julia import Julia
+from pathlib import Path
+from typing import Any
+from typing import Callable
+from typing import Generator
 
+import pebble
+from dateutil.tz import gettz
+
+from . import Result
+from .aocd import AocdHelper
+from .aocd import Puzzle
+from .bash import Bash
+from .config import config
+from .cpp import Cpp
+from .java import Java
+from .julia import Julia
+from .listener import CLIListener
+from .listener import JUnitXmlListener
+from .listener import Listener
+from .listener import Listeners
+from .plugin import Plugin
+from .py import Py
+from .rust import Rust
 
 DEFAULT_TIMEOUT = config.default_timeout
 AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
-all_plugins = OrderedDict({"py": Py(),
-                           "java": Java(),
-                           "bash": Bash(),
-                           "cpp": Cpp(),
-                           "julia": Julia(),
-                           })
+all_plugins = OrderedDict(
+    {
+        "py": Py(),
+        "java": Java(),
+        "bash": Bash(),
+        "cpp": Cpp(),
+        "julia": Julia(),
+        "rust": Rust(),
+    }
+)
 
 
-def main():
-    def _tokens_path():
-        return os.path.join(AOCD_CONFIG_DIR, "tokens.json")
-
-    def _load_users():
-        path = _tokens_path()  # os.path.join(AOCD_CONFIG_DIR, "tokens.json")
-        try:
-            with open(path) as f:
-                users = json.load(f)
-        except IOError:
-            users = {"default": default_user().token}
-        return users
-
+def main() -> None:
     aoc_now = datetime.now(tz=AOC_TZ)
     years = range(2015, aoc_now.year + int(aoc_now.month == 12))
     days = range(1, 26)
-    users = _load_users()
-    log_levels = "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
+    users = AocdHelper.load_users()
     parser = ArgumentParser(description="AoC runner")
-    parser.add_argument("-p", "--plugins", nargs="+",
-                        choices=all_plugins.keys())
-    parser.add_argument("-y", "--years", type=int, nargs="+", choices=years)
-    parser.add_argument("-d", "--days", type=int, nargs="+", choices=days)
-    parser.add_argument("-u", "--users", nargs="+", choices=users)
-    parser.add_argument("-t", "--timeout", type=int, default=DEFAULT_TIMEOUT)
-    parser.add_argument("-s", "--no-submit", action="store_true",
-                        help="disable autosubmit")
-    parser.add_argument("-m", "--hide-missing", action="store_true",
-                        help="hide missing")
-    parser.add_argument("--log-level", default="WARNING", choices=log_levels)
+    parser.add_argument(
+        "-p",
+        "--plugins",
+        nargs="+",
+        choices=all_plugins.keys(),
+        default=all_plugins.keys(),
+        help=(
+            "List of plugins (solvers) to evaluate. "
+            "Runs against all available plugins by default."
+        ),
+    )
+    parser.add_argument(
+        "-y",
+        "--years",
+        type=int,
+        nargs="+",
+        choices=years,
+        default=years,
+        help="AoC years to run. Runs all available by default.",
+    )
+    parser.add_argument(
+        "-d",
+        "--days",
+        type=int,
+        nargs="+",
+        choices=days,
+        default=days,
+        help="AoC days to run. Runs all 1-25 by default.",
+    )
+    parser.add_argument(
+        "-u",
+        "--users",
+        nargs="+",
+        choices=users,
+        default=users,
+        help="Users to run each plugin with.",
+    )
+    parser.add_argument(
+        "-t",
+        "--timeout",
+        type=int,
+        default=DEFAULT_TIMEOUT,
+        help=(
+            "Kill a solver if it exceeds this timeout, in seconds "
+            "(default: %(default)s)."
+        ),
+    )
+    parser.add_argument(
+        "-s",
+        "--no-submit",
+        action="store_false",
+        dest="autosubmit",
+        help=(
+            "Disable autosubmit. "
+            "By default, the runner will submit answers if necessary."
+        ),
+    )
+    parser.add_argument(
+        "-m",
+        "--hide-missing",
+        action="store_true",
+        help="Hide missing solvers.",
+    )
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        help=(
+            "Increased logging (-v INFO, -vv DEBUG). "
+            "Default level is logging.WARNING."
+        ),
+    )
     args = parser.parse_args()
-    if not users:
-        print(
-            "There are no datasets available to use.\n"
-            "Either export your AOC_SESSION or put some auth "
-            "tokens into {}".format(_tokens_path()),
-            file=sys.stderr,
-        )
-        sys.exit(1)
-    logging.basicConfig(level=getattr(logging, args.log_level))
-    plugins = OrderedDict({k: all_plugins[k]
-                           for k in args.plugins or all_plugins})
-    for p in plugins:
-        plugins[p].start()
-    try:
+
+    if args.verbose is None:
+        log_level = logging.WARNING
+    elif args.verbose == 1:
+        log_level = logging.INFO
+    else:
+        log_level = logging.DEBUG
+    logging.basicConfig(level=log_level)
+    plugins = OrderedDict({k: all_plugins[k] for k in args.plugins})
+    log.debug(plugins)
+    datasets = {k: users[k] for k in args.users}
+    cli_listener = CLIListener(
+        args.plugins, args.users, args.timeout, args.hide_missing
+    )
+    junitxml_listener = JUnitXmlListener()
+
+    with use_plugins(plugins):
         rc = run_for(
             plugins=plugins,
-            years=args.years or years,
-            days=args.days or days,
-            datasets={k: users[k] for k in (args.users or users)},
+            years=args.years,
+            days=args.days,
+            datasets=datasets,
             timeout=args.timeout,
-            autosubmit=not args.no_submit,
-            hide_missing=args.hide_missing,
+            autosubmit=args.autosubmit,
+            listener=Listeners([cli_listener, junitxml_listener]),
         )
-    finally:
-        for p in plugins:
-            plugins[p].stop()
+
     sys.exit(rc)
 
 
-def run_with_timeout(plugin, timeout, progress, dt=0.005, **kwargs):
-    # TO_DO : multi-process over the different tokens
-    spinner = itertools.cycle(r"\|/-")
-    pool = pebble.ProcessPool(max_workers=1)
-    line = elapsed = format_time(0)
-    with pool:
-        t0 = time.time()
-        future = pool.schedule(
-            plugin[1].run, kwargs=kwargs, timeout=timeout)
-        while not future.done():
-            if progress is not None:
-                line = "\r" + elapsed + "   " + progress \
-                        + "   " + next(spinner)
-                sys.stderr.write(line)
-                sys.stderr.flush()
-            time.sleep(dt)
-            elapsed = format_time(time.time() - t0, timeout)
-        walltime = time.time() - t0
-        try:
-            result_a, result_b = future.result()
-        except Exception as err:
-            result_a = Result.ok("")
-            result_b = Result.ok("")
-            error = repr(err)
-        else:
-            error = ""
-    if progress is not None:
-        sys.stderr.write("\r" + " " * len(line) + "\r")
-        sys.stderr.flush()
-    return result_a, result_b, walltime, error
-
-
-def format_time(t, timeout=DEFAULT_TIMEOUT):
-    if t < timeout / 4:
-        color = "green"
-    elif t < timeout / 2:
-        color = "yellow"
-    else:
-        color = "red"
-    runtime = colored("{: 8.4f}s".format(t), color)
-    return runtime
-
-
-def run_one(year, day, input_data, plugin,
-            timeout=DEFAULT_TIMEOUT, progress=None):
-    prev = os.getcwd()
-    scratch = tempfile.mkdtemp(prefix="{}-{:02d}-".format(year, day))
-    os.chdir(scratch)
-    assert not os.path.exists(config.scratch_file)
+def run_with_timeout(
+    callable: Callable[[int, int, str], tuple[Result, Result]],
+    args: dict[str, Any],
+    timeout: int,
+    listener: Listener,
+    dt: float = 0.005,
+) -> tuple[Result, Result, float, str]:
+    elapsed = 0
+    t0 = time.time_ns()
+    future = pebble.concurrent.process(daemon=False, timeout=timeout)(
+        callable
+    )(**args)
+    while not future.done():
+        listener.run_elapsed(elapsed)
+        time.sleep(dt)
+        elapsed = time.time_ns() - t0
+    walltime = time.time() - (t0 / 1e9)
     try:
-        with open(config.scratch_file, "w") as f:
-            f.write(input_data)
-        result_a, result_b, walltime, error = run_with_timeout(
-            plugin=plugin,
-            timeout=timeout,
-            year=year,
-            day=day,
-            data=input_data,
-            progress=progress,
-        )
-    finally:
-        os.unlink(config.scratch_file)
-        os.chdir(prev)
-        os.rmdir(scratch)
+        result_a, result_b = future.result()
+    except Exception as err:
+        log.error(err)
+        result_a = Result.ok("")
+        result_b = Result.ok("")
+        error = repr(err)
+    else:
+        error = ""
+    listener.run_finished()
     return result_a, result_b, walltime, error
+
+
+@contextmanager
+def use_plugins(plugins: dict[str, Plugin]) -> Generator[None, None, None]:
+    for p in plugins:
+        plugins[p].start()
+    try:
+        yield
+    finally:
+        for p in plugins:
+            plugins[p].stop()
+
+
+@contextmanager
+def scratch_file(
+    name: str, year: int, day: int, input_data: str
+) -> Generator[None, None, None]:
+    prev = os.getcwd()
+    scratch = tempfile.mkdtemp(prefix=f"{year}-{day:02d}-")
+    os.chdir(scratch)
+    input_path = Path(name)
+    assert not input_path.exists()
+    try:
+        input_path.write_text(input_data, encoding="utf-8")
+        yield
+    finally:
+        input_path.unlink(missing_ok=True)
+        os.chdir(prev)
+        try:
+            os.rmdir(scratch)
+        except Exception as err:
+            log.warning(
+                "failed to remove scratch %s (%s: %s)", scratch, type(err), err
+            )
 
 
 def run_for(
-    plugins,
-    years,
-    days,
-    datasets,
-    timeout=DEFAULT_TIMEOUT,
-    autosubmit=True,
-    hide_missing=False,
+    plugins: dict[str, Plugin],
+    years: list[int],
+    days: list[int],
+    datasets: dict[str, str],
+    timeout: int,
+    autosubmit: bool,
+    listener: Listener,
 ) -> int:
-    def _get_expected(puzzle, part, result, autosubmit):
-        expected = None
-        try:
-            expected = getattr(puzzle, "answer_" + part)
-        except AttributeError:
-            post = (result.is_ok
-                    and (part == "a"
-                         or (part == "b" and puzzle.answered_a)))
-            if autosubmit and post:
-                try:
-                    puzzle._submit(result.answer, part,
-                                   reopen=False, quiet=True)
-                except AocdError as err:
-                    log.warning("error submitting - %s", err)
-                try:
-                    expected = getattr(puzzle, "answer_" + part)
-                except AttributeError:
-                    pass
-        return expected
-
-    def _get_icon_and_answer(result, correct, expected, error):
-        # longest correct answer seen so far has been 32 chars
-        cutoff = 50
-        if error:
-            icon = colored("❌", "red")
-            answer = error[:cutoff]
-        elif result.is_missing:
-            icon = "⭕"
-            answer = "- missing -"
-        elif result.is_skipped:
-            icon = "⌚"
-            answer = "- skipped -"
-        elif correct:
-            icon = colored("✅", "green")
-            answer = f"{result.answer[:cutoff]}"
-        elif not correct:
-            if expected is None:
-                icon = colored("?", "magenta")
-                correction = "(correct answer unknown)"
-            else:
-                icon = colored("❌", "red")
-                correction = f"(expected: {expected})"
-            answer = f"{result.answer[:cutoff]} {correction}"
-        else:
-            raise ValueError("Invalid state")
-        return icon, answer
-
     aoc_now = datetime.now(tz=AOC_TZ)
-    log.debug(plugins)
     it = itertools.product(years, days, plugins.items(), datasets)
-    userpad = 3
-    datasetpad = 8
     n_incorrect = 0
-    if plugins:
-        userpad = len(max(plugins.keys(), key=len))
-    if datasets:
-        datasetpad = len(max(datasets, key=len))
-    total_time = 0
-    for year, day, plugin, dataset in it:
+    for year, day, plugin, user_id in it:
         if year == aoc_now.year and day > aoc_now.day:
             continue
-        token = datasets[dataset]
-        os.environ["AOC_SESSION"] = token
-        puzzle = Puzzle(year=year, day=day)
-        title = puzzle.title
-        progress = "{}/{:<2d} - {:<39}   {:>%d}/{:<%d}"
-        progress %= (userpad, datasetpad)
-        progress = progress.format(year, day, title, plugin[0], dataset)
-        result_a, result_b, walltime, error = run_one(
-            year=year,
-            day=day,
-            input_data=puzzle.input_data,
-            plugin=plugin,
-            timeout=timeout,
-            progress=progress,
+        token = datasets[user_id]
+        puzzle = Puzzle.create(token, year, day, autosubmit)
+        listener.puzzle_started(year, day, puzzle.title, plugin[0], user_id)
+        walltime = 0.0
+        input_data = puzzle.input_data
+        if input_data is None:
+            result_a, result_b, walltime, error = (
+                Result.missing(),
+                Result.missing(),
+                0,
+                None,
+            )
+        else:
+            with scratch_file(config.scratch_file, year, day, input_data):
+                result_a, result_b, walltime, error = run_with_timeout(
+                    callable=plugin[1].run,
+                    args={"year": year, "day": day, "data": input_data},
+                    timeout=timeout,
+                    listener=listener,
+                )
+        time = (0 if result_a.duration is None else result_a.duration) + (
+            0 if result_b.duration is None else result_b.duration
         )
-        time = (
-            walltime
-            if result_a.duration is None or result_b.duration is None
-            else (result_a.duration + result_b.duration) / 1e9
-        )
-        runtime = format_time(time, timeout)
-        total_time += time
-        line = "   ".join([runtime, progress])
-        if result_a.is_missing and hide_missing:
-            continue
         if error:
             assert result_a.answer == result_b.answer == ""
             n_incorrect += 1
-            icon, answer = _get_icon_and_answer(None, None, None, error)
-            line += f"   {icon} {answer}"
+            listener.puzzle_finished_with_error(time, walltime, error)
         else:
             for result, part in zip((result_a, result_b), "ab"):
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
                     continue
-                if result.is_missing or result.is_skipped:
-                    icon, answer = _get_icon_and_answer(
-                        result, None, None, None)
+                if result.is_missing:
+                    listener.part_missing(time, part)
+                elif result.is_skipped:
+                    listener.part_skipped(time, part)
                 else:
-                    expected = _get_expected(puzzle, part, result, autosubmit)
-                    correct = expected is not None \
-                        and str(expected) == result.answer
-                    icon, answer = _get_icon_and_answer(
-                        result, correct, expected, None)
+                    expected = puzzle.get_expected(part, result.answer)
+                    correct = (
+                        expected is not None and str(expected) == result.answer
+                    )
+                    listener.part_finished(
+                        time, part, result.answer, expected, correct
+                    )
                     if not correct:
                         n_incorrect += 1
-                if part == "a":
-                    answer = answer.ljust(30)
-                line += f"   {icon} part {part}: {answer}"
-        print(line)
-    print()
-    print("Total run time: {:8.4f}s".format(total_time))
+        listener.puzzle_finished(time, walltime)
+    listener.stop()
     return n_incorrect
-
-
-if __name__ == '__main__':
-    main()

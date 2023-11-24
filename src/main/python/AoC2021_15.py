@@ -3,8 +3,9 @@
 # Advent of Code 2021 Day 15
 #
 
-from collections.abc import Generator
+from collections.abc import Iterator
 from aoc import my_aocd
+from aoc.geometry import Direction
 from aoc.graph import a_star
 from aoc.grid import IntGrid
 import aocd
@@ -13,7 +14,7 @@ START = (0, 0)
 Cell = tuple[int, int]
 
 
-def _parse(inputs: tuple[str]) -> IntGrid:
+def _parse(inputs: tuple[str, ...]) -> IntGrid:
     return IntGrid([[int(_) for _ in list(r)] for r in inputs])
 
 
@@ -29,38 +30,38 @@ def _get_risk(grid: IntGrid, row: int, col: int) -> int:
 
 
 def _find_neighbours(
-    grid: IntGrid, row: int, col: int, tiles: int, seen: set[Cell]
-) -> Generator[Cell]:
+    grid: IntGrid, tiles: int, seen: set[Cell], row: int, col: int
+) -> Iterator[Cell]:
     seen.add((row, col))
     return (
-        (row + dr, col + dc)
-        for dr, dc in ((-1, 0), (0, 1), (1, 0), (0, -1))
-        if (row + dr, col + dc) not in seen
-        and row + dr >= 0
-        and row + dr < tiles * grid.get_height()
-        and col + dc >= 0
-        and col + dc < tiles * grid.get_width()
+        (row + d.x, col + d.y)
+        for d in Direction.capitals()
+        if (row + d.x, col + d.y) not in seen
+        and row + d.x >= 0
+        and row + d.x < tiles * grid.get_height()
+        and col + d.y >= 0
+        and col + d.y < tiles * grid.get_width()
     )
 
 
 def _solve(grid: IntGrid, tiles: int) -> int:
     seen = set[Cell]()
     end = (tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
-    risk, _ = a_star(
+    risk, _, _ = a_star(
         START,
         lambda cell: cell == end,
-        lambda cell: _find_neighbours(grid, *cell, tiles, seen),
+        lambda cell: _find_neighbours(grid, tiles, seen, *cell),
         lambda cell: _get_risk(grid, *cell),
     )
     return risk
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     grid = _parse(inputs)
     return _solve(grid, 1)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     grid = _parse(inputs)
     return _solve(grid, 5)
 
@@ -83,8 +84,8 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2021, 15)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == 40
-    assert part_2(TEST) == 315
+    assert part_1(TEST) == 40  # type:ignore[arg-type]
+    assert part_2(TEST) == 315  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input(puzzle.year, puzzle.day, 100)
     result1 = part_1(inputs)

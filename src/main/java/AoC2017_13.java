@@ -2,8 +2,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
-import org.apache.commons.lang3.mutable.MutableInt;
-
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 

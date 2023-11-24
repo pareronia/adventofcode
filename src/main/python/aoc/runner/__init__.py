@@ -12,8 +12,8 @@ class ResultType(Enum):
 
 class Result(NamedTuple):
     type: ResultType
-    answer: str
-    duration: int
+    answer: str | None
+    duration: int | None
 
     @classmethod
     def missing(cls) -> Result:

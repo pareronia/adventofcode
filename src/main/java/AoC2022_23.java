@@ -11,8 +11,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -20,27 +21,17 @@ public class AoC2022_23 extends AoCBase {
     
     private static final char ELF = '#';
     private static final char GROUND = '.';
-    private static final Direction N = Direction.of(-1, 0);
-    private static final Direction NW = Direction.of(-1, -1);
-    private static final Direction NE = Direction.of(-1, 1);
-    private static final Direction S = Direction.of(1, 0);
-    private static final Direction SW = Direction.of(1, -1);
-    private static final Direction SE = Direction.of(1, 1);
-    private static final Direction W = Direction.of(0, -1);
-    private static final Direction E = Direction.of(0, 1);
-    private static final Set<Direction> ALL_DIRS = Set.of(
-            N, NE, E, SE, S, SW, W, NW);
     private static final Map<Direction, Set<Direction>> DIRS = Map.of(
-            N, Set.of(N, NW, NE),
-            S, Set.of(S, SW, SE),
-            W, Set.of(W, NW, SW),
-            E, Set.of(E, NE, SE));
+        Direction.UP, Set.of(Direction.UP, Direction.LEFT_AND_UP, Direction.RIGHT_AND_UP),
+        Direction.DOWN, Set.of(Direction.DOWN, Direction.LEFT_AND_DOWN, Direction.RIGHT_AND_DOWN),
+        Direction.LEFT, Set.of(Direction.LEFT, Direction.LEFT_AND_DOWN, Direction.LEFT_AND_UP),
+        Direction.RIGHT, Set.of(Direction.RIGHT, Direction.RIGHT_AND_UP, Direction.RIGHT_AND_DOWN));
              
     private final Set<Cell> input;
 
     private AoC2022_23(final List<String> input, final boolean debug) {
         super(debug);
-		this.input = Grid.from(input)
+		this.input = CharGrid.from(input)
 		        .findAllMatching(ch -> ch == ELF)
 		        .collect(toSet());
     }
@@ -76,32 +67,27 @@ public class AoC2022_23 extends AoCBase {
         });
     }
     
-    private Cell add(final Cell cell, final Direction dir) {
-        return Cell.at(
-                cell.getRow() + dir.row, cell.getCol() + dir.col);
-    }
-    
     private boolean allNotOccupied(
             final Set<Cell> elves,
             final Cell elf,
             final Set<Direction> directions
     ) {
         return directions.stream()
-                .map(dir -> add(elf, dir))
+                .map(dir -> elf.at(dir))
                 .noneMatch(elves::contains);
     }
     
     private Map<Cell, List<Cell>> calculateMoves(
             final Set<Cell> elves, final Deque<Direction> order
     ) {
-        final var moves = new HashMap<Cell, List<Cell>>();
-        for (final var elf : elves) {
-            if (allNotOccupied(elves, elf, ALL_DIRS)) {
+        final Map<Cell, List<Cell>> moves = new HashMap<>();
+        for (final Cell elf : elves) {
+            if (allNotOccupied(elves, elf, Direction.OCTANTS)) {
                 continue;
             }
-            for (final var d : order) {
+            for (final Direction d : order) {
                 if (allNotOccupied(elves, elf, DIRS.get(d))) {
-                    final Cell n = add(elf, d);
+                    final Cell n = elf.at(d);
                     moves.computeIfAbsent(n, k -> new ArrayList<>()).add(elf);
                     break;
                 }
@@ -124,7 +110,8 @@ public class AoC2022_23 extends AoCBase {
     @Override
     public Integer solvePart1() {
         final var elves = new HashSet<>(this.input);
-        final var order = new ArrayDeque<>(List.of(N, S, W, E));
+        final var order = new ArrayDeque<>(
+            List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
         IntStream.range(0, 10).forEach(i -> {
             log("Round " + (i + 1));
             final var moves = calculateMoves(elves, order);
@@ -141,7 +128,8 @@ public class AoC2022_23 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final var elves = new HashSet<>(this.input);
-        final var order = new ArrayDeque<>(List.of(N, S, W, E));
+        final var order = new ArrayDeque<>(
+            List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
         int cnt = 1;
         while (true) {
             final var moves = calculateMoves(elves, order);
@@ -176,14 +164,6 @@ public class AoC2022_23 extends AoCBase {
         .#..#..
         """);
 
-    private static final record Direction (
-            int row,
-            int col
-    ) {
-        public static Direction of(final int row, final int col) {
-            return new Direction(row, col);
-        }
-    }
     private static final record Bounds (
             int minRow,
             int maxRow,

@@ -1,23 +1,20 @@
-import static java.lang.Boolean.FALSE;
-import static java.lang.Boolean.TRUE;
 import static java.util.stream.Collectors.toCollection;
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 
 public class TileMatcherTestCase {
 	
 	private final AoC2020_20.Tile tile1 = new AoC2020_20.Tile(
 		1,
-		new Grid(new char[][] {
+		new CharGrid(new char[][] {
 			{ '.', '.', 'X' },
 			{ '.', '.', 'Y' },
 			{ '.', '.', 'Z' }
@@ -25,7 +22,7 @@ public class TileMatcherTestCase {
 	);
 	private final AoC2020_20.Tile tile2 = new AoC2020_20.Tile(
 		2,
-		new Grid(new char[][] {
+		new CharGrid(new char[][] {
 			{ '.', '.', '.' },
 			{ '.', '.', '.' },
 			{ 'A', 'B', 'C' }
@@ -38,7 +35,7 @@ public class TileMatcherTestCase {
 	public void testRightSide1() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'X' },
 				{ '.', '.', 'Y' },
 				{ '.', '.', 'Z' }
@@ -46,15 +43,15 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 	
 	@Test
 	public void testRightSide2() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'Z' },
 				{ '.', '.', 'Y' },
 				{ '.', '.', 'X' }
@@ -62,15 +59,15 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 
 	@Test
 	public void testRightSide3() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'C' },
 				{ '.', '.', 'B' },
 				{ '.', '.', 'A' }
@@ -78,15 +75,15 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile2));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile2);
 	}
 		
 	@Test
 	public void testRightSideNoMatch() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', 'G' },
 				{ '.', '.', 'G' },
 				{ '.', '.', 'G' }
@@ -94,14 +91,14 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findRightSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(FALSE));
+		assertThat(match).isEmpty();
 	}
 
 	@Test
 	public void testBottomSide1() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', '.' },
 				{ '.', '.', '.' },
 				{ 'X', 'Y', 'Z' }
@@ -109,15 +106,15 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findBottomSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 	
 	@Test
 	public void testBottomSide2() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', '.' },
 				{ '.', '.', '.' },
 				{ 'Z', 'Y', 'X' }
@@ -125,15 +122,15 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findBottomSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile1));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile1);
 	}
 	
 	@Test
 	public void testBottomSide3() {
 		final AoC2020_20.Tile tile = new AoC2020_20.Tile(
 			0,
-			new Grid(new char[][] {
+			new CharGrid(new char[][] {
 				{ '.', '.', '.' },
 				{ '.', '.', '.' },
 				{ 'C', 'B', 'A' }
@@ -141,7 +138,7 @@ public class TileMatcherTestCase {
 		);
 		
 		final Optional<AoC2020_20.Tile> match = AoC2020_20.TileMatcher.findBottomSideMatch(tile, tiles);
-		assertThat(match.isPresent(), is(TRUE));
-		assertThat(match.get(), is(tile2));
+		assertThat(match).isNotEmpty();
+		assertThat(match).get().isEqualTo(tile2);
 	}
 }

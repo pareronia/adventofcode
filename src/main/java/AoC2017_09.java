@@ -3,10 +3,10 @@ import static java.util.stream.Collectors.summingInt;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
+
+import lombok.RequiredArgsConstructor;
 
 public final class AoC2017_09 extends AoCBase {
 
@@ -32,7 +32,13 @@ public final class AoC2017_09 extends AoCBase {
         return new AoC2017_09(input, true);
     }
     
-    private Pair<Integer, Integer> solve() {
+    @RequiredArgsConstructor
+    private static final class Result {
+        private final int totalScore;
+        private final int nonCancelledChars;
+    }
+    
+    private Result solve() {
         int open = 0;
         int cnt = 0;
         final List<Integer> scores = new ArrayList<>();
@@ -64,17 +70,17 @@ public final class AoC2017_09 extends AoCBase {
         }
         final Integer totalScore = scores.stream()
                 .collect(summingInt(Integer::valueOf));
-        return Tuples.pair(totalScore, cnt);
+        return new Result(totalScore, cnt);
     }
     
     @Override
     public Integer solvePart1() {
-        return solve().getOne();
+        return solve().totalScore;
     }
     
     @Override
     public Integer solvePart2() {
-        return solve().getTwo();
+        return solve().nonCancelledChars;
     }
 
     public static void main(final String[] args) throws Exception {
@@ -94,9 +100,12 @@ public final class AoC2017_09 extends AoCBase {
         assert AoC2017_09.createDebug(TEST14).solvePart2() == 0;
         assert AoC2017_09.createDebug(TEST15).solvePart2() == 10;
 
-        final List<String> input = Aocd.getData(2017, 9);
-        lap("Part 1", () -> AoC2017_09.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_09.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 9);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2017_09.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2017_09.create(inputData)::solvePart2)
+        );
     }
     
     public static final List<String> TEST1 = splitLines("{}");

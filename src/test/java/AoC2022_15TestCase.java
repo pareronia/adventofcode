@@ -1,11 +1,11 @@
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Deque;
 import java.util.Set;
 
-import org.apache.commons.lang3.Range;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
+
+import com.github.pareronia.aoc.Range;
 
 public class AoC2022_15TestCase {
 
@@ -18,7 +18,7 @@ public class AoC2022_15TestCase {
         
         final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
-        assertThat(result, contains(Range.between(1, 6), Range.between(8, 11)));
+        assertThat(result).containsExactly(Range.between(1, 6), Range.between(8, 11));
     }
 
     @Test
@@ -30,7 +30,7 @@ public class AoC2022_15TestCase {
         
         final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
-        assertThat(result, contains(Range.between(1, 11)));
+        assertThat(result).containsExactly(Range.between(1, 11));
     }
 
     @Test
@@ -44,7 +44,7 @@ public class AoC2022_15TestCase {
         
         final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
-        assertThat(result, contains(Range.between(1, 11), Range.between(15, 21)));
+        assertThat(result).containsExactly(Range.between(1, 11), Range.between(15, 21));
     }
     
     @Test
@@ -61,6 +61,6 @@ public class AoC2022_15TestCase {
         
         final Deque<Range<Integer>> result = AoC2022_15.RangeMerger.mergeRanges(ranges);
         
-        assertThat(result, contains(Range.between(-2, 24)));
+        assertThat(result).containsExactly(Range.between(-2, 24));
     }
 }

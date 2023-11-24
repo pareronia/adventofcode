@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.Range.range;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 
 import java.util.List;
 
@@ -27,7 +27,7 @@ public class AoC2022_06 extends AoCBase {
             if (range(i - size, i, 1).stream().map(buffer::charAt).distinct().count() == size) {
                 return i;
             }
-        };
+        }
         throw new IllegalStateException("Unsolvable");
     }
     

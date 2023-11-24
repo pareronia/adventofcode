@@ -1,50 +1,46 @@
 package com.github.pareronia.aoc.game_of_life;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import lombok.Getter;
 import lombok.With;
 
-public class GameOfLife {
+public class GameOfLife<T> {
 
-    private final Type type;
-    private final Rules rules;
+    private final Type<T> type;
+    private final Rules<T> rules;
     @Getter
     @With
-    private final Set<List<Integer>> alive;
+    private final Set<T> alive;
     
-    public GameOfLife(final Type type, final Rules rules, final Set<List<Integer>> alive) {
+    public GameOfLife(final Type<T> type, final Rules<T> rules, final Set<T> alive) {
         this.type = type;
         this.rules = rules;
         this.alive = Collections.unmodifiableSet(alive);
     }
 
-    public GameOfLife nextGeneration() {
-        final Set<List<Integer>> newAlive =
-            this.type.cells(this.alive).stream()
-                .filter(this::isAlive)
-                .collect(toUnmodifiableSet());
+    public GameOfLife<T> nextGeneration() {
+        final Set<T> newAlive = this.type.getNeighbourCounts(this.alive).entrySet().stream()
+                .filter(e -> this.rules.alive(e.getKey(), e.getValue(), this.alive))
+                .map(Entry::getKey)
+                .collect(toSet());
         return this.withAlive(newAlive);
     }
-    
-    private boolean isAlive(final List<Integer> cell) {
-        final long cnt = this.type.getNeighbourCount(cell, this.alive);
-        return this.rules.alive(cell, cnt, this.alive);
+
+    public interface Type<T> {
+        Map<T, Long> getNeighbourCounts(Set<T> alive);
     }
     
-    public interface Type {
-        Set<List<Integer>> cells(Set<List<Integer>> alive);
-        long getNeighbourCount(List<Integer> cell, Set<List<Integer>> alive);
+    public interface Rules<T> {
+        boolean alive(T cell, long cnt, Set<T> alive);
     }
     
-    public interface Rules {
-        boolean alive(List<Integer> cell, long cnt, Set<List<Integer>> alive);
-    }
-    
+    @SuppressWarnings("rawtypes")
     public static final Rules classicRules =
         (cell, cnt, alive) -> (cnt == 3 || (cnt == 2 && alive.contains(cell)));
 }

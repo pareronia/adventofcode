@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.Utils.last;
 import static com.github.pareronia.aoc.Utils.naturalNumbers;
 import static java.util.Collections.reverseOrder;
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -36,10 +37,8 @@ public class AoC2022_11 extends AoCBase {
             operation = x -> x * x;
         } else if ("+".equals(splits[1])) {
             operation = x -> x + Integer.parseInt(splits[2]);
-        } else if ("*".equals(splits[1])) {
-            operation = x -> x * Integer.parseInt(splits[2]);
         } else {
-            throw new IllegalArgumentException();
+            operation = x -> x * Integer.parseInt(splits[2]);
         }
         final int test = Integer.parseInt(last(block.get(3).split(" ")));
         final int throwTrue = Integer.parseInt(last(block.get(4).split(" ")));
@@ -59,7 +58,7 @@ public class AoC2022_11 extends AoCBase {
             final Map<Integer, Integer> counter,
             final Function<Long, Long> manage
     ) {
-        Range.range(monkeys.size()).forEach(i -> {
+        range(monkeys.size()).forEach(i -> {
             final Monkey monkey = this.monkeys.get(i);
             for (final long item : monkey.items) {
                 final long level = manage.apply(monkey.operation.apply(item));

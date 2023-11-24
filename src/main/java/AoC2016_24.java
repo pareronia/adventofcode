@@ -1,10 +1,10 @@
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.util.Comparator.comparing;
 import static java.util.Comparator.naturalOrder;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
-import static org.apache.commons.math3.util.CombinatoricsUtils.combinationsIterator;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -17,18 +17,15 @@ import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
 
-import org.apache.commons.collections4.iterators.PermutationIterator;
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.navigation.Heading;
-import com.github.pareronia.aoc.navigation.Headings;
+import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 
 public final class AoC2016_24 extends AoCBase {
@@ -37,20 +34,17 @@ public final class AoC2016_24 extends AoCBase {
     private static final char OPEN = '.';
     private static final char START = '0';
     private static final int MAX_POIS = 10;  // ?
-        private static final List<Heading> DIRECTIONS = List.of(
-                Headings.SOUTH, Headings.NORTH, Headings.WEST, Headings.EAST)
-                .stream().map(Headings::get).collect(toList());
 
-    private final transient Grid grid;
+    private final transient CharGrid grid;
     private final transient Map<Character, Cell> pois;
     private final transient Cell start;
 
     private AoC2016_24(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.grid = Grid.from(inputs).getWithEdgesRemoved();
+        this.grid = CharGrid.from(inputs).getWithEdgesRemoved();
         this.pois = this.grid
                 .findAllMatching(c -> !Set.of(WALL, OPEN).contains(c))
-                .collect(toMap(c -> this.grid.getValueAt(c), c -> c));
+                .collect(toMap(c -> this.grid.getValue(c), c -> c));
         this.start = this.pois.get(START);
         log(this.grid);
         log(this.pois);
@@ -66,27 +60,17 @@ public final class AoC2016_24 extends AoCBase {
     }
     
     private List<Path> neighbours(final Path path) {
-        final List<Path> paths = new ArrayList<>();
-        for (final Heading direction : DIRECTIONS) {
-            final Cell newPos
-                    = Cell.at(path.getPosition().getRow() + direction.getX(),
-                              path.getPosition().getCol() + direction.getY());
-            if (newPos.getRow() >= 0 && newPos.getCol() >= 0
-                    && newPos.getRow() < this.grid.getHeight()
-                    && newPos.getCol() < this.grid.getWidth()
-            ) {
-                final char value = this.grid.getValueAt(newPos);
-                if (value == WALL) {
-                    continue;
-                }
+        return this.grid.getCapitalNeighbours(path.getPosition())
+            .filter(cell -> this.grid.getValue(cell) != WALL)
+            .map(newPos -> {
+                final char value = this.grid.getValue(newPos);
                 if (this.pois.keySet().contains(value)) {
-                    paths.add(Path.from(path, newPos, value));
+                    return Path.from(path, newPos, value);
                 } else {
-                    paths.add(Path.from(path, newPos));
+                    return Path.from(path, newPos);
                 }
-            }
-        }
-        return paths;
+            })
+            .collect(toList());
     }
 
     private Path findPath(final Character from, final Character to) {
@@ -135,27 +119,35 @@ public final class AoC2016_24 extends AoCBase {
         }
         return dist;
     }
+    
+    @RequiredArgsConstructor(staticName = "of")
+    @EqualsAndHashCode
+    @ToString
+    private static final class FromTo {
+        private final char from;
+        private final char to;
+    }
         
     public Integer solveAlt() {
         final List<Character> poiKeys = List.copyOf(this.pois.keySet());
-        final Map<Pair<Character, Character>, Integer> distances = new HashMap<>();
-        combinationsIterator(poiKeys.size(), 2).forEachRemaining(a -> {
+        final Map<FromTo, Integer> distances = new HashMap<>();
+        combinations(poiKeys.size(), 2).forEach(a -> {
             final Character from = poiKeys.get(a[0]);
             final Character to = poiKeys.get(a[1]);
             final Path path = findPath(from, to);
-            distances.put(Tuples.pair(from, to), path.getLength());
-            distances.put(Tuples.pair(to, from), path.getLength());
+            distances.put(FromTo.of(from, to), path.getLength());
+            distances.put(FromTo.of(to, from), path.getLength());
         });
         log(distances);
         final List<Integer> totals = new ArrayList<>();
         final List<Character> poiKeysWithoutStart = poiKeys.stream()
                 .filter(c -> c != START)
                 .collect(toList());
-        new PermutationIterator<>(poiKeysWithoutStart).forEachRemaining(l -> {
+        IterTools.permutations(poiKeysWithoutStart).forEach(l -> {
             l.add(0, START);
             int total = 0;
             for (int i = 0; i < l.size() - 1; i++) {
-                total += distances.get(Tuples.pair(l.get(i), l.get(i + 1)));
+                total += distances.get(FromTo.of(l.get(i), l.get(i + 1)));
             }
             totals.add(total);
         });
@@ -176,10 +168,13 @@ public final class AoC2016_24 extends AoCBase {
         assert AoC2016_24.createDebug(TEST).solvePart1() == 14;
         assert AoC2016_24.createDebug(TEST).solveAlt() == 14;
 
-        final List<String> input = Aocd.getData(2016, 24);
-        lap("Part 1", () -> AoC2016_24.create(input).solvePart1());
-        lap("Part 2", () -> AoC2016_24.create(input).solvePart2());
-        lap("Part 1 alt", () -> AoC2016_24.create(input).solveAlt());
+        final Puzzle puzzle = Aocd.puzzle(2016, 24);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2016_24.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2016_24.create(inputData)::solvePart2)
+        );
+        lap("Part 1 alt", AoC2016_24.create(inputData)::solveAlt);
     }
     
     private static final List<String> TEST = splitLines(

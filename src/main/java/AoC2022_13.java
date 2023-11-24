@@ -6,9 +6,9 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
+import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-import com.google.gson.Gson;
 
 public class AoC2022_13 extends AoCBase {
     
@@ -58,7 +58,7 @@ public class AoC2022_13 extends AoCBase {
     }
     
     private List<?> parse(final String line) {
-        return new Gson().fromJson(line, List.class);
+        return Json.fromJson(line, List.class);
     }
     
     @Override

@@ -3,37 +3,33 @@
 # Advent of Code 2016 Day 1
 #
 
+import aocd
 from aoc import my_aocd
-from aoc.navigation import NavigationWithHeading, Headings
-from aoc.geometry import Position
+from aoc.navigation import NavigationWithHeading, Heading
+from aoc.geometry import Position, Turn
 
 
-def _parse(inputs: tuple[str]) -> list[str]:
+def _parse(inputs: tuple[str, ...]) -> list[str]:
     assert len(inputs) == 1
     return inputs[0].split(", ")
 
 
 def _navigate(steps: list[str]) -> NavigationWithHeading:
-    navigation = NavigationWithHeading(Position(0, 0), Headings["N"].value)
+    navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
     for step in steps:
-        if step[0] == 'R':
-            navigation.right(90)
-        elif step[0] == 'L':
-            navigation.left(90)
-        else:
-            raise ValueError("Invalid input")
-        for i in range(int(step[1:])):
+        navigation.turn(Turn.from_str(step[0]))
+        for _ in range(int(step[1:])):
             navigation.forward(1)
     return navigation
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     steps = _parse(inputs)
     navigation = _navigate(steps)
     return abs(navigation.position.x) + abs(navigation.position.y)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     steps = _parse(inputs)
     navigation = _navigate(steps)
     seen = set()
@@ -53,19 +49,21 @@ TEST4 = "R8, R4, R4, R8".splitlines()
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 1)
+    puzzle = aocd.models.Puzzle(2016, 1)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST1) == 5
-    assert part_1(TEST2) == 2
-    assert part_1(TEST3) == 12
-    assert part_2(TEST4) == 4
+    assert part_1(TEST1) == 5  # type:ignore[arg-type]
+    assert part_1(TEST2) == 2  # type:ignore[arg-type]
+    assert part_1(TEST3) == 12  # type:ignore[arg-type]
+    assert part_2(TEST4) == 4  # type:ignore[arg-type]
 
-    inputs = my_aocd.get_input(2016, 1, 1)
+    inputs = my_aocd.get_input_data(puzzle, 1)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

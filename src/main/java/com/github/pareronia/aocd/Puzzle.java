@@ -23,15 +23,17 @@ SOFTWARE.
  */
 package com.github.pareronia.aocd;
 
+import static java.util.stream.Collectors.joining;
+
 import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.stream.Stream;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
+import com.github.pareronia.aoc.StringUtils;
 
 import lombok.Getter;
 
@@ -99,7 +101,7 @@ public class Puzzle {
                         System.lineSeparator(), answer2, result2);
         }
         if (StringUtils.isNotBlank(fails[0]) || StringUtils.isNotBlank(fails[1])) {
-            throw new AssertionError(StringUtils.join(fails));
+            throw new AssertionError(Stream.of(fails).collect(joining()));
         }
 	}
 
@@ -128,7 +130,7 @@ public class Puzzle {
 	
 	public List<String> getInputData() {
 		List<String> inputData = systemUtils.readAllLinesIfExists(inputDataFile);
-	    if (CollectionUtils.isEmpty(inputData)) {
+	    if (inputData.isEmpty()) {
 	        if (!isReleased()) {
 	            System.err.println("!! PUZZLE NOT YET RELEASED !!");
 	            return inputData;
@@ -136,7 +138,7 @@ public class Puzzle {
 	        systemUtils.getInput(year, day, inputDataFile);
 	        inputData = systemUtils.readAllLinesIfExists(inputDataFile);
 	    }
-	    if (CollectionUtils.isEmpty(inputData)) {
+	    if (inputData.isEmpty()) {
 	        System.err.println("!! INPUT DATA MISSING !!");
 	    }
 	    return inputData;

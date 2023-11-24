@@ -17,9 +17,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -153,9 +152,12 @@ public final class AoC2017_07 extends AoCBase {
         assert AoC2017_07.createDebug(TEST).solvePart1().equals("tknk");
         assert AoC2017_07.createDebug(TEST).solvePart2() == 60;
 
-        final List<String> input = Aocd.getData(2017, 7);
-        lap("Part 1", () -> AoC2017_07.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_07.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2017, 7);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2017_07.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2017_07.create(input)::solvePart2)
+		);
     }
     
     public static final List<String> TEST = splitLines(

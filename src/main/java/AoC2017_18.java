@@ -5,9 +5,8 @@ import java.util.List;
 import java.util.TreeMap;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.mutable.MutableBoolean;
-import org.apache.commons.lang3.mutable.MutableInt;
-
+import com.github.pareronia.aoc.MutableBoolean;
+import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.vm.Instruction;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;

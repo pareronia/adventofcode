@@ -6,10 +6,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -81,9 +79,12 @@ public class AoC2021_04 extends AoCBase {
 		assert AoC2021_04.create(TEST).solvePart1() == 4512;
 		assert AoC2021_04.create(TEST).solvePart2() == 1924;
 		
-		final List<String> input = Aocd.getData(2021, 4);
-		lap("Part 1", () -> AoC2021_04.create(input).solvePart1());
-		lap("Part 2", () -> AoC2021_04.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2021, 4);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2021_04.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2021_04.create(input)::solvePart2)
+		);
 	}
 	
 	private static final List<String> TEST = splitLines(
@@ -133,11 +134,10 @@ public class AoC2021_04 extends AoCBase {
 	    public Board(final List<String> numbers) {
 	        final int[][] cells = new int[numbers.size()][numbers.get(0).length()];
 	        for (int i = 0; i < numbers.size(); i++) {
-	            final List<Integer> ints = Arrays.stream(numbers.get(i).split("\\s+"))
+	            cells[i] = Arrays.stream(numbers.get(i).split("\\s+"))
 	                    .filter(StringUtils::isNotBlank)
-	                    .map(Integer::valueOf)
-	                    .collect(toList());
-	            cells[i] = ArrayUtils.toPrimitive(ints.toArray(Integer[]::new));
+	                    .mapToInt(Integer::parseInt)
+	                    .toArray();
 	        }
 	        this.numbers = cells;
 	    }

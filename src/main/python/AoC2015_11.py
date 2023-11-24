@@ -4,46 +4,48 @@
 #
 
 import re
+
+import aocd
+
 from aoc import my_aocd
 
 ALPH = "abcdefghijklmnopqrstuvwxyz"
 NEXT = "bcdefghjjkmmnppqrstuvwxyza"
-
-
-def _next_letter(letter: str) -> str:
-    return NEXT[ALPH.index(letter)]
-
-
-def _increment(password: str) -> str:
-    i = len(password) - 1
-    password = password[:i] + _next_letter(password[i])
-    while password[i] == 'a' and i > 0:
-        i -= 1
-        password = password[:i] + _next_letter(password[i]) + password[i+1:]
-    return password
+CONFUSING_LETTERS = {"i", "o", "l"}
+RE = re.compile(r"([a-z])\1")
 
 
 def _is_ok(password: str) -> bool:
-    if len({p for p in re.findall(r"([a-z])\1", password)}) < 2:
+    if len({p for p in RE.findall(password)}) < 2:
         return False
-    for i in range(len(password) - 3):
-        if ord(password[i]) == ord(password[i+1]) - 1 \
-           and ord(password[i+1]) == ord(password[i+2]) - 1:
-            return True
-    return False
+    trio = False
+    for i in range(len(password)):
+        if password[i] in CONFUSING_LETTERS:
+            return False
+        trio = (
+            trio
+            or i < len(password) - 3
+            and ord(password[i]) == ord(password[i + 1]) - 1
+            and ord(password[i + 1]) == ord(password[i + 2]) - 1
+        )
+    return trio
 
 
 def _get_next(password: str) -> str:
-    h = (password.find('i'), password.find('o'), password.find('l'))
-    if h != (-1, -1, -1):
-        h = min(_ for _ in h if _ != -1)
-        if h < len(password) - 1:
-            password = password[:h] + _next_letter(password[h]) \
-                    + 'a' * len(password[h+1:])
-    else:
-        password = _increment(password)
-    while not _is_ok(password):
-        password = _increment(password)
+    def _increment(password: str, i: int) -> str:
+        password = (
+            password[:i]
+            + NEXT[ALPH.index(password[i])]
+            + password[i + 1 :]  # noqa E203
+        )
+        if password[i] == "a":
+            password = _increment(password, i - 1)
+        return password
+
+    while True:
+        password = _increment(password, len(password) - 1)
+        if _is_ok(password):
+            break
     return password
 
 
@@ -57,22 +59,24 @@ def part_2(inputs: tuple[str]) -> str:
     return _get_next(_get_next(inputs[0]))
 
 
-TEST1 = "abcdefgh"
-TEST2 = "ghijklmn"
-
-
 def main() -> None:
-    my_aocd.print_header(2015, 11)
+    puzzle = aocd.models.Puzzle(2015, 11)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert _get_next(TEST1) == "abcdffaa"
-    assert _get_next(TEST2) == "ghjaabcc"
+    assert not _is_ok("abci")
+    assert not _is_ok("hijklmmn")
+    assert not _is_ok("abbceffg")
+    assert not _is_ok("abbcegjk")
+    assert _get_next("abcdefgh") == "abcdffaa"
+    assert _get_next("ghijklmn") == "ghjaabcc"
 
-    inputs = my_aocd.get_input(2015, 11, 1)
+    inputs = my_aocd.get_input_data(puzzle, 1)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

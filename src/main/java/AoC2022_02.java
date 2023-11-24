@@ -51,22 +51,22 @@ public class AoC2022_02 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final Map<Pair, String> outcomes = Map.of(
-            Pair.of(ROCK, ROCK), DRAW,
-            Pair.of(ROCK, SCISSORS), LOSS,
-            Pair.of(ROCK, PAPER), WIN,
-            Pair.of(SCISSORS, ROCK), WIN,
-            Pair.of(SCISSORS, SCISSORS), DRAW,
-            Pair.of(SCISSORS, PAPER), LOSS,
-            Pair.of(PAPER, ROCK), LOSS,
-            Pair.of(PAPER, SCISSORS), WIN,
-            Pair.of(PAPER, PAPER), DRAW
+        final Map<StringPair, String> outcomes = Map.of(
+            new StringPair(ROCK, ROCK), DRAW,
+            new StringPair(ROCK, SCISSORS), LOSS,
+            new StringPair(ROCK, PAPER), WIN,
+            new StringPair(SCISSORS, ROCK), WIN,
+            new StringPair(SCISSORS, SCISSORS), DRAW,
+            new StringPair(SCISSORS, PAPER), LOSS,
+            new StringPair(PAPER, ROCK), LOSS,
+            new StringPair(PAPER, SCISSORS), WIN,
+            new StringPair(PAPER, PAPER), DRAW
         );
 
         return solve((col1, col2) -> {
             final String play = SHAPES.get(col1);
             final String response = SHAPES.get(col2);
-            final String outcome = outcomes.get(Pair.of(play, response));
+            final String outcome = outcomes.get(new StringPair(play, response));
             return new ResponseAndOutcome(response, outcome);
         } );
     }
@@ -74,21 +74,21 @@ public class AoC2022_02 extends AoCBase {
     @Override
     public Integer solvePart2() {
         final Map<String,String> outcomes = Map.of("X", LOSS, "Y", DRAW, "Z", WIN);
-        final Map<Pair, String> responses = Map.of(
-                Pair.of(ROCK, LOSS), SCISSORS,
-                Pair.of(ROCK, DRAW), ROCK,
-                Pair.of(ROCK, WIN), PAPER,
-                Pair.of(PAPER, LOSS), ROCK,
-                Pair.of(PAPER, DRAW), PAPER,
-                Pair.of(PAPER, WIN), SCISSORS,
-                Pair.of(SCISSORS, LOSS), PAPER,
-                Pair.of(SCISSORS, DRAW), SCISSORS,
-                Pair.of(SCISSORS, WIN), ROCK);
+        final Map<StringPair, String> responses = Map.of(
+                new StringPair(ROCK, LOSS), SCISSORS,
+                new StringPair(ROCK, DRAW), ROCK,
+                new StringPair(ROCK, WIN), PAPER,
+                new StringPair(PAPER, LOSS), ROCK,
+                new StringPair(PAPER, DRAW), PAPER,
+                new StringPair(PAPER, WIN), SCISSORS,
+                new StringPair(SCISSORS, LOSS), PAPER,
+                new StringPair(SCISSORS, DRAW), SCISSORS,
+                new StringPair(SCISSORS, WIN), ROCK);
        
         return solve((col1, col2) -> {
             final String play = SHAPES.get(col1);
             final String outcome = outcomes.get(col2);
-            final String response = responses.get(Pair.of(play, outcome));
+            final String response = responses.get(new StringPair(play, outcome));
             return new ResponseAndOutcome(response, outcome);
         });
     }
@@ -113,9 +113,6 @@ public class AoC2022_02 extends AoCBase {
     
     private static final record ResponseAndOutcome(
             String response, String outcome) { }
-    private static final record Pair(String first, String second) {
-        static final Pair of(final String first, final String second) {
-            return new Pair(first, second);
-        }
-    }
+    
+    private static final record StringPair(String one, String two) { }
 }

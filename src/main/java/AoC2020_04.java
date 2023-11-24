@@ -2,16 +2,17 @@ import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.github.pareronia.aoc.Range;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Builder;
 import lombok.ToString;
@@ -48,8 +49,8 @@ public class AoC2020_04 extends AoCBase {
 					throw new RuntimeException(e);
 				}
 			};
-			asList(StringUtils.join(block, " ").split(" ")).stream()
-					.forEach(applyField);
+			block.stream().flatMap(line -> Arrays.stream(line.split(" ")))
+			    .forEach(applyField);
 			return passportBuilder.build();
 		};
 		return toBlocks(inputs).stream()
@@ -75,9 +76,12 @@ public class AoC2020_04 extends AoCBase {
 		assert AoC2020_04.createDebug(TEST).solvePart1() == 10;
 		assert AoC2020_04.createDebug(TEST).solvePart2() == 6;
 		
-		final List<String> input = Aocd.getData(2020, 4);
-		lap("Part 1", () -> AoC2020_04.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_04.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2020, 4);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2020_04.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2020_04.create(input)::solvePart2)
+		);
 	}
 	
 	private static final List<String> TEST = splitLines(
@@ -158,7 +162,7 @@ public class AoC2020_04 extends AoCBase {
 		}
 		
 		private boolean hgtValid() {
-			final Integer hgt = Integer.valueOf(StringUtils.left(this.hgt, this.hgt.length() - 2));
+		    final Integer hgt = Integer.valueOf(this.hgt.substring(0, this.hgt.length() - 2));
 			if (this.hgt.endsWith("in")) {
 				return Range.between(59, 76).contains(hgt);
 			} else if (this.hgt.endsWith("cm")) {
@@ -172,7 +176,9 @@ public class AoC2020_04 extends AoCBase {
 			if (!this.hcl.startsWith("#") || this.hcl.length() != 7) {
 				return false;
 			}
-			return StringUtils.containsOnly(this.hcl.substring(1), "0123456789abcdef");
+			return Utils.asCharacterStream(this.hcl.substring(1))
+			        .filter(c -> "0123456789abcdef".indexOf(c) == -1)
+			        .count() == 0;
 		}
 		
 		private boolean eclValid() {

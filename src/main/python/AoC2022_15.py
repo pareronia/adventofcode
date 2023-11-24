@@ -7,15 +7,14 @@
 import re
 from collections import defaultdict
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 Sensors = list[tuple[int, int, int]]
 Beacons = dict[int, set[int]]
 Range = tuple[int, int]
 
 
-def _parse(inputs: tuple[str]) -> tuple[Sensors, Beacons]:
+def _parse(inputs: tuple[str, ...]) -> tuple[Sensors, Beacons]:
     sensors = Sensors()
     beacons = defaultdict[int, set[int]](set)
     for line in inputs:
@@ -45,7 +44,7 @@ def _get_ranges(sensors: Sensors, y: int) -> list[Range]:
     return merged
 
 
-def solve_1(inputs: tuple[str], y: int) -> int:
+def solve_1(inputs: tuple[str, ...], y: int) -> int:
     sensors, beacons = _parse(inputs)
     return sum(
         (
@@ -58,7 +57,7 @@ def solve_1(inputs: tuple[str], y: int) -> int:
     )
 
 
-def solve_2(inputs: tuple[str], the_max: int) -> int:
+def solve_2(inputs: tuple[str, ...], the_max: int) -> int:
     sensors, _ = _parse(inputs)
     for y in range(the_max, 0, -1):
         ranges = _get_ranges(sensors, y)
@@ -71,11 +70,11 @@ def solve_2(inputs: tuple[str], the_max: int) -> int:
     raise RuntimeError()
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return solve_1(inputs, 2_000_000)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     return solve_2(inputs, 4_000_000)
 
 
@@ -99,19 +98,10 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
 )
 
 
+@aoc_main(2022, 15, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 15)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert solve_1(TEST, 10) == 26
     assert solve_2(TEST, 20) == 56_000_011
-
-    inputs = my_aocd.get_input_data(puzzle, 36)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

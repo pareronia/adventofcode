@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -119,9 +118,6 @@ public class AoC2021_14 extends AoCBase {
         private final Character right;
         
         public static CharacterPair from(final String string) {
-            if (Objects.requireNonNull(string).length() != 2) {
-                throw new IllegalArgumentException();
-            }
             return new CharacterPair(string.charAt(0), string.charAt(1));
         }
     }

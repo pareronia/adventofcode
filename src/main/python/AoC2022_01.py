@@ -3,22 +3,17 @@
 # Advent of Code 2022 Day 1
 #
 
-import aocd
+import sys
+
 from aoc import my_aocd
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
-
-def _solve(inputs: tuple[str], count: int):
-    blocks = my_aocd.to_blocks(inputs)
-    sums = [sum(int(line) for line in block) for block in blocks]
-    return sum(_ for _ in sorted(sums)[-count:])
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return _solve(inputs, 1)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return _solve(inputs, 3)
+Block = list[str]
+Input = list[Block]
+Output1 = int
+Output2 = int
 
 
 TEST = """\
@@ -36,23 +31,38 @@ TEST = """\
 9000
 
 10000
-""".splitlines()
+"""
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def _solve(self, blocks: list[Block], count: int) -> int:
+        sums = [sum(int(line) for line in block) for block in blocks]
+        return sum(_ for _ in sorted(sums)[-count:])
+
+    def parse_input(self, input_data: InputData) -> Input:
+        return my_aocd.to_blocks(input_data)
+
+    def part_1(self, blocks: Input) -> Output1:
+        return self._solve(blocks, 1)
+
+    def part_2(self, blocks: Input) -> Output2:
+        return self._solve(blocks, 3)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 24_000),
+            ("part_2", TEST, 45_000),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2022, 1)
 
 
 def main() -> None:
-    aocd.get_data(year=2022, day=1, block=True)
-    puzzle = aocd.models.Puzzle(2022, 1)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 24_000
-    assert part_2(TEST) == 45_000
-
-    inputs = my_aocd.get_input_data(puzzle, 2264)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

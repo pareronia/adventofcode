@@ -3,8 +3,7 @@ import java.util.function.BiPredicate;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-import org.apache.commons.lang3.Range;
-
+import com.github.pareronia.aoc.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 

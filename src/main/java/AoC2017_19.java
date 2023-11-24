@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -19,11 +19,11 @@ public final class AoC2017_19 extends AoCBase {
     private static final char VERTICAL = '|';
     private static final char EMPTY = ' ';
 
-    private final Grid grid;
+    private final CharGrid grid;
     
     private AoC2017_19(final List<String> inputs, final boolean debug) {
         super(debug);
-        this.grid = new Grid(inputs);
+        this.grid = new CharGrid(inputs);
     }
 
     public static AoC2017_19 create(final List<String> input) {
@@ -43,14 +43,14 @@ public final class AoC2017_19 extends AoCBase {
         while (true) {
             stream
                 .peek(c -> log(c))
-                .takeWhile(c -> this.grid.getValueAt(c) != EMPTY)
+                .takeWhile(c -> this.grid.getValue(c) != EMPTY)
                 .forEach(seen::addLast);
             final Cell last = seen.pollLast();
             final Cell prev = seen.peekLast();
             seen.addLast(last);
             final Optional<Cell> _next = this.grid.getCapitalNeighbours(last)
                     .filter(c -> !c.equals(prev))
-                    .filter(c -> this.grid.getValueAt(c) != EMPTY)
+                    .filter(c -> this.grid.getValue(c) != EMPTY)
                     .findFirst();
             if (_next.isEmpty()) {
                 break;
@@ -64,10 +64,8 @@ public final class AoC2017_19 extends AoCBase {
                 stream = this.grid.getCellsE(next);
             } else if (next.getRow() < last.getRow()) {
                 stream = this.grid.getCellsN(next);
-            } else if (next.getRow() > last.getRow()) {
-                stream = this.grid.getCellsS(next);
             } else {
-                throw new IllegalArgumentException();
+                stream = this.grid.getCellsS(next);
             }
         }
         return seen.stream();
@@ -76,7 +74,7 @@ public final class AoC2017_19 extends AoCBase {
     @Override
     public String solvePart1() {
         return getPath()
-            .map(this.grid::getValueAt)
+            .map(this.grid::getValue)
             .filter(ch -> !Set.of(CROSSING, VERTICAL, HORIZONTAL).contains(ch))
             .collect(toAString());
     }

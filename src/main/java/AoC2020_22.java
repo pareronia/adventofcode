@@ -6,25 +6,24 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.mutable.MutableInt;
-
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.MutableInt;
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_22 extends AoCBase {
 	
 	private final List<String> inputs;
 	
-	private AoC2020_22(List<String> input, boolean debug) {
+	private AoC2020_22(final List<String> input, final boolean debug) {
 		super(debug);
 		this.inputs = input;
 	}
 	
-	public static final AoC2020_22 create(List<String> input) {
+	public static final AoC2020_22 create(final List<String> input) {
 		return new AoC2020_22(input, false);
 	}
 
-	public static final AoC2020_22 createDebug(List<String> input) {
+	public static final AoC2020_22 createDebug(final List<String> input) {
 		return new AoC2020_22(input, true);
 	}
 	
@@ -61,15 +60,15 @@ public class AoC2020_22 extends AoCBase {
 		return new Players(pl1, pl2);
 	}
 
-	private void playRegularCombat(Players players) {
+	private void playRegularCombat(final Players players) {
 		playCombat(players, new MutableInt(), false);
 	}
 	
-	private void playRecursiveCombat(Players players) {
+	private void playRecursiveCombat(final Players players) {
 		playCombat(players, new MutableInt(), true);
 	}
 	
-	private void playCombat(Players players, MutableInt _game, boolean recursive) {
+	private void playCombat(final Players players, final MutableInt _game, final boolean recursive) {
 		_game.increment();
 		final int game = _game.intValue();
 		log(() ->String.format("=== Game %d ===", game));
@@ -117,7 +116,7 @@ public class AoC2020_22 extends AoCBase {
 		log(() ->String.format("The winner of game %d is player %d!", game, winner));
 	}
 	
-	private int getScore(Players players) {
+	private int getScore(final Players players) {
 		log("");
 		log("");
 		log("== Post-game results ==");
@@ -147,14 +146,17 @@ public class AoC2020_22 extends AoCBase {
 		return getScore(players);
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_22.createDebug(splitLines(TEST)).solvePart1() == 306;
 		assert AoC2020_22.createDebug(splitLines(TEST)).solvePart2() == 291;
 		assert AoC2020_22.createDebug(splitLines(LOOP)).solvePart2() == 105;
 		
-		final List<String> input = Aocd.getData(2020, 22);
-		lap("Part 1", () -> AoC2020_22.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_22.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2022, 22);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2022_22.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2022_22.create(input)::solvePart2)
+		);
 	}
 	
 	private static final String TEST =
@@ -186,7 +188,7 @@ public class AoC2020_22 extends AoCBase {
 		private final List<Integer> player1;
 		private final List<Integer> player2;
 		
-		public Players(List<Integer> player1, List<Integer> player2) {
+		public Players(final List<Integer> player1, final List<Integer> player2) {
 			this.player1 = player1;
 			this.player2 = player2;
 		}
@@ -196,7 +198,7 @@ public class AoC2020_22 extends AoCBase {
 		private final List<Integer> pl1;
 		private final List<Integer> pl2;
 		
-		public Round(List<Integer> pl1, List<Integer> pl2) {
+		public Round(final List<Integer> pl1, final List<Integer> pl2) {
 			this.pl1 = new ArrayList<>(pl1);
 			this.pl2 = new ArrayList<>(pl2);
 		}
@@ -207,7 +209,7 @@ public class AoC2020_22 extends AoCBase {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (this == obj) {
 				return true;
 			}

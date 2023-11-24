@@ -1,25 +1,24 @@
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2015_20 extends AoCBase {
+public class AoC2015_20 extends SolutionBase<Integer, Integer, Integer> {
 
-	private final List<String> inputs;
-
-	private AoC2015_20(List<String> input, boolean debug) {
+	private AoC2015_20(final boolean debug) {
 		super(debug);
-		this.inputs = input;
 	}
 	
-	public static AoC2015_20 createDebug(List<String> input) {
-		return new AoC2015_20(input, true);
+	public static AoC2015_20 createDebug() {
+		return new AoC2015_20(true);
 	}
 	
-	public static AoC2015_20 create(List<String> input) {
-		return new AoC2015_20(input, false);
+	public static AoC2015_20 create() {
+		return new AoC2015_20(false);
 	}
 	
-	private int divSum(int number, int max) {
+	private int divSum(final int number, final int max) {
 		if (number == 1) {
 			return 1;
 		}
@@ -60,20 +59,24 @@ public class AoC2015_20 extends AoCBase {
 	}
 
 	@Override
-	public Integer solvePart1() {
-		assert inputs.size() == 1;
-		final int numberOfGifts = Integer.valueOf(inputs.get(0)) / 10;
-		int houseNumber = 1;
-		while (sumOfFactors(houseNumber) < numberOfGifts) {
-			houseNumber++;
-		}
-		return houseNumber;
-	}
+    protected Integer parseInput(final List<String> inputs) {
+	    assert inputs.size() == 1;
+        return Integer.valueOf(inputs.get(0));
+    }
 
-	@Override
-	public Integer solvePart2() {
-		assert inputs.size() == 1;
-		final int numberOfGifts = Double.valueOf(Math.ceil(Integer.valueOf(inputs.get(0)) / 11.0)).intValue();
+    @Override
+    protected Integer solvePart1(final Integer input) {
+        final int numberOfGifts = input / 10;
+        int houseNumber = 1;
+        while (sumOfFactors(houseNumber) < numberOfGifts) {
+            houseNumber++;
+        }
+        return houseNumber;
+    }
+
+    @Override
+    protected Integer solvePart2(final Integer input) {
+		final int numberOfGifts = Double.valueOf(Math.ceil(input / 11.0)).intValue();
 		int houseNumber = 1;
 		while (divSum(houseNumber, 50) < numberOfGifts) {
 			houseNumber++;
@@ -81,20 +84,23 @@ public class AoC2015_20 extends AoCBase {
 		return houseNumber;
 	}
 
-	public static void main(String[] args) throws Exception {
-		assert AoC2015_20.createDebug(splitLines("10")).solvePart1() == 1;
-		assert AoC2015_20.createDebug(splitLines("20")).solvePart1() == 2;
-		assert AoC2015_20.createDebug(splitLines("30")).solvePart1() == 2;
-		assert AoC2015_20.createDebug(splitLines("40")).solvePart1() == 3;
-		assert AoC2015_20.createDebug(splitLines("50")).solvePart1() == 4;
-		assert AoC2015_20.createDebug(splitLines("60")).solvePart1() == 4;
-		assert AoC2015_20.createDebug(splitLines("70")).solvePart1() == 4;
-		assert AoC2015_20.createDebug(splitLines("80")).solvePart1() == 6;
-		assert AoC2015_20.createDebug(splitLines("90")).solvePart1() == 6;
-		assert AoC2015_20.createDebug(splitLines("100")).solvePart1() == 6;
-		
-		final List<String> input = Aocd.getData(2015, 20);
-		lap("Part 1", () -> AoC2015_20.createDebug(input).solvePart1());
-		lap("Part 2", () -> AoC2015_20.createDebug(input).solvePart2());
+	@Override
+	@Samples({
+        @Sample(method = "part1", input = "10", expected = "1"),
+        @Sample(method = "part1", input = "20", expected = "2"),
+        @Sample(method = "part1", input = "30", expected = "2"),
+        @Sample(method = "part1", input = "40", expected = "3"),
+        @Sample(method = "part1", input = "50", expected = "4"),
+        @Sample(method = "part1", input = "60", expected = "4"),
+        @Sample(method = "part1", input = "70", expected = "4"),
+        @Sample(method = "part1", input = "80", expected = "6"),
+        @Sample(method = "part1", input = "90", expected = "6"),
+        @Sample(method = "part1", input = "100", expected = "6"),
+	})
+    public void samples() {
+    }
+
+    public static void main(final String[] args) throws Exception {
+        AoC2015_20.create().run();
 	}
 }

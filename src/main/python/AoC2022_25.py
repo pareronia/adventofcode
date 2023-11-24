@@ -4,8 +4,7 @@
 #
 
 
-import aocd
-from aoc import my_aocd
+from aoc.common import aoc_main
 
 DECODE = {"0": 0, "1": 1, "2": 2, "-": -1, "=": -2}
 ENCODE = {
@@ -18,7 +17,7 @@ ENCODE = {
 }
 
 
-def part_1(inputs: tuple[str]) -> str:
+def part_1(inputs: tuple[str, ...]) -> str:
     total = sum(
         sum(DECODE[digit] * 5**i for i, digit in enumerate(line[::-1]))
         for line in inputs
@@ -31,8 +30,8 @@ def part_1(inputs: tuple[str]) -> str:
     return ans[::-1]
 
 
-def part_2(inputs: tuple[str]) -> None:
-    return
+def part_2(inputs: tuple[str, ...]) -> str:
+    return "🎄"
 
 
 TEST = tuple(
@@ -57,22 +56,12 @@ TEST2 = tuple(["1-0---0"])
 TEST3 = tuple(["1121-1110-1=0"])
 
 
+@aoc_main(2022, 25, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 25)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == "2=-1=0"
     assert part_1(TEST1) == "1=11-2"
     assert part_1(TEST2) == "1-0---0"
     assert part_1(TEST3) == "1121-1110-1=0"
-    assert part_2(TEST) is None
-
-    inputs = my_aocd.get_input_data(puzzle, 119)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

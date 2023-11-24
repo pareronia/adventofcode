@@ -5,11 +5,12 @@ from aoc.vm import Instruction
 
 class AssembunnyInstruction(NamedTuple):
     operation: str
-    operands: tuple[str]
+    operands: tuple[str, ...]
 
     @classmethod
-    def of(cls, in_: tuple[str]) -> AssembunnyInstruction:
-        return AssembunnyInstruction(in_[0], (in_[1:]))
+    def of(cls, in_: list[str]) -> AssembunnyInstruction:
+        operation, *operands = in_
+        return AssembunnyInstruction(operation, tuple(_ for _ in operands))
 
     def check_valid_operation(self) -> None:
         if self.operation not in ("cpy", "inc", "dec", "jnz", "tgl", "out"):
@@ -22,7 +23,7 @@ class AssembunnyInstruction(NamedTuple):
 class Assembunny:
 
     @classmethod
-    def parse(cls, inputs: tuple[str]) -> list[AssembunnyInstruction]:
+    def parse(cls, inputs: tuple[str, ...]) -> list[AssembunnyInstruction]:
         return [AssembunnyInstruction.of(input_.split()) for input_ in inputs]
 
     @classmethod

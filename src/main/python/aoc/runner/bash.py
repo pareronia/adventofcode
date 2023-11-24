@@ -7,7 +7,7 @@ from .config import config
 
 
 class Bash(Plugin):
-    def run(self, year: int, day: int, data: str):
+    def run(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         def run_part(part: int) -> Result:
             file_name = (
                 config.bash["day_format"].format(year=year, day=day)

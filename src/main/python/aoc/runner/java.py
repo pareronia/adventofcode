@@ -9,7 +9,7 @@ from .config import config
 
 
 class Java(Plugin):
-    def _java(self, year: int, day: int, data: str):
+    def _java(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         completed = subprocess.run(  # nosec
             [
                 config.java["command"],
@@ -23,9 +23,9 @@ class Java(Plugin):
             text=True,
             capture_output=True,
         )
-        result = completed.stdout.rstrip()
-        if result:
-            result = json.loads(result)
+        result_ = completed.stdout.rstrip()
+        if result_:
+            result = json.loads(result_)
             return (
                 Result.ok(
                     result["part1"]["answer"],
@@ -39,7 +39,7 @@ class Java(Plugin):
         else:
             return Result.missing(), Result.missing()
 
-    def java(self, year: int, day: int, data: str):
+    def java(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect(
                 (config.java["server"]["host"], config.java["server"]["port"])
@@ -48,10 +48,10 @@ class Java(Plugin):
             s.send(f"{day}\r\n".encode("UTF-8"))
             s.send(f"{data}\r\n".encode("UTF-8"))
             s.send(b"END\r\n")
-            data = s.recv(1024)
-        result = data.decode("UTF-8").rstrip()
-        self.log.info(f"Result: {result}")
-        result = json.loads(result)
+            rcv_data = s.recv(1024)
+        result_ = rcv_data.decode("UTF-8").rstrip()
+        self.log.info(f"Result: {result_}")
+        result = json.loads(result_)
         if "part1" in result and "part2" in result:
             return (
                 Result.ok(
@@ -66,7 +66,7 @@ class Java(Plugin):
         else:
             return Result.missing(), Result.missing()
 
-    def start_java(self):
+    def start_java(self) -> None:
         completed = subprocess.Popen(  # nosec
             [
                 config.java["server"]["command"],
@@ -88,20 +88,20 @@ class Java(Plugin):
         if results != ["HELLO"]:
             raise RuntimeError("No response from Java run server")
 
-    def stop_java(self):
+    def stop_java(self) -> None:
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect(
                 (config.java["server"]["host"], config.java["server"]["port"])
             )
             s.send(b"STOP")
 
-    def start(self):
+    def start(self) -> None:
         self.log.debug("Starting")
         self.start_java()
 
-    def run(self, year: int, day: int, data: str):
+    def run(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         return self.java(year, day, data)
 
-    def stop(self):
+    def stop(self) -> None:
         self.log.debug("Stopping")
         self.stop_java()

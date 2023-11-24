@@ -1,5 +1,5 @@
+import static com.github.pareronia.aoc.AssertUtils.assertFalse;
 import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.EnumUtils.getEnum;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,8 +10,7 @@ import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.IntStream;
-
-import org.apache.commons.collections4.ListUtils;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
@@ -53,10 +52,10 @@ public class AoC2021_23 extends AoCBase {
                 .filter(c -> c != WALL)
                 .collect(toList());
             assert chars.size() == 4;
-            roomA.add(0, getEnum(Amphipod.class, chars.get(0).toString()));
-            roomB.add(0, getEnum(Amphipod.class, chars.get(1).toString()));
-            roomC.add(0, getEnum(Amphipod.class, chars.get(2).toString()));
-            roomD.add(0, getEnum(Amphipod.class, chars.get(3).toString()));
+            roomA.add(0, Enum.valueOf(Amphipod.class, chars.get(0).toString()));
+            roomB.add(0, Enum.valueOf(Amphipod.class, chars.get(1).toString()));
+            roomC.add(0, Enum.valueOf(Amphipod.class, chars.get(2).toString()));
+            roomD.add(0, Enum.valueOf(Amphipod.class, chars.get(3).toString()));
         }
         return new Diagram(
             hallway,
@@ -74,6 +73,7 @@ public class AoC2021_23 extends AoCBase {
         return new AoC2021_23(input, true);
     }
     
+    @SuppressWarnings("unused")
     private int solveBis(final Diagram start) {
         final PriorityQueue<State> q = new PriorityQueue<>();
         q.add(new State(start, 0));
@@ -155,8 +155,8 @@ public class AoC2021_23 extends AoCBase {
 
         final Puzzle puzzle = Aocd.puzzle(2021, 23);
         puzzle.check(
-            () -> lap("Part 1", () -> AoC2021_23.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2021_23.create(puzzle.getInputData()).solvePart2())
+            () -> lap("Part 1", AoC2021_23.create(puzzle.getInputData())::solvePart1),
+            () -> lap("Part 2", AoC2021_23.create(puzzle.getInputData())::solvePart2)
         );
     }
 
@@ -338,16 +338,16 @@ public class AoC2021_23 extends AoCBase {
         }
         
         private Room roomFor(final Amphipod amphipod) {
+            assertFalse(amphipod == Amphipod.EMPTY, () -> "Can't assign room for EMPTY");
             if (amphipod == Amphipod.A) {
                 return this.roomA;
             } else if (amphipod == Amphipod.B) {
                 return this.roomB;
             } else if (amphipod == Amphipod.C) {
                 return this.roomC;
-            } else if (amphipod == Amphipod.D) {
+            } else {
                 return this.roomD;
             }
-            throw new IllegalArgumentException();
         }
         
         public Diagram doMove(final Move move) {
@@ -370,7 +370,10 @@ public class AoC2021_23 extends AoCBase {
         }
         
         public List<Move> moves() {
-            return ListUtils.union(movesFromHallway(), movesToHallway());
+            return Stream.concat(
+                    movesFromHallway().stream(),
+                    movesToHallway().stream())
+                .collect(toList());
         }
 
         private List<MoveToHallway> movesToHallway() {
@@ -482,20 +485,19 @@ public class AoC2021_23 extends AoCBase {
         }
         
         private boolean freeTo(final int pos, final int target) {
+            assertFalse(pos == target, () -> "");
             if (pos < target) {
                 for (int i = pos + 1; i < target; i++) {
                     if (!this.hallwayEmpty(i)) {
                         return false;
                     }
                 }
-            } else if (pos > target) {
+            } else {
                 for (int i = this.hallway.capacity - 1; i > pos; i--) {
                     if (!this.hallwayEmpty(i)) {
                         return false;
                     }
                 }
-            } else {
-                throw new IllegalArgumentException();
             }
             return true;
         }

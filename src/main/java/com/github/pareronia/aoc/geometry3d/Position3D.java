@@ -1,5 +1,7 @@
 package com.github.pareronia.aoc.geometry3d;
 
+import java.util.stream.Stream;
+
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = true)
@@ -36,6 +38,12 @@ public class Position3D extends Point3D {
         return Math.abs(this.getX() - from.getX())
                 + Math.abs(this.getY() - from.getY())
                 + Math.abs(this.getZ() - from.getZ());
+    }
+    
+    public Stream<Position3D> capitalNeighbours() {
+        return Direction3D.CAPITAL.stream()
+            .map(Direction3D::getValue)
+            .map(this::translate);
     }
     
     @Override

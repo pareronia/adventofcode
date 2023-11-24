@@ -1,15 +1,14 @@
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class AoC2021_18_AdderTestCase {
     
     @Test
     public void test() {
-        assertThat(add("[1,2]", "[[3,4],5]"), is("[[1,2],[[3,4],5]]"));
-        assertThat(add("[[1,1],[2,2]]", "[[3,3],[4,4]]"),
-                is("[[[1,1],[2,2]],[[3,3],[4,4]]]"));
+        assertThat(add("[1,2]", "[[3,4],5]")).isEqualTo("[[1,2],[[3,4],5]]");
+        assertThat(add("[[1,1],[2,2]]", "[[3,3],[4,4]]"))
+            .isEqualTo("[[[1,1],[2,2]],[[3,3],[4,4]]]");
     }
 
     private String add(final String left, final String right) {

@@ -1,146 +1,95 @@
 package com.github.pareronia.aoc;
 
-import static java.util.stream.Collectors.toList;
+import java.util.Comparator;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
-import lombok.ToString;
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+public final class Range<T> {
 
-@ToString(onlyExplicitlyIncluded = true)
-public class Range implements Iterable<Integer> {
-    @ToString.Include
-    private final int from;
-    @ToString.Include
-    private final int to;
-    @ToString.Include
-    private final int step;
-    private int minimum;
-    private int maximum;
-    private boolean empty;
+    @SuppressWarnings({"rawtypes", "unchecked"})
+    private enum ComparableComparator implements Comparator {
+        INSTANCE;
+
+        @Override
+        public int compare(final Object obj1, final Object obj2) {
+            return ((Comparable) obj1).compareTo(obj2);
+        }
+    }
+
+    @Getter
+    @EqualsAndHashCode.Include
+    private final T minimum;
+    @Getter
+    @EqualsAndHashCode.Include
+    private final T maximum;
+    private final Comparator<T> comparator;
+    private String toString;
     
-    private Range(final int from, final int to, final int step) {
-        if (step == 0) {
-            throw new IllegalArgumentException("step should be != 0");
-        }
-        if (from < to && step < 0) {
-            throw new IllegalArgumentException("step should be > 0");
-        }
-        if (from > to && step > 0) {
-            throw new IllegalArgumentException("step should be < 0");
-        }
-        this.from = from;
-        this.to = to;
-        this.step = step;
-        final List<Integer> list = this.stream().collect(toList());
-        if (from != to) {
-            this.minimum = from < to ? list.get(0) : Utils.last(list);
-            this.maximum = from < to ? Utils.last(list) : list.get(0);
+    @SuppressWarnings({ "unchecked" })
+    private Range(final T element1, final T element2) {
+        AssertUtils.assertTrue(
+                element1 != null && element2 != null,
+                () -> String.format("Elements in a range must not be null: element1=%s, element2=%s",
+                        element1, element2));
+        this.comparator = ComparableComparator.INSTANCE;
+        if (comparator.compare(element1, element2) < 1) {
+            this.minimum = element1;
+            this.maximum = element2;
         } else {
-            this.empty = true;
+            this.minimum = element2;
+            this.maximum = element1;
         }
     }
 
-    public static Range range(final int to) {
-        if (to <= 0) {
-            throw new IllegalArgumentException("to should be > 0");
-        }
-        return new Range(0, to, 1);
-    }
-    
-    public static Range rangeClosed(final int to) {
-        if (to <= 0) {
-            throw new IllegalArgumentException("to should be > 0");
-        }
-        return new Range(0, to + 1, 1);
-    }
-    
-    public static Range range(final int from, final int to, final int step) {
-        return new Range(from, to, step);
-    }
-    
-    public static Range rangeClosed(final int from, final int to, final int step) {
-        return new Range(from, from == to ? to : (from < to ? to + 1 : to - 1), step);
-    }
-    
-    public static Range between(final int fromInclusive, final int toInclusive) {
-        final int step = fromInclusive > toInclusive ? -1 : 1;
-        return Range.rangeClosed(fromInclusive, toInclusive, step);
-    }
-    
-    public boolean contains(final int value) {
-        return !empty && minimum <= value && value <= maximum && ((value - minimum) % step) == 0;
-    }
-    
-    public boolean containsRange(final Range other) {
-        if (other == null || empty || other.empty) {
-            return false;
-        }
-        if (step != 1 || other.step != 1) {
-            throw new UnsupportedOperationException("only available for step=1");
-        }
-        return contains(other.minimum) && contains(other.maximum);
-    }
-   
-    public boolean isOverlappedBy(final Range other) {
-        if (other == null || empty || other.empty) {
-            return false;
-        }
-        if (step != 1 || other.step != 1) {
-            throw new UnsupportedOperationException("only available for step=1");
-        }
-        return other.contains(minimum) || other.contains(maximum) || contains(other.minimum);
-    }
-    
-    public int getMinimum() {
-        return minimum;
-    }
-    
-    public int getMaximum() {
-        return maximum;
-    }
-    
-    public boolean isBefore(final int n) {
-        return maximum < n;
-    }
-    
-    public boolean isAfter(final int n) {
-        return n < minimum;
-    }
-    
-    public Stream<Integer> stream() {
-        return Utils.stream(iterator());
-    }
-    
-    public IntStream intStream() {
-        final Iterator<Integer> iterator = iterator();
-        return IntStream.generate(() -> 0)
-                .takeWhile(x -> iterator.hasNext())
-                .map(x -> iterator.next());
+    public static <T> Range<T> between(final T fromInclusive, final T toInclusive) {
+        return new Range<>(fromInclusive, toInclusive);
     }
 
+    public boolean isBefore(final T element) {
+        if (element == null) {
+            return false;
+        }
+        return comparator.compare(element, maximum) > 0;
+    }
+
+    public boolean isAfter(final T element) {
+        if (element == null) {
+            return false;
+        }
+        return comparator.compare(element, minimum) < 0;
+    }
+
+    public boolean contains(final T element) {
+        if (element == null) {
+            return false;
+        }
+        return comparator.compare(element, minimum) > -1
+                && comparator.compare(element, maximum) < 1;
+    }
+
+    public boolean containsRange(final Range<T> otherRange) {
+        if (otherRange == null) {
+            return false;
+        }
+        return contains(otherRange.minimum) && contains(otherRange.maximum);
+    }
+
+    public boolean isOverlappedBy(final Range<T> otherRange) {
+        if (otherRange == null) {
+            return false;
+        }
+        return otherRange.contains(minimum)
+            || otherRange.contains(maximum)
+            || contains(otherRange.minimum);
+    }
+    
     @Override
-    public Iterator<Integer> iterator() {
-        return new Iterator<>() {
-            int n = from;
-            
-            @Override
-            public boolean hasNext() {
-                if (from < to) {
-                    return to > n;
-                } else {
-                    return to < n;
-                }
-            }
-
-            @Override
-            public Integer next() {
-                final int next = n;
-                n += step;
-                return next;
-            }
-        };
+    public String toString() {
+        if (toString == null) {
+            toString = String.format("[%s..%s]", minimum, maximum);
+        }
+        return toString;
     }
 }

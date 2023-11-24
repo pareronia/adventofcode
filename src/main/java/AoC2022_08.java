@@ -5,7 +5,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.IntGrid;
-import com.github.pareronia.aoc.IntGrid.Cell;
+import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 

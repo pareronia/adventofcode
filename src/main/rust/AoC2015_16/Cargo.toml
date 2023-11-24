@@ -1,0 +1,8 @@
+[package]
+name = "AoC2015_16"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aoc = { path = "../aoc" }
+strum = { version = "0.25", features = ["derive"] }

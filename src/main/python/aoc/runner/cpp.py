@@ -7,7 +7,7 @@ from .config import config
 
 
 class Cpp(Plugin):
-    def run(self, year: int, day: int, data: str):
+    def run(self, year: int, day: int, data: str) -> tuple[Result, Result]:
         def run_part(part: int) -> Result:
             file_name = config.cpp["day_format"].format(year=year, day=day)
             f = os.path.join(config.root, config.cpp["base_dir"], file_name)

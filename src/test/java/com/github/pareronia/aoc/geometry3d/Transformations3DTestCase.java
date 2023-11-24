@@ -1,9 +1,8 @@
 package com.github.pareronia.aoc.geometry3d;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 public class Transformations3DTestCase {
 
@@ -14,6 +13,6 @@ public class Transformations3DTestCase {
         
         final Position3D result = Transformations3D.translate(position, vector);
         
-        assertThat(result, is(Position3D.of(0, 2, 0)));
+        assertThat(result).isEqualTo(Position3D.of(0, 2, 0));
     }
 }

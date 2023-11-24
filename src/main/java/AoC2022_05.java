@@ -1,5 +1,5 @@
-import static com.github.pareronia.aoc.Range.range;
-import static com.github.pareronia.aoc.Range.rangeClosed;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
 import static com.github.pareronia.aoc.Utils.last;
 import static com.github.pareronia.aoc.Utils.toAString;
 

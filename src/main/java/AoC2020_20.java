@@ -1,14 +1,17 @@
+import static com.github.pareronia.aoc.SetUtils.union;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.CollectionUtils.union;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -18,33 +21,30 @@ import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.tuple.Pair;
-
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_20 extends AoCBase {
 	
 	private final TileSet tileSet;
 	private final Logger logger;
 	
-	private AoC2020_20(List<String> input, boolean debug) {
+	private AoC2020_20(final List<String> input, final boolean debug) {
 		super(debug);
 		this.logger = obj -> log(() -> obj);
 		this.tileSet = parse(input);
 	}
 
-	public static final AoC2020_20 create(List<String> input) {
+	public static final AoC2020_20 create(final List<String> input) {
 		return new AoC2020_20(input, false);
 	}
 
-	public static final AoC2020_20 createDebug(List<String> input) {
+	public static final AoC2020_20 createDebug(final List<String> input) {
 		return new AoC2020_20(input, true);
 	}
 	
-	private TileSet parse(List<String> inputs) {
+	private TileSet parse(final List<String> inputs) {
 		final Set<Tile> tiles = toBlocks(inputs).stream()
 				.map(block -> {
 					Integer id = null;
@@ -73,22 +73,22 @@ public class AoC2020_20 extends AoCBase {
 		this.tileSet.puzzle();
 		this.tileSet.removeTileEdges();
 		this.tileSet.printPlacedTiles();
-		Grid image = Grid.from(this.tileSet.createImageGrid());
+		CharGrid image = CharGrid.from(this.tileSet.createImageGrid());
 		print(image);
 		log("Looking for Nessies...");
-		List<Pair<Integer, Integer>> nessies = null;
-		final Iterator<Grid> permutations = image.getPermutations();
+		Map<Integer, Integer> nessies = null;
+		final Iterator<CharGrid> permutations = image.getPermutations();
 		while (permutations.hasNext()) {
 			image = permutations.next();
 			nessies = NessieFinder.findNessies(image);
 			if (nessies.size() > 1) {
-				for (final Pair<Integer, Integer> nessie : nessies) {
+				for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
 					log(String.format("Found 1 Nessie at (%d, %d)!",
-							nessie.getLeft(), nessie.getRight()));
+							nessie.getKey(), nessie.getValue()));
 				}
 				break;
 			} else if (nessies.size() == 1) {
-				final Grid grid = NessieFinder.markNessies(nessies, image);
+				final CharGrid grid = NessieFinder.markNessies(nessies, image);
 				print(grid);
 				log("One is not enough? Looking for more Nessies...");
 			}
@@ -100,17 +100,20 @@ public class AoC2020_20 extends AoCBase {
 		return octothorps - 15 * nessies.size();
 	}
 
-	private void print(Grid image) {
+	private void print(final CharGrid image) {
 		image.getRowsAsStrings().forEach(this::log);
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_20.createDebug(splitLines(TEST)).solvePart1() == 20899048083289L;
 		assert AoC2020_20.createDebug(splitLines(TEST)).solvePart2() == 273L;
 		
-		final List<String> input = Aocd.getData(2020, 20);
-		lap("Part 1", () -> AoC2020_20.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_20.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2020, 20);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2020_20.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2020_20.create(inputData)::solvePart2)
+        );
 	}
 
 	private static final String TEST =
@@ -224,14 +227,14 @@ public class AoC2020_20 extends AoCBase {
 	
 	static final class Tile {
 		private final Integer id;
-		private final Grid grid;
+		private final CharGrid grid;
 		
-		public Tile(Integer id, List<String> grid) {
+		public Tile(final Integer id, final List<String> grid) {
 			this.id = id;
-			this.grid = Grid.from(grid);
+			this.grid = CharGrid.from(grid);
 		}
 		
-		public Tile(Integer id, Grid grid) {
+		public Tile(final Integer id, final CharGrid grid) {
 			this.id = id;
 			this.grid = grid;
 		}
@@ -240,7 +243,7 @@ public class AoC2020_20 extends AoCBase {
 			return id;
 		}
 
-		public Grid getGrid() {
+		public CharGrid getGrid() {
 			return grid;
 		}
 
@@ -260,7 +263,7 @@ public class AoC2020_20 extends AoCBase {
 			return this.grid.getRightEdge();
 		}
 		
-		private char[] getRow(int row)  {
+		private char[] getRow(final int row)  {
 			return this.grid.getRow(row);
 		}
 		
@@ -281,8 +284,8 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		public Iterator<Tile> getAllPermutations() {
-			return new Iterator<Tile>() {
-				final Iterator<Grid> inner = Tile.this.getGrid().getPermutations();
+			return new Iterator<>() {
+				final Iterator<CharGrid> inner = Tile.this.getGrid().getPermutations();
 				
 				@Override
 				public boolean hasNext() {
@@ -312,7 +315,7 @@ public class AoC2020_20 extends AoCBase {
 		}
 
 		@Override
-		public boolean equals(Object obj) {
+		public boolean equals(final Object obj) {
 			if (this == obj) {
 				return true;
 			}
@@ -329,7 +332,7 @@ public class AoC2020_20 extends AoCBase {
 		private final Tile[][] placedTiles;
 		private final Logger logger;
 	
-		public TileSet(Set<Tile> tiles, Logger logger) {
+		public TileSet(final Set<Tile> tiles, final Logger logger) {
 			this.tiles = tiles;
 			this.logger = logger;
 			this.placedTiles = new Tile[Math.sqrt(tiles.size())][Math.sqrt(tiles.size())];
@@ -339,11 +342,11 @@ public class AoC2020_20 extends AoCBase {
 			return this.tiles;
 		}
 		
-		private void log(Object object) {
+		private void log(final Object object) {
 			this.logger.log(object);
 		}
 		
-		private void placeTile(Tile tile, int row, int col) {
+		private void placeTile(final Tile tile, final int row, final int col) {
 			placedTiles[row][col] = tile;
 			tiles.remove(tile);
 		}
@@ -353,7 +356,9 @@ public class AoC2020_20 extends AoCBase {
 				return;
 			}
 			for (final Tile[] tiles : placedTiles) {
-				final Tile tile = ObjectUtils.firstNonNull(tiles);
+			    final Tile tile = Arrays.stream(tiles)
+			            .filter(Objects::nonNull)
+			            .findFirst().orElse(null);
 				if (tile == null) {
 					continue;
 				}
@@ -369,7 +374,9 @@ public class AoC2020_20 extends AoCBase {
 				log("");
 			}
 			for (final Tile[] tiles : placedTiles) {
-				final Tile tile = ObjectUtils.firstNonNull(tiles);
+			    final Tile tile = Arrays.stream(tiles)
+			            .filter(Objects::nonNull)
+			            .findFirst().orElse(null);
 				if (tile == null) {
 					continue;
 				}
@@ -383,20 +390,22 @@ public class AoC2020_20 extends AoCBase {
 			}
 		}
 		
-		private Set<char[]> getEdgesForMatching(Tile tile) {
-			if (ArrayUtils.contains(placedTiles, tile)) {
+		private Set<char[]> getEdgesForMatching(final Tile tile) {
+		    if (Arrays.stream(placedTiles)
+		            .flatMap(a -> Arrays.stream(a))
+		            .anyMatch(tile::equals)) {
 				return tile.getAllEdges();
 			} else {
 				return new HashSet<>(union(tile.getAllEdges(), tile.getAllEdgesReversed()));
 			}
 		}
 		
-		private boolean haveCommonEdge(Tile tile1, Tile tile2) {
-			return getEdgesForMatching(tile1).stream()
+		private boolean haveCommonEdge(final Tile tile1, final Tile tile2) {
+		    return tile1.getAllEdges().stream()
 				.flatMap(edge1 -> getEdgesForMatching(tile2).stream()
-									.map(edge2 -> Pair.of(edge1, edge2)))
-				.filter(p -> Arrays.equals(p.getLeft(), p.getRight()))
-				.count() == 2;
+									.map(edge2 -> new char[][] { edge1, edge2 }))
+				.filter(p -> Arrays.equals(p[0], p[1]))
+				.count() == 1;
 		}
 		
 		public Set<Tile> findCorners() {
@@ -484,30 +493,32 @@ public class AoC2020_20 extends AoCBase {
 	
 	private static final class Math {
 		
-		public static long prod(Collection<Integer> numbers) {
+		public static long prod(final Collection<Integer> numbers) {
 			return numbers.stream().map(Integer::longValue).reduce(1L, (a, b) -> a * b);
 		}
 		
-		public static int sqrt(int number) {
+		public static int sqrt(final int number) {
 			return Double.valueOf(java.lang.Math.sqrt(number)).intValue();
 		}
 	}
 	
 	static final class NessieFinder {
 		
-		private static final char NESSIE_CHAR = '\u2592';
+		private static final Pattern PATTERN2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#");
+        private static final Pattern PATTERN1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#");
+        private static final char NESSIE_CHAR = '\u2592';
 
-		public static List<Pair<Integer,Integer>> findNessies(Grid grid) {
-			final List<Pair<Integer, Integer>> nessies = new ArrayList<>();
+		public static Map<Integer,Integer> findNessies(final CharGrid grid) {
+			final Map<Integer, Integer> nessies = new HashMap<>();
 			for (int i = 1; i < grid.getHeight(); i++) {
-				final Matcher m1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#").matcher(grid.getRowAsString(i));
+				final Matcher m1 = PATTERN1.matcher(grid.getRowAsString(i));
 				while (m1.find()) {
 					final int tail = m1.start(0);
 					if ("#".equals(grid.getRowAsString(i - 1).substring(tail + 18, tail + 19))) {
-						final Matcher m2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#")
+						final Matcher m2 = PATTERN2
 								.matcher(grid.getRowAsString(i + 1).substring(tail));
 						if (m2.find()) {
-							nessies.add(Pair.of(i, tail));
+							nessies.put(i, tail);
 						}
 					}
 				}
@@ -515,14 +526,14 @@ public class AoC2020_20 extends AoCBase {
 			return nessies;
 		}
 		
-		public static Grid markNessies(List<Pair<Integer, Integer>> nessies, Grid gridIn) {
+		public static CharGrid markNessies(final Map<Integer, Integer> nessies, final CharGrid gridIn) {
 			final List<String> grid = gridIn.getRowsAsStringList();
-			for (final Pair<Integer, Integer> nessie : nessies) {
-				final int idx = nessie.getRight();
-				final char[] chars0 = grid.get(nessie.getLeft() - 1).toCharArray();
+			for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
+				final int idx = nessie.getValue();
+				final char[] chars0 = grid.get(nessie.getKey() - 1).toCharArray();
 				chars0[idx+18] = NESSIE_CHAR;
-				grid.set(nessie.getLeft() - 1, new String(chars0));
-				final char[] chars1 = grid.get(nessie.getLeft()).toCharArray();
+				grid.set(nessie.getKey() - 1, new String(chars0));
+				final char[] chars1 = grid.get(nessie.getKey()).toCharArray();
 				chars1[idx] = NESSIE_CHAR;
 				chars1[idx+5] = NESSIE_CHAR;
 				chars1[idx+6] = NESSIE_CHAR;
@@ -531,15 +542,15 @@ public class AoC2020_20 extends AoCBase {
 				chars1[idx+17] = NESSIE_CHAR;
 				chars1[idx+18] = NESSIE_CHAR;
 				chars1[idx+19] = NESSIE_CHAR;
-				grid.set(nessie.getLeft(), new String(chars1));
-				final char[] chars2 = grid.get(nessie.getLeft() + 1).toCharArray();
+				grid.set(nessie.getKey(), new String(chars1));
+				final char[] chars2 = grid.get(nessie.getKey() + 1).toCharArray();
 				chars2[idx+1] = NESSIE_CHAR;
 				chars2[idx+4] = NESSIE_CHAR;
 				chars2[idx+7] = NESSIE_CHAR;
 				chars2[idx+10] = NESSIE_CHAR;
 				chars2[idx+13] = NESSIE_CHAR;
 				chars2[idx+16] = NESSIE_CHAR;
-				grid.set(nessie.getLeft() + 1, new String(chars2));
+				grid.set(nessie.getKey() + 1, new String(chars2));
 			}
 			for (int j = 0; j < grid.size(); j++) {
 				final char[] chars = grid.get(j).toCharArray();
@@ -552,36 +563,36 @@ public class AoC2020_20 extends AoCBase {
 				}
 				grid.set(j, new String(chars));
 			}
-			return Grid.from(grid);
+			return CharGrid.from(grid);
 		}
 	}
 	
 	static final class TileMatcher {
 		
-		private static Predicate<AoC2020_20.Tile> rightSide(Tile tile) {
+		private static Predicate<AoC2020_20.Tile> rightSide(final Tile tile) {
 			return t -> Arrays.equals(tile.getRightEdge(), t.getLeftEdge());
 		}
 		
-		private static Predicate<AoC2020_20.Tile> bottomSide(Tile tile) {
+		private static Predicate<AoC2020_20.Tile> bottomSide(final Tile tile) {
 			return t -> Arrays.equals(tile.getBottomEdge(), t.getTopEdge());
 		}
 		
-		public static Optional<Tile> findRightSideMatch(Tile tile, Set<Tile> tiles) {
+		public static Optional<Tile> findRightSideMatch(final Tile tile, final Set<Tile> tiles) {
 			return findMatch(tile, tiles, rightSide(tile));
 		}
 		
-		public static Optional<Tile> findBottomSideMatch(Tile tile, Set<Tile> tiles) {
+		public static Optional<Tile> findBottomSideMatch(final Tile tile, final Set<Tile> tiles) {
 			return findMatch(tile, tiles, bottomSide(tile));
 		}
 		
-		private static Optional<Tile> findMatch(Tile tile, Set<Tile> tiles, Predicate<AoC2020_20.Tile> matcher) {
+		private static Optional<Tile> findMatch(final Tile tile, final Set<Tile> tiles, final Predicate<AoC2020_20.Tile> matcher) {
 			return tiles.stream()
 				.flatMap(t -> asStream(t.getAllPermutations()))
 				.filter(matcher)
 				.findAny();
 		}
 	    
-		private static <T> Stream<T> asStream(Iterator<T> sourceIterator) {
+		private static <T> Stream<T> asStream(final Iterator<T> sourceIterator) {
 	        final Iterable<T> iterable = () -> sourceIterator;
 	        return StreamSupport.stream(iterable.spliterator(), false);
 	    }

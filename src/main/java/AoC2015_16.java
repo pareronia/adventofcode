@@ -1,149 +1,141 @@
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.IntegerSequence.Range;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
+import lombok.AccessLevel;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-public class AoC2015_16 extends AoCBase {
+public class AoC2015_16 extends SolutionBase<List<AuntSue>, Integer, Integer> {
     
-    private static final String REGEXP = "Sue ([0-9]+): ([a-z]+): ([0-9]+), ([a-z]+): ([0-9]+), ([a-z]+): ([0-9]+)";
+    private static final int[] VALUES = new int[] {
+            /* Thing.CHILDREN */ 3,
+            /* Thing.CATS */ 7,
+            /* Thing.SAMOYEDS */ 2,
+            /* Thing.POMERANIANS */ 3,
+            /* Thing.AKITAS */ 0,
+            /* Thing.VIZSLAS */ 0,
+            /* Thing.GOLDFISH */ 5,
+            /* Thing.TREES */ 3,
+            /* Thing.CARS */ 2,
+            /* Thing.PERFUMES */ 1 };
     
-    private final List<AuntSue> auntSues;
-    
-    private AoC2015_16(final List<String> inputs, final boolean debug) {
+    private AoC2015_16(final boolean debug) {
         super(debug);
-        final Pattern pattern = Pattern.compile(REGEXP);
-        this.auntSues = inputs.stream()
-                .map(s -> {
-                    final Matcher m = pattern.matcher(s);
-                    if (m.matches()) {
-                        final int nbr = Integer.valueOf(m.group(1));
-                        final Map<String, Integer> things = Map.of(
-                                m.group(2), Integer.valueOf(m.group(3)),
-                                m.group(4), Integer.valueOf(m.group(5)),
-                                m.group(6), Integer.valueOf(m.group(7))
-                        );
-                        return new AuntSue(nbr, things);
-                    } else {
-                        throw new IllegalArgumentException();
-                    }
-                })
-                .collect(toList());
     }
 
-    public static final AoC2015_16 create(final List<String> input) {
-        return new AoC2015_16(input, false);
+    public static final AoC2015_16 create() {
+        return new AoC2015_16(false);
     }
 
-    public static final AoC2015_16 createDebug(final List<String> input) {
-        return new AoC2015_16(input, true);
+    public static final AoC2015_16 createDebug() {
+        return new AoC2015_16(true);
     }
     
-    private Integer findAuntSueWithBestScore(final Map<String, Rule> rules) {
-        final Map<Integer, Integer> scores = new HashMap<>();
-        for (final AuntSue sue : this.auntSues) {
-            for (final String thing : rules.keySet()) {
-                if (rules.get(thing).matches(sue.getThing(thing))) {
-                    scores.merge(sue.nbr, 1, Integer::sum);
-                }
-            }
-        }
-        return scores.entrySet().stream()
-                .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
+    private AuntSue findAuntSueWithBestScore(final List<AuntSue> auntSues, final Op[] ops) {
+        return auntSues.stream()
+            .collect(toMap(
+                Function.identity(),
+                sue -> IntStream.range(0, Thing.values().length)
+                    .filter(thing -> ops[thing].matches(sue.getThings()[thing], VALUES[thing]))
+                    .count()))
+            .entrySet().stream()
+                .sorted((e1, e2) -> Long.compare(e2.getValue(), e1.getValue()))
                 .findFirst()
                 .map(Entry::getKey)
                 .orElseThrow();
     }
-    
+
     @Override
-    public Integer solvePart1() {
-        final Map<String, Rule> rules = Map.of(
-                "children", Rule.eq(3),
-                "cats", Rule.eq(7),
-                "samoyeds", Rule.eq(2),
-                "pomeranians", Rule.eq(3),
-                "akitas", Rule.eq(0),
-                "vizslas", Rule.eq(0),
-                "goldfish", Rule.eq(5),
-                "trees", Rule.eq(3),
-                "cars", Rule.eq(2),
-                "perfumes", Rule.eq(1)
-        );
-        return findAuntSueWithBestScore(rules);
-    }
-    
-    @Override
-    public Integer solvePart2() {
-        final Map<String, Rule> rules = Map.of(
-                "children", Rule.eq(3),
-                "cats", Rule.gt(7),
-                "samoyeds", Rule.eq(2),
-                "pomeranians", Rule.lt(3),
-                "akitas", Rule.eq(0),
-                "vizslas", Rule.eq(0),
-                "goldfish", Rule.lt(5),
-                "trees", Rule.gt(3),
-                "cars", Rule.eq(2),
-                "perfumes", Rule.eq(1)
-        );
-        return findAuntSueWithBestScore(rules);
+    public List<AuntSue> parseInput(final List<String> inputs) {
+        return inputs.stream().map(AuntSue::fromInput).collect(toList());
     }
 
+    @Override
+    public Integer solvePart1(final List<AuntSue> sues) {
+        final Op[] ops = new Op[] {
+                Op.EQ, Op.EQ, Op.EQ, Op.EQ, Op.EQ,
+                Op.EQ, Op.EQ, Op.EQ, Op.EQ, Op.EQ };
+        return findAuntSueWithBestScore(sues, ops).getNbr();
+    }
+
+    @Override
+    public Integer solvePart2(final List<AuntSue> sues) {
+        final Op[] ops = new Op[] {
+                Op.EQ, Op.GT, Op.EQ, Op.LT, Op.EQ,
+                Op.EQ, Op.LT, Op.GT, Op.EQ, Op.EQ };
+        return findAuntSueWithBestScore(sues, ops).getNbr();
+    }
+    
     public static void main(final String[] args) throws Exception {
-        final Puzzle puzzle = Aocd.puzzle(2015, 16);
-        puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_16.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_16.create(puzzle.getInputData()).solvePart2())
-        );
+        AoC2015_16.create().run();
     }
     
-    @RequiredArgsConstructor
-    private static final class AuntSue {
-        private final int nbr;
-        private final Map<String, Integer> things;
+    private enum Op {
+        EQ, LT, GT;
         
-        public Integer getThing(final String thing) {
-            return this.things.get(thing);
-        }
-    }
-    
-    @RequiredArgsConstructor
-    private static final class Rule {
-        private enum Op { EQ, LT, GT }
-        
-        private final Op operation;
-        private final int operand;
-        
-        public static final Rule eq(final int operand) {
-            return new Rule(Op.EQ, operand);
-        }
-
-        public static final Rule lt(final int operand) {
-            return new Rule(Op.LT, operand);
-        }
-        
-        public static final Rule gt(final int operand) {
-            return new Rule(Op.GT, operand);
-        }
-        
-        public boolean matches(final Integer value) {
-            if (this.operation == Op.EQ) {
-                return value != null && value == this.operand;
-            } else if (this.operation == Op.LT) {
-                return value != null && value < this.operand;
-            } else if (this.operation == Op.GT) {
-                return value != null && value > this.operand;
+        public boolean matches(final Integer lhs, final int rhs) {
+            if (this == Op.EQ) {
+                return lhs != null && lhs == rhs;
+            } else if (this == Op.LT) {
+                return lhs != null && lhs < rhs;
             } else {
-                throw new IllegalArgumentException("Unsupported operation");
+                return lhs != null && lhs > rhs;
             }
         }
+    }
+}
+
+enum Thing {
+    CHILDREN("children"),
+    CATS("cats"),
+    SAMOYEDS("samoyeds"),
+    POMERANIANS("pomeranians"),
+    AKITAS("akitas"),
+    VIZSLAS("vizslas"),
+    GOLDFISH("goldfish"),
+    TREES("trees"),
+    CARS("cars"),
+    PERFUMES("perfumes");
+    
+    private final String value;
+    
+    Thing(final String value) {
+        this.value = value;
+    }
+    
+    public static final Thing fromString(final String string) {
+        return Stream.of(values())
+                .filter(v -> v.value.equals(string))
+                .findFirst().orElseThrow();
+    }
+}
+
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
+@Getter
+final class AuntSue {
+    @EqualsAndHashCode.Include
+    private final int nbr;
+    private final Integer[] things;
+    
+    public static AuntSue fromInput(final String s) {
+        final String[] splits = s.replaceAll("[,:]", "").split(" ");
+        final Integer[] things = new Integer[Thing.values().length];
+        Range.range(2, splits.length, 2).intStream()
+            .forEach(i -> {
+               final int idx = Thing.fromString(splits[i]).ordinal();
+               things[idx] = Integer.valueOf(splits[i + 1]);
+            });
+        return new AuntSue(Integer.parseInt(splits[1]), things);
     }
 }

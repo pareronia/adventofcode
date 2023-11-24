@@ -1,10 +1,10 @@
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
-import java.util.Set;
 import java.util.function.Function;
 
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 
 public class AoC2021_02 extends AoCBase {
     
-    private static final String FORWARD = "forward";
+    // private static final String FORWARD = "forward";
     private static final String UP = "up";
     private static final String DOWN = "down";
 
@@ -23,9 +23,6 @@ public class AoC2021_02 extends AoCBase {
 		final Function<String, Command> createCommand = s -> {
             final String[] split = s.split(" ");
             final String direction = split[0];
-            if (!Set.of(FORWARD, UP, DOWN).contains(direction)) {
-                throw new IllegalArgumentException();
-            }
             return Command.create(direction, split[1]);
         };
         this.commands = input.stream().map(createCommand).collect(toList());
@@ -74,9 +71,12 @@ public class AoC2021_02 extends AoCBase {
 		assert AoC2021_02.createDebug(TEST).solvePart1() == 150;
 		assert AoC2021_02.createDebug(TEST).solvePart2() == 900;
 		
-		final List<String> input = Aocd.getData(2021, 2);
-		lap("Part 1", () -> AoC2021_02.create(input).solvePart1());
-		lap("Part 2", () -> AoC2021_02.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2021, 2);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2021_02.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2021_02.create(inputData)::solvePart2)
+        );
 	}
 	
 	private static final List<String> TEST = splitLines(
@@ -94,7 +94,7 @@ public class AoC2021_02 extends AoCBase {
 	    private final String direction;
 	    private final int amount;
 	    
-	    public static final Command create(final String direction, final String amount) {
+	    public static Command create(final String direction, final String amount) {
 	        return new Command(direction, Integer.valueOf(amount));
 	    }
 	}

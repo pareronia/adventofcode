@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.between;
 import static java.util.stream.Collectors.summingLong;
 import static java.util.stream.Collectors.toList;
 
@@ -7,8 +8,7 @@ import java.util.List;
 import java.util.LongSummaryStatistics;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Range;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_09 extends AoCBase {
 	
@@ -40,8 +40,7 @@ public class AoC2020_09 extends AoCBase {
 	}
 	
 	private Long findInvalidNumber(final Integer windowSize) {
-		final Range range = Range.between(windowSize, this.numbers.size());
-		for (int i = range.getMinimum(); i < range.getMaximum(); i++) {
+	    for (final int i : between(windowSize, this.numbers.size())) {
 			final Long number = this.numbers.get(i);
 			final List<Long> searchWindow = this.numbers.subList(i - windowSize, i);
 			if (!containsTwoSummands(searchWindow, number)) {
@@ -96,9 +95,12 @@ public class AoC2020_09 extends AoCBase {
 		assert AoC2020_09.createDebug(TEST).findInvalidNumber(5) == 127;
 		assert AoC2020_09.createDebug(TEST).findWeakness(5) == 62;
 
-		final List<String> input = Aocd.getData(2020, 9);
-		lap("Part 1", () -> AoC2020_09.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_09.create(input).solvePart2());
+		final Puzzle puzzle = Puzzle.create(2020, 9);
+		final List<String> input = puzzle.getInputData();
+		puzzle.check(
+		    () -> lap("Part 1", AoC2020_09.create(input)::solvePart1),
+		    () -> lap("Part 2", AoC2020_09.create(input)::solvePart2)
+		);
 	}
 	
 	private static final List<String> TEST = splitLines(

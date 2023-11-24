@@ -11,7 +11,7 @@ ON = "#"
 GENERATIONS = 6
 
 
-def _parse(inputs: tuple[str], dim: int) -> GameOfLife:
+def _parse(inputs: tuple[str, ...], dim: int) -> GameOfLife:
     alive = {(r, c, 0, 0)
              for r, row in enumerate(inputs)
              for c, state in enumerate(row)
@@ -19,18 +19,18 @@ def _parse(inputs: tuple[str], dim: int) -> GameOfLife:
     return GameOfLife(alive, InfiniteGrid(dim), ClassicRules())
 
 
-def _solve(inputs: tuple[str], dim: int) -> int:
+def _solve(inputs: tuple[str, ...], dim: int) -> int:
     game_of_life = _parse(inputs, dim)
     for i in range(GENERATIONS):
         game_of_life.next_generation()
-    return len(game_of_life.alive)
+    return sum(1 for _ in game_of_life.alive)
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return _solve(inputs, 3)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     return _solve(inputs, 4)
 
 
@@ -45,8 +45,8 @@ def main() -> None:
     puzzle = aocd.models.Puzzle(2020, 17)
     my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert part_1(TEST) == 112
-    assert part_2(TEST) == 848
+    assert part_1(TEST) == 112  # type:ignore[arg-type]
+    assert part_2(TEST) == 848  # type:ignore[arg-type]
 
     inputs = my_aocd.get_input_data(puzzle, 8)
     result1 = part_1(inputs)

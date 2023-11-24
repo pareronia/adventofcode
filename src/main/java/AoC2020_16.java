@@ -116,7 +116,7 @@ public class AoC2020_16 extends AoCBase {
             5,14,9
             """);
 	
-	private static final record Rule(String field, Set<Range> validRanges) {
+	private static final record Rule(String field, Set<Range<Integer>> validRanges) {
 	    
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));
@@ -128,7 +128,7 @@ public class AoC2020_16 extends AoCBase {
 	    
 	    private static final class RuleBuilder {
 	        private String field;
-	        private final Set<Range> validRanges = new HashSet<>();
+	        private final Set<Range<Integer>> validRanges = new HashSet<>();
 	        
 	        public Rule build() {
 	            return new Rule(this.field, this.validRanges);
@@ -139,7 +139,7 @@ public class AoC2020_16 extends AoCBase {
 	            return this;
 	        }
 	        
-	        public RuleBuilder validRange(final Range validRange) {
+	        public RuleBuilder validRange(final Range<Integer> validRange) {
 	            this.validRanges.add(validRange);
 	            return this;
 	        }

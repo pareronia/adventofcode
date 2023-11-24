@@ -6,28 +6,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.json.JSONObject;
-
+import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2015_12 extends AoCBase {
+public class AoC2015_12 extends SolutionBase<String, Integer, Integer> {
     
-    private final String input;
-    
-    private AoC2015_12(final List<String> inputs, final boolean debug) {
+    private AoC2015_12(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = inputs.get(0);
     }
 
-    public static final AoC2015_12 create(final List<String> input) {
-        return new AoC2015_12(input, false);
+    public static final AoC2015_12 create() {
+        return new AoC2015_12(false);
     }
 
-    public static final AoC2015_12 createDebug(final List<String> input) {
-        return new AoC2015_12(input, true);
+    public static final AoC2015_12 createDebug() {
+        return new AoC2015_12(true);
     }
     
     private int addAllNumbers1(final String in) {
@@ -42,8 +38,8 @@ public class AoC2015_12 extends AoCBase {
     
     @SuppressWarnings("unchecked")
     private int addAllNumbers2(final Object obj) {
-        if (obj instanceof Integer) {
-            return (Integer) obj;
+        if (obj instanceof Number) {
+            return ((Number) obj).intValue();
         } else if (obj instanceof String) {
             return 0;
         } else if (obj instanceof List) {
@@ -59,46 +55,53 @@ public class AoC2015_12 extends AoCBase {
     }
     
     @Override
-    public Integer solvePart1() {
-        return addAllNumbers1(this.input);
+    protected String parseInput(final List<String> inputs) {
+        assert inputs.size() == 1;
+        return inputs.get(0);
     }
 
     @Override
-    public Integer solvePart2() {
-        final JSONObject jo = new JSONObject("{content: " + this.input + "}");
-        return addAllNumbers2(jo.toMap());
+    public Integer solvePart1(final String input) {
+        return addAllNumbers1(input);
+    }
+
+    @Override
+    public Integer solvePart2(final String input) {
+        return addAllNumbers2(
+                Json.fromJson("{content: " + input + "}", Map.class));
+    }
+
+    @Override
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "6"),
+        @Sample(method = "part1", input = TEST2, expected = "6"),
+        @Sample(method = "part1", input = TEST3, expected = "3"),
+        @Sample(method = "part1", input = TEST4, expected = "3"),
+        @Sample(method = "part1", input = TEST5, expected = "0"),
+        @Sample(method = "part1", input = TEST6, expected = "0"),
+        @Sample(method = "part1", input = TEST7, expected = "0"),
+        @Sample(method = "part1", input = TEST8, expected = "0"),
+        @Sample(method = "part2", input = TEST1, expected = "6"),
+        @Sample(method = "part2", input = TEST9, expected = "4"),
+        @Sample(method = "part2", input = TEST10, expected = "0"),
+        @Sample(method = "part2", input = TEST11, expected = "6"),
+    })
+    public void samples() {
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2015_12.createDebug(TEST1).solvePart1() == 6;
-        assert AoC2015_12.createDebug(TEST2).solvePart1() == 6;
-        assert AoC2015_12.createDebug(TEST3).solvePart1() == 3;
-        assert AoC2015_12.createDebug(TEST4).solvePart1() == 3;
-        assert AoC2015_12.createDebug(TEST5).solvePart1() == 0;
-        assert AoC2015_12.createDebug(TEST6).solvePart1() == 0;
-        assert AoC2015_12.createDebug(TEST7).solvePart1() == 0;
-        assert AoC2015_12.createDebug(TEST8).solvePart1() == 0;
-        assert AoC2015_12.createDebug(TEST1).solvePart2() == 6;
-        assert AoC2015_12.createDebug(TEST9).solvePart2() == 4;
-        assert AoC2015_12.createDebug(TEST10).solvePart2() == 0;
-        assert AoC2015_12.createDebug(TEST11).solvePart2() == 6;
-
-        final Puzzle puzzle = Aocd.puzzle(2015, 12);
-        puzzle.check(
-            () -> lap("Part 1", () -> AoC2015_12.create(puzzle.getInputData()).solvePart1()),
-            () -> lap("Part 2", () -> AoC2015_12.create(puzzle.getInputData()).solvePart2())
-        );
+        AoC2015_12.create().run();
     }
     
-    private static final List<String> TEST1 = splitLines("[1,2,3]");
-    private static final List<String> TEST2 = splitLines("{\"a\":2,\"b\":4}");
-    private static final List<String> TEST3 = splitLines("[[[3]]]");
-    private static final List<String> TEST4 = splitLines("{\"a\":{\"b\":4},\"c\":-1}");
-    private static final List<String> TEST5 = splitLines("{\"a\":[-1,1]}");
-    private static final List<String> TEST6 = splitLines("[-1,{\"a\":1}]");
-    private static final List<String> TEST7 = splitLines("[]");
-    private static final List<String> TEST8 = splitLines("{}");
-    private static final List<String> TEST9 = splitLines("[1,{\"c\":\"red\",\"b\":2},3]");
-    private static final List<String> TEST10 = splitLines("{\"d\":\"red\",\"e\":[1,2,3,4],\"f\":5}");
-    private static final List<String> TEST11 = splitLines("[1,\"red\",5]");
+    private static final String TEST1 = "[1,2,3]";
+    private static final String TEST2 = "{\"a\":2,\"b\":4}";
+    private static final String TEST3 = "[[[3]]]";
+    private static final String TEST4 = "{\"a\":{\"b\":4},\"c\":-1}";
+    private static final String TEST5 = "{\"a\":[-1,1]}";
+    private static final String TEST6 = "[-1,{\"a\":1}]";
+    private static final String TEST7 = "[]";
+    private static final String TEST8 = "{}";
+    private static final String TEST9 = "[1,{\"c\":\"red\",\"b\":2},3]";
+    private static final String TEST10 = "{\"d\":\"red\",\"e\":[1,2,3,4],\"f\":5}";
+    private static final String TEST11 = "[1,\"red\",5]";
 }

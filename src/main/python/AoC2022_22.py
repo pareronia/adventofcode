@@ -7,9 +7,8 @@
 
 import re
 
-import aocd
-
 from aoc import my_aocd
+from aoc.common import aoc_main
 from aoc.common import log
 
 DIRS = {"N": (-1, 0), "E": (0, 1), "S": (1, 0), "W": (0, -1)}
@@ -19,7 +18,7 @@ TURNS = {
 }
 
 
-def _parse(inputs: tuple[str]) -> tuple[list[str], list[tuple[str, int]]]:
+def _parse(inputs: tuple[str, ...]) -> tuple[list[str], list[tuple[str, int]]]:
     blocks = my_aocd.to_blocks(inputs)
     moves = [
         (a, int(b))
@@ -44,7 +43,7 @@ def _get_cols(grid: list[str], row: int) -> tuple[int, ...]:
     return tuple(c for c, _ in enumerate(grid[row]) if _ != " ")
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     grid, moves = _parse(inputs)
     size = len(grid) // 3
     start = 0, 2 * size
@@ -83,7 +82,7 @@ def part_1(inputs: tuple[str]) -> int:
     return _ans(r, c, facing)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     grid, moves = _parse(inputs)
     start = 0, next(c for c, _ in enumerate(grid[0]) if _ != " ")
     log(start)
@@ -300,20 +299,10 @@ TEST = tuple(
 )
 
 
+@aoc_main(2022, 22, part_1, part_2)
 def main() -> None:
-    aocd.get_data(year=2022, day=22, block=True)
-    puzzle = aocd.models.Puzzle(2022, 22)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == 6032
     # assert part_2(TEST) == 5031
-
-    inputs = my_aocd.get_input_data(puzzle, 202)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

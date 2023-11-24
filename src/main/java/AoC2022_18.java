@@ -1,25 +1,20 @@
+import static com.github.pareronia.aoc.SetUtils.disjunction;
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.collections4.SetUtils.disjunction;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.geometry3d.Cuboid;
 import com.github.pareronia.aoc.geometry3d.Position3D;
-import com.github.pareronia.aoc.geometry3d.Vector3D;
+import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2022_18 extends AoCBase {
-    
-    private static final Set<Vector3D> DIRECTIONS = Set.of(
-        Vector3D.of(-1, 0, 0), Vector3D.of(1, 0, 0),
-        Vector3D.of(0, -1, 0), Vector3D.of(0, 1, 0),
-        Vector3D.of(0, 0, -1), Vector3D.of(0, 0, 1)
-    );
     
     private final Set<Position3D> cubes;
     
@@ -42,7 +37,7 @@ public class AoC2022_18 extends AoCBase {
     
     private int surfaceArea(final Set<Position3D> cubes) {
         return (int) cubes.stream()
-            .flatMap(cube -> DIRECTIONS.stream().map(cube::translate))
+            .flatMap(Position3D::capitalNeighbours)
             .filter(n -> !cubes.contains(n))
             .count();
     }
@@ -55,45 +50,34 @@ public class AoC2022_18 extends AoCBase {
         final var statsZ = cubes.stream()
                 .mapToInt(Position3D::getZ).summaryStatistics();
         return new Bounds(
-            statsX.getMin(), statsX.getMax(),
-            statsY.getMin(), statsY.getMax(),
-            statsZ.getMin(), statsZ.getMax()
+            Range.between(statsX.getMin(), statsX.getMax()),
+            Range.between(statsY.getMin(), statsY.getMax()),
+            Range.between(statsZ.getMin(), statsZ.getMax())
         );
     }
 
     private Set<Position3D> findOutside(final Bounds bounds) {
-        final var searchSpace = Cuboid.of(
-            bounds.minX - 1, bounds.maxX + 1,
-            bounds.minY - 1, bounds.maxY + 1,
-            bounds.minZ - 1, bounds.maxZ + 1);
-        final var outside = new HashSet<Position3D>();
         final var start = Position3D.of(
-                bounds.minX - 1, bounds.minY - 1, bounds.minZ - 1);
-        final var seen = new HashSet<>(Set.of(start));
-        final var q = new ArrayDeque<>(Set.of(start));
-        while (!q.isEmpty()) {
-            final Position3D pos = q.poll();
-            if (cubes.contains(pos)) {
-                continue;
-            }
-            outside.add(pos);
-            for (final Vector3D d : DIRECTIONS) {
-                final Position3D n = pos.translate(d);
-                if (searchSpace.contains(n) && !seen.contains(n)) {
-                    q.add(n);
-                    seen.add(n);
-                }
-            }
-        }
-        return outside;
+                bounds.x.getMinimum() - 1,
+                bounds.y.getMinimum() - 1,
+                bounds.z.getMinimum() - 1);
+        final var searchSpace = Cuboid.of(
+            bounds.x.getMinimum() - 1, bounds.x.getMaximum() + 1,
+            bounds.y.getMinimum() - 1, bounds.y.getMaximum() + 1,
+            bounds.z.getMinimum() - 1, bounds.z.getMaximum() + 1);
+        final Function<Position3D, Stream<Position3D>> adjacent =
+            pos -> pos.capitalNeighbours()
+                    .filter(searchSpace::contains)
+                    .filter(n -> !this.cubes.contains(n));
+        return BFS.floodFill(start, adjacent);
     }
     
     private Set<Position3D> findInside(final Bounds bounds) {
         final var outside = findOutside(bounds);
         final Cuboid cuboid = Cuboid.of(
-            bounds.minX, bounds.maxX,
-            bounds.minY, bounds.maxY,
-            bounds.minZ, bounds.maxZ);
+            bounds.x.getMinimum(), bounds.x.getMaximum(),
+            bounds.y.getMinimum(), bounds.y.getMaximum(),
+            bounds.z.getMinimum(), bounds.z.getMaximum());
         return cuboid.positions()
             .filter(pos -> !this.cubes.contains(pos) && !outside.contains(pos))
             .collect(toSet());
@@ -144,12 +128,9 @@ public class AoC2022_18 extends AoCBase {
         """);
     
     private static final record Bounds (
-            int minX,
-            int maxX,
-            int minY,
-            int maxY,
-            int minZ,
-            int maxZ
+            Range x,
+            Range y,
+            Range z
     ) {
     }
 }

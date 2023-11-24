@@ -3,6 +3,7 @@
 # Advent of Code 2016 Day 12
 #
 
+import aocd
 from aoc import my_aocd
 from aoc.vm import Program, VirtualMachine
 from aoc.assembunny import Assembunny
@@ -48,10 +49,10 @@ def _solve_vm(inputs: tuple[str], init_c: int) -> int:
     program.set_register_value("c", init_c)
     VirtualMachine().run_program(program)
     log(program.registers["a"])
-    return program.registers["a"]
+    return int(program.registers["a"])
 
 
-def _solve(inputs: tuple[str], init_c: int) -> int:
+def _solve(inputs: tuple[str, ...], init_c: int) -> int:
     values = list(map(lambda i: int(i),
                       filter(lambda i: i.isnumeric(),
                              map(lambda i: i.operands[0],
@@ -62,11 +63,11 @@ def _solve(inputs: tuple[str], init_c: int) -> int:
     return Fibonacci.binet(n) + values[4] * values[5]
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return _solve(inputs, 0)
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     return _solve(inputs, 1)
 
 
@@ -106,19 +107,21 @@ jnz c -5
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 12)
+    puzzle = aocd.models.Puzzle(2016, 12)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
-    assert _solve(TEST2, 0) == 318_003
-    assert _solve(TEST2, 1) == 9_227_657
-    assert _solve_reddit(TEST1, 0) == 42
-    assert _solve_reddit(TEST2, 0) == 318_003
-    assert _solve_reddit(TEST2, 1) == 9_227_657
+    assert _solve(TEST2, 0) == 318_003  # type:ignore[arg-type]
+    assert _solve(TEST2, 1) == 9_227_657  # type:ignore[arg-type]
+    assert _solve_reddit(TEST1, 0) == 42  # type:ignore[arg-type]
+    assert _solve_reddit(TEST2, 0) == 318_003  # type:ignore[arg-type]
+    assert _solve_reddit(TEST2, 1) == 9_227_657  # type:ignore[arg-type]
 
-    inputs = my_aocd.get_input(2016, 12, 23)
+    inputs = my_aocd.get_input_data(puzzle, 23)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == '__main__':

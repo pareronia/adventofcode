@@ -3,70 +3,53 @@
 # Advent of Code 2015 Day 9
 #
 
-from typing import NamedTuple
-from functools import lru_cache
+from __future__ import annotations
+
 import itertools
+from collections import defaultdict
+from typing import Generator, NamedTuple
+
+import aocd
+
 from aoc import my_aocd
-from aoc.common import log
 
 
-class Leg(NamedTuple):
-    frôm: str
-    to: str
-    distance: int
+class Distances(NamedTuple):
+    matrix: list[list[int]]
 
+    @classmethod
+    def from_input(cls, inputs: tuple[str]) -> Distances:
+        cnt = 0
 
-class Route(NamedTuple):
-    stops: tuple[str]
-    total: int
+        def get_and_increment():
+            nonlocal cnt
+            tmp = cnt
+            cnt += 1
+            return tmp
 
-    def __repr__(self):
-        return " -> ".join(self.stops) + " = " + str(self.total)
+        idxs = defaultdict[str, int](get_and_increment)
+        values = dict[tuple[int, int], int]()
+        for line in inputs:
+            splits = line.split(" ")
+            values[(idxs[splits[0]], idxs[splits[2]])] = int(splits[4])
+        matrix = [[0] * (len(idxs)) for _ in range(len(idxs))]
+        for k, v in values.items():
+            matrix[k[0]][k[1]] = v
+            matrix[k[1]][k[0]] = v
+        return Distances(matrix)
 
-
-def _parse(inputs: tuple[str]) -> set[Leg]:
-    def to_Leg(input_: str) -> Leg:
-        _, dist = input_.split(" = ")
-        return Leg(*_.split(" to "), int(dist))
-
-    return {to_Leg(input_) for input_ in inputs}
-
-
-def _find_all_routes(legs: set[Leg]) -> set[Route]:
-    @lru_cache
-    def find_distance(frôm: str, to: str) -> int:
-        return next(d.distance for d in legs
-                    if {frôm, to} == {d.frôm, d.to})
-
-    stops = {d.frôm for d in legs} | {d.to for d in legs}
-    log("Stops:")
-    log(stops)
-    log("Legs:")
-    log(legs)
-    routes = {
-        Route(
-            c,
-            sum([find_distance(c[i], c[i+1]) for i in range(len(c) - 1)]))
-        for c in itertools.permutations(stops, len(stops))
-    }
-    log(find_distance.cache_info())
-    return routes
-
-
-def _log_routes(routes: set[Route]):
-    if len(routes) <= 24:
-        log(f"Routes: {len(routes)}")
-        [log(str(r)) for r in routes]
+    def get_distances_of_complete_routes(self) -> Generator[int]:
+        size = len(self.matrix)
+        for p in itertools.permutations(range(size), size):
+            yield sum(self.matrix[p[i - 1]][p[i]] for i in range(1, size))
 
 
 def part_1(inputs: tuple[str]) -> int:
-    routes = _find_all_routes(_parse(inputs))
-    _log_routes(routes)
-    return min({r.total for r in routes})
+    return min(Distances.from_input(inputs).get_distances_of_complete_routes())
 
 
 def part_2(inputs: tuple[str]) -> int:
-    return max({r.total for r in _find_all_routes(_parse(inputs))})
+    return max(Distances.from_input(inputs).get_distances_of_complete_routes())
 
 
 TEST = """\
@@ -77,17 +60,19 @@ Dublin to Belfast = 141
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 9)
+    puzzle = aocd.models.Puzzle(2015, 9)
+    my_aocd.print_header(puzzle.year, puzzle.day)
 
     assert part_1(TEST) == 605
     assert part_2(TEST) == 982
 
-    inputs = my_aocd.get_input(2015, 9, 28)
+    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 28)
     result1 = part_1(inputs)
     print(f"Part 1: {result1}")
     result2 = part_2(inputs)
     print(f"Part 2: {result2}")
+    my_aocd.check_results(puzzle, result1, result2)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

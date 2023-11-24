@@ -4,7 +4,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Grid;
+import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
@@ -12,12 +12,12 @@ import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2022_12 extends AoCBase {
     
-    private final Grid grid;
+    private final CharGrid grid;
     private final Cell end;
     
     private AoC2022_12(final List<String> input, final boolean debug) {
         super(debug);
-        this.grid = Grid.from(input);
+        this.grid = CharGrid.from(input);
         trace(this.grid);
         this.end = this.grid.findAllMatching(c -> c == 'E')
                     .findFirst().orElseThrow();
@@ -33,7 +33,7 @@ public class AoC2022_12 extends AoCBase {
     }
     
     private char getValue(final Cell cell) {
-        final char ch = this.grid.getValueAt(cell);
+        final char ch = this.grid.getValue(cell);
         return switch (ch) {
             case 'S' -> 'a';
             case 'E' -> 'z';
@@ -43,7 +43,7 @@ public class AoC2022_12 extends AoCBase {
     
     private int solve(final Set<Character> endPoints) {
         final Predicate<Cell> isEnd = cell ->
-                endPoints.contains(this.grid.getValueAt(cell));
+                endPoints.contains(this.grid.getValue(cell));
         final Function<Cell, Stream<Cell>> adjacent = cell ->
                 this.grid.getCapitalNeighbours(cell)
                         .filter(n -> getValue(cell) - getValue(n) <= 1);

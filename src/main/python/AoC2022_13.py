@@ -6,12 +6,12 @@
 from functools import cmp_to_key
 from math import prod
 
-import aocd
 from aoc import my_aocd
+from aoc.common import aoc_main
 from aoc.common import log
 
 
-def _compare(r1, r2) -> int:
+def _compare(r1: int | list[int], r2: int | list[int]) -> int:
     log(f">Compare {r1} vs {r2}")
     if isinstance(r1, int) and isinstance(r2, int):
         return -1 if r1 < r2 else 1 if r1 > r2 else 0
@@ -41,7 +41,7 @@ def _compare(r1, r2) -> int:
     raise ValueError
 
 
-def part_1(inputs: tuple[str]) -> int:
+def part_1(inputs: tuple[str, ...]) -> int:
     return sum(
         i + 1
         for i, block in enumerate(my_aocd.to_blocks(inputs))
@@ -49,7 +49,7 @@ def part_1(inputs: tuple[str]) -> int:
     )
 
 
-def part_2(inputs: tuple[str]) -> int:
+def part_2(inputs: tuple[str, ...]) -> int:
     dividers = [[[2]], [[6]]]
     packets = [eval(line) for line in inputs if len(line) > 0]  # nosec
     packets.extend(dividers)
@@ -88,19 +88,10 @@ TEST = tuple(
 )
 
 
+@aoc_main(2022, 13, part_1, part_2)
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2022, 13)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
     assert part_1(TEST) == 13
     assert part_2(TEST) == 140
-
-    inputs = my_aocd.get_input_data(puzzle, 449)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
 
 
 if __name__ == "__main__":

@@ -1,13 +1,13 @@
-import static java.util.Comparator.naturalOrder;
+import static com.github.pareronia.aoc.Utils.last;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.collections.api.tuple.Pair;
-import org.eclipse.collections.impl.tuple.Tuples;
-
 import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aocd.Puzzle;
 
 public final class AoC2017_08 extends AoCBase {
 
@@ -36,18 +36,13 @@ public final class AoC2017_08 extends AoCBase {
         return new AoC2017_08(input, true);
     }
     
-    private Integer getMaxValue(final Map<String, Integer> registers) {
-        if (registers.isEmpty()) {
-            return 0;
-        }
-        return registers.values().stream()
-                .max(naturalOrder())
-                .orElseThrow();
+    private int max(final Collection<Integer> list) {
+        return list.stream().mapToInt(Integer::valueOf).max().orElse(0);
     }
     
-    private Pair<Integer, Integer> solve() {
+    private List<Integer> solve() {
         final Map<String, Integer> registers = new HashMap<>();
-        Integer maxValue = 0;
+        final List<Integer> maxValues = new ArrayList<>();
         for (final String input_ : this.input) {
             final String[] sp = input_.split(" ");
             final String test = sp[5];
@@ -59,30 +54,33 @@ public final class AoC2017_08 extends AoCBase {
                 final Integer value = Integer.valueOf(sp[2]);
                 OPERATIONS.get(operation).execute(registers, reg, value);
             }
-            maxValue = Math.max(maxValue, getMaxValue(registers));
+            maxValues.add(max(registers.values()));
         }
 
         log(registers);
-        return Tuples.pair(getMaxValue(registers), maxValue);
+        return maxValues;
     }
     
     @Override
     public Integer solvePart1() {
-        return solve().getOne();
+        return last(solve());
     }
     
     @Override
     public Integer solvePart2() {
-        return solve().getTwo();
+        return max(solve());
     }
 
     public static void main(final String[] args) throws Exception {
         assert AoC2017_08.createDebug(TEST).solvePart1() == 1;
         assert AoC2017_08.createDebug(TEST).solvePart2() == 10;
 
-        final List<String> input = Aocd.getData(2017, 8);
-        lap("Part 1", () -> AoC2017_08.createDebug(input).solvePart1());
-        lap("Part 2", () -> AoC2017_08.create(input).solvePart2());
+        final Puzzle puzzle = Aocd.puzzle(2017, 8);
+        final List<String> inputData = puzzle.getInputData();
+        puzzle.check(
+            () -> lap("Part 1", AoC2017_08.create(inputData)::solvePart1),
+            () -> lap("Part 2", AoC2017_08.create(inputData)::solvePart2)
+        );
     }
     
     public static final List<String> TEST = splitLines(
