@@ -3,7 +3,6 @@
 # Advent of Code 2023 Day 1
 #
 
-import re
 import sys
 from typing import Callable
 
@@ -36,48 +35,45 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def _solve(
-        self, input: InputData, f: Callable[[str], tuple[int, int]]
-    ) -> int:
+    def _solve(self, input: InputData, f: Callable[[str], list[int]]) -> int:
         ans = 0
         for line in input:
-            first, last = f(line)
-            ans += first * 10 + last
+            digits = f(line)
+            ans += digits[0] * 10 + digits[-1]
         return ans
 
     def part_1(self, input: InputData) -> Output1:
-        def get_first_and_last_digit(line: str) -> tuple[int, int]:
-            digits = [c for c in line if c.isdigit()]
-            return int(digits[0]), int(digits[-1])
+        def get_digits(line: str) -> list[int]:
+            return [int(c) for c in line if c.isdigit()]
 
-        return self._solve(input, get_first_and_last_digit)
+        return self._solve(input, get_digits)
 
     def part_2(self, input: InputData) -> Output2:
-        nums = {
-            "one": "1",
-            "two": "2",
-            "three": "3",
-            "four": "4",
-            "five": "5",
-            "six": "6",
-            "seven": "7",
-            "eight": "8",
-            "nine": "9",
-            "zero": "0",
-        }
+        nums = [
+            "one",
+            "two",
+            "three",
+            "four",
+            "five",
+            "six",
+            "seven",
+            "eight",
+            "nine",
+        ]
 
-        def get_first_and_last_digit(line: str) -> tuple[int, int]:
+        def get_digits(line: str) -> list[int]:
             digits = []
-            for x in nums:
-                digits.extend(
-                    [(m.start(), nums[x]) for m in re.finditer(x, line)]
-                )
-            for x in "0123456789":
-                digits.extend([(m.start(), x) for m in re.finditer(x, line)])
-            digits.sort()
-            return int(digits[0][1]), int(digits[-1][1])
+            for i, c in enumerate(line):
+                if c.isdigit():
+                    digits.append(int(c))
+                else:
+                    for j, num in enumerate(nums):
+                        if line[i:].startswith(num):
+                            digits.append(j + 1)
+                            break
+            return digits
 
-        return self._solve(input, get_first_and_last_digit)
+        return self._solve(input, get_digits)
 
     @aoc_samples(
         (
