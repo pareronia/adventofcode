@@ -159,6 +159,7 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
                 exec_part = execute_part(part, lambda: self.part_2(input))
             print(exec_part.to_json())
         else:
+            aocd.utils.blocker(until=(self.year, self.day))
             puzzle = aocd.models.Puzzle(self.year, self.day)
             my_aocd.print_header(puzzle.year, puzzle.day)
             if __debug__:
