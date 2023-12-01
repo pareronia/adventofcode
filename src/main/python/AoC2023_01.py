@@ -36,11 +36,9 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return input_data
 
     def _solve(self, input: InputData, f: Callable[[str], list[int]]) -> int:
-        ans = 0
-        for line in input:
-            digits = f(line)
-            ans += digits[0] * 10 + digits[-1]
-        return ans
+        return sum(
+            map(lambda digits: digits[0] * 10 + digits[-1], map(f, input))
+        )
 
     def part_1(self, input: InputData) -> Output1:
         def get_digits(line: str) -> list[int]:
@@ -49,29 +47,33 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return self._solve(input, get_digits)
 
     def part_2(self, input: InputData) -> Output2:
-        nums = [
-            "one",
-            "two",
-            "three",
-            "four",
-            "five",
-            "six",
-            "seven",
-            "eight",
-            "nine",
-        ]
-
         def get_digits(line: str) -> list[int]:
-            digits = []
-            for i, c in enumerate(line):
-                if c.isdigit():
-                    digits.append(int(c))
+            nums = [
+                "one",
+                "two",
+                "three",
+                "four",
+                "five",
+                "six",
+                "seven",
+                "eight",
+                "nine",
+            ]
+
+            def find_digit(s: str) -> int | None:
+                if s[0].isdigit():
+                    return int(s[0])
                 else:
                     for j, num in enumerate(nums):
-                        if line[i:].startswith(num):
-                            digits.append(j + 1)
-                            break
-            return digits
+                        if s.startswith(num):
+                            return j + 1
+                return None
+
+            return [
+                x
+                for x in map(lambda i: find_digit(line[i:]), range(len(line)))
+                if x is not None
+            ]
 
         return self._solve(input, get_digits)
 
