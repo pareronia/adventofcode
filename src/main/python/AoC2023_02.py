@@ -4,11 +4,11 @@
 #
 
 import sys
+from math import prod
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = InputData
 Output1 = int
@@ -33,37 +33,49 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         for game in input:
             splits = game.split(":")
             id = int(splits[0].split()[1])
-            log(id)
             draws = splits[1].split(";")
             for draw in draws:
                 colors = draw.split(",")
                 for c in colors:
                     count, color = c.split()
                     if color == "red" and int(count) > 12:
-                        log(str(id) + ": impossible")
                         break
                     if color == "green" and int(count) > 13:
-                        log(str(id) + ": impossible")
                         break
                     if color == "blue" and int(count) > 14:
-                        log(str(id) + ": impossible")
                         break
                 else:
                     continue
                 break
             else:
-                log(str(id) + ": possible")
                 ans += id
                 continue
         return ans
 
     def part_2(self, input: InputData) -> Output2:
-        return 0
+        ans = 0
+        for game in input:
+            splits = game.split(":")
+            draws = splits[1].split(";")
+            max_red = max_green = max_blue = 0
+            for draw in draws:
+                colors = draw.split(",")
+                for c in colors:
+                    count, color = c.split()
+                    if color == "red":
+                        max_red = max(max_red, int(count))
+                    if color == "green":
+                        max_green = max(max_green, int(count))
+                    if color == "blue":
+                        max_blue = max(max_blue, int(count))
+            assert max_red or max_green or max_blue
+            ans += prod(m for m in [max_red, max_green, max_blue] if m)
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 8),
-            ("part_2", TEST, 0),
+            ("part_2", TEST, 2286),
         )
     )
     def samples(self) -> None:
