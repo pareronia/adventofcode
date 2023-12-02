@@ -3,17 +3,14 @@
 # Advent of Code 2023 Day 2
 #
 
+from __future__ import annotations
+
 import sys
-from math import prod
+from typing import NamedTuple
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-
-Input = InputData
-Output1 = int
-Output2 = int
-
 
 TEST = """\
 Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
@@ -24,53 +21,63 @@ Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
 """
 
 
+class Draw(NamedTuple):
+    red: int
+    green: int
+    blue: int
+
+
+class Game(NamedTuple):
+    id: int
+    draws: list[Draw]
+
+
+Input = list[Game]
+Output1 = int
+Output2 = int
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        def parse_draw(s: str) -> Draw:
+            red = green = blue = None
+            for cc in s.split(","):
+                count, color = cc.split()
+                if color == "red":
+                    red = int(count)
+                if color == "green":
+                    green = int(count)
+                if color == "blue":
+                    blue = int(count)
+            return Draw(red or 0, green or 0, blue or 0)
 
-    def part_1(self, input: InputData) -> Output1:
-        ans = 0
-        for game in input:
-            splits = game.split(":")
-            id = int(splits[0].split()[1])
-            draws = splits[1].split(";")
-            for draw in draws:
-                colors = draw.split(",")
-                for c in colors:
-                    count, color = c.split()
-                    if color == "red" and int(count) > 12:
-                        break
-                    if color == "green" and int(count) > 13:
-                        break
-                    if color == "blue" and int(count) > 14:
-                        break
-                else:
-                    continue
-                break
-            else:
-                ans += id
-                continue
-        return ans
+        return [
+            Game(
+                i + 1,
+                [parse_draw(draw) for draw in line.split(":")[1].split(";")],
+            )
+            for i, line in enumerate(input_data)
+        ]
 
-    def part_2(self, input: InputData) -> Output2:
-        ans = 0
-        for game in input:
-            splits = game.split(":")
-            draws = splits[1].split(";")
-            max_red = max_green = max_blue = 0
-            for draw in draws:
-                colors = draw.split(",")
-                for c in colors:
-                    count, color = c.split()
-                    if color == "red":
-                        max_red = max(max_red, int(count))
-                    if color == "green":
-                        max_green = max(max_green, int(count))
-                    if color == "blue":
-                        max_blue = max(max_blue, int(count))
-            assert max_red or max_green or max_blue
-            ans += prod(m for m in [max_red, max_green, max_blue] if m)
-        return ans
+    def part_1(self, games: Input) -> Output1:
+        def possible(draw: Draw) -> bool:
+            return draw.red <= 12 and draw.green <= 13 and draw.blue <= 14
+
+        return sum(
+            game.id
+            for game in games
+            if all(possible(draw) for draw in game.draws)
+        )
+
+    def part_2(self, games: Input) -> Output2:
+        def power(game: Game) -> int:
+            return (
+                max(draw.red for draw in game.draws)
+                * max(draw.green for draw in game.draws)
+                * max(draw.blue for draw in game.draws)
+            )
+
+        return sum(power(game) for game in games)
 
     @aoc_samples(
         (
