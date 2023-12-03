@@ -1,3 +1,4 @@
+use std::cmp::Ordering;
 use std::fmt::{Display, Error, Formatter};
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -22,6 +23,41 @@ impl Cell {
             ans.push(Cell::at(self.row, self.col - 1));
         }
         ans
+    }
+
+    pub fn all_neighbours(&self) -> Vec<Cell> {
+        let mut ans = vec![];
+        if self.row > 0 {
+            ans.push(Cell::at(self.row - 1, self.col));
+            ans.push(Cell::at(self.row - 1, self.col + 1));
+            if self.col > 0 {
+                ans.push(Cell::at(self.row - 1, self.col - 1));
+            }
+        }
+        ans.push(Cell::at(self.row, self.col + 1));
+        ans.push(Cell::at(self.row + 1, self.col + 1));
+        ans.push(Cell::at(self.row + 1, self.col));
+        if self.col > 0 {
+            ans.push(Cell::at(self.row, self.col - 1));
+            ans.push(Cell::at(self.row + 1, self.col - 1));
+        }
+        ans
+    }
+}
+
+impl PartialOrd for Cell {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
+
+impl Ord for Cell {
+    fn cmp(&self, other: &Self) -> Ordering {
+        if self.row == other.row {
+            self.col.cmp(&other.col)
+        } else {
+            self.row.cmp(&other.row)
+        }
     }
 }
 
@@ -103,6 +139,15 @@ pub trait Grid {
     fn get_data(&self) -> &Vec<Vec<Self::Item>>;
 
     fn get_data_mut(&mut self) -> &mut Vec<Vec<Self::Item>>;
+
+    fn get_row_as_string(&self, row: usize) -> String;
+
+    // TODO: iterator
+    fn get_rows_as_string(&self) -> Vec<String> {
+        (0..self.height())
+            .map(|row| self.get_row_as_string(row))
+            .collect()
+    }
 
     fn as_string(&self) -> String {
         self.get_data()
@@ -225,17 +270,20 @@ pub trait Grid {
 
     fn capital_neighbours(&self, cell: &Cell) -> Vec<Cell> {
         let mut ans = vec![];
-        if cell.row > 0 {
-            ans.push(Cell::at(cell.row - 1, cell.col));
+        for c in cell.capital_neighbours() {
+            if self.in_bounds(&c) {
+                ans.push(c);
+            }
         }
-        if self.valid_column_index(cell.col + 1) {
-            ans.push(Cell::at(cell.row, cell.col + 1));
-        }
-        if self.valid_row_index(cell.row + 1) {
-            ans.push(Cell::at(cell.row + 1, cell.col));
-        }
-        if cell.col > 0 {
-            ans.push(Cell::at(cell.row, cell.col - 1));
+        ans
+    }
+
+    fn all_neighbours(&self, cell: &Cell) -> Vec<Cell> {
+        let mut ans = vec![];
+        for c in cell.all_neighbours() {
+            if self.in_bounds(&c) {
+                ans.push(c);
+            }
         }
         ans
     }
@@ -321,6 +369,10 @@ impl Grid for IntGrid {
     fn get_data_mut(&mut self) -> &mut Vec<Vec<u32>> {
         &mut self.data
     }
+
+    fn get_row_as_string(&self, _row: usize) -> String {
+        todo!();
+    }
 }
 
 impl Display for IntGrid {
@@ -367,6 +419,10 @@ impl Grid for CharGrid {
 
     fn get_data_mut(&mut self) -> &mut Vec<Vec<char>> {
         &mut self.data
+    }
+
+    fn get_row_as_string(&self, row: usize) -> String {
+        self.get_data()[row].iter().collect()
     }
 }
 
@@ -469,6 +525,12 @@ mod tests {
     }
 
     #[test]
+    pub fn char_get_row_as_string() {
+        let grid = CharGrid::from(&vec!["XXX", "YYY", "ZZZ"]);
+        assert_eq!(grid.get_row_as_string(0), "XXX");
+    }
+
+    #[test]
     pub fn iterator() {
         let grid = IntGrid::from(&vec!["12", "34"]);
         assert_eq!(
@@ -536,6 +598,65 @@ mod tests {
         assert_eq!(
             grid.capital_neighbours(&Cell::at(4, 2)),
             vec![Cell::at(3, 2), Cell::at(4, 3), Cell::at(4, 1),]
+        );
+    }
+
+    #[test]
+    pub fn all_neighbours() {
+        let grid =
+            IntGrid::from(&vec!["12345", "12345", "12345", "12345", "12345"]);
+        assert_eq!(
+            grid.all_neighbours(&Cell::at(2, 2)),
+            vec![
+                Cell::at(1, 2),
+                Cell::at(1, 3),
+                Cell::at(1, 1),
+                Cell::at(2, 3),
+                Cell::at(3, 3),
+                Cell::at(3, 2),
+                Cell::at(2, 1),
+                Cell::at(3, 1),
+            ]
+        );
+        assert_eq!(
+            grid.all_neighbours(&Cell::at(2, 0)),
+            vec![
+                Cell::at(1, 0),
+                Cell::at(1, 1),
+                Cell::at(2, 1),
+                Cell::at(3, 1),
+                Cell::at(3, 0),
+            ]
+        );
+        assert_eq!(
+            grid.all_neighbours(&Cell::at(2, 4)),
+            vec![
+                Cell::at(1, 4),
+                Cell::at(1, 3),
+                Cell::at(3, 4),
+                Cell::at(2, 3),
+                Cell::at(3, 3),
+            ]
+        );
+        assert_eq!(
+            grid.all_neighbours(&Cell::at(0, 2)),
+            vec![
+                Cell::at(0, 3),
+                Cell::at(1, 3),
+                Cell::at(1, 2),
+                Cell::at(0, 1),
+                Cell::at(1, 1),
+            ]
+        );
+        assert_eq!(
+            grid.all_neighbours(&Cell::at(4, 2)),
+            vec![
+                Cell::at(3, 2),
+                Cell::at(3, 3),
+                Cell::at(3, 1),
+                Cell::at(4, 3),
+                Cell::at(4, 1),
+            ]
         );
     }
 
