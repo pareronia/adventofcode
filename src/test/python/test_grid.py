@@ -1,5 +1,10 @@
 import unittest
-from aoc.grid import CharGrid, GridIterator, IntGrid, IterDir, Cell
+
+from aoc.grid import Cell
+from aoc.grid import CharGrid
+from aoc.grid import GridIterator
+from aoc.grid import IntGrid
+from aoc.grid import IterDir
 
 
 class CharGridIteratorTest(unittest.TestCase):
@@ -46,6 +51,13 @@ class CharGridIteratorTest(unittest.TestCase):
             ],
         )
 
+    def test_get_row_as_string(self) -> None:
+        self.assertEqual(self.grid.get_row_as_string(0), "###")
+
+    def test_get_rows_as_string(self) -> None:
+        ans = [_ for _ in self.grid.get_rows_as_strings()]
+        self.assertEqual(ans, ["###", "###", "###"])
+
 
 class IntGridIteratorTest(unittest.TestCase):
 
@@ -90,3 +102,10 @@ class IntGridIteratorTest(unittest.TestCase):
                 Cell(2, 2),
             ],
         )
+
+    def test_get_row_as_string(self) -> None:
+        self.assertEqual(self.grid.get_row_as_string(0), "012")
+
+    def test_get_rows_as_string(self) -> None:
+        ans = [_ for _ in self.grid.get_rows_as_strings()]
+        self.assertEqual(ans, ["012", "345", "678"])

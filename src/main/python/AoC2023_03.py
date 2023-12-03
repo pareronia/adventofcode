@@ -5,14 +5,13 @@
 
 import re
 import sys
-from typing import NamedTuple
 from collections import defaultdict
 from math import prod
+from typing import NamedTuple
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-
 from aoc.grid import Cell
 from aoc.grid import CharGrid
 
@@ -33,8 +32,7 @@ TEST = """\
 class EnginePart(NamedTuple):
     part: str
     number: int
-    start: int
-    end: int
+    pos: Cell
 
 
 Input = list[EnginePart]
@@ -44,44 +42,39 @@ Output2 = int
 
 class Solution(SolutionBase[list[EnginePart], Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        g = [[c for c in line] for line in input_data]
-        grid = CharGrid(g)
-        engine_parts = []
-        for r, row in enumerate(grid.values):
-            s = "".join(row)
-            mm = re.finditer(r"[0-9]+", "".join(row))
-            matches = [_ for _ in mm]
-            for m in matches:
-                found = False
-                start = m.span()[0]
-                end = m.span()[1]
-                for c in range(start, end):
-                    for n in grid.get_all_neighbours(Cell(r, c)):
-                        v = grid.get_value(n)
-                        if not v.isnumeric() and v != ".":
-                            found = True
-                            break
-                    if found:
-                        number = int(s[start:end])
-                        engine_parts.append(
-                            EnginePart(v, number, n.row, n.col)
-                        )
-                        break
-        return engine_parts
+        grid = CharGrid([[c for c in line] for line in input_data])
+
+        def find_engine_part(
+            row: int, col_span: tuple[int, int]
+        ) -> EnginePart | None:
+            for col in range(*col_span):
+                for n in grid.get_all_neighbours(Cell(row, col)):
+                    val = grid.get_value(n)
+                    if not val.isdigit() and val != ".":
+                        s = grid.get_row_as_string(row)[
+                            col_span[0] : col_span[1]  # noqa E203
+                        ]
+                        return EnginePart(val, int(s), n)
+            return None
+
+        return [
+            ep
+            for ep in (
+                find_engine_part(r, m.span())
+                for r, row in enumerate(grid.get_rows_as_strings())
+                for m in re.finditer(r"[0-9]+", row)
+            )
+            if ep is not None
+        ]
 
     def part_1(self, engine_parts: list[EnginePart]) -> Output1:
         return sum(ep.number for ep in engine_parts)
 
     def part_2(self, engine_parts: list[EnginePart]) -> Output2:
-        gears = [ep for ep in engine_parts if ep.part == "*"]
         d = defaultdict(list)
-        for g in gears:
-            d[(g.start, g.end)].append(g.number)
-        ans = 0
-        for x in d:
-            if len(d[x]) == 2:
-                ans += prod(d[x])
-        return ans
+        for gear in (ep for ep in engine_parts if ep.part == "*"):
+            d[gear.pos].append(gear.number)
+        return sum(prod(v) for v in d.values() if len(v) == 2)
 
     @aoc_samples(
         (

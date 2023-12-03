@@ -1,9 +1,16 @@
 from __future__ import annotations
+
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Iterator
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum, unique
-from typing import NamedTuple, Callable, TypeVar, Generic
+from enum import Enum
+from enum import unique
+from typing import Callable
+from typing import Generic
+from typing import NamedTuple
+from typing import TypeVar
+
 from aoc.geometry import Direction
 
 T = TypeVar("T")
@@ -103,6 +110,10 @@ class Grid(ABC, Generic[T]):
     def set_value(self, c: Cell, value: T) -> None:
         pass
 
+    @abstractmethod
+    def get_row_as_string(self, row: int) -> str:
+        pass
+
     def size(self) -> int:
         return self.get_height() * self.get_width()
 
@@ -160,6 +171,11 @@ class Grid(ABC, Generic[T]):
             cell.col
         )
 
+    def get_rows_as_strings(self) -> Iterator[str]:
+        return (
+            self.get_row_as_string(row) for row in range(self.get_height())
+        )
+
 
 @dataclass(frozen=True)
 class IntGrid(Grid[int]):
@@ -184,6 +200,9 @@ class IntGrid(Grid[int]):
     def increment(self, c: Cell) -> None:
         self.values[c.row][c.col] += 1
 
+    def get_row_as_string(self, row: int) -> str:
+        return "".join(str(_) for _ in self.values[row])
+
 
 @dataclass(frozen=True)
 class CharGrid(Grid[str]):
@@ -204,3 +223,6 @@ class CharGrid(Grid[str]):
 
     def set_value(self, c: Cell, value: str) -> None:
         self.values[c.row][c.col] = value
+
+    def get_row_as_string(self, row: int) -> str:
+        return "".join(self.values[row])
