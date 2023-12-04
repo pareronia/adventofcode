@@ -4,6 +4,7 @@
 #
 
 import sys
+from collections import defaultdict
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -36,7 +37,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return cards
 
     def part_1(self, cards: Input) -> Output1:
-        log(cards)
         ans = 0
         for card in cards:
             w, h = card
@@ -47,12 +47,24 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def part_2(self, cards: Input) -> Output2:
-        return 0
+        count = defaultdict[int, int](lambda: 1)
+        for i, card in enumerate(cards):
+            log(f"Card {i + 1}, count {count[i]}")
+            w, h = card
+            c = w & h
+            log(f"Wins: {len(c)}")
+            if len(c) == 0:
+                continue
+            for j in range(i + 1, i + 1 + len(c)):
+                log(f" -> Card {j + 1}: +{count[i]}")
+                count[j] += count[i]
+        ans = sum(count.values())
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 13),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 30),
         )
     )
     def samples(self) -> None:
