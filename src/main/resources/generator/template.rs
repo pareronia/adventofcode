@@ -27,8 +27,8 @@ impl aoc::Puzzle for AoC${year}_${day2} {
 
     fn samples(&self) {
         aoc::puzzle_samples! {
-            self, part_1, TEST, 0,
-            self, part_2, TEST, 0
+            self, part_1, TEST, "TODO",
+            self, part_2, TEST, "TODO"
         };
     }
 }
@@ -36,6 +36,10 @@ impl aoc::Puzzle for AoC${year}_${day2} {
 fn main() {
     AoC${year}_${day2} {}.run(std::env::args());
 }
+
+const TEST: &str = "\
+TODO
+";
 
 #[cfg(test)]
 mod tests {
@@ -46,7 +50,3 @@ mod tests {
         AoC${year}_${day2} {}.samples();
     }
 }
-
-const TEST: &'static str = "\
-TODO
-";
