@@ -48,11 +48,11 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         )
 
     def part_2(self, cards: Input) -> Output2:
-        count = {c: 1 for c in range(len(cards))}
+        count = [1] * len(cards)
         for i, card in enumerate(cards):
             for j in range(card.matching):
                 count[i + 1 + j] += count[i]
-        return sum(count.values())
+        return sum(count)
 
     @aoc_samples(
         (
