@@ -3,18 +3,14 @@
 # Advent of Code 2023 Day 4
 #
 
+from __future__ import annotations
+
 import sys
-from collections import defaultdict
+from typing import NamedTuple
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
-
-Input = list[tuple[set[int], set[int]]]
-Output1 = int
-Output2 = int
-
 
 TEST = """\
 Card 1: 41 48 83 86 17 | 83 86  6 31 17  9 48 53
@@ -26,40 +22,37 @@ Card 6: 31 18 13 56 72 | 74 77 10 23 35 67 36 11
 """
 
 
+class ScratchCard(NamedTuple):
+    matching: int
+
+    @classmethod
+    def from_input(cls, line: str) -> ScratchCard:
+        w, h = line.split(": ")[1].split("|")
+        winning = {int(_) for _ in w.split()}
+        have = {int(_) for _ in h.split()}
+        return ScratchCard(len(winning & have))
+
+
+Input = list[ScratchCard]
+Output1 = int
+Output2 = int
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        cards = []
-        for line in input_data:
-            w, h = line.split(": ")[1].split("|")
-            winning = {int(_) for _ in w.split()}
-            have = {int(_) for _ in h.split()}
-            cards.append((winning, have))
-        return cards
+        return [ScratchCard.from_input(line) for line in input_data]
 
     def part_1(self, cards: Input) -> Output1:
-        ans = 0
-        for card in cards:
-            w, h = card
-            c = w & h
-            if len(c) == 0:
-                continue
-            ans += 2 ** (len(c) - 1)
-        return ans
+        return sum(
+            2 ** (card.matching - 1) for card in cards if card.matching > 0
+        )
 
     def part_2(self, cards: Input) -> Output2:
-        count = defaultdict[int, int](lambda: 1)
+        count = {c: 1 for c in range(len(cards))}
         for i, card in enumerate(cards):
-            log(f"Card {i + 1}, count {count[i]}")
-            w, h = card
-            c = w & h
-            log(f"Wins: {len(c)}")
-            if len(c) == 0:
-                continue
-            for j in range(i + 1, i + 1 + len(c)):
-                log(f" -> Card {j + 1}: +{count[i]}")
-                count[j] += count[i]
-        ans = sum(count.values())
-        return ans
+            for j in range(card.matching):
+                count[i + 1 + j] += count[i]
+        return sum(count.values())
 
     @aoc_samples(
         (
