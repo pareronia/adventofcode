@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use aoc::Puzzle;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 #[derive(Debug)]
 struct ScratchCard {
@@ -52,15 +52,13 @@ impl aoc::Puzzle for AoC2023_04 {
     }
 
     fn part_2(&self, cards: &Vec<ScratchCard>) -> u32 {
-        let mut count: HashMap<usize, u32> =
-            (0..cards.len()).map(|i| (i, 1)).collect();
+        let mut count = vec![1; cards.len()];
         cards.iter().enumerate().for_each(|(i, card)| {
             (0..card.matched).for_each(|j| {
-                *count.get_mut(&(i + 1 + j as usize)).unwrap() +=
-                    *count.get(&i).unwrap();
+                count[i + 1 + j as usize] += count[i];
             });
         });
-        count.values().sum()
+        count.iter().sum()
     }
 
     fn samples(&self) {
