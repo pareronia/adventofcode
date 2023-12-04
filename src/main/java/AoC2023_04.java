@@ -1,13 +1,10 @@
-import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
@@ -35,17 +32,20 @@ public final class AoC2023_04
     
     @Override
     public Integer solvePart1(final List<ScratchCard> cards) {
-        return cards.stream().filter(c -> c.matched() > 0).mapToInt(c -> 1 << (c.matched() - 1)).sum();
+        return cards.stream()
+            .filter(c -> c.matched() > 0)
+            .mapToInt(c -> 1 << (c.matched() - 1))
+            .sum();
     }
     
     @Override
     public Integer solvePart2(final List<ScratchCard> cards) {
-        final Map<Integer, Integer> count = Range.range(cards.size()).intStream().boxed()
-                .collect(toMap(i -> i, i -> 1));
+        final int[] count = new int[cards.size()];
+        Arrays.fill(count, 1);
         IntStream.range(0, cards.size()).forEach(i ->
             IntStream.range(0, cards.get(i).matched()).forEach(j ->
-                count.merge(i + 1 + j, count.get(i), Integer::sum)));
-        return count.values().stream().reduce(Integer::sum).orElseThrow();
+                count[i + j + 1] += count[i]));
+        return Arrays.stream(count).sum();
     }
     
     @Override
@@ -71,12 +71,17 @@ public final class AoC2023_04
     
     record ScratchCard(int matched) {
         private static Set<Integer> getNumbers(final String s) {
-            return Arrays.stream(s.strip().split("\\s+")).map(String::strip).map(Integer::parseInt).collect(toSet());
+            return Arrays.stream(s.strip().split("\\s+"))
+                    .map(String::strip)
+                    .map(Integer::parseInt)
+                    .collect(toSet());
         }
         
         public static ScratchCard fromInput(final String line) {
             final String[] splits = line.split(": ")[1].split(" \\| ");
-            return new ScratchCard(SetUtils.intersection(getNumbers(splits[0]), getNumbers(splits[1])).size());
+            final Set<Integer> matching = SetUtils.intersection(
+                    getNumbers(splits[0]), getNumbers(splits[1]));
+            return new ScratchCard(matching.size());
         }
     }
 }
