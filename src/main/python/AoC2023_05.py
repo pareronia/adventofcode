@@ -6,7 +6,6 @@
 from __future__ import annotations
 
 import sys
-from typing import Iterable
 from typing import NamedTuple
 
 from aoc import my_aocd
@@ -53,18 +52,27 @@ humidity-to-location map:
 
 
 class Range(NamedTuple):
-    range: Iterable[int]
+    range: tuple[int, int]
     diff: int
 
 
 class Map(NamedTuple):
     ranges: list[Range]
 
-    def map(self, n: int) -> int:
-        for r in self.ranges:
-            if n in r.range:
-                return n + r.diff
-        return n
+    def map(self, inp: list[tuple[int, int]]) -> list[tuple[int, int]]:
+        ans = list[tuple[int, int]]()
+        while inp:
+            i = inp.pop()
+            for r in self.ranges:
+                new, other = intervals(i, r.range, r.diff)
+                if new:
+                    ans.append(new)
+                    for o in other:
+                        inp.append(o)
+                    break
+            else:
+                ans.append(i)
+        return ans
 
 
 class Almanac(NamedTuple):
@@ -81,7 +89,7 @@ class Almanac(NamedTuple):
     def from_input(cls, input_data: InputData) -> Almanac:
         def get_range(s: str) -> Range:
             dest, src, size = map(int, s.split())
-            return Range(range(src, src + size), dest - src)
+            return Range((src, src + size), dest - src)
 
         blocks = my_aocd.to_blocks(input_data)
         seeds = list(map(int, blocks[0][0].split(": ")[1].split()))
@@ -96,22 +104,21 @@ class Almanac(NamedTuple):
             seeds, soil, fertilizer, water, light, temp, humidity, location
         )
 
-    def get_locations(self) -> list[int]:
-        ans = []
-        for seed in self.seeds:
-            soil = self.soil.map(seed)
-            fertilizer = self.fertilizer.map(soil)
-            water = self.water.map(fertilizer)
-            light = self.light.map(water)
-            temp = self.temp.map(light)
-            humidity = self.humidity.map(temp)
-            location = self.location.map(humidity)
-            log(
-                f"{seed=}, {soil=}, {fertilizer=}, {water=}, {light=}, "
-                + f"{temp=}, {humidity=}, {location=}"
-            )
-            ans.append(location)
-        return ans
+    def get_location(
+        self, seed: list[tuple[int, int]]
+    ) -> list[tuple[int, int]]:
+        soil = self.soil.map(seed)
+        fertilizer = self.fertilizer.map(soil)
+        water = self.water.map(fertilizer)
+        light = self.light.map(water)
+        temp = self.temp.map(light)
+        humidity = self.humidity.map(temp)
+        location = self.location.map(humidity)
+        log(
+            f"{seed=}, {soil=}, {fertilizer=}, {water=}, {light=}, "
+            + f"{temp=}, {humidity=}, {location=}"
+        )
+        return location
 
 
 Input = Almanac
@@ -124,26 +131,61 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return Almanac.from_input(input_data)
 
     def part_1(self, almanac: Input) -> Output1:
-        log(almanac)
-        return min(almanac.get_locations())
+        s = []
+        for seed in almanac.seeds:
+            s.append((seed, seed + 1))
+        location = almanac.get_location(s)
+        return sorted(location)[0][0]
 
     def part_2(self, almanac: Input) -> Output2:
-        return 0
+        s = []
+        for i in range(0, len(almanac.seeds), 2):
+            s.append(
+                (almanac.seeds[i], almanac.seeds[i] + almanac.seeds[i + 1])
+            )
+        location = almanac.get_location(s)
+        return sorted(location)[0][0]
 
     @aoc_samples(
         (
             ("part_1", TEST, 35),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 46),
         )
     )
     def samples(self) -> None:
         pass
 
 
+def intervals(
+    i1: tuple[int, int], i2: tuple[int, int], diff: int
+) -> tuple[tuple[int, int] | None, set[tuple[int, int]]]:
+    ans = None
+    others = set()
+    o0 = max(i1[0], i2[0])
+    o1 = min(i1[1], i2[1])
+    if o0 < o1:
+        ans = (o0 + diff, o1 + diff)
+        if o0 > i1[0]:
+            others.add((i1[0], o0))
+        if o1 < i1[1]:
+            others.add((o1, i1[1]))
+    else:
+        others.add(i1)
+    return ans, others
+
+
 solution = Solution(2023, 5)
 
 
 def main() -> None:
+    assert intervals((0, 5), (5, 10), 100) == (None, {(0, 5)})
+    assert intervals((0, 5), (3, 10), 100) == ((103, 105), {(0, 3)})
+    assert intervals((3, 6), (4, 10), 100) == ((104, 106), {(3, 4)})
+    assert intervals((5, 7), (3, 10), 100) == ((105, 107), set())
+    assert intervals((3, 10), (5, 7), 100) == (
+        (105, 107),
+        {(3, 5), (7, 10)},
+    )
     solution.run(sys.argv)
 
 
