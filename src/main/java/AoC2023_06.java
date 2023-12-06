@@ -41,11 +41,25 @@ public final class AoC2023_06
             .toList();
     }
     
+    @SuppressWarnings("unused")
+    private long bruteForce(final Race race) {
+       return LongStream.range(1, race.time())
+               .filter(t -> t * (race.time() - t) > race.distance())
+               .count();
+    }
+    
+    private long equation(final Race race) {
+        final double r = Math.sqrt(Math.pow(race.time(), 2) - 4 * race.distance());
+        final double fx1 = (race.time() - r) / 2d;
+        final double fx2 = (race.time() + r) / 2d;
+        final long x1 = fx1 - ((long) fx1) > 0 ? (long) Math.ceil(fx1) : ((long) fx1) + 1;
+        final long x2 = fx2 - ((long) fx2) > 0 ? (long) Math.floor(fx2) : ((long) fx2) - 1;
+        return x2 - x1 + 1;
+    }
+    
     private long solve(final List<Race> races) {
         return races.stream()
-            .mapToLong(r -> LongStream.range(1, r.time())
-                .filter(t -> t * (r.time() - t) > r.distance())
-                .count())
+            .mapToLong(this::equation)
             .reduce((a, b) -> a * b).getAsLong();
     }
 
