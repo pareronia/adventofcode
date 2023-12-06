@@ -59,12 +59,20 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def part_2(self, races: Input) -> Output2:
-        return 0
+        time = int("".join(str(r[0]) for r in races))
+        distance = int("".join(str(r[1]) for r in races))
+        log((time, distance))
+        ans = 0
+        for t in range(time + 1):
+            d = (time - t) * t
+            if d > distance:
+                ans += 1
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 288),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 71503),
         )
     )
     def samples(self) -> None:
