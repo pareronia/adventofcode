@@ -77,6 +77,32 @@ public class IterTools {
     public static Iterable<int[]> combinations(final int n, final int k) {
         return () -> combinationsIterator(n, k);
     }
+    
+    private static <T> Iterable<ZippedPair<T>>
+    doZip(
+        final Iterator<T> iterator1,
+        final Iterator<T> iterator2
+    ) {
+        return () -> new Iterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                return iterator1.hasNext() && iterator2.hasNext();
+            }
+
+            @Override
+            public ZippedPair<T> next() {
+                return new ZippedPair<>(iterator1.next(), iterator2.next());
+            }
+        };
+    }
+
+    public static <T> Iterable<ZippedPair<T>> zip(
+            final Iterable<T> iterable1,
+            final Iterable<T> iterable2
+    ) {
+        return doZip(iterable1.iterator(), iterable2.iterator());
+    }
 
     private static final class Heap {
         
@@ -113,4 +139,6 @@ public class IterTools {
             a[j] = temp;
         }
     }
+    
+    public record ZippedPair<T>(T first, T second) {}
 }
