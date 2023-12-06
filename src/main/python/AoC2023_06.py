@@ -4,6 +4,10 @@
 #
 
 import sys
+from math import ceil
+from math import floor
+from math import prod
+from math import sqrt
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -23,51 +27,35 @@ Distance:  9  40  200
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        lines = [_ for _ in input_data]
-        times = list(
-            map(
-                int,
-                (
-                    x
-                    for x in lines[0].split(":")[1].strip().split(" ")
-                    if len(x) > 0
-                ),
-            )
-        )
-        distances = list(
-            map(
-                int,
-                (
-                    x
-                    for x in lines[1].split(":")[1].strip().split(" ")
-                    if len(x) > 0
-                ),
-            )
-        )
+        times, distances = [
+            list(map(int, line.split(":")[1].split())) for line in input_data
+        ]
         return list(zip(times, distances))
 
-    def part_1(self, races: Input) -> Output1:
-        log(races)
-        ans = 1
-        for time, distance in races:
-            win = 0
-            for t in range(time + 1):
-                d = (time - t) * t
-                if d > distance:
-                    win += 1
-            ans *= win
+    def _brute_force(self, time: int, distance: int) -> int:
+        ans = sum(t * (time - t) > distance for t in range(time))
+        log(ans)
         return ans
 
+    def _equation(self, time: int, distance: int) -> int:
+        r = sqrt(time**2 - 4 * distance)
+        fx1 = (time - r) / 2
+        fx2 = (time + r) / 2
+        x1 = (int(fx1) + 1) if fx1.is_integer() else ceil(fx1)
+        x2 = (int(fx2) - 1) if fx2.is_integer() else floor(fx2)
+        return x2 - x1 + 1
+
+    def _solve(self, races: Input) -> int:
+        return prod(self._equation(time, distance) for time, distance in races)
+
+    def part_1(self, races: Input) -> Output1:
+        return self._solve(races)
+
     def part_2(self, races: Input) -> Output2:
-        time = int("".join(str(r[0]) for r in races))
-        distance = int("".join(str(r[1]) for r in races))
-        log((time, distance))
-        ans = 0
-        for t in range(time + 1):
-            d = (time - t) * t
-            if d > distance:
-                ans += 1
-        return ans
+        time, distance = (
+            int("".join(str(race[i]) for race in races)) for i in [0, 1]
+        )
+        return self._solve([(time, distance)])
 
     @aoc_samples(
         (
