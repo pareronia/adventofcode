@@ -8,7 +8,7 @@
 <!-- @BEGIN:ImplementationsTable:2023@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| python3 | [✓](src/main/python/AoC2023_01.py) | [✓](src/main/python/AoC2023_02.py) | [✓](src/main/python/AoC2023_03.py) | [✓](src/main/python/AoC2023_04.py) | [✓](src/main/python/AoC2023_05.py) | [✓](src/main/python/AoC2023_06.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| python3 | [✓](src/main/python/AoC2023_01.py) | [✓](src/main/python/AoC2023_02.py) | [✓](src/main/python/AoC2023_03.py) | [✓](src/main/python/AoC2023_04.py) | [✓](src/main/python/AoC2023_05.py) | [✓](src/main/python/AoC2023_06.py) | [✓](src/main/python/AoC2023_07.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2023_01.java) | [✓](src/main/java/AoC2023_02.java) | [✓](src/main/java/AoC2023_03.java) | [✓](src/main/java/AoC2023_04.java) |  | [✓](src/main/java/AoC2023_06.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | bash |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
