@@ -103,7 +103,33 @@ public class IterTools {
     ) {
         return doZip(iterable1.iterator(), iterable2.iterator());
     }
+    
+    public static <T> Iterator<T> cycle(final Iterator<T> iterator) {
+        return new Iterator<>() {
+            List<T> saved = new ArrayList<>();
+            int i = 0;
 
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                if (iterator.hasNext()) {
+                    final T next = iterator.next();
+                    saved.add(next);
+                    return next;
+                }
+                return saved.get(i++ % saved.size());
+            }
+        };
+    }
+
+    public static <T> Iterator<T> cycle(final Iterable<T> iterable) {
+        return cycle(iterable.iterator());
+    }
+    
     private static final class Heap {
         
         public static void accept(final int[] a, final Consumer<int[]> consumer) {

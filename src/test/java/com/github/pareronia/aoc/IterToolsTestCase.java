@@ -3,6 +3,7 @@ package com.github.pareronia.aoc;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -56,4 +57,20 @@ public class IterToolsTestCase {
             IterTools.zip(List.of("a", "b"), List.of()))
             .isEmpty();
     }
+    
+    @Test
+    public void cycle() {
+        final Iterator<Integer> icycle = IterTools.cycle(List.of(1, 2, 3));
+        for (int i = 0; i < 10; i++) {
+            assertThat(icycle.next()).isEqualTo(1);
+            assertThat(icycle.next()).isEqualTo(2);
+            assertThat(icycle.next()).isEqualTo(3);
+        }
+        final Iterator<Character> ccycle = IterTools.cycle(Utils.asCharacterStream("abc").toList());
+        for (int i = 0; i < 10; i++) {
+            assertThat(ccycle.next()).isEqualTo('a');
+            assertThat(ccycle.next()).isEqualTo('b');
+            assertThat(ccycle.next()).isEqualTo('c');
+        }
+   }
 }
