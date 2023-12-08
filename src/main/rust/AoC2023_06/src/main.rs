@@ -11,14 +11,32 @@ struct Race {
 struct AoC2023_06;
 
 impl AoC2023_06 {
+    #![allow(dead_code)]
+    fn brute_force(&self, race: &Race) -> u64 {
+        (1..race.time)
+            .filter(|t| (race.time - t) * t > race.distance)
+            .count() as u64
+    }
+
+    fn equation(&self, race: &Race) -> u64 {
+        let r = ((race.time.pow(2) - 4 * race.distance) as f64).sqrt();
+        let fx1 = (race.time as f64 - r) / 2.0;
+        let fx2 = (race.time as f64 + r) / 2.0;
+        let x1 = match (fx1.ceil() - fx1).abs() < f64::EPSILON {
+            true => fx1 as u64 + 1,
+            false => fx1.ceil() as u64,
+        };
+        let x2 = match (fx2 - fx2.floor()).abs() < f64::EPSILON {
+            true => fx2 as u64 - 1,
+            false => fx2.floor() as u64,
+        };
+        x2 - x1 + 1
+    }
+
     fn solve(&self, races: &[Race]) -> u64 {
         races
             .iter()
-            .map(|race| {
-                (1..race.time)
-                    .filter(|t| (race.time - t) * t > race.distance)
-                    .count() as u64
-            })
+            .map(|race| self.equation(race))
             .product::<u64>()
     }
 }
