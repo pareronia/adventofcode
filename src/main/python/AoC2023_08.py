@@ -3,8 +3,11 @@
 # Advent of Code 2023 Day 8
 #
 
+from __future__ import annotations
+
 import itertools
 import sys
+from functools import reduce
 from math import lcm
 from typing import NamedTuple
 
@@ -49,6 +52,26 @@ class Map(NamedTuple):
     instructions: str
     network: dict[str, tuple[str, str]]
 
+    @classmethod
+    def from_input(cls, input_data: InputData) -> Map:
+        blocks = my_aocd.to_blocks(input_data)
+        instructions = blocks[0][0]
+        network = dict[str, tuple[str, str]]()
+        for line in blocks[1]:
+            key, vals = line.split(" = ")
+            network[key] = (vals[1:4], vals[6:9])
+        return cls(instructions, network)
+
+    def steps(self, key: str) -> int:
+        inss = itertools.cycle(self.instructions)
+        node = self.network[key]
+        ans = 0
+        while key[-1] != "Z":
+            key = node[0 if next(inss) == "L" else 1]
+            node = self.network[key]
+            ans += 1
+        return ans
+
 
 Input = Map
 Output1 = int
@@ -57,38 +80,19 @@ Output2 = int
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Map:
-        blocks = my_aocd.to_blocks(input_data)
-        instructions = blocks[0][0]
-        network = dict[str, tuple[str, str]]()
-        for line in blocks[1]:
-            key, vals = line.split(" = ")
-            network[key] = (vals[1:4], vals[6:9])
-        map = Map(instructions, network)
-        return map
-
-    def _steps(self, map: Map, start_key: str) -> int:
-        inss = itertools.cycle(map.instructions)
-        node = map.network[start_key]
-        ans = 1
-        while True:
-            ins = next(inss)
-            key = node[0 if ins == "L" else 1]
-            if key[-1] == "Z":
-                break
-            node = map.network[key]
-            ans += 1
-        return ans
+        return Map.from_input(input_data)
 
     def part_1(self, map: Map) -> Output1:
-        return self._steps(map, "AAA")
+        return map.steps("AAA")
 
     def part_2(self, map: Map) -> Output2:
-        keys = [k for k in map.network if k[-1] == "A"]
-        steps = [self._steps(map, key) for key in keys]
-        ans = steps[0]
-        for s in steps[1:]:
-            ans = lcm(ans, s)
-        return ans
+        return reduce(
+            lcm,
+            (
+                map.steps(key)
+                for key in [k for k in map.network if k[-1] == "A"]
+            ),
+        )
 
     @aoc_samples(
         (
