@@ -3,16 +3,15 @@
 # Advent of Code 2023 Day 8
 #
 
-import sys
-from typing import NamedTuple
 import itertools
+import sys
+from math import lcm
+from typing import NamedTuple
 
 from aoc import my_aocd
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-# from aoc.common import log
-
 
 TEST1 = """\
 RL
@@ -31,6 +30,18 @@ LLR
 AAA = (BBB, BBB)
 BBB = (AAA, ZZZ)
 ZZZ = (ZZZ, ZZZ)
+"""
+TEST3 = """\
+LR
+
+11A = (11B, XXX)
+11B = (XXX, 11Z)
+11Z = (11B, XXX)
+22A = (22B, XXX)
+22B = (22C, 22C)
+22C = (22Z, 22Z)
+22Z = (22B, 22B)
+XXX = (XXX, XXX)
 """
 
 
@@ -55,27 +66,35 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         map = Map(instructions, network)
         return map
 
-    def part_1(self, map: Map) -> Output1:
+    def _steps(self, map: Map, start_key: str) -> int:
         inss = itertools.cycle(map.instructions)
-        node = map.network['AAA']
+        node = map.network[start_key]
         ans = 1
         while True:
             ins = next(inss)
-            key = node[0 if ins == 'L' else 1]
-            if key == 'ZZZ':
+            key = node[0 if ins == "L" else 1]
+            if key[-1] == "Z":
                 break
             node = map.network[key]
             ans += 1
         return ans
 
-    def part_2(self, input: Map) -> Output2:
-        return 0
+    def part_1(self, map: Map) -> Output1:
+        return self._steps(map, "AAA")
+
+    def part_2(self, map: Map) -> Output2:
+        keys = [k for k in map.network if k[-1] == "A"]
+        steps = [self._steps(map, key) for key in keys]
+        ans = steps[0]
+        for s in steps[1:]:
+            ans = lcm(ans, s)
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST1, 2),
             ("part_1", TEST2, 6),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST3, 6),
         )
     )
     def samples(self) -> None:
