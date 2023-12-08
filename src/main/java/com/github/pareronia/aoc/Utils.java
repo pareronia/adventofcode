@@ -10,10 +10,6 @@ import java.util.stream.Collector;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class Utils {
 
 	public static Stream<Character> asCharacterStream(final String string) {
@@ -37,23 +33,6 @@ public class Utils {
                 .map(n -> iterator.next());
     }
 	
-	public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
-	    return stream(new Iterator<Enumerated<T>>() {
-	        private final Iterator<T> iterator = stream.iterator();
-	        private int i = 0;
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public Enumerated<T> next() {
-                return new Enumerated<>(i++, iterator.next());
-            }
-        });
-	}
-    
     public static <T> T last(final List<T> list) {
         return Objects.requireNonNull(list).get(list.size() - 1);
     }
@@ -86,13 +65,5 @@ public class Utils {
                 .map(MatchResult::group)
                 .mapToInt(Integer::parseInt)
                 .toArray();
-    }
-    
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    public static final class Enumerated<T> {
-        private final int index;
-        private final T value;
     }
 }

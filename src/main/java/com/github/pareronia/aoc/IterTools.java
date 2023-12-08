@@ -78,6 +78,31 @@ public class IterTools {
         return () -> combinationsIterator(n, k);
     }
     
+    public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
+        return enumerateFrom(0, stream);
+    }
+    
+    public static <T> Stream<Enumerated<T>>
+    enumerateFrom(
+            final int startIndex,
+            final Stream<T> stream
+    ) {
+        return Utils.stream(new Iterator<Enumerated<T>>() {
+            private final Iterator<T> iterator = stream.iterator();
+            private int i = startIndex;
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Enumerated<T> next() {
+                return new Enumerated<>(i++, iterator.next());
+            }
+        });
+    }
+    
     private static <T> Iterable<ZippedPair<T>>
     doZip(
         final Iterator<T> iterator1,
@@ -167,4 +192,6 @@ public class IterTools {
     }
     
     public record ZippedPair<T>(T first, T second) {}
+    
+    public record Enumerated<T>(int index, T value) {}
 }

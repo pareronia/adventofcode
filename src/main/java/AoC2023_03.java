@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.Utils.enumerate;
+import static com.github.pareronia.aoc.IterTools.enumerate;
 import static java.util.stream.Collectors.groupingBy;
 
 import java.util.List;
@@ -33,8 +33,8 @@ public final class AoC2023_03
         final Pattern regex = Pattern.compile("[0-9]+");
         final CharGrid grid = CharGrid.from(inputs);
         return enumerate(grid.getRowsAsStrings())
-            .flatMap(e -> regex.matcher(e.getValue()).results()
-                .map(m -> findEnginePart(grid, e.getIndex(),
+            .flatMap(e -> regex.matcher(e.value()).results()
+                .map(m -> findEnginePart(grid, e.index(),
                                          Range.between(m.start(), m.end()))))
             .filter(Optional::isPresent)
             .map(Optional::get)
