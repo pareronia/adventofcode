@@ -9,7 +9,6 @@ from collections import deque
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = list[list[int]]
 Output1 = int
@@ -30,28 +29,35 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def part_1(self, input: Input) -> Output1:
         ans = 0
         for line in input:
-            log(line)
             lasts = deque[int]()
             lasts.append(line[-1])
             while not all(_ == lasts[-1] for _ in line):
                 line = [line[i] - line[i - 1] for i in range(1, len(line), 1)]
                 lasts.append(line[-1])
-            log(line)
-            log(lasts)
             tmp = lasts.pop()
             while len(lasts) > 0:
                 tmp += lasts.pop()
-            log(tmp)
             ans += tmp
         return ans
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        ans = 0
+        for line in input:
+            firsts = deque[int]()
+            firsts.append(line[0])
+            while not all(_ == firsts[-1] for _ in line):
+                line = [line[i] - line[i - 1] for i in range(1, len(line), 1)]
+                firsts.append(line[0])
+            tmp = firsts.pop()
+            while len(firsts) > 0:
+                tmp = firsts.pop() - tmp
+            ans += tmp
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 114),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 2),
         )
     )
     def samples(self) -> None:
