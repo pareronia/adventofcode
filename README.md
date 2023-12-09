@@ -2,8 +2,8 @@
 
 ## 2023
 
-![](https://img.shields.io/badge/stars%20⭐-16-yellow)
-![](https://img.shields.io/badge/days%20completed-8-red)
+![](https://img.shields.io/badge/stars%20⭐-18-yellow)
+![](https://img.shields.io/badge/days%20completed-9-red)
 
 <!-- @BEGIN:ImplementationsTable:2023@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
