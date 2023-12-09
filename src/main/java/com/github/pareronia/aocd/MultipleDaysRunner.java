@@ -13,9 +13,6 @@ import com.github.pareronia.aocd.Runner.Request;
 import com.github.pareronia.aocd.Runner.Response;
 import com.github.pareronia.aocd.Runner.Response.Part;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class MultipleDaysRunner {
     
     private static final Set<Day> DAYS = Set.of(
@@ -56,12 +53,27 @@ public class MultipleDaysRunner {
 	   new MultipleDaysRunner().run(DAYS, new Listener() {});
 	}
 
-	@RequiredArgsConstructor(staticName = "at")
-	@Getter
 	public static final class Day implements Comparable<Day> {
 	    private final int year;
 	    private final int day;
 	    
+        protected Day(final int year, final int day) {
+            this.year = year;
+            this.day = day;
+        }
+        
+        public static Day at(final int year, final int day) {
+            return new Day(year, day);
+        }
+
+        private int getYear() {
+            return year;
+        }
+
+        private int getDay() {
+            return day;
+        }
+
         @Override
         public int compareTo(final Day other) {
         return comparing(Day::getYear)

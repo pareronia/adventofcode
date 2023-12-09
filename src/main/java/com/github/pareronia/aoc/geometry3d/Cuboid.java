@@ -1,5 +1,6 @@
 package com.github.pareronia.aoc.geometry3d;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -7,15 +8,6 @@ import java.util.stream.Stream;
 import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.geometry.Position;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-@RequiredArgsConstructor
-@EqualsAndHashCode
-@ToString
-@Getter
 public class Cuboid {
     final int x1;
     final int x2;
@@ -23,6 +15,15 @@ public class Cuboid {
     final int y2;
     final int z1;
     final int z2;
+
+    public Cuboid(final int x1, final int x2, final int y1, final int y2, final int z1, final int z2) {
+        this.x1 = x1;
+        this.x2 = x2;
+        this.y1 = y1;
+        this.y2 = y2;
+        this.z1 = z1;
+        this.z2 = z2;
+    }
 
     public static Cuboid of(
             final int x1, final int x2,
@@ -86,5 +87,27 @@ public class Cuboid {
            Math.max(cuboid1.x1, cuboid2.x1), Math.min(cuboid1.x2, cuboid2.x2),
            Math.max(cuboid1.y1, cuboid2.y1), Math.min(cuboid1.y2, cuboid2.y2),
            Math.max(cuboid1.z1, cuboid2.z1), Math.min(cuboid1.z2, cuboid2.z2)));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(x1, x2, y1, y2, z1, z2);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Cuboid other = (Cuboid) obj;
+        return x1 == other.x1 && x2 == other.x2
+            && y1 == other.y1 && y2 == other.y2
+            && z1 == other.z1 && z2 == other.z2;
     }
 }

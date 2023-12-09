@@ -7,30 +7,58 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-
-@RequiredArgsConstructor
 public class Program {
     private final List<Instruction> instructions;
-    @Getter
     private final Map<Integer, Object> memory = new HashMap<>();
-    @Getter
     private final Map<String, Long> registers = new HashMap<>();
-    @Getter(value = AccessLevel.PACKAGE)
     private final Integer infiniteLoopTreshold;
-    @Getter(value = AccessLevel.PACKAGE)
     private final Consumer<Long> outputConsumer;
-    @Setter
-    @Getter(value = AccessLevel.PACKAGE)
     private Supplier<Long> inputSupplier = null;
-    @Getter
     private Integer instructionPointer = 0;
-    @Getter
     private long cycles = 0L;
+
+    public Program(
+            final List<Instruction> instructions,
+            final Integer infiniteLoopTreshold,
+            final Consumer<Long> outputConsumer
+    ) {
+        this.instructions = instructions;
+        this.infiniteLoopTreshold = infiniteLoopTreshold;
+        this.outputConsumer = outputConsumer;
+    }
+
+    public Map<Integer, Object> getMemory() {
+        return memory;
+    }
     
+    public Map<String, Long> getRegisters() {
+        return registers;
+    }
+
+    protected Integer getInfiniteLoopTreshold() {
+        return infiniteLoopTreshold;
+    }
+
+    protected Consumer<Long> getOutputConsumer() {
+        return outputConsumer;
+    }
+
+    protected Supplier<Long> getInputSupplier() {
+        return inputSupplier;
+    }
+
+    public void setInputSupplier(final Supplier<Long> inputSupplier) {
+        this.inputSupplier = inputSupplier;
+    }
+
+    public Integer getInstructionPointer() {
+        return instructionPointer;
+    }
+
+    public long getCycles() {
+        return cycles;
+    }
+
     public void reset() {
         this.instructionPointer = 0;
         this.cycles = 0;

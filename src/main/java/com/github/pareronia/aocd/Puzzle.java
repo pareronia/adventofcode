@@ -35,14 +35,10 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.StringUtils;
 
-import lombok.Getter;
-
 public class Puzzle {
 	
 	private final SystemUtils systemUtils;
-	@Getter
 	private final int year;
-	@Getter
 	private final int day;
 	private final Path inputDataFile;
 	private final Path titleFile;
@@ -84,7 +80,15 @@ public class Puzzle {
 		return new Puzzle(systemUtils, year, day, user, aocdDir);
 	}
 	
-	public <V1, V2> void check(final Callable<V1> part1, final Callable<V2> part2) throws Exception {
+	public int getYear() {
+        return year;
+    }
+
+    public int getDay() {
+        return day;
+    }
+
+    public <V1, V2> void check(final Callable<V1> part1, final Callable<V2> part2) throws Exception {
 	    final String[] fails = new String[2];
         final String answer1 = getAnswer1();
 	    final V1 result1 = part1.call();

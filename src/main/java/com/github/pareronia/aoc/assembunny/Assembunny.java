@@ -11,8 +11,6 @@ import java.util.Set;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.vm.Instruction;
 
-import lombok.Value;
-
 /**
  * 'Assembunny' util class.
  *
@@ -76,9 +74,21 @@ public class Assembunny {
         return StringUtils.isNumeric(s.replace("-", ""));
     }
 
-    @Value
     public static final class AssembunnyInstruction {
         private final String operator;
         private final List<String> operands;
+        
+        public AssembunnyInstruction(final String operator, final List<String> operands) {
+            this.operator = operator;
+            this.operands = operands;
+        }
+
+        public String getOperator() {
+            return operator;
+        }
+
+        public List<String> getOperands() {
+            return operands;
+        }
     }
 }

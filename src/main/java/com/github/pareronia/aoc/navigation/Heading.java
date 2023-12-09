@@ -4,10 +4,6 @@ import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.geometry.Vector;
 
-import lombok.Getter;
-import lombok.ToString;
-
-@ToString
 public class Heading {
     public static final Heading NORTH = Heading.fromDirection(Direction.UP);
     public static final Heading NORTHEAST = Heading.fromDirection(Direction.RIGHT_AND_UP);
@@ -18,7 +14,6 @@ public class Heading {
     public static final Heading WEST = Heading.fromDirection(Direction.LEFT);
     public static final Heading NORTHWEST = Heading.fromDirection(Direction.LEFT_AND_UP);
     
-    @Getter
     private final Vector vector;
     
     private Heading(final Vector direction) {
@@ -37,11 +32,22 @@ public class Heading {
         return Heading.fromDirection(Direction.fromString(string));
     }
     
+    public Vector getVector() {
+        return vector;
+    }
+
     public Heading turn(final Turn turn) {
         return new Heading(this.vector.rotate(turn));
     }
     
     public Heading add(final Direction direction, final int amplitude) {
         return new Heading(this.getVector().add(direction.getVector(), amplitude));
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Heading [vector=").append(vector).append("]");
+        return builder.toString();
     }
 }

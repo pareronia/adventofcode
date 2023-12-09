@@ -7,39 +7,37 @@ import java.util.function.Predicate;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
 
-import lombok.Getter;
-import lombok.ToString;
-
-@ToString(onlyExplicitlyIncluded = true)
 public class Navigation {
 
-    @Getter
-    @ToString.Include
     protected Position position;
     private final List<Position> visitedPositions = new ArrayList<>();
     private final Predicate<Position> inBoundsPredicate;
     
-    public Navigation(Position position) {
+    public Navigation(final Position position) {
         this.position = position;
         rememberVisitedPosition(position);
         inBoundsPredicate = pos -> true;
     }
     
-    public Navigation(Position position, Predicate<Position> inBounds) {
+    public Navigation(final Position position, final Predicate<Position> inBounds) {
         this.position = position;
         rememberVisitedPosition(position);
         inBoundsPredicate = inBounds;
     }
     
-    protected boolean inBounds(Position position) {
+    public Position getPosition() {
+        return position;
+    }
+
+    protected boolean inBounds(final Position position) {
         return inBoundsPredicate.test(position);
     }
     
-    protected final void rememberVisitedPosition(Position position) {
+    protected final void rememberVisitedPosition(final Position position) {
         this.visitedPositions.add(position);
     }
     
-    protected void translate(Vector heading, Integer amount) {
+    protected void translate(final Vector heading, final Integer amount) {
         Position newPosition = this.position;
         for (int i = 0; i < amount; i++) {
             newPosition = newPosition.translate(heading, 1);
@@ -54,11 +52,18 @@ public class Navigation {
         return getVisitedPositions(false);
     }
     
-    public List<Position> getVisitedPositions(boolean includeStartPosition) {
+    public List<Position> getVisitedPositions(final boolean includeStartPosition) {
         if (includeStartPosition) {
             return this.visitedPositions;
         } else {
             return this.visitedPositions.subList(1, this.visitedPositions.size());
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Navigation [position=").append(position).append("]");
+        return builder.toString();
     }
 }

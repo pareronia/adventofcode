@@ -2,13 +2,14 @@ package com.github.pareronia.aoc.solution;
 
 import java.util.function.Supplier;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 public class Logger {
 
     private final boolean debug;
     private boolean trace;
+
+    public Logger(final boolean debug) {
+        this.debug = debug;
+    }
     
     public void setTrace(final boolean trace) {
         this.trace = trace;

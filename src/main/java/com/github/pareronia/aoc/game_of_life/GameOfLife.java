@@ -7,21 +7,24 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import lombok.Getter;
-import lombok.With;
-
 public class GameOfLife<T> {
 
     private final Type<T> type;
     private final Rules<T> rules;
-    @Getter
-    @With
     private final Set<T> alive;
     
     public GameOfLife(final Type<T> type, final Rules<T> rules, final Set<T> alive) {
         this.type = type;
         this.rules = rules;
         this.alive = Collections.unmodifiableSet(alive);
+    }
+
+    public Set<T> getAlive() {
+        return alive;
+    }
+    
+    public GameOfLife<T> withAlive(final Set<T> alive) {
+        return new GameOfLife<>(this.type, this.rules, alive);
     }
 
     public GameOfLife<T> nextGeneration() {

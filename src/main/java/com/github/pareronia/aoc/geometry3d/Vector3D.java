@@ -1,8 +1,5 @@
 package com.github.pareronia.aoc.geometry3d;
 
-import lombok.EqualsAndHashCode;
-
-@EqualsAndHashCode(callSuper = true)
 public class Vector3D extends Point3D {
 
     public Vector3D(final int x, final int y, final int z) {

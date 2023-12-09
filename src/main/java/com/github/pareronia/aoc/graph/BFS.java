@@ -7,9 +7,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 public final class BFS {
     
     public static <T> int execute(
@@ -52,9 +49,13 @@ public final class BFS {
         return seen;
     }
 
-    @RequiredArgsConstructor
     private static final class State<T> {
         private final T node;
         private final int distance;
+        
+        protected State(final T node, final int distance) {
+            this.node = node;
+            this.distance = distance;
+        }
     }
 }

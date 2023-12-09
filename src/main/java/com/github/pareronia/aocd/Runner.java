@@ -15,13 +15,14 @@ import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aoc.solution.SolutionBase;
 import com.github.pareronia.aocd.RunServer.RequestHandler;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 class Runner {
 
-	public static void main(final String[] args) throws Exception {
+	protected Runner(final SystemUtils systemUtils, final ClassFactory classFactory) {
+        this.systemUtils = systemUtils;
+        this.classFactory = classFactory;
+    }
+
+    public static void main(final String[] args) throws Exception {
 	    final SystemUtils systemUtils = new SystemUtils();
 	    final Request request = Request.create(systemUtils.getLocalDate(), args);
 		final Response result = Runner.create(systemUtils).run(request);
@@ -38,7 +39,7 @@ class Runner {
 
 	static Runner create(final SystemUtils systemUtils) {
 		return new Runner(systemUtils,
-						  className -> Class.forName(className));
+						  Class::forName);
 	}
 	
 	static Runner create(final SystemUtils systemUtils,
@@ -131,15 +132,23 @@ class Runner {
 		        .invoke(null);
     }
 	
-	@RequiredArgsConstructor
 	private static final class Result {
-	    private final Object answer;
+	    protected Result(final Object answer, final Duration duration) {
+            this.answer = answer;
+            this.duration = duration;
+        }
+        private final Object answer;
 	    private final Duration duration;
 	}
 	
-	@RequiredArgsConstructor
 	static final class Request {
-		private final Integer year;
+		protected Request(final Integer year, final Integer day, final List<String> inputs) {
+            this.year = year;
+            this.day = day;
+            this.inputs = inputs;
+        }
+
+        private final Integer year;
 		private final Integer day;
 		private final List<String> inputs;
 		
@@ -163,19 +172,30 @@ class Runner {
 		}
 	}
 	
-	@RequiredArgsConstructor
-	@Getter
 	static final class Response {
 		public static final Response EMPTY = new Response(null, null);
 		
 		private final Part part1;
 		private final Part part2;
 		
-		protected static Response create(
+		protected Response(final Part part1, final Part part2) {
+            this.part1 = part1;
+            this.part2 = part2;
+        }
+
+        protected static Response create(
 		        final Result result1, final Result result2) {
 		    return new Response(
 		        new Part(result1.answer.toString(), result1.duration.toNanos()),
 		        new Part(result2.answer.toString(), result2.duration.toNanos()));
+        }
+
+        public Part getPart1() {
+            return part1;
+        }
+
+        public Part getPart2() {
+            return part2;
         }
 
         @Override
@@ -183,11 +203,22 @@ class Runner {
             return Json.toJson(this);
 		}
         
-        @RequiredArgsConstructor
-        @Getter
         public static final class Part {
             private final String answer;
             private final Long duration;
+            
+            protected Part(final String answer, final Long duration) {
+                this.answer = answer;
+                this.duration = duration;
+            }
+
+            public String getAnswer() {
+                return answer;
+            }
+
+            public Long getDuration() {
+                return duration;
+            }
         }
 	}
 	

@@ -9,11 +9,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AStar {
 
     public static <T> Result<T> execute(
@@ -46,25 +41,43 @@ public class AStar {
         return new Result<>(start, best, parent);
     }
 
-    @RequiredArgsConstructor
-    @ToString
     private static final class State<T> implements Comparable<State<T>> {
         private final T node;
         private final long cost;
     
+        protected State(final T node, final long cost) {
+            this.node = node;
+            this.cost = cost;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("State [node=").append(node).append(", cost=").append(cost).append("]");
+            return builder.toString();
+        }
+
         @Override
         public int compareTo(final State<T> other) {
             return Long.compare(this.cost, other.cost);
         }
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    @Getter
     public static class Result<T> {
         private final T source;
         private final Map<T, Long> distances;
         private final Map<T, T> paths;
         
+        protected Result(final T source, final Map<T, Long> distances, final Map<T, T> paths) {
+            this.source = source;
+            this.distances = distances;
+            this.paths = paths;
+        }
+
+        public Map<T, Long> getDistances() {
+            return distances;
+        }
+
         public long getDistance(final T v) {
             return distances.get(v);
         }

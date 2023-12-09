@@ -14,10 +14,8 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import lombok.extern.java.Log;
-
-@Log
 public class RunServer {
 	
 	public static final int OK = 0;
@@ -26,6 +24,8 @@ public class RunServer {
 	private static final String HELLO = "HELLO";
 	private static final String END = "END";
 	private static final String STOP = "STOP";
+	
+	private static final Logger log = Logger.getLogger(RunServer.class.getName());
 	
 	private final int port;
 	private final RequestHandler requestHandler;

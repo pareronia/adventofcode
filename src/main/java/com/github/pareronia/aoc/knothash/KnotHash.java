@@ -12,9 +12,6 @@ import java.util.stream.Stream;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.Utils;
 
-import lombok.Builder;
-import lombok.Getter;
-
 public class KnotHash {
     
     public static final List<Integer> SEED =
@@ -38,8 +35,7 @@ public class KnotHash {
     
     private static int[] calculate(final List<Integer> lengths) {
         final List<Integer> elements = new ArrayList<>(SEED);
-        State state = State.builder()
-                .elements(elements).lengths(lengths).cur(0).skip(0).build();
+        State state = new State(elements, lengths, 0, 0);
         for (int i = 0; i < 64; i++) {
             state = KnotHash.round(state);
         }
@@ -62,8 +58,7 @@ public class KnotHash {
             cur = (cur + len + skip) % elements.size();
             skip++;
         }
-        return State.builder()
-            .elements(elements).lengths(lengths).cur(cur).skip(skip).build();
+        return new State(elements, lengths, cur, skip);
     }
 
     private static void reverse(
@@ -96,12 +91,33 @@ public class KnotHash {
                 .collect(joining());
     }
 
-    @Builder
-    @Getter
     public static final class State {
         private final List<Integer> elements;
         private final List<Integer> lengths;
         private final int cur;
         private final int skip;
+        
+        public State(final List<Integer> elements, final List<Integer> lengths, final int cur, final int skip) {
+            this.elements = elements;
+            this.lengths = lengths;
+            this.cur = cur;
+            this.skip = skip;
+        }
+
+        public List<Integer> getElements() {
+            return elements;
+        }
+
+        public List<Integer> getLengths() {
+            return lengths;
+        }
+
+        public int getCur() {
+            return cur;
+        }
+
+        public int getSkip() {
+            return skip;
+        }
     }
 }

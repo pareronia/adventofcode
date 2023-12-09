@@ -9,17 +9,11 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import lombok.ToString;
-
 public class IntegerSequence {
     
-    @ToString(onlyExplicitlyIncluded = true)
     public static class Range implements Iterable<Integer> {
-        @ToString.Include
         private final int from;
-        @ToString.Include
         private final int to;
-        @ToString.Include
         private final int step;
         private int minimum;
         private int maximum;
@@ -107,6 +101,14 @@ public class IntegerSequence {
                     return next;
                 }
             };
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Range [from=").append(from).append(", to=")
+                    .append(to).append(", step=").append(step).append("]");
+            return builder.toString();
         }
     }
 }

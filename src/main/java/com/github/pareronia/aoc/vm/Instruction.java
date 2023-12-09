@@ -4,13 +4,16 @@ import static java.util.Arrays.asList;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-import lombok.Value;
-
-@Value
 public class Instruction {
     private final Opcode opcode;
     private final List<Object> operands;
+
+    protected Instruction(final Opcode opcode, final List<Object> operands) {
+        this.opcode = opcode;
+        this.operands = operands;
+    }
 
     public static Instruction NOP() {
         return new Instruction(Opcode.NOP, Collections.emptyList());
@@ -80,7 +83,43 @@ public class Instruction {
         return new Instruction(Opcode.INP, List.of(operand));
     }
     
+    public Opcode getOpcode() {
+        return opcode;
+    }
+
+    public List<Object> getOperands() {
+        return operands;
+    }
+
     public boolean isMUL() {
         return this.opcode == Opcode.MUL;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(opcode, operands);
+    }
+
+    @Override
+    public boolean equals(final Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final Instruction other = (Instruction) obj;
+        return opcode == other.opcode && Objects.equals(operands, other.operands);
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("Instruction [opcode=").append(opcode)
+            .append(", operands=").append(operands).append("]");
+        return builder.toString();
     }
 }

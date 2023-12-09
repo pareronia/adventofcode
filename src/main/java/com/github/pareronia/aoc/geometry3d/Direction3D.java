@@ -2,9 +2,6 @@ package com.github.pareronia.aoc.geometry3d;
 
 import java.util.EnumSet;
 
-import lombok.Getter;
-
-@Getter
 public enum Direction3D {
 
     UP(Vector3D.of(0, 1, 0)),
@@ -27,5 +24,9 @@ public enum Direction3D {
 
     Direction3D(final Vector3D value) {
         this.value = value;
+    }
+
+    public Vector3D getValue() {
+        return value;
     }
 }

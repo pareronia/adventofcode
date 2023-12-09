@@ -5,14 +5,13 @@ import static java.util.stream.Collectors.toList;
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
-@Getter
 public final class IntGrid implements Grid<Integer> {
     final int[][] values;
     
+    public IntGrid(final int[][] values) {
+        this.values = values;
+    }
+
     public static IntGrid from(final List<String> strings) {
         final int[][] values = new int[strings.size()][strings.get(0).length()];
         strings.stream()
@@ -22,6 +21,10 @@ public final class IntGrid implements Grid<Integer> {
         return new IntGrid(values);
     }
     
+    public int[][] getValues() {
+        return values;
+    }
+
     @Override
     public int getWidth() {
         assert this.values.length > 0;

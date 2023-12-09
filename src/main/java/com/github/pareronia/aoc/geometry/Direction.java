@@ -9,8 +9,6 @@ import java.util.Set;
 
 import com.github.pareronia.aoc.AssertUtils;
 
-import lombok.Getter;
-
 public enum Direction {
 
     NONE(Vector.of(0, 0), Optional.empty(), Optional.empty(), Optional.empty()),
@@ -44,7 +42,6 @@ public enum Direction {
     public static final Set<Character> CAPITAL_ARROWS = CAPITAL.stream()
             .map(d -> d.arrow.get()).collect(toSet());
     
-    @Getter
     private final Vector vector;
     private final Optional<Character> letter;
     private final Optional<Character> geo;
@@ -81,6 +78,10 @@ public enum Direction {
         }
     }
     
+    public Vector getVector() {
+        return vector;
+    }
+
     public Integer getX() {
         return this.vector.getX();
     }
@@ -91,17 +92,12 @@ public enum Direction {
     
     public Direction turn(final Turn turn) {
         AssertUtils.assertNotNull(turn, () -> "Expected turn be non-null");
-        switch (this) {
-        case UP:
-            return turn == Turn.AROUND ? DOWN : turn == Turn.LEFT ? LEFT : RIGHT;
-        case RIGHT:
-            return turn == Turn.AROUND ? LEFT : turn == Turn.LEFT ? UP : DOWN;
-        case DOWN:
-            return turn == Turn.AROUND ? UP : turn == Turn.LEFT ? RIGHT : LEFT;
-        case LEFT:
-            return turn == Turn.AROUND ? RIGHT : turn == Turn.LEFT ? DOWN : UP;
-        default:
-            throw new UnsupportedOperationException();
-        }
+        return switch (this) {
+        case UP -> turn == Turn.AROUND ? DOWN : turn == Turn.LEFT ? LEFT : RIGHT;
+        case RIGHT -> turn == Turn.AROUND ? LEFT : turn == Turn.LEFT ? UP : DOWN;
+        case DOWN -> turn == Turn.AROUND ? UP : turn == Turn.LEFT ? RIGHT : LEFT;
+        case LEFT -> turn == Turn.AROUND ? RIGHT : turn == Turn.LEFT ? DOWN : UP;
+        default -> throw new UnsupportedOperationException();
+        };
     }
 }
