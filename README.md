@@ -13,7 +13,7 @@
 | bash |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | julia |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| rust | [✓](src/main/rust/AoC2023_01/src/main.rs) | [✓](src/main/rust/AoC2023_02/src/main.rs) | [✓](src/main/rust/AoC2023_03/src/main.rs) | [✓](src/main/rust/AoC2023_04/src/main.rs) |  | [✓](src/main/rust/AoC2023_06/src/main.rs) |  | [✓](src/main/rust/AoC2023_08/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust | [✓](src/main/rust/AoC2023_01/src/main.rs) | [✓](src/main/rust/AoC2023_02/src/main.rs) | [✓](src/main/rust/AoC2023_03/src/main.rs) | [✓](src/main/rust/AoC2023_04/src/main.rs) |  | [✓](src/main/rust/AoC2023_06/src/main.rs) |  | [✓](src/main/rust/AoC2023_08/src/main.rs) | [✓](src/main/rust/AoC2023_09/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2023@ -->
 
 ## 2022
