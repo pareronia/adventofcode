@@ -8,7 +8,7 @@ import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -35,14 +35,14 @@ public final class AoC2023_03
         return enumerate(grid.getRowsAsStrings())
             .flatMap(e -> regex.matcher(e.value()).results()
                 .map(m -> findEnginePart(grid, e.index(),
-                                         Range.between(m.start(), m.end()))))
+                                         RangeInclusive.between(m.start(), m.end()))))
             .filter(Optional::isPresent)
             .map(Optional::get)
             .toList();
     }
     
     private Optional<EnginePart> findEnginePart(
-            final CharGrid grid, final int row, final Range<Integer> colspan
+            final CharGrid grid, final int row, final RangeInclusive<Integer> colspan
     ) {
         return IntStream.range(colspan.getMinimum(), colspan.getMaximum())
             .boxed()

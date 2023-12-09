@@ -4,7 +4,7 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.geometry.Position;
 
 import lombok.EqualsAndHashCode;
@@ -59,18 +59,18 @@ public class Cuboid {
     }
 
     private static boolean overlapX(final Cuboid cuboid1, final Cuboid cuboid2) {
-        return Range.between(cuboid1.x1, cuboid1.x2)
-            .isOverlappedBy(Range.between(cuboid2.x1, cuboid2.x2));
+        return RangeInclusive.between(cuboid1.x1, cuboid1.x2)
+            .isOverlappedBy(RangeInclusive.between(cuboid2.x1, cuboid2.x2));
     }
 
     private static boolean overlapY(final Cuboid cuboid1, final Cuboid cuboid2) {
-        return Range.between(cuboid1.y1, cuboid1.y2)
-                .isOverlappedBy(Range.between(cuboid2.y1, cuboid2.y2));
+        return RangeInclusive.between(cuboid1.y1, cuboid1.y2)
+                .isOverlappedBy(RangeInclusive.between(cuboid2.y1, cuboid2.y2));
     }
 
     private static boolean overlapZ(final Cuboid cuboid1, final Cuboid cuboid2) {
-        return Range.between(cuboid1.z1, cuboid1.z2)
-                .isOverlappedBy(Range.between(cuboid2.z1, cuboid2.z2));
+        return RangeInclusive.between(cuboid1.z1, cuboid1.z2)
+                .isOverlappedBy(RangeInclusive.between(cuboid2.z1, cuboid2.z2));
     }
     
     public static

@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.Utils.enumerate;
+import static com.github.pareronia.aoc.IterTools.enumerate;
 
 import java.util.Arrays;
 import java.util.List;
@@ -43,8 +43,8 @@ public final class AoC2023_02
         };
         return enumerate(inputs.stream())
             .map(e -> new Game(
-                e.getIndex() + 1,
-                Arrays.stream(e.getValue().split(":")[1].split(";"))
+                e.index() + 1,
+                Arrays.stream(e.value().split(":")[1].split(";"))
                     .map(parseDraw).toList()))
             .toList();
     }

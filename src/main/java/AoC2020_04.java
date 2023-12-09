@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Puzzle;
@@ -150,23 +150,23 @@ public class AoC2020_04 extends AoCBase {
 		}
 		
 		private boolean byrValid() {
-			return Range.between(1920, 2002).contains(Integer.valueOf(this.byr));
+			return RangeInclusive.between(1920, 2002).contains(Integer.valueOf(this.byr));
 		}
 		
 		private boolean iyrValid() {
-			return Range.between(2010, 2020).contains(Integer.valueOf(this.iyr));
+			return RangeInclusive.between(2010, 2020).contains(Integer.valueOf(this.iyr));
 		}
 		
 		private boolean eyrValid() {
-			return Range.between(2020, 2030).contains(Integer.valueOf(this.eyr));
+			return RangeInclusive.between(2020, 2030).contains(Integer.valueOf(this.eyr));
 		}
 		
 		private boolean hgtValid() {
 		    final Integer hgt = Integer.valueOf(this.hgt.substring(0, this.hgt.length() - 2));
 			if (this.hgt.endsWith("in")) {
-				return Range.between(59, 76).contains(hgt);
+				return RangeInclusive.between(59, 76).contains(hgt);
 			} else if (this.hgt.endsWith("cm")) {
-				return Range.between(150, 193).contains(hgt);
+				return RangeInclusive.between(150, 193).contains(hgt);
 			} else {
 				return false;
 			}

@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.geometry3d.Cuboid;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
@@ -36,9 +36,9 @@ public class AoC2021_22 extends AoCBase {
                     final Integer z1 = Integer.valueOf(m.group(6));
                     final Integer z2 = Integer.valueOf(m.group(7));
                     assert x1 <= x2 && y1 <= y2 && z1 <= z2;
-                    final Range<Integer> x = Range.between(x1, x2);
-                    final Range<Integer> y = Range.between(y1, y2);
-                    final Range<Integer> z = Range.between(z1, z2);
+                    final RangeInclusive<Integer> x = RangeInclusive.between(x1, x2);
+                    final RangeInclusive<Integer> y = RangeInclusive.between(y1, y2);
+                    final RangeInclusive<Integer> z = RangeInclusive.between(z1, z2);
                     final boolean on = "on".equals(m.group(1));
                     return new RebootStep(x, y, z, on);
             })
@@ -204,9 +204,9 @@ public class AoC2021_22 extends AoCBase {
     @RequiredArgsConstructor
     @ToString
     private static final class RebootStep {
-        private final Range<Integer> x;
-        private final Range<Integer> y;
-        private final Range<Integer> z;
+        private final RangeInclusive<Integer> x;
+        private final RangeInclusive<Integer> y;
+        private final RangeInclusive<Integer> z;
         private final boolean on;
     }
 }

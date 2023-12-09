@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aocd.Puzzle;
 
 import lombok.Builder;
@@ -46,7 +46,7 @@ public class AoC2020_16 extends AoCBase {
             final String[] splits3 = split.split("-");
             final int start = Integer.parseInt(splits3[0]);
             final int end = Integer.parseInt(splits3[1]);
-            builder.validRange(Range.between(start, end));
+            builder.validRange(RangeInclusive.between(start, end));
         }
         return builder.build();
     }
@@ -127,7 +127,7 @@ public class AoC2020_16 extends AoCBase {
 	private static final class Rule {
 	    private final String field;
 	    @Singular
-	    private final Set<Range<Integer>> validRanges;
+	    private final Set<RangeInclusive<Integer>> validRanges;
 	    
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));

@@ -3,7 +3,7 @@ package com.github.pareronia.aoc;
 import java.util.Comparator;
 import java.util.Objects;
 
-public class Range<T> implements Comparable<Range<T>> {
+public final class RangeInclusive<T> {
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     private enum ComparableComparator implements Comparator {
@@ -15,23 +15,19 @@ public class Range<T> implements Comparable<Range<T>> {
         }
     }
 
-    protected final T minimum;
-    protected final T maximum;
+    private final T minimum;
+    private final T maximum;
     private final Comparator<T> comparator;
     private String toString;
     
     @SuppressWarnings({ "unchecked" })
-    protected Range(final T element1, final T element2) {
+    private RangeInclusive(final T element1, final T element2) {
         AssertUtils.assertTrue(
                 element1 != null && element2 != null,
                 () -> String.format("Elements in a range must not be null: element1=%s, element2=%s",
                         element1, element2));
         this.comparator = ComparableComparator.INSTANCE;
-        final int compare = comparator.compare(element1, element2);
-        AssertUtils.assertFalse(compare == 0,
-                () -> String.format("Elements must not be equal: element1=%s, element2=%s",
-                        element1, element2));
-        if (compare < 1) {
+        if (comparator.compare(element1, element2) < 1) {
             this.minimum = element1;
             this.maximum = element2;
         } else {
@@ -40,34 +36,56 @@ public class Range<T> implements Comparable<Range<T>> {
         }
     }
 
+    public static <T> RangeInclusive<T> between(final T fromInclusive, final T toInclusive) {
+        return new RangeInclusive<>(fromInclusive, toInclusive);
+    }
+
+    public T getMinimum() {
+        return minimum;
+    }
+
+    public T getMaximum() {
+        return maximum;
+    }
+
+    public boolean isBefore(final T element) {
+        if (element == null) {
+            return false;
+        }
+        return comparator.compare(element, maximum) > 0;
+    }
+
+    public boolean isAfter(final T element) {
+        if (element == null) {
+            return false;
+        }
+        return comparator.compare(element, minimum) < 0;
+    }
+
     public boolean contains(final T element) {
         if (element == null) {
             return false;
         }
         return comparator.compare(element, minimum) > -1
-                && comparator.compare(element, maximum) < 0;
+                && comparator.compare(element, maximum) < 1;
     }
-    
-    private T min(final T t1, final T t2) {
-        if (this.comparator.compare(t1, t2) < 0) {
-            return t1;
+
+    public boolean containsRange(final RangeInclusive<T> otherRange) {
+        if (otherRange == null) {
+            return false;
         }
-        return t2;
+        return contains(otherRange.minimum) && contains(otherRange.maximum);
     }
-    
-    private T max(final T t1, final T t2) {
-        if (this.comparator.compare(t1, t2) > 0) {
-            return t1;
+
+    public boolean isOverlappedBy(final RangeInclusive<T> otherRange) {
+        if (otherRange == null) {
+            return false;
         }
-        return t2;
+        return otherRange.contains(minimum)
+            || otherRange.contains(maximum)
+            || contains(otherRange.minimum);
     }
-    
-    public boolean isOverlappedBy(final Range<T> other) {
-        final T o0 = max(this.minimum, other.minimum);
-        final T o1 = min(this.maximum, other.maximum);
-        return this.comparator.compare(o0, o1) < 0;
-    }
-    
+
     @Override
     public int hashCode() {
         return Objects.hash(maximum, minimum);
@@ -84,7 +102,7 @@ public class Range<T> implements Comparable<Range<T>> {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        final Range<?> other = (Range<?>) obj;
+        final RangeInclusive<?> other = (RangeInclusive<?>) obj;
         return Objects.equals(maximum, other.maximum)
             && Objects.equals(minimum, other.minimum);
     }
@@ -92,17 +110,8 @@ public class Range<T> implements Comparable<Range<T>> {
     @Override
     public String toString() {
         if (toString == null) {
-            toString = String.format("[%s..%s)", minimum, maximum);
+            toString = String.format("[%s..%s]", minimum, maximum);
         }
         return toString;
-    }
-
-    @Override
-    public int compareTo(final Range<T> other) {
-        final int cmin = this.comparator.compare(this.minimum, other.minimum);
-        if (cmin == 0) {
-            return this.comparator.compare(this.maximum, other.maximum);
-        }
-        return cmin;
     }
 }

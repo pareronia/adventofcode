@@ -3,7 +3,7 @@ import java.util.function.BiPredicate;
 import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -33,12 +33,12 @@ public class AoC2022_04 extends AoCBase {
                 .toArray();
     }
     
-    private int solve(final BiPredicate<Range<Integer>, Range<Integer>> predicate) {
+    private int solve(final BiPredicate<RangeInclusive<Integer>, RangeInclusive<Integer>> predicate) {
         return (int) this.input.stream()
             .map(this::numbers)
             .filter(nums -> predicate.test(
-                    Range.between(nums[0], nums[1]),
-                    Range.between(nums[2], nums[3])))
+                    RangeInclusive.between(nums[0], nums[1]),
+                    RangeInclusive.between(nums[2], nums[3])))
             .count();
     }
     

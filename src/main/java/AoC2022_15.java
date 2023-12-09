@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
@@ -44,8 +44,8 @@ public class AoC2022_15 extends AoCBase {
         return new AoC2022_15(input, true);
     }
     
-    private Deque<Range<Integer>> getRanges(final int y) {
-        final Set<Range<Integer>> ranges = new HashSet<>();
+    private Deque<RangeInclusive<Integer>> getRanges(final int y) {
+        final Set<RangeInclusive<Integer>> ranges = new HashSet<>();
         for (final Sensor sensor : this.sensors) {
             if (Math.abs(sensor.y - y) > sensor.distanceToBeacon) {
                 continue;
@@ -65,9 +65,9 @@ public class AoC2022_15 extends AoCBase {
     
     private long solve2(final int max) {
         for (int y = max; y >= 0; y--) {
-            final Deque<Range<Integer>> ranges = getRanges(y);
+            final Deque<RangeInclusive<Integer>> ranges = getRanges(y);
             for (int x = 0; x <= max; x++) {
-                for (final Range<Integer> merged : ranges) {
+                for (final RangeInclusive<Integer> merged : ranges) {
                     if (merged.isAfter(x)) {
                         log(Position.of(x, y));
                         return x * 4_000_000L + y;
@@ -131,10 +131,10 @@ public class AoC2022_15 extends AoCBase {
             this.distanceToBeacon = Math.abs(beaconX - x) + Math.abs(beaconY - y);
         }
         
-        public Range<Integer> xRangeAt(final int y) {
+        public RangeInclusive<Integer> xRangeAt(final int y) {
             final int dy = Math.abs(this.y - y);
             assert dy <= distanceToBeacon;
-            return Range.between(
+            return RangeInclusive.between(
                     x - distanceToBeacon + dy,
                     x + distanceToBeacon - dy);
         }
@@ -142,9 +142,9 @@ public class AoC2022_15 extends AoCBase {
     
     static final class RangeMerger {
 
-        public static Deque<Range<Integer>> mergeRanges(final Set<Range<Integer>> ranges) {
-            final Deque<Range<Integer>> m = new ArrayDeque<>();
-            final List<Range<Integer>> sorted = new ArrayList<>(ranges);
+        public static Deque<RangeInclusive<Integer>> mergeRanges(final Set<RangeInclusive<Integer>> ranges) {
+            final Deque<RangeInclusive<Integer>> m = new ArrayDeque<>();
+            final List<RangeInclusive<Integer>> sorted = new ArrayList<>(ranges);
             Collections.sort(sorted, (r1, r2) -> {
                 final int first = Integer.compare(r1.getMinimum(), r2.getMinimum());
                 if (first == 0) {
@@ -152,15 +152,15 @@ public class AoC2022_15 extends AoCBase {
                 }
                 return first;
             });
-            for (final Range<Integer> range : sorted) {
+            for (final RangeInclusive<Integer> range : sorted) {
                 if (m.isEmpty()) {
                     m.addLast(range);
                     continue;
                 }
-                final Range<Integer> last = m.peekLast();
+                final RangeInclusive<Integer> last = m.peekLast();
                 if (range.isOverlappedBy(last)) {
                     m.removeLast();
-                    m.add(Range.between(
+                    m.add(RangeInclusive.between(
                         last.getMinimum(),
                         Math.max(last.getMaximum(), range.getMaximum())));
                 } else {
