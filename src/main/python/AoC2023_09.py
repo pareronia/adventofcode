@@ -4,7 +4,6 @@
 #
 
 import sys
-from collections import deque
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -26,33 +25,18 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return [[int(_) for _ in line.split()] for line in input_data]
 
+    def solve(self, line: list[int]) -> int:
+        tails = [line[-1]]
+        while not all(_ == tails[-1] for _ in line):
+            line = [b - a for a, b in zip(line, line[1:])]
+            tails.append(line[-1])
+        return sum(tails)
+
     def part_1(self, input: Input) -> Output1:
-        ans = 0
-        for line in input:
-            lasts = deque[int]()
-            lasts.append(line[-1])
-            while not all(_ == lasts[-1] for _ in line):
-                line = [line[i] - line[i - 1] for i in range(1, len(line), 1)]
-                lasts.append(line[-1])
-            tmp = lasts.pop()
-            while len(lasts) > 0:
-                tmp += lasts.pop()
-            ans += tmp
-        return ans
+        return sum(self.solve(line) for line in input)
 
     def part_2(self, input: Input) -> Output2:
-        ans = 0
-        for line in input:
-            firsts = deque[int]()
-            firsts.append(line[0])
-            while not all(_ == firsts[-1] for _ in line):
-                line = [line[i] - line[i - 1] for i in range(1, len(line), 1)]
-                firsts.append(line[0])
-            tmp = firsts.pop()
-            while len(firsts) > 0:
-                tmp = firsts.pop() - tmp
-            ans += tmp
-        return ans
+        return sum(self.solve(line[::-1]) for line in input)
 
     @aoc_samples(
         (
