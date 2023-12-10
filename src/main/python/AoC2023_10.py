@@ -10,7 +10,6 @@ from typing import Iterator
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 from aoc.geometry import Direction
 from aoc.graph import flood_fill
 from aoc.grid import Cell
@@ -120,7 +119,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
     def find_loop(self, grid: Input) -> list[Cell]:
         start = next(grid.get_all_equal_to("S"))
-        log(start)
         q: deque[tuple[int, Cell, Direction]] = deque()
         seen = set[tuple[Cell, Direction]]()
         parent = dict[tuple[Cell, Direction], tuple[Cell, Direction]]()
@@ -130,14 +128,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         while not len(q) == 0:
             distance, curr, dir = q.popleft()
             n = curr.at(dir)
+            if n == start:
+                path = [curr]
+                c = (curr, dir)
+                while c in parent:
+                    c = parent[c]
+                    path.append(c[0])
+                return path
             if grid.is_in_bounds(n):
-                if n == start:
-                    path = [curr]
-                    c = (curr, dir)
-                    while c in parent:
-                        c = parent[c]
-                        path.append(c[0])
-                    return path
                 val = grid.get_value(n)
                 if val in TILES[dir]:
                     new_dir = TILES[dir][val]
@@ -161,18 +159,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         ]
         for r, c in loop:
             grids[r][c] = XGRIDS[grid.get_value(Cell(r, c))]
-        strings = list[str]()
-        for r in range(len(grids)):
-            rows_list = list[list[str]]()
-            for c in range(len(grids[r])):
-                rows_list.append(
-                    [row for row in grids[r][c].get_rows_as_strings()]
-                )
-            n = 0
-            for j in range(len(rows_list[0])):
-                strings.append("".join(rows[n] for rows in rows_list))
-                n += 1
-        xgrid = CharGrid.from_strings(strings)
+        xgrid = CharGrid.merge(grids)  # type:ignore[arg-type]
         new_loop = {
             cell
             for cell in xgrid.find_all_matching(
@@ -181,31 +168,22 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         }
 
         def adjacent(cell: Cell) -> Iterator[Cell]:
-            for n in cell.get_capital_neighbours():
-                if n in new_loop:
-                    continue
-                if (
-                    0 <= n.row < xgrid.get_height()
-                    and 0 <= n.col < xgrid.get_width()
-                ):
-                    yield n
+            return (
+                n
+                for n in xgrid.get_capital_neighbours(cell)
+                if n not in new_loop
+            )
 
         outside = {_ for _ in flood_fill(Cell(0, 0), adjacent)}
-        log(f"{xgrid.size()=}")
-        log(f"{len(outside)=}")
-        log(f"{len(new_loop)=}")
-        not_inside = outside | new_loop
-        log(f"inside?: {xgrid.size() - len(not_inside)}")
-        ans = 0
-        for r, c in grid.get_cells():
-            if all(
-                Cell(3 * r + rr, 3 * c + cc) not in not_inside
+        inside = {cell for cell in xgrid.get_cells()} - outside - new_loop
+        return sum(
+            all(
+                Cell(3 * r + rr, 3 * c + cc) in inside
                 for rr in range(3)
                 for cc in range(3)
-            ):
-                ans += 1
-        log(f"{ans=}")
-        return ans
+            )
+            for r, c in grid.get_cells()
+        )
 
     @aoc_samples(
         (
