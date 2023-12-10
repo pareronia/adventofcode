@@ -58,6 +58,33 @@ class CharGridIteratorTest(unittest.TestCase):
         ans = [_ for _ in self.grid.get_rows_as_strings()]
         self.assertEqual(ans, ["###", "###", "###"])
 
+    def test_merge(self) -> None:
+        ans = CharGrid.merge(
+            [
+                [
+                    CharGrid(["AAA", "BBB", "CCC"]),
+                    CharGrid(["AAA", "BBB", "CCC"]),
+                    CharGrid(["AAA", "BBB", "CCC"]),
+                ],
+                [
+                    CharGrid(["AAA", "BBB", "CCC"]),
+                    CharGrid(["AAA", "BBB", "CCC"]),
+                    CharGrid(["AAA", "BBB", "CCC"]),
+                ],
+            ]
+        )
+        self.assertEqual(
+            [_ for _ in ans.get_rows_as_strings()],
+            [
+                "AAAAAAAAA",
+                "BBBBBBBBB",
+                "CCCCCCCCC",
+                "AAAAAAAAA",
+                "BBBBBBBBB",
+                "CCCCCCCCC",
+            ],
+        )
+
 
 class IntGridIteratorTest(unittest.TestCase):
 
@@ -109,3 +136,30 @@ class IntGridIteratorTest(unittest.TestCase):
     def test_get_rows_as_string(self) -> None:
         ans = [_ for _ in self.grid.get_rows_as_strings()]
         self.assertEqual(ans, ["012", "345", "678"])
+
+    def test_merge(self) -> None:
+        ans = IntGrid.merge(
+            [
+                [
+                    IntGrid([[1, 1, 1], [2, 2, 2], [3, 3, 3]]),
+                    IntGrid([[1, 1, 1], [2, 2, 2], [3, 3, 3]]),
+                    IntGrid([[1, 1, 1], [2, 2, 2], [3, 3, 3]]),
+                ],
+                [
+                    IntGrid([[1, 1, 1], [2, 2, 2], [3, 3, 3]]),
+                    IntGrid([[1, 1, 1], [2, 2, 2], [3, 3, 3]]),
+                    IntGrid([[1, 1, 1], [2, 2, 2], [3, 3, 3]]),
+                ],
+            ]
+        )
+        self.assertEqual(
+            [_ for _ in ans.get_rows_as_strings()],
+            [
+                "111111111",
+                "222222222",
+                "333333333",
+                "111111111",
+                "222222222",
+                "333333333",
+            ],
+        )

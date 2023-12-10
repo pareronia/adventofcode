@@ -94,6 +94,26 @@ class Grid(ABC, Generic[T]):
     def get_width(self) -> int:
         pass
 
+    @classmethod
+    @abstractmethod
+    def from_strings(cls, strings: list[str]) -> Grid[T]:
+        pass
+
+    @classmethod
+    def merge(cls, grids: list[list[Grid[T]]]) -> Grid[T]:
+        strings = list[str]()
+        for r in range(len(grids)):
+            rows_list = list[list[str]]()
+            for c in range(len(grids[r])):
+                rows_list.append(
+                    [row for row in grids[r][c].get_rows_as_strings()]
+                )
+            n = 0
+            for j in range(len(rows_list[0])):
+                strings.append("".join(rows[n] for rows in rows_list))
+                n += 1
+        return cls.from_strings(strings)
+
     @abstractmethod
     def get_height(self) -> int:
         pass
@@ -180,6 +200,10 @@ class Grid(ABC, Generic[T]):
 @dataclass(frozen=True)
 class IntGrid(Grid[int]):
     values: list[list[int]]
+
+    @classmethod
+    def from_strings(cls, strings: list[str]) -> IntGrid:
+        return IntGrid([[int(ch) for ch in line] for line in strings])
 
     def get_width(self) -> int:
         assert len(self.values) > 0
