@@ -208,6 +208,10 @@ class IntGrid(Grid[int]):
 class CharGrid(Grid[str]):
     values: list[list[str]]
 
+    @classmethod
+    def from_strings(cls, strings: list[str]) -> CharGrid:
+        return CharGrid([[ch for ch in line] for line in strings])
+
     def get_width(self) -> int:
         assert len(self.values) > 0
         return len(self.values[0])
