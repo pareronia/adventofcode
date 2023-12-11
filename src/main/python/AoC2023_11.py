@@ -47,18 +47,17 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             if "#" not in col
         }
         pairs = [_ for _ in combinations(grid.get_all_equal_to("#"), 2)]
+        extra = expansion_rate - 1
         ans = 0
         for first, second in pairs:
-            dist = 0
-            for r in range(
-                min(first.row, second.row), max(first.row, second.row)
-            ):
-                dist += expansion_rate if r in empty_rows else 1
-            for c in range(
-                min(first.col, second.col), max(first.col, second.col)
-            ):
-                dist += expansion_rate if c in empty_cols else 1
-            ans += dist
+            dr = abs(first.row - second.row)
+            lo = min(first.row, second.row)
+            rr = {r for r in range(lo, lo + dr)}
+            ans += dr + len(empty_rows & rr) * extra
+            dc = abs(first.col - second.col)
+            lo = min(first.col, second.col)
+            rc = {r for r in range(lo, lo + dc)}
+            ans += dc + len(empty_cols & rc) * extra
         return ans
 
     def part_1(self, input: Input) -> Output1:
