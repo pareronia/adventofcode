@@ -71,7 +71,7 @@ L7JLJL-JLJLJL--JLJ.L
 """
 
 
-class LoopFinder():
+class LoopFinder:
     TILES = {
         Direction.UP: {
             "|": Direction.UP,
@@ -96,7 +96,7 @@ class LoopFinder():
     }
 
     @classmethod
-    def find_loop(cls, grid: Input) -> list[Cell]:
+    def find_loop(cls, grid: Input) -> set[Cell]:
         start = next(grid.get_all_equal_to("S"))
         q: deque[tuple[int, Cell, Direction]] = deque()
         seen = set[tuple[Cell, Direction]]()
@@ -108,11 +108,11 @@ class LoopFinder():
             distance, curr, dir = q.popleft()
             n = curr.at(dir)
             if n == start:
-                path = [curr]
+                path = {curr}
                 c = (curr, dir)
                 while c in parent:
                     c = parent[c]
-                    path.append(c[0])
+                    path.add(c[0])
                 return path
             if grid.is_in_bounds(n):
                 val = grid.get_value(n)
@@ -140,13 +140,16 @@ class EnlargeGridInsideFinder:
     }
 
     @classmethod
-    def count_inside(cls, grid: CharGrid, loop: list[Cell]) -> int:
+    def count_inside(cls, grid: CharGrid, loop: set[Cell]) -> int:
         grids = [
-            [cls.XGRIDS["."] for _ in range(grid.get_width())]
-            for _ in range(grid.get_height())
+            [
+                cls.XGRIDS[
+                    grid.get_value(Cell(r, c)) if Cell(r, c) in loop else "."
+                ]
+                for c in range(grid.get_width())
+            ]
+            for r in range(grid.get_height())
         ]
-        for r, c in loop:
-            grids[r][c] = cls.XGRIDS[grid.get_value(Cell(r, c))]
         xgrid = CharGrid.merge(grids)  # type:ignore[arg-type]
         new_loop = {
             cell
