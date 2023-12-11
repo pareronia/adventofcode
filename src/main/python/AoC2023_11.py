@@ -9,8 +9,6 @@ from itertools import combinations
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
-from aoc.grid import Cell
 from aoc.grid import CharGrid
 
 Input = InputData
@@ -32,56 +30,44 @@ TEST = """\
 """
 
 
-def log_grid(grid: CharGrid) -> None:
-    if not __debug__:
-        return
-    for line in grid.get_rows_as_strings():
-        for c in line:
-            print(c, end="")
-        print()
-
-
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def part_1(self, input: Input) -> Output1:
+    def solve(self, input: Input, expansion_rate: int) -> int:
         grid = CharGrid.from_strings([line for line in input])
-        rows = [row for row in grid.get_rows_as_strings()]
-        empty_rows = [
-            i for i, row in enumerate(rows) if all(c == "." for c in row)
-        ]
-        log(empty_rows)
-        cols = [col for col in grid.get_cols_as_strings()]
-        empty_cols = [
-            i for i, col in enumerate(cols) if all(r == "." for r in col)
-        ]
-        log(empty_cols)
+        empty_rows = {
+            i
+            for i, row in enumerate(grid.get_rows_as_strings())
+            if "#" not in row
+        }
+        empty_cols = {
+            i
+            for i, col in enumerate(grid.get_cols_as_strings())
+            if "#" not in col
+        }
         pairs = [_ for _ in combinations(grid.get_all_equal_to("#"), 2)]
-        log(len(pairs))
         ans = 0
         for first, second in pairs:
             dist = 0
-            lo = min(first.row, second.row)
-            hi = max(first.row, second.row)
-            for r in range(lo, hi, 1):
-                dist += (2 if r in empty_rows else 1)
-            lo = min(first.col, second.col)
-            hi = max(first.col, second.col)
-            for r in range(lo, hi, 1):
-                dist += (2 if r in empty_cols else 1)
+            for r in range(
+                min(first.row, second.row), max(first.row, second.row)
+            ):
+                dist += expansion_rate if r in empty_rows else 1
+            for c in range(
+                min(first.col, second.col), max(first.col, second.col)
+            ):
+                dist += expansion_rate if c in empty_cols else 1
             ans += dist
         return ans
 
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_1(self, input: Input) -> Output1:
+        return self.solve(input, expansion_rate=2)
 
-    @aoc_samples(
-        (
-            ("part_1", TEST, 374),
-            # ("part_2", TEST, "TODO"),
-        )
-    )
+    def part_2(self, input: Input) -> Output2:
+        return self.solve(input, expansion_rate=1_000_000)
+
+    @aoc_samples((("part_1", TEST, 374),))
     def samples(self) -> None:
         pass
 
