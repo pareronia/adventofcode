@@ -113,7 +113,12 @@ public class CharGrid implements Grid<Character> {
 		return new String(getRow(row));
 	}
 	
-	public char[] getTopEdge() {
+	@Override
+    public String getColumnAsString(final int col) {
+        return new String(getColumn(col));
+    }
+
+    public char[] getTopEdge() {
 		return getRow(0);
 	}
 
