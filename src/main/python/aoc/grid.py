@@ -254,3 +254,11 @@ class CharGrid(Grid[str]):
 
     def get_row_as_string(self, row: int) -> str:
         return "".join(self.values[row])
+
+    def get_col_as_string(self, col: int) -> str:
+        return "".join(
+            self.values[row][col] for row in range(self.get_height())
+        )
+
+    def get_cols_as_strings(self) -> Iterator[str]:
+        return (self.get_col_as_string(col) for col in range(self.get_width()))
