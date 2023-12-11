@@ -70,54 +70,33 @@ L.L7LFJ|||||FJL7||LJ
 L7JLJL-JLJLJL--JLJ.L
 """
 
-TILES = {
-    Direction.UP: {
-        "|": Direction.UP,
-        "7": Direction.LEFT,
-        "F": Direction.RIGHT,
-    },
-    Direction.RIGHT: {
-        "-": Direction.RIGHT,
-        "J": Direction.UP,
-        "7": Direction.DOWN,
-    },
-    Direction.DOWN: {
-        "|": Direction.DOWN,
-        "J": Direction.LEFT,
-        "L": Direction.RIGHT,
-    },
-    Direction.LEFT: {
-        "-": Direction.LEFT,
-        "L": Direction.UP,
-        "F": Direction.DOWN,
-    },
-}
-XGRIDS = {
-    "|": CharGrid.from_strings([".#.", ".#.", ".#."]),
-    "-": CharGrid.from_strings(["...", "###", "..."]),
-    "L": CharGrid.from_strings([".#.", ".##", "..."]),
-    "J": CharGrid.from_strings([".#.", "##.", "..."]),
-    "7": CharGrid.from_strings(["...", "##.", ".#."]),
-    "F": CharGrid.from_strings(["...", ".##", ".#."]),
-    ".": CharGrid.from_strings(["...", "...", "..."]),
-    "S": CharGrid.from_strings([".S.", "SSS", ".S."]),
-}
 
+class LoopFinder():
+    TILES = {
+        Direction.UP: {
+            "|": Direction.UP,
+            "7": Direction.LEFT,
+            "F": Direction.RIGHT,
+        },
+        Direction.RIGHT: {
+            "-": Direction.RIGHT,
+            "J": Direction.UP,
+            "7": Direction.DOWN,
+        },
+        Direction.DOWN: {
+            "|": Direction.DOWN,
+            "J": Direction.LEFT,
+            "L": Direction.RIGHT,
+        },
+        Direction.LEFT: {
+            "-": Direction.LEFT,
+            "L": Direction.UP,
+            "F": Direction.DOWN,
+        },
+    }
 
-def log_grid(grid: CharGrid) -> None:
-    if not __debug__:
-        return
-    for line in grid.get_rows_as_strings():
-        for c in line:
-            print(c, end="")
-        print()
-
-
-class Solution(SolutionBase[Input, Output1, Output2]):
-    def parse_input(self, input_data: InputData) -> Input:
-        return CharGrid.from_strings([line for line in input_data])
-
-    def find_loop(self, grid: Input) -> list[Cell]:
+    @classmethod
+    def find_loop(cls, grid: Input) -> list[Cell]:
         start = next(grid.get_all_equal_to("S"))
         q: deque[tuple[int, Cell, Direction]] = deque()
         seen = set[tuple[Cell, Direction]]()
@@ -137,8 +116,8 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 return path
             if grid.is_in_bounds(n):
                 val = grid.get_value(n)
-                if val in TILES[dir]:
-                    new_dir = TILES[dir][val]
+                if val in cls.TILES[dir]:
+                    new_dir = cls.TILES[dir][val]
                     _next = (n, new_dir)
                     if _next in seen:
                         continue
@@ -147,18 +126,27 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     q.append((distance + 1, *_next))
         raise RuntimeError("unsolvable")
 
-    def part_1(self, grid: Input) -> Output1:
-        loop = self.find_loop(grid)
-        return len(loop) // 2
 
-    def part_2(self, grid: Input) -> Output2:
-        loop = self.find_loop(grid)
+class EnlargeGridInsideFinder:
+    XGRIDS = {
+        "|": CharGrid.from_strings([".#.", ".#.", ".#."]),
+        "-": CharGrid.from_strings(["...", "###", "..."]),
+        "L": CharGrid.from_strings([".#.", ".##", "..."]),
+        "J": CharGrid.from_strings([".#.", "##.", "..."]),
+        "7": CharGrid.from_strings(["...", "##.", ".#."]),
+        "F": CharGrid.from_strings(["...", ".##", ".#."]),
+        ".": CharGrid.from_strings(["...", "...", "..."]),
+        "S": CharGrid.from_strings([".S.", "SSS", ".S."]),
+    }
+
+    @classmethod
+    def count_inside(cls, grid: CharGrid, loop: list[Cell]) -> int:
         grids = [
-            [XGRIDS["."] for _ in range(grid.get_width())]
+            [cls.XGRIDS["."] for _ in range(grid.get_width())]
             for _ in range(grid.get_height())
         ]
         for r, c in loop:
-            grids[r][c] = XGRIDS[grid.get_value(Cell(r, c))]
+            grids[r][c] = cls.XGRIDS[grid.get_value(Cell(r, c))]
         xgrid = CharGrid.merge(grids)  # type:ignore[arg-type]
         new_loop = {
             cell
@@ -184,6 +172,19 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             )
             for r, c in grid.get_cells()
         )
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return CharGrid.from_strings([line for line in input_data])
+
+    def part_1(self, grid: Input) -> Output1:
+        loop = LoopFinder.find_loop(grid)
+        return len(loop) // 2
+
+    def part_2(self, grid: Input) -> Output2:
+        loop = LoopFinder.find_loop(grid)
+        return EnlargeGridInsideFinder.count_inside(grid, loop)
 
     @aoc_samples(
         (
