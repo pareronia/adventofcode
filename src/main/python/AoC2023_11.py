@@ -5,15 +5,12 @@
 
 import sys
 from itertools import combinations
+from typing import NamedTuple
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.grid import CharGrid
-
-Input = InputData
-Output1 = int
-Output2 = int
+from aoc.grid import CharGrid, Cell
 
 
 TEST = """\
@@ -30,12 +27,21 @@ TEST = """\
 """
 
 
+class Observations(NamedTuple):
+    galaxies: list[Cell]
+    empty_rows: set[int]
+    empty_cols: set[int]
+
+
+Input = Observations
+Output1 = int
+Output2 = int
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
-
-    def solve(self, input: Input, expansion_rate: int) -> int:
-        grid = CharGrid.from_strings([line for line in input])
+        grid = CharGrid.from_strings([line for line in input_data])
+        galaxies = [_ for _ in grid.get_all_equal_to("#")]
         empty_rows = {
             i
             for i, row in enumerate(grid.get_rows_as_strings())
@@ -46,19 +52,24 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             for i, col in enumerate(grid.get_cols_as_strings())
             if "#" not in col
         }
-        pairs = [_ for _ in combinations(grid.get_all_equal_to("#"), 2)]
-        extra = expansion_rate - 1
-        ans = 0
-        for first, second in pairs:
+        return Observations(galaxies, empty_rows, empty_cols)
+
+    def solve(self, observations: Input, expansion_rate: int) -> int:
+        def distance(first: Cell, second: Cell, factor: int) -> int:
             dr = abs(first.row - second.row)
             lo = min(first.row, second.row)
             rr = {r for r in range(lo, lo + dr)}
-            ans += dr + len(empty_rows & rr) * extra
+            dr += len(observations.empty_rows & rr) * factor
             dc = abs(first.col - second.col)
             lo = min(first.col, second.col)
             rc = {r for r in range(lo, lo + dc)}
-            ans += dc + len(empty_cols & rc) * extra
-        return ans
+            dc += len(observations.empty_cols & rc) * factor
+            return dr + dc
+
+        return sum(
+            distance(first, second, expansion_rate - 1)
+            for first, second in combinations(observations.galaxies, 2)
+        )
 
     def part_1(self, input: Input) -> Output1:
         return self.solve(input, expansion_rate=2)
