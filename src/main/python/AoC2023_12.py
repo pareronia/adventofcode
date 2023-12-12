@@ -27,8 +27,13 @@ TEST = """\
 """
 
 
+def count(s: str, counts: tuple[int, ...]) -> int:
+    _count.cache_clear()
+    return _count(s, counts, 0)
+
+
 @cache
-def count(s: str, counts: tuple[int, ...], idx: int) -> int:
+def _count(s: str, counts: tuple[int, ...], idx: int) -> int:
     # base case: end of s
     if s == "":
         if len(counts) == 0 and idx == 0:
@@ -44,17 +49,17 @@ def count(s: str, counts: tuple[int, ...], idx: int) -> int:
     for nxt in nxts:
         if nxt == "#":
             # if '#': move to next char in current group
-            ans += count(s[1:], counts, idx + 1)
+            ans += _count(s[1:], counts, idx + 1)
         elif nxt == ".":
             # if '.' (between groups)
             if idx > 0:
                 # was in group before
                 if len(counts) > 0 and idx == counts[0]:
                     # finished group matches required -> find next required
-                    ans += count(s[1:], counts[1:], 0)
+                    ans += _count(s[1:], counts[1:], 0)
             else:
                 # was not in group: keep looking for next group
-                ans += count(s[1:], counts, 0)
+                ans += _count(s[1:], counts, 0)
         else:
             # should not happen
             assert False
@@ -83,7 +88,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def solve(
         self, input: Input, f: Callable[[str], tuple[str, tuple[int, ...]]]
     ) -> int:
-        return sum(count(*f(line), 0) for line in input)
+        return sum(count(*f(line)) for line in input)
 
     def part_1(self, input: Input) -> Output1:
         def parse(line: str) -> tuple[str, tuple[int, ...]]:
