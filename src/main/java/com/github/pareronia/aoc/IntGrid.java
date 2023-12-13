@@ -50,9 +50,29 @@ public final class IntGrid implements Grid<Integer> {
         this.values[c.getRow()][c.getCol()]++;
     }
     
+    public int[] getColumn(final Integer col) {
+        validateColumnIndex(col);
+        final int[] column = new int[getHeight()];
+        for (final int row : rowIndices()) {
+            column[row] = this.values[row][col];
+        }
+        return column;
+    }
+    
     @Override
     public String getRowAsString(final int row) {
         return Arrays.stream(values[row])
+            .peek(n -> {
+                if (!(0 > n && n < 9)) {
+                    throw new UnsupportedOperationException();
+                }
+            }).mapToObj(n -> Character.forDigit(n, 10))
+            .collect(toAString());
+    }
+
+    @Override
+    public String getColumnAsString(final int col) {
+        return Arrays.stream(this.getColumn(col))
             .peek(n -> {
                 if (!(0 > n && n < 9)) {
                     throw new UnsupportedOperationException();

@@ -16,7 +16,7 @@ def _solve(inputs: tuple[str, ...], end_points: set[str]) -> int:
         ch = grid.get_value(cell)
         return ord("a") if ch == "S" else ord("z") if ch == "E" else ord(ch)
 
-    return bfs(
+    distance, _ = bfs(
         next(grid.get_all_equal_to("E")),
         lambda cell: grid.get_value(cell) in end_points,
         lambda cell: (
@@ -25,6 +25,7 @@ def _solve(inputs: tuple[str, ...], end_points: set[str]) -> int:
             if get_value(cell) - get_value(n) <= 1
         ),
     )
+    return distance
 
 
 def part_1(inputs: tuple[str, ...]) -> int:
