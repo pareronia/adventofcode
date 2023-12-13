@@ -8,10 +8,8 @@ import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2015_04
-        extends SolutionBase<AdventCoinsMiner, Integer, Integer> {
+        extends SolutionBase<AoC2015_04.AdventCoinsMiner, Integer, Integer> {
 
     private AoC2015_04(final boolean debug) {
         super(debug);
@@ -57,34 +55,33 @@ public final class AoC2015_04
 
     private static final String TEST1 = "abcdef";
     private static final String TEST2 = "pqrstuv";
-}
-    
-@RequiredArgsConstructor
-final class AdventCoinsMiner {
-    private final String secretKey;
 
-    private boolean checkZeroes(final byte[] digest, final int zeroes) {
-        int cnt = 0;
-        for (final int j : range(zeroes / 2 + zeroes % 2)) {
-            final byte c = digest[j];
-            if ((c & 0xF0) != 0) {
-                break;
-            }
-            cnt++;
-            if ((c & 0x0F) != 0) {
-                break;
-            }
-            cnt++;
-        }
-        return cnt == zeroes;
-    }
     
-    public int findMd5StartingWithZeroes(final int zeroes) {
-        return IntStream.iterate(1, i -> i + 1)
-            .dropWhile(i -> {
-                final String data = this.secretKey + String.valueOf(i);
-                return !checkZeroes(MD5.md5(data), zeroes);
-            })
-            .findFirst().getAsInt();
+     record AdventCoinsMiner(String secretKey) {
+
+        private boolean checkZeroes(final byte[] digest, final int zeroes) {
+            int cnt = 0;
+            for (final int j : range(zeroes / 2 + zeroes % 2)) {
+                final byte c = digest[j];
+                if ((c & 0xF0) != 0) {
+                    break;
+                }
+                cnt++;
+                if ((c & 0x0F) != 0) {
+                    break;
+                }
+                cnt++;
+            }
+            return cnt == zeroes;
+        }
+        
+        public int findMd5StartingWithZeroes(final int zeroes) {
+            return IntStream.iterate(1, i -> i + 1)
+                .dropWhile(i -> {
+                    final String data = this.secretKey + String.valueOf(i);
+                    return !checkZeroes(MD5.md5(data), zeroes);
+                })
+                .findFirst().getAsInt();
+        }
     }
 }

@@ -8,10 +8,8 @@ import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-public final class AoC2015_02 extends SolutionBase<List<Present>, Integer, Integer> {
+public final class AoC2015_02
+        extends SolutionBase<List<AoC2015_02.Present>, Integer, Integer> {
 
     private AoC2015_02(final boolean debug) {
         super(debug);
@@ -60,34 +58,31 @@ public final class AoC2015_02 extends SolutionBase<List<Present>, Integer, Integ
 
     private static final String TEST1 = "2x3x4";
     private static final String TEST2 = "1x1x10";
-}
     
-@RequiredArgsConstructor
-@ToString
-final class Present {
-    private final Integer length;
-    private final Integer width;
-    private final Integer height;
-    
-    public static Present fromInput(final String s) {
-        final int[] sp = Stream.of(s.split("x")).mapToInt(Integer::valueOf).toArray();
-        return new Present(sp[0], sp[1], sp[2]);
-    }
-    
-    public int calculateRequiredArea() {
-        final int[] sides = new int[] {
-                2 * this.length * this.width,
-                2 * this.width * this.height,
-                2 * this.height * this.length};
-        return Arrays.stream(sides).sum() + Arrays.stream(sides).min().getAsInt() / 2;
-    }
+    record Present(int length, int width, int height) {
+        
+        public static Present fromInput(final String s) {
+            final int[] sp = Stream.of(s.split("x"))
+                    .mapToInt(Integer::parseInt).toArray();
+            return new Present(sp[0], sp[1], sp[2]);
+        }
+        
+        public int calculateRequiredArea() {
+            final int[] sides = {
+                    2 * this.length * this.width,
+                    2 * this.width * this.height,
+                    2 * this.height * this.length};
+            return Arrays.stream(sides).sum()
+                + Arrays.stream(sides).min().getAsInt() / 2;
+        }
 
-    public int calculateRequiredLength() {
-        final int[] circumferences = new int[] {
-                2 * (this.length + this.width),
-                2 * (this.width + this.height),
-                2 * (this.height + this.length)};
-        return Arrays.stream(circumferences).min().getAsInt()
-                + this.length * this.width * this.height;
+        public int calculateRequiredLength() {
+            final int[] circumferences = {
+                    2 * (this.length + this.width),
+                    2 * (this.width + this.height),
+                    2 * (this.height + this.length)};
+            return Arrays.stream(circumferences).min().getAsInt()
+                    + this.length * this.width * this.height;
+        }
     }
 }

@@ -9,11 +9,7 @@ import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-public class AoC2015_09 extends SolutionBase<Distances, Integer, Integer> {
+public class AoC2015_09 extends SolutionBase<AoC2015_09.Distances, Integer, Integer> {
     
     private AoC2015_09(final boolean debug) {
         super(debug);
@@ -34,13 +30,11 @@ public class AoC2015_09 extends SolutionBase<Distances, Integer, Integer> {
 
     @Override
     public Integer solvePart1(final Distances distances) {
-        log(distances);
         return distances.getDistancesOfCompleteRoutes().min().getAsInt();
     }
 
     @Override
     public Integer solvePart2(final Distances distances) {
-        log(distances);
         return distances.getDistancesOfCompleteRoutes().max().getAsInt();
     }
 
@@ -57,42 +51,40 @@ public class AoC2015_09 extends SolutionBase<Distances, Integer, Integer> {
     }
 
     private static final String TEST =
-            "London to Dublin = 464\r\n" +
-            "London to Belfast = 518\r\n" +
-            "Dublin to Belfast = 141";
-}
+            """
+    	London to Dublin = 464\r
+    	London to Belfast = 518\r
+    	Dublin to Belfast = 141""";
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@ToString
-final class Distances {
-    private final int[][] matrix;
-    
-    public static Distances fromInput(final List<String> inputs) {
-        final Map<String, Integer> map = new HashMap<>();
-        final Map<int[], Integer> values = new HashMap<>();
-        final MutableInt cnt = new MutableInt(0);
-        for (final String input : inputs) {
-            final String[] ss1 = input.split(" = ");
-            final String[] ss2 = ss1[0].split(" to ");
-            final int idx1 = map.computeIfAbsent(ss2[0], x -> cnt.getAndIncrement());
-            final int idx2 = map.computeIfAbsent(ss2[1], x -> cnt.getAndIncrement());
-            final int value = Integer.parseInt(ss1[1]);
-            values.put(new int[] { idx1, idx2 }, value);
-            values.put(new int[] { idx2, idx1 }, value);
+    record Distances(int[][] matrix) {
+        
+        public static Distances fromInput(final List<String> inputs) {
+            final Map<String, Integer> map = new HashMap<>();
+            final Map<int[], Integer> values = new HashMap<>();
+            final MutableInt cnt = new MutableInt(0);
+            for (final String input : inputs) {
+                final String[] ss1 = input.split(" = ");
+                final String[] ss2 = ss1[0].split(" to ");
+                final int idx1 = map.computeIfAbsent(ss2[0], x -> cnt.getAndIncrement());
+                final int idx2 = map.computeIfAbsent(ss2[1], x -> cnt.getAndIncrement());
+                final int value = Integer.parseInt(ss1[1]);
+                values.put(new int[] { idx1, idx2 }, value);
+                values.put(new int[] { idx2, idx1 }, value);
+            }
+            final int[][] matrix = new int[map.size()][map.size()];
+            values.entrySet().stream()
+                .forEach(e -> {
+                    matrix[e.getKey()[0]][e.getKey()[1]] = e.getValue();
+                });
+            return new Distances(matrix);
         }
-        final int[][] matrix = new int[map.size()][map.size()];
-        values.entrySet().stream()
-            .forEach(e -> {
-                matrix[e.getKey()[0]][e.getKey()[1]] = e.getValue();
-            });
-        return new Distances(matrix);
-    }
-    
-    public IntStream getDistancesOfCompleteRoutes() {
-        final int[] idxs = IntStream.range(0, this.matrix.length).toArray();
-        return IterTools.permutations(idxs).mapToInt(p ->
-                IntStream.range(1, p.length)
-                    .map(i -> this.matrix[p[i -1]][p[i]])
-                    .sum());
+        
+        public IntStream getDistancesOfCompleteRoutes() {
+            final int[] idxs = IntStream.range(0, this.matrix.length).toArray();
+            return IterTools.permutations(idxs).mapToInt(p ->
+                    IntStream.range(1, p.length)
+                        .map(i -> this.matrix[p[i -1]][p[i]])
+                        .sum());
+        }
     }
 }
