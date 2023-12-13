@@ -3,17 +3,11 @@ import static com.github.pareronia.aoc.Utils.toAString;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.Builder;
-import lombok.RequiredArgsConstructor;
-import lombok.Singular;
-import lombok.ToString;
 
 public class AoC2020_14 extends AoCBase {
     
@@ -22,7 +16,7 @@ public class AoC2020_14 extends AoCBase {
 	private AoC2020_14(final List<String> input, final boolean debug) {
 		super(debug);
 		this.groups = new ArrayList<>();
-		Group.GroupBuilder groupBuilder = Group.builder();
+		var groupBuilder = Group.builder();
 		groupBuilder.mask(input.get(0).substring("mask = ".length()));
 		for (int i = 1; i <= input.size(); i++) {
 		    if (i == input.size()) {
@@ -32,7 +26,7 @@ public class AoC2020_14 extends AoCBase {
 		        groupBuilder = Group.builder();
 		        groupBuilder.mask(input.get(i).substring("mask = ".length()));
 		    } else {
-		        final String[] splits = input.get(i).split("] = ");
+		        final var splits = input.get(i).split("] = ");
 		        final int address = Integer.parseInt(splits[0].substring("mem[".length()));
 		        final int value = Integer.parseInt(splits[1]);
 		        groupBuilder.write(new Write(address, value));
@@ -88,10 +82,10 @@ public class AoC2020_14 extends AoCBase {
 	}
 	
 	private Long solve(final Strategy strategy) {
-	    final Map<String, Long> memory = new HashMap<>();
-	    for (final Group group : this.groups) {
-            for (final Write write : group.writes) {
-                final Result result = strategy.execute(write.address, write.value, group.mask);
+	    final var memory = new HashMap<String, Long>();
+	    for (final var group : this.groups) {
+            for (final var write : group.writes) {
+                final var result = strategy.execute(write.address, write.value, group.mask);
                 for (final String address : result.addresses) {
                     memory.put(address, result.value);
                 }
@@ -122,40 +116,46 @@ public class AoC2020_14 extends AoCBase {
         );
 	}
 	
-	private static final List<String> TEST1 = splitLines(
-	        "mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X\r\n" +
-	        "mem[8] = 11\r\n" +
-	        "mem[7] = 101\r\n" +
-	        "mem[8] = 0"
-	);
-	private static final List<String> TEST2 = splitLines(
-	        "mask = 000000000000000000000000000000X1001X\r\n" +
-	        "mem[42] = 100\r\n" +
-	        "mask = 00000000000000000000000000000000X0XX\r\n" +
-	        "mem[26] = 1"
-	);
+	private static final List<String> TEST1 = splitLines("""
+	        mask = XXXXXXXXXXXXXXXXXXXXXXXXXXXXX1XXXX0X
+	        mem[8] = 11
+	        mem[7] = 101
+	        mem[8] = 0
+	        """);
+	private static final List<String> TEST2 = splitLines("""
+	        mask = 000000000000000000000000000000X1001X
+	        mem[42] = 100
+	        mask = 00000000000000000000000000000000X0XX
+	        mem[26] = 1
+	        """);
 	
-	@RequiredArgsConstructor
-	@ToString
-	private static final class Write {
-	    private final int address;
-	    private final int value;
+	private static final record Write(int address, int value) { }
+	
+	private static final record Group(String mask, List<Write> writes) {
+	    public static GroupBuilder builder() {
+	        return new GroupBuilder();
+	    }
+	    private static final class GroupBuilder {
+	        private String mask;
+	        private final List<Write> writes = new ArrayList<>();
+	        
+	        public Group build() {
+	            return new Group(this.mask, this.writes);
+	        }
+	        
+	        public GroupBuilder mask(final String mask) {
+	            this.mask = mask;
+	            return this;
+	        }
+	        
+	        public GroupBuilder write(final Write write) {
+	            this.writes.add(write);
+	            return this;
+	        }
+	    }
 	}
 	
-	@RequiredArgsConstructor
-	@Builder
-	@ToString
-	private static final class Group {
-	    private final String mask;
-	    @Singular
-	    private final List<Write> writes;
-	}
-	
-	@RequiredArgsConstructor
-	private static final class Result {
-	    private final List<String> addresses;
-	    private final long value;
-	}
+	private static final record Result(List<String> addresses, long value) { }
     
     @FunctionalInterface
     private interface Strategy {

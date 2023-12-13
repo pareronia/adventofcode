@@ -2,7 +2,6 @@ import static com.github.pareronia.aoc.SetUtils.disjunction;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -14,8 +13,6 @@ import com.github.pareronia.aoc.geometry3d.Position3D;
 import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.RequiredArgsConstructor;
 
 public class AoC2022_18 extends AoCBase {
     
@@ -46,11 +43,11 @@ public class AoC2022_18 extends AoCBase {
     }
     
     private Bounds getBounds() {
-        final IntSummaryStatistics statsX = cubes.stream()
+        final var statsX = cubes.stream()
                 .mapToInt(Position3D::getX).summaryStatistics();
-        final IntSummaryStatistics statsY = cubes.stream()
+        final var statsY = cubes.stream()
                 .mapToInt(Position3D::getY).summaryStatistics();
-        final IntSummaryStatistics statsZ = cubes.stream()
+        final var statsZ = cubes.stream()
                 .mapToInt(Position3D::getZ).summaryStatistics();
         return new Bounds(
             Range.between(statsX.getMin(), statsX.getMax()),
@@ -60,11 +57,11 @@ public class AoC2022_18 extends AoCBase {
     }
 
     private Set<Position3D> findOutside(final Bounds bounds) {
-        final Position3D start = Position3D.of(
+        final var start = Position3D.of(
                 bounds.x.getMinimum() - 1,
                 bounds.y.getMinimum() - 1,
                 bounds.z.getMinimum() - 1);
-        final Cuboid searchSpace = Cuboid.of(
+        final var searchSpace = Cuboid.of(
             bounds.x.getMinimum() - 1, bounds.x.getMaximum() + 1,
             bounds.y.getMinimum() - 1, bounds.y.getMaximum() + 1,
             bounds.z.getMinimum() - 1, bounds.z.getMaximum() + 1);
@@ -76,7 +73,7 @@ public class AoC2022_18 extends AoCBase {
     }
     
     private Set<Position3D> findInside(final Bounds bounds) {
-        final Set<Position3D> outside = findOutside(bounds);
+        final var outside = findOutside(bounds);
         final Cuboid cuboid = Cuboid.of(
             bounds.x.getMinimum(), bounds.x.getMaximum(),
             bounds.y.getMinimum(), bounds.y.getMaximum(),
@@ -93,7 +90,7 @@ public class AoC2022_18 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        final Set<Position3D> inside = findInside(getBounds());
+        final var inside = findInside(getBounds());
         return surfaceArea(disjunction(this.cubes, inside));
     }
 
@@ -110,30 +107,30 @@ public class AoC2022_18 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST1 = splitLines(
-        "1,1,1\r\n" +
-        "2,1,1"
-    );
-    private static final List<String> TEST2 = splitLines(
-        "2,2,2\r\n" +
-        "1,2,2\r\n" +
-        "3,2,2\r\n" +
-        "2,1,2\r\n" +
-        "2,3,2\r\n" +
-        "2,2,1\r\n" +
-        "2,2,3\r\n" +
-        "2,2,4\r\n" +
-        "2,2,6\r\n" +
-        "1,2,5\r\n" +
-        "3,2,5\r\n" +
-        "2,1,5\r\n" +
-        "2,3,5"
-    );
+    private static final List<String> TEST1 = splitLines("""
+        1,1,1
+        2,1,1
+        """);
+    private static final List<String> TEST2 = splitLines("""
+        2,2,2
+        1,2,2
+        3,2,2
+        2,1,2
+        2,3,2
+        2,2,1
+        2,2,3
+        2,2,4
+        2,2,6
+        1,2,5
+        3,2,5
+        2,1,5
+        2,3,5
+        """);
     
-    @RequiredArgsConstructor
-    private static final class Bounds {
-        private final Range x;
-        private final Range y;
-        private final Range z;
+    private static final record Bounds (
+            Range x,
+            Range y,
+            Range z
+    ) {
     }
 }

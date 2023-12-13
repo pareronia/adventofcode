@@ -10,12 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2022_11 extends AoCBase {
     
@@ -75,8 +72,8 @@ public class AoC2022_11 extends AoCBase {
     }
     
     private long solve(final int rounds, final Function<Long, Long> manage) {
-        final Map<Integer, Integer> counter = new HashMap<>();
-        range(rounds).forEach(i -> round(counter, manage));
+        final var counter = new HashMap<Integer, Integer>();
+        Range.range(rounds).forEach(i -> round(counter, manage));
         return counter.values().stream()
                 .sorted(reverseOrder())
                 .limit(2)
@@ -92,7 +89,7 @@ public class AoC2022_11 extends AoCBase {
     @Override
     public Long solvePart2() {
         final int mod = this.monkeys.stream()
-                .mapToInt(Monkey::getTest)
+                .mapToInt(Monkey::test)
                 .reduce(1, (a, b) -> a * b);
         return solve(10_000, x -> x % mod);
     }
@@ -109,44 +106,41 @@ public class AoC2022_11 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "Monkey 0:\r\n" +
-        "  Starting items: 79, 98\r\n" +
-        "  Operation: new = old * 19\r\n" +
-        "  Test: divisible by 23\r\n" +
-        "    If true: throw to monkey 2\r\n" +
-        "    If false: throw to monkey 3\r\n" +
-        "\r\n" +
-        "Monkey 1:\r\n" +
-        "  Starting items: 54, 65, 75, 74\r\n" +
-        "  Operation: new = old + 6\r\n" +
-        "  Test: divisible by 19\r\n" +
-        "    If true: throw to monkey 2\r\n" +
-        "    If false: throw to monkey 0\r\n" +
-        "\r\n" +
-        "Monkey 2:\r\n" +
-        "  Starting items: 79, 60, 97\r\n" +
-        "  Operation: new = old * old\r\n" +
-        "  Test: divisible by 13\r\n" +
-        "    If true: throw to monkey 1\r\n" +
-        "    If false: throw to monkey 3\r\n" +
-        "\r\n" +
-        "Monkey 3:\r\n" +
-        "  Starting items: 74\r\n" +
-        "  Operation: new = old + 3\r\n" +
-        "  Test: divisible by 17\r\n" +
-        "    If true: throw to monkey 0\r\n" +
-        "    If false: throw to monkey 1"
-    );
+    private static final List<String> TEST = splitLines("""
+        Monkey 0:
+          Starting items: 79, 98
+          Operation: new = old * 19
+          Test: divisible by 23
+            If true: throw to monkey 2
+            If false: throw to monkey 3
+        
+        Monkey 1:
+          Starting items: 54, 65, 75, 74
+          Operation: new = old + 6
+          Test: divisible by 19
+            If true: throw to monkey 2
+            If false: throw to monkey 0
+        
+        Monkey 2:
+          Starting items: 79, 60, 97
+          Operation: new = old * old
+          Test: divisible by 13
+            If true: throw to monkey 1
+            If false: throw to monkey 3
+        
+        Monkey 3:
+          Starting items: 74
+          Operation: new = old + 3
+          Test: divisible by 17
+            If true: throw to monkey 0
+            If false: throw to monkey 1
+        """);
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Monkey {
-        private final List<Long> items;
-        private final Function<Long, Long> operation;
-        @Getter
-        private final int test;
-        private final int throwTrue;
-        private final int throwFalse;
-    }
+    private static final record Monkey(
+        List<Long> items,
+        Function<Long, Long> operation,
+        int test,
+        int throwTrue,
+        int throwFalse
+    ) { }
 }

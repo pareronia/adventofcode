@@ -5,9 +5,6 @@ import java.util.function.BiFunction;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_02 extends AoCBase {
     private static final String ROCK = "rock";
     private static final String PAPER = "paper";
@@ -108,23 +105,14 @@ public class AoC2022_02 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "A Y\r\n" +
-        "B X\r\n" +
-        "C Z"
-    );
+    private static final List<String> TEST = splitLines("""
+        A Y
+        B X
+        C Z
+        """);
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class ResponseAndOutcome {
-        private final String response;
-        private final String outcome;
-    }
+    private static final record ResponseAndOutcome(
+            String response, String outcome) { }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class StringPair {
-        private final String one;
-        private final String two;
-    }
+    private static final record StringPair(String one, String two) { }
 }

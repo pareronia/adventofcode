@@ -88,11 +88,11 @@ public class AoC2022_08 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "30373\r\n" +
-        "25512\r\n" +
-        "65332\r\n" +
-        "33549\r\n" +
-        "35390"
-    );
+    private static final List<String> TEST = splitLines("""
+        30373
+        25512
+        65332
+        33549
+        35390
+        """);
 }

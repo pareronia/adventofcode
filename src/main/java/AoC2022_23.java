@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -17,8 +16,6 @@ import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.RequiredArgsConstructor;
 
 public class AoC2022_23 extends AoCBase {
     
@@ -48,9 +45,9 @@ public class AoC2022_23 extends AoCBase {
     }
     
     private Bounds getBounds(final Set<Cell> elves) {
-        final IntSummaryStatistics statsRow = elves.stream()
+        final var statsRow = elves.stream()
                 .mapToInt(Cell::getRow).summaryStatistics();
-        final IntSummaryStatistics statsCol = elves.stream()
+        final var statsCol = elves.stream()
                 .mapToInt(Cell::getCol).summaryStatistics();
         return new Bounds(
             statsRow.getMin(), statsRow.getMax(),
@@ -62,7 +59,7 @@ public class AoC2022_23 extends AoCBase {
         if (!this.debug) {
             return;
         }
-        final Bounds bounds = getBounds(elves);
+        final var bounds = getBounds(elves);
         IntStream.rangeClosed(bounds.minRow, bounds.maxRow).forEach(r -> {
             log(IntStream.rangeClosed(bounds.minCol, bounds.maxCol)
                     .mapToObj(c -> elves.contains(Cell.at(r, c)) ? ELF : GROUND)
@@ -112,17 +109,17 @@ public class AoC2022_23 extends AoCBase {
 
     @Override
     public Integer solvePart1() {
-        final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Direction> order = new ArrayDeque<>(
+        final var elves = new HashSet<>(this.input);
+        final var order = new ArrayDeque<>(
             List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
         IntStream.range(0, 10).forEach(i -> {
             log("Round " + (i + 1));
-            final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);
+            final var moves = calculateMoves(elves, order);
             executeMoves(elves, moves);
             draw(elves);
             order.addLast(order.pollFirst());
         });
-        final Bounds bounds = getBounds(elves);
+        final var bounds = getBounds(elves);
         return (bounds.maxRow - bounds.minRow + 1)
                 * (bounds.maxCol - bounds.minCol + 1)
                 - elves.size();
@@ -130,12 +127,12 @@ public class AoC2022_23 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        final Set<Cell> elves = new HashSet<>(this.input);
-        final Deque<Direction> order = new ArrayDeque<>(
+        final var elves = new HashSet<>(this.input);
+        final var order = new ArrayDeque<>(
             List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT));
         int cnt = 1;
         while (true) {
-            final Map<Cell, List<Cell>> moves = calculateMoves(elves, order);
+            final var moves = calculateMoves(elves, order);
             if (moves.size() == 0) {
                 return cnt;
             }
@@ -157,21 +154,21 @@ public class AoC2022_23 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "....#..\r\n" +
-        "..###.#\r\n" +
-        "#...#.#\r\n" +
-        ".#...##\r\n" +
-        "#.###..\r\n" +
-        "##.#.##\r\n" +
-        ".#..#.."
-    );
+    private static final List<String> TEST = splitLines("""
+        ....#..
+        ..###.#
+        #...#.#
+        .#...##
+        #.###..
+        ##.#.##
+        .#..#..
+        """);
 
-    @RequiredArgsConstructor
-    private static final class Bounds {
-        private final int minRow;
-        private final int maxRow;
-        private final int minCol;
-        private final int maxCol;
+    private static final record Bounds (
+            int minRow,
+            int maxRow,
+            int minCol,
+            int maxCol
+    ) {
     }
 }

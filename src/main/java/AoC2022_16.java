@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.graph.AStar;
-import com.github.pareronia.aoc.graph.AStar.Result;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -30,12 +29,12 @@ public class AoC2022_16 extends AoCBase {
         this.valves = new String[size];
         this.rates = new int[size];
         this.tunnels = new Set[size];
-        final Map<String, Set<String>> edges = new HashMap<>();
-        final Map<String, Integer> map = new HashMap<>();
+        final var edges = new HashMap<String, Set<String>>();
+        final var map = new HashMap<String, Integer>();
         for (int i = 0; i < size; i++) {
-            final String line = input.get(i).replaceAll("[,;]", "");
-            final String[] splits = line.split(" ");
-            final String name = splits[1];
+            final var line = input.get(i).replaceAll("[,;]", "");
+            final var splits = line.split(" ");
+            final var name = splits[1];
             if ("AA".equals(name)) {
                 this.start = i;
             }
@@ -109,9 +108,9 @@ public class AoC2022_16 extends AoCBase {
                 .filter(i -> this.rates[i] > 0 || i == this.start)
                 .toArray();
         final int size = valves.length;
-        final int[][] distances = new int[size][size];
+        final var distances = new int[size][size];
         for (final int i : relevantValves) {
-            final Result<Integer> result = AStar.execute(
+            final var result = AStar.execute(
                     i,
                     v -> false,
                     v -> this.tunnels[v].stream(),
@@ -171,16 +170,16 @@ public class AoC2022_16 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "Valve AA has flow rate=0; tunnels lead to valves DD, II, BB\r\n" +
-        "Valve BB has flow rate=13; tunnels lead to valves CC, AA\r\n" +
-        "Valve CC has flow rate=2; tunnels lead to valves DD, BB\r\n" +
-        "Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE\r\n" +
-        "Valve EE has flow rate=3; tunnels lead to valves FF, DD\r\n" +
-        "Valve FF has flow rate=0; tunnels lead to valves EE, GG\r\n" +
-        "Valve GG has flow rate=0; tunnels lead to valves FF, HH\r\n" +
-        "Valve HH has flow rate=22; tunnel leads to valve GG\r\n" +
-        "Valve II has flow rate=0; tunnels lead to valves AA, JJ\r\n" +
-        "Valve JJ has flow rate=21; tunnel leads to valve II"
-    );
+    private static final List<String> TEST = splitLines("""
+        Valve AA has flow rate=0; tunnels lead to valves DD, II, BB
+        Valve BB has flow rate=13; tunnels lead to valves CC, AA
+        Valve CC has flow rate=2; tunnels lead to valves DD, BB
+        Valve DD has flow rate=20; tunnels lead to valves CC, AA, EE
+        Valve EE has flow rate=3; tunnels lead to valves FF, DD
+        Valve FF has flow rate=0; tunnels lead to valves EE, GG
+        Valve GG has flow rate=0; tunnels lead to valves FF, HH
+        Valve HH has flow rate=22; tunnel leads to valve GG
+        Valve II has flow rate=0; tunnels lead to valves AA, JJ
+        Valve JJ has flow rate=21; tunnel leads to valve II
+        """);
 }

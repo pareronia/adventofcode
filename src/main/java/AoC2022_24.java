@@ -14,9 +14,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_24 extends AoCBase {
     private static final Set<Direction> DIRS = Set.of(
         Direction.UP, Direction.RIGHT, Direction.DOWN,
@@ -79,12 +76,7 @@ public class AoC2022_24 extends AoCBase {
             && 0 <= p.getY() && p.getY() < this.height;
     }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class State {
-        private final int time;
-        private final Position position;
-    }
+    private static final record State(int time, Position position) { }
     
     private int solve(final Position start, final Position end, final int startTime) {
         final Deque<State> q = new ArrayDeque<>();
@@ -143,19 +135,16 @@ public class AoC2022_24 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "#.######\r\n" +
-        "#>>.<^<#\r\n" +
-        "#.<..<<#\r\n" +
-        "#>v.><>#\r\n" +
-        "#<^v^^>#\r\n" +
-        "######.#"
-    );
+    private static final List<String> TEST = splitLines("""
+        #.######
+        #>>.<^<#
+        #.<..<<#
+        #>v.><>#
+        #<^v^^>#
+        ######.#
+        """);
     
-    @RequiredArgsConstructor
-    private static final class Blizzard {
-        private final Position position;
-        private final Direction direction;
+    private static final record Blizzard(Position position, Direction direction) {
         
         public Position at(final int tick, final int width, final int height) {
             final int amount = horizontal() ? tick % width : tick % height;

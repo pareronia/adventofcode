@@ -21,7 +21,6 @@ import com.github.pareronia.aoc.geometry.Vector;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -101,15 +100,15 @@ public class AoC2022_17 extends AoCBase {
             final ShapeSupplier shapeSupplier,
             final JetSupplier jetSupplier
     ) {
-        final Shape shape = shapeSupplier.get();
-        final Rock start = new Rock(shape.idx, shape.shape)
+        final var shape = shapeSupplier.get();
+        final var start = new Rock(shape.idx, shape.shape)
                 .move(Vector.of(OFFSET_X, stack.getTop() + OFFSET_Y));
         trace(() -> start);
         Rock rock = start;
         State state;
         int cnt = 0;
         while (true) {
-            final Direction jet = jetSupplier.get();
+            final var jet = jetSupplier.get();
             state = new State(rock.idx, stack.getTopsNormalised(), jet);
             if (cnt++ == 1) {
                 this.states.computeIfAbsent(state, k -> new ArrayList<>())
@@ -139,9 +138,9 @@ public class AoC2022_17 extends AoCBase {
     }
 
     private Long solve(final long requestedDrops) {
-        final Stack stack = new Stack(FLOOR);
-        final JetSupplier jetSupplier = new JetSupplier(this.jets);
-        final ShapeSupplier shapeSupplier = new ShapeSupplier();
+        final var stack = new Stack(FLOOR);
+        final var jetSupplier = new JetSupplier(this.jets);
+        final var shapeSupplier = new ShapeSupplier();
         int drops = 0;
         State state;
         while (true) {
@@ -245,11 +244,7 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @AllArgsConstructor
-    @ToString
-    private static final class Rock {
-        private final int idx;
-        private final Set<Position> shape;
+    private static final record Rock(int idx, Set<Position> shape) {
         
         public Rock move(final Vector vector) {
             final Set<Position> newShape = blocks()
@@ -268,11 +263,7 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Shape {
-        private final int idx;
-        private final Set<Position> shape;
-    }
+    private static final record Shape(int idx, Set<Position> shape) { }
     
     private static final class ShapeSupplier implements Supplier<Shape> {
         private int idx = 0;
@@ -304,10 +295,5 @@ public class AoC2022_17 extends AoCBase {
         private final Direction jet;
     }
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Cycle {
-        private final int cycle;
-        private final int top;
-    }
+    private static final record Cycle(int cycle, int top) { }
 }

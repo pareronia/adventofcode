@@ -57,20 +57,20 @@ public class AoC2022_01 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "1000\r\n" +
-        "2000\r\n" +
-        "3000\r\n" +
-        "\r\n"     +
-        "4000\r\n" +
-        "\r\n"     +
-        "5000\r\n" +
-        "6000\r\n" +
-        "\r\n"     +
-        "7000\r\n" +
-        "8000\r\n" +
-        "9000\r\n" +
-        "\r\n"     +
-        "10000"
-    );
+    private static final List<String> TEST = splitLines("""
+        1000
+        2000
+        3000
+        
+        4000
+        
+        5000
+        6000
+        
+        7000
+        8000
+        9000
+        
+        10000
+        """);
 }

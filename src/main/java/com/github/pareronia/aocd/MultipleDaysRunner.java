@@ -10,7 +10,6 @@ import java.util.TreeSet;
 
 import com.github.pareronia.aocd.Puzzle.FailDecider.Status;
 import com.github.pareronia.aocd.Runner.Request;
-import com.github.pareronia.aocd.Runner.Response;
 import com.github.pareronia.aocd.Runner.Response.Part;
 
 public class MultipleDaysRunner {
@@ -29,14 +28,14 @@ public class MultipleDaysRunner {
 	
 	public void run(final Set<Day> days, final Listener listener) throws Exception {
 	    for (final Day day : new TreeSet<>(days)) {
-            final Puzzle puzzle = Aocd.puzzle(day.year, day.day);
+            final var puzzle = Aocd.puzzle(day.year, day.day);
 	        final List<String> input = new ArrayList<>();
 	        input.add(String.valueOf(puzzle.getYear()));
 	        input.add(String.valueOf(puzzle.getDay()));
 	        input.addAll(puzzle.getInputData());
-			final String[] args = input.toArray(new String[input.size()]);
-			final Request request = Request.create(systemUtils.getLocalDate(), args);
-			final Response response = Runner.create(systemUtils).run(request);
+			final var args = input.toArray(new String[input.size()]);
+			final var request = Request.create(systemUtils.getLocalDate(), args);
+			final var response = Runner.create(systemUtils).run(request);
 			final String result1 = Optional.ofNullable(response.getPart1())
 			        .map(Part::getAnswer).orElse(null);
 			listener.result(puzzle, 1, puzzle.getAnswer1(), result1);
@@ -53,32 +52,16 @@ public class MultipleDaysRunner {
 	   new MultipleDaysRunner().run(DAYS, new Listener() {});
 	}
 
-	public static final class Day implements Comparable<Day> {
-	    private final int year;
-	    private final int day;
+	public static final record Day(int year, int day) implements Comparable<Day> {
 	    
-        protected Day(final int year, final int day) {
-            this.year = year;
-            this.day = day;
-        }
-        
-        public static Day at(final int year, final int day) {
-            return new Day(year, day);
-        }
-
-        private int getYear() {
-            return year;
-        }
-
-        private int getDay() {
-            return day;
-        }
-
+	    public static Day at(final int year, final int day) {
+	        return new Day(year, day);
+	    }
+	    
         @Override
         public int compareTo(final Day other) {
-        return comparing(Day::getYear)
-                .thenComparing(comparing(Day::getDay))
-                .compare(this, other);
+            return comparing(Day::year).thenComparing(comparing(Day::day))
+                    .compare(this, other);
         }
     }
 	
@@ -89,7 +72,7 @@ public class MultipleDaysRunner {
 	            final String expected,
 	            final String actual
 	    ) {
-	        final Puzzle.FailDecider failDecider = new Puzzle.FailDecider();
+	        final var failDecider = new Puzzle.FailDecider();
 	        final String message;
 	        final Status status = failDecider.fail(expected, actual);
             if (status == Puzzle.FailDecider.Status.FAIL) {
