@@ -2,7 +2,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import com.github.pareronia.aoc.AssertUtils;
 import com.github.pareronia.aoc.IntegerSequence.Range;
@@ -15,7 +14,8 @@ import com.github.pareronia.aoc.solution.SolutionBase;
 public final class AoC2023_12
         extends SolutionBase<List<String>, Long, Long> {
     
-    private final Map<CacheKey, Long> cache = new HashMap<>();
+    private static final char[] CHARS = {'.', '#'};
+    private final Map<Integer, Long> cache = new HashMap<>();
     
     private AoC2023_12(final boolean debug) {
         super(debug);
@@ -34,31 +34,46 @@ public final class AoC2023_12
         return inputs;
     }
     
-    private long count(final String s, final int[] counts, final int idx) {
-        if (s.isEmpty()) {
-            if (counts.length == 0 && idx == 0) {
+    private long count(
+            final String s,
+            final int[] counts,
+            final int s_idx,
+            final int c_idx,
+            final int idx
+    ) {
+        if (s_idx == s.length()) {
+            if (c_idx == counts.length && idx == 0) {
                 return 1;
             } else {
                 return 0;
             }
         }
+        if (idx == 0) {
+            int sum = 0;
+            for (int i = c_idx; i < counts.length; i++) {
+                sum += counts[i];
+            }
+            if (s.length() - s_idx < sum + counts.length - c_idx - 1) {
+                return 0;
+            }
+        }
         
-        final CacheKey key = new CacheKey(new String(s), counts, idx);
+        final int key = s_idx << 16 | c_idx << 8 | idx;
         if (this.cache.containsKey(key)) {
             return this.cache.get(key);
         }
         long ans = 0;
-        final char[] nxts = s.charAt(0) == '?' ? new char[] {'.', '#'} : new char[] {s.charAt(0)};
+        final char[] nxts = s.charAt(s_idx) == '?' ? CHARS : new char[] { s.charAt(s_idx) };
         for (final char nxt : nxts) {
             if (nxt == '#') {
-                ans += count(s.substring(1), counts, idx + 1);
+                ans += count(s, counts, s_idx + 1, c_idx, idx + 1);
             } else if (nxt == '.') {
                 if (idx > 0) {
-                    if (counts.length > 0 && counts[0] == idx) {
-                        ans += count(s.substring(1), Arrays.copyOfRange(counts, 1, counts.length), 0);
+                    if (c_idx < counts.length && counts[c_idx] == idx) {
+                        ans += count(s, counts, s_idx + 1, c_idx + 1, 0);
                     }
                 } else {
-                    ans += count(s.substring(1), counts, 0);
+                    ans += count(s, counts, s_idx + 1, c_idx, 0);
                 }
             } else {
                 AssertUtils.unreachable();
@@ -78,7 +93,7 @@ public final class AoC2023_12
             final int[] counts = Arrays.stream(split.right().split(","))
                 .mapToInt(Integer::parseInt)
                 .toArray();
-            ans += count(split.left() + ".", counts, 0);
+            ans += count(split.left() + ".", counts, 0, 0, 0);
         }
         return ans;
     }
@@ -95,7 +110,7 @@ public final class AoC2023_12
             final int[] counts = Range.range(5).intStream()
                 .flatMap(i -> Arrays.stream(split.right().split(",")).mapToInt(Integer::parseInt))
                 .toArray();
-            ans += count(s, counts, 0);
+            ans += count(s, counts, 0, 0, 0);
         }
         return ans;
     }
@@ -120,40 +135,4 @@ public final class AoC2023_12
             ????.######..#####. 1,6,5
             ?###???????? 3,2,1
             """;
-    
-    private static class CacheKey {
-        private final String s;
-        private final int[] counts;
-        private final int idx;
-        
-        public CacheKey(final String s, final int[] counts, final int idx) {
-            this.s = s;
-            this.counts = counts;
-            this.idx = idx;
-        }
-
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + Arrays.hashCode(counts);
-            return prime * result + Objects.hash(idx, s);
-        }
-
-        @Override
-        public boolean equals(final Object obj) {
-            if (this == obj) {
-                return true;
-            }
-            if (obj == null) {
-                return false;
-            }
-            if (getClass() != obj.getClass()) {
-                return false;
-            }
-            final CacheKey other = (CacheKey) obj;
-            return Arrays.equals(counts, other.counts)
-                && idx == other.idx && Objects.equals(s, other.s);
-        }
-    }
 }
