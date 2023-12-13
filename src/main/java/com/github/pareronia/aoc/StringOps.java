@@ -16,6 +16,13 @@ public class StringOps {
 		return asList((Objects.requireNonNull(input) + "\n").split("\\r?\\n"));
 	}
 	
+	public record StringSplit(String left, String right) {}
+	
+	public static StringSplit splitOnce(final String string, final String regex) {
+	    final String[] splits = Objects.requireNonNull(string).split(regex);
+	    return new StringSplit(splits[0], splits[1]);
+	}
+	
 	public static List<List<String>> toBlocks(final List<String> inputs) {
 		if (inputs.isEmpty()) {
 			return Collections.emptyList();
@@ -23,11 +30,11 @@ public class StringOps {
 		final List<List<String>> blocks = new ArrayList<>();
 		int i = 0;
 		final int last = inputs.size() - 1;
-		blocks.add(new ArrayList<String>());
+		blocks.add(new ArrayList<>());
 		for (int j = 0; j <= last; j++) {
 			if (inputs.get(j).isEmpty()) {
 				if (j != last) {
-					blocks.add(new ArrayList<String>());
+					blocks.add(new ArrayList<>());
 					i++;
 				}
 			} else {
@@ -77,14 +84,14 @@ public class StringOps {
         assertTrue(from != to, () -> "Expected from and to to be different");
         if (from < to) {
             final char[] ch1 = subarray(ch, 0, from);
-            final char[] ch2 = new char[] { ch[from] };
+            final char[] ch2 = { ch[from] };
             final char[] ch3 = subarray(ch, from + 1, to + 1);
             final char[] ch4 = subarray(ch, to + 1, ch.length);
             return addAll(ch1, addAll(ch3, addAll(ch2, ch4)));
         } else {
             final char[] ch1 = subarray(ch, 0, to);
             final char[] ch2 = subarray(ch, to, from);
-            final char[] ch3 = new char[] { ch[from] };
+            final char[] ch3 = { ch[from] };
             final char[] ch4 = subarray(ch, from + 1, ch.length);
             return addAll(ch1, addAll(ch3, addAll(ch2, ch4)));
         }
@@ -126,5 +133,18 @@ public class StringOps {
         } else {
             throw new IllegalArgumentException("Expected alphabetic char");
         }
+    }
+    
+    public static String translate(final String string, final String from, final String to) {
+        AssertUtils.assertTrue(
+            Objects.requireNonNull(from).length() == Objects.requireNonNull(to).length(),
+            () -> "from and to should be same length");
+        final char[] tmp = new char[string.length()];
+        for (int i = 0; i < string.length(); i++) {
+            final char ch = string.charAt(i);
+            final int idx = from.indexOf(ch);
+            tmp[i] = idx < 0 ? ch : to.charAt(idx);
+        }
+        return new String(tmp);
     }
 }

@@ -1,9 +1,16 @@
 from __future__ import annotations
+
+from abc import ABC
+from abc import abstractmethod
 from collections.abc import Iterator
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from enum import Enum, unique
-from typing import NamedTuple, Callable, TypeVar, Generic
+from enum import Enum
+from enum import unique
+from typing import Callable
+from typing import Generic
+from typing import NamedTuple
+from typing import TypeVar
+
 from aoc.geometry import Direction
 
 T = TypeVar("T")
@@ -87,6 +94,26 @@ class Grid(ABC, Generic[T]):
     def get_width(self) -> int:
         pass
 
+    @classmethod
+    @abstractmethod
+    def from_strings(cls, strings: list[str]) -> Grid[T]:
+        pass
+
+    @classmethod
+    def merge(cls, grids: list[list[Grid[T]]]) -> Grid[T]:
+        strings = list[str]()
+        for r in range(len(grids)):
+            rows_list = list[list[str]]()
+            for c in range(len(grids[r])):
+                rows_list.append(
+                    [row for row in grids[r][c].get_rows_as_strings()]
+                )
+            n = 0
+            for j in range(len(rows_list[0])):
+                strings.append("".join(rows[n] for rows in rows_list))
+                n += 1
+        return cls.from_strings(strings)
+
     @abstractmethod
     def get_height(self) -> int:
         pass
@@ -101,6 +128,10 @@ class Grid(ABC, Generic[T]):
 
     @abstractmethod
     def set_value(self, c: Cell, value: T) -> None:
+        pass
+
+    @abstractmethod
+    def get_row_as_string(self, row: int) -> str:
         pass
 
     def size(self) -> int:
@@ -160,10 +191,19 @@ class Grid(ABC, Generic[T]):
             cell.col
         )
 
+    def get_rows_as_strings(self) -> Iterator[str]:
+        return (
+            self.get_row_as_string(row) for row in range(self.get_height())
+        )
+
 
 @dataclass(frozen=True)
 class IntGrid(Grid[int]):
     values: list[list[int]]
+
+    @classmethod
+    def from_strings(cls, strings: list[str]) -> IntGrid:
+        return IntGrid([[int(ch) for ch in line] for line in strings])
 
     def get_width(self) -> int:
         assert len(self.values) > 0
@@ -184,10 +224,17 @@ class IntGrid(Grid[int]):
     def increment(self, c: Cell) -> None:
         self.values[c.row][c.col] += 1
 
+    def get_row_as_string(self, row: int) -> str:
+        return "".join(str(_) for _ in self.values[row])
+
 
 @dataclass(frozen=True)
 class CharGrid(Grid[str]):
     values: list[list[str]]
+
+    @classmethod
+    def from_strings(cls, strings: list[str]) -> CharGrid:
+        return CharGrid([[ch for ch in line] for line in strings])
 
     def get_width(self) -> int:
         assert len(self.values) > 0
@@ -204,3 +251,14 @@ class CharGrid(Grid[str]):
 
     def set_value(self, c: Cell, value: str) -> None:
         self.values[c.row][c.col] = value
+
+    def get_row_as_string(self, row: int) -> str:
+        return "".join(self.values[row])
+
+    def get_col_as_string(self, col: int) -> str:
+        return "".join(
+            self.values[row][col] for row in range(self.get_height())
+        )
+
+    def get_cols_as_strings(self) -> Iterator[str]:
+        return (self.get_col_as_string(col) for col in range(self.get_width()))

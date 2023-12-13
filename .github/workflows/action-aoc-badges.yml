@@ -6,6 +6,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2                # clones your repo
+
+      - uses: joblo2213/aoc-badges-action@v3
+        with:
+          userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
+          session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
+          year: 2022
+          starsRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2022%20stars%20⭐-)[0-9]+(?=-yellow)'             # Regular expression that finds the content of the stars badge in your file.
+          daysCompletedRegex: '(?<=https:\/\/img\.shields\.io\/badge\/2022%20days%20completed-)[0-9]+(?=-red)'  # Regular expression that finds the content of the days completed badge iun your file.
+      - uses: actions/checkout@v2                # clones your repo
       
       - uses: joblo2213/aoc-badges-action@v3
         with:

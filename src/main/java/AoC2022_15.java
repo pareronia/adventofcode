@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
@@ -41,8 +41,8 @@ public class AoC2022_15 extends AoCBase {
         return new AoC2022_15(input, true);
     }
     
-    private Deque<Range<Integer>> getRanges(final int y) {
-        final var ranges = new HashSet<Range<Integer>>();
+    private Deque<RangeInclusive<Integer>> getRanges(final int y) {
+        final var ranges = new HashSet<RangeInclusive<Integer>>();
         for (final var sensor : this.sensors) {
             if (Math.abs(sensor.y - y) > sensor.distanceToBeacon) {
                 continue;
@@ -120,10 +120,10 @@ public class AoC2022_15 extends AoCBase {
             this(x, y, Math.abs(beaconX - x) + Math.abs(beaconY - y));
         }
         
-        public Range<Integer> xRangeAt(final int y) {
+        public RangeInclusive<Integer> xRangeAt(final int y) {
             final int dy = Math.abs(this.y - y);
             assert dy <= distanceToBeacon;
-            return Range.between(
+            return RangeInclusive.between(
                     x - distanceToBeacon + dy,
                     x + distanceToBeacon - dy);
         }
@@ -131,8 +131,8 @@ public class AoC2022_15 extends AoCBase {
     
     static final class RangeMerger {
 
-        public static Deque<Range<Integer>> mergeRanges(final Set<Range<Integer>> ranges) {
-            final var m = new ArrayDeque<Range<Integer>>();
+        public static Deque<RangeInclusive<Integer>> mergeRanges(final Set<RangeInclusive<Integer>> ranges) {
+            final var m = new ArrayDeque<RangeInclusive<Integer>>();
             final var sorted = new ArrayList<>(ranges);
             Collections.sort(sorted, (r1, r2) -> {
                 final int first = Integer.compare(r1.getMinimum(), r2.getMinimum());
@@ -149,7 +149,7 @@ public class AoC2022_15 extends AoCBase {
                 final var last = m.peekLast();
                 if (range.isOverlappedBy(last)) {
                     m.removeLast();
-                    m.add(Range.between(
+                    m.add(RangeInclusive.between(
                         last.getMinimum(),
                         Math.max(last.getMaximum(), range.getMaximum())));
                 } else {

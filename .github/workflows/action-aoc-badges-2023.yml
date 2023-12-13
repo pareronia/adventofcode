@@ -1,4 +1,4 @@
-name: Update AoC Badges 2022
+name: Update AoC Badges 2023
 on:
   schedule:                                      # run workflow based on schedule
     - cron: '6 5 1-25 12 *'                      # from the 1. December till 25. December every day at 5:06am (avoid load at full hours)
@@ -18,7 +18,7 @@ jobs:
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
-          year: 2022
+          year: 2023
           
 #         Optional inputs:
 #         

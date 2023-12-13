@@ -1,4 +1,5 @@
 import static com.github.pareronia.aoc.AssertUtils.unreachable;
+import static com.github.pareronia.aoc.IterTools.enumerate;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
@@ -50,9 +51,9 @@ public final class AoC2015_01
                 return sum != -1;
             }
         };
-        return Utils.enumerate(input.stream())
-            .dropWhile(e -> dropCondition.test(e.getValue()))
-            .map(e -> e.getIndex() + 1)
+        return enumerate(input.stream())
+            .dropWhile(e -> dropCondition.test(e.value()))
+            .map(e -> e.index() + 1)
             .findFirst().orElseThrow();
     }
     
@@ -95,21 +96,18 @@ enum Direction {
     private static final char UP_CHAR = '(';
     private static final char DOWN_CHAR = ')';
     
-    private int value;
+    private final int value;
     
     Direction(final int value) {
         this.value = value;
     }
     
     public static Direction fromChar(final Character ch) {
-        switch (ch) {
-        case UP_CHAR:
-            return Direction.UP;
-        case DOWN_CHAR:
-            return Direction.DOWN;
-        default:
-            throw unreachable();
-        }
+        return switch (ch) {
+            case UP_CHAR -> Direction.UP;
+            case DOWN_CHAR -> Direction.DOWN;
+            default -> throw unreachable();
+        };
     }
     
     public int addTo(final int lhs) {

@@ -12,7 +12,7 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aocd.Puzzle;
 
 public class AoC2020_16 extends AoCBase {
@@ -41,7 +41,7 @@ public class AoC2020_16 extends AoCBase {
             final var splits3 = split.split("-");
             final int start = Integer.parseInt(splits3[0]);
             final int end = Integer.parseInt(splits3[1]);
-            builder.validRange(Range.between(start, end));
+            builder.validRange(RangeInclusive.between(start, end));
         }
         return builder.build();
     }
@@ -116,8 +116,10 @@ public class AoC2020_16 extends AoCBase {
             5,14,9
             """);
 	
-	private static final record Rule(String field, Set<Range<Integer>> validRanges) {
-	    
+	private static final record Rule(
+	        String field,
+	        Set<RangeInclusive<Integer>> validRanges
+	) {
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));
 	    }
@@ -128,7 +130,7 @@ public class AoC2020_16 extends AoCBase {
 	    
 	    private static final class RuleBuilder {
 	        private String field;
-	        private final Set<Range<Integer>> validRanges = new HashSet<>();
+	        private final Set<RangeInclusive<Integer>> validRanges = new HashSet<>();
 	        
 	        public Rule build() {
 	            return new Rule(this.field, this.validRanges);
@@ -139,7 +141,7 @@ public class AoC2020_16 extends AoCBase {
 	            return this;
 	        }
 	        
-	        public RuleBuilder validRange(final Range<Integer> validRange) {
+	        public RuleBuilder validRange(final RangeInclusive<Integer> validRange) {
 	            this.validRanges.add(validRange);
 	            return this;
 	        }

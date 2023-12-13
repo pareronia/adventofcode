@@ -77,7 +77,84 @@ public class IterTools {
     public static Iterable<int[]> combinations(final int n, final int k) {
         return () -> combinationsIterator(n, k);
     }
+    
+    public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
+        return enumerateFrom(0, stream);
+    }
+    
+    public static <T> Stream<Enumerated<T>>
+    enumerateFrom(
+            final int startIndex,
+            final Stream<T> stream
+    ) {
+        return Utils.stream(new Iterator<Enumerated<T>>() {
+            private final Iterator<T> iterator = stream.iterator();
+            private int i = startIndex;
 
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public Enumerated<T> next() {
+                return new Enumerated<>(i++, iterator.next());
+            }
+        });
+    }
+    
+    private static <T> Iterable<ZippedPair<T>>
+    doZip(
+        final Iterator<T> iterator1,
+        final Iterator<T> iterator2
+    ) {
+        return () -> new Iterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                return iterator1.hasNext() && iterator2.hasNext();
+            }
+
+            @Override
+            public ZippedPair<T> next() {
+                return new ZippedPair<>(iterator1.next(), iterator2.next());
+            }
+        };
+    }
+
+    public static <T> Iterable<ZippedPair<T>> zip(
+            final Iterable<T> iterable1,
+            final Iterable<T> iterable2
+    ) {
+        return doZip(iterable1.iterator(), iterable2.iterator());
+    }
+    
+    public static <T> Iterator<T> cycle(final Iterator<T> iterator) {
+        return new Iterator<>() {
+            List<T> saved = new ArrayList<>();
+            int i = 0;
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                if (iterator.hasNext()) {
+                    final T next = iterator.next();
+                    saved.add(next);
+                    return next;
+                }
+                return saved.get(i++ % saved.size());
+            }
+        };
+    }
+
+    public static <T> Iterator<T> cycle(final Iterable<T> iterable) {
+        return cycle(iterable.iterator());
+    }
+    
     private static final class Heap {
         
         public static void accept(final int[] a, final Consumer<int[]> consumer) {
@@ -113,4 +190,8 @@ public class IterTools {
             a[j] = temp;
         }
     }
+    
+    public record ZippedPair<T>(T first, T second) {}
+    
+    public record Enumerated<T>(int index, T value) {}
 }

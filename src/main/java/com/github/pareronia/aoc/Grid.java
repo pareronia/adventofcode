@@ -33,6 +33,8 @@ public interface Grid<T> {
     
     String getRowAsString(final int row);
     
+    String getColumnAsString(final int col);
+    
     default int size() {
         return this.getHeight() * this.getWidth();
     }
@@ -170,6 +172,22 @@ public interface Grid<T> {
             @Override
             public String next() {
                 return Grid.this.getRowAsString(i++);
+            }
+        });
+    }
+
+    default Stream<String> getColumnsAsStrings() {
+        return Utils.stream(new Iterator<>() {
+            int i = 0;
+            
+            @Override
+            public boolean hasNext() {
+                return i <= Grid.this.getMaxColIndex();
+            }
+            
+            @Override
+            public String next() {
+                return Grid.this.getColumnAsString(i++);
             }
         });
     }

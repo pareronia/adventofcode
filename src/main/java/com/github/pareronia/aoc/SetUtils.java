@@ -28,4 +28,12 @@ public class SetUtils {
                 .filter(e -> a.contains(e) ^ b.contains(e))
                 .collect(toSet());
     }
+    
+    public static <T> Set<T> difference(final Set<T> a, final Set<T> b) {
+        return Stream.concat(
+                    Objects.requireNonNull(a).stream(),
+                    Objects.requireNonNull(b).stream())
+                .filter(e -> a.contains(e) && !b.contains(e))
+                .collect(toSet());
+    }
 }
