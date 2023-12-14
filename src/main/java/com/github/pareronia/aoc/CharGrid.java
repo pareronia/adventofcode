@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public class CharGrid implements Grid<Character> {
+public class CharGrid implements Grid<Character>, Cloneable {
 	private final char[][] cells;
 	
 	public CharGrid(final char[][] cells) {
@@ -41,7 +41,20 @@ public class CharGrid implements Grid<Character> {
 					.collect(toList()));
 	}
 	
-	public CharGrid addRow(final String string ) {
+	@Override
+    protected CharGrid clone() throws CloneNotSupportedException {
+        return new CharGrid(this.cells.clone());
+    }
+	
+	public CharGrid doClone() {
+	    try {
+            return this.clone();
+        } catch (final CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
+	}
+
+    public CharGrid addRow(final String string ) {
 	    assertTrue(string.length() == getWidth(), () -> "Invalid row length.");
 	    final List<String> list = new ArrayList<>(getRowsAsStringList());
 	    list.add(string);
@@ -345,9 +358,8 @@ public class CharGrid implements Grid<Character> {
 	@Override
 	public int hashCode() {
 		final int prime = 31;
-		int result = 1;
-		result = prime * result + Arrays.deepHashCode(cells);
-		return result;
+		final int result = 1;
+		return prime * result + Arrays.deepHashCode(cells);
 	}
 
 	@Override
