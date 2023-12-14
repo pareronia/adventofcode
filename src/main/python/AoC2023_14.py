@@ -10,7 +10,6 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 from aoc.common import log
-from aoc.grid import Cell
 from aoc.grid import CharGrid
 
 Input = CharGrid
@@ -33,146 +32,133 @@ O.#..O.#.#
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
+    grid: CharGrid
+    height: int
+    width: int
+
     def parse_input(self, input_data: InputData) -> Input:
         return CharGrid.from_strings([line for line in input_data])
 
-    def tilt_up(self, grid: CharGrid) -> set[Cell]:
-        os = set[Cell]()
-        for c in range(grid.get_width()):
-            cell = Cell(0, c)
-            it = grid.get_cells_s(cell)
+    def tilt_up(self) -> set[tuple[int, int]]:
+        os = set[tuple[int, int]]()
+        for c in range(self.width):
             last_cube = 0
             count = 0
-            while True:
-                if grid.get_value(cell) == "#":
-                    last_cube = cell.row + 1
+            for r in range(self.height):
+                val = self.grid.values[r][c]
+                if val == "#":
+                    last_cube = r + 1
                     count = 0
-                elif grid.get_value(cell) == "O":
+                elif val == "O":
                     new_row = last_cube + count
-                    os.add(Cell(new_row, c))
+                    os.add((new_row, c))
                     count += 1
-                try:
-                    cell = next(it)
-                except StopIteration:
-                    break
         return os
 
-    def tilt_down(self, grid: CharGrid) -> set[Cell]:
-        os = set[Cell]()
-        for c in range(grid.get_width()):
-            cell = Cell(grid.get_height() - 1, c)
-            it = grid.get_cells_n(cell)
-            last_cube = grid.get_height() - 1
+    def tilt_down(self) -> set[tuple[int, int]]:
+        os = set[tuple[int, int]]()
+        for c in range(self.width):
+            last_cube = self.height - 1
             count = 0
-            while True:
-                if grid.get_value(cell) == "#":
-                    last_cube = cell.row - 1
+            for r in range(self.height - 1, -1, -1):
+                val = self.grid.values[r][c]
+                if val == "#":
+                    last_cube = r - 1
                     count = 0
-                elif grid.get_value(cell) == "O":
+                elif val == "O":
                     new_row = last_cube - count
-                    os.add(Cell(new_row, c))
+                    os.add((new_row, c))
                     count += 1
-                try:
-                    cell = next(it)
-                except StopIteration:
-                    break
         return os
 
-    def tilt_left(self, grid: CharGrid) -> set[Cell]:
-        os = set[Cell]()
-        for r in range(grid.get_height()):
-            cell = Cell(r, 0)
-            it = grid.get_cells_e(cell)
+    def tilt_left(self) -> set[tuple[int, int]]:
+        os = set[tuple[int, int]]()
+        for r in range(self.height):
             last_cube = 0
             count = 0
-            while True:
-                if grid.get_value(cell) == "#":
-                    last_cube = cell.col + 1
+            for c in range(self.width):
+                val = self.grid.values[r][c]
+                if val == "#":
+                    last_cube = c + 1
                     count = 0
-                elif grid.get_value(cell) == "O":
+                elif val == "O":
                     new_col = last_cube + count
-                    os.add(Cell(r, new_col))
+                    os.add((r, new_col))
                     count += 1
-                try:
-                    cell = next(it)
-                except StopIteration:
-                    break
         return os
 
-    def tilt_right(self, grid: CharGrid) -> set[Cell]:
-        os = set[Cell]()
-        for r in range(grid.get_height()):
-            cell = Cell(r, grid.get_width() - 1)
-            it = grid.get_cells_w(cell)
-            last_cube = grid.get_width() - 1
+    def tilt_right(self) -> set[tuple[int, int]]:
+        os = set[tuple[int, int]]()
+        for r in range(self.height):
+            last_cube = self.width - 1
             count = 0
-            while True:
-                if grid.get_value(cell) == "#":
-                    last_cube = cell.col - 1
+            for c in range(self.width - 1, -1, -1):
+                val = self.grid.values[r][c]
+                if val == "#":
+                    last_cube = c - 1
                     count = 0
-                elif grid.get_value(cell) == "O":
+                elif val == "O":
                     new_col = last_cube - count
-                    os.add(Cell(r, new_col))
+                    os.add((r, new_col))
                     count += 1
-                try:
-                    cell = next(it)
-                except StopIteration:
-                    break
         return os
 
-    def spin_cycle(self, grid: CharGrid) -> tuple[CharGrid, set[Cell]]:
-        os = self.tilt_up(grid)
-        grid = self.redraw(grid, os)
-        os = self.tilt_left(grid)
-        grid = self.redraw(grid, os)
-        os = self.tilt_down(grid)
-        grid = self.redraw(grid, os)
-        os = self.tilt_right(grid)
-        grid = self.redraw(grid, os)
-        return grid, os
+    def spin_cycle(self) -> set[tuple[int, int]]:
+        os = self.tilt_up()
+        self.redraw(os)
+        os = self.tilt_left()
+        self.redraw(os)
+        os = self.tilt_down()
+        self.redraw(os)
+        os = self.tilt_right()
+        self.redraw(os)
+        return os
 
-    def redraw(self, grid: CharGrid, os: set[Cell]) -> CharGrid:
-        for cell in grid.get_cells():
-            val = grid.get_value(cell)
-            if cell in os:
-                grid.set_value(cell, "O")
-            elif val != "#":
-                grid.set_value(cell, ".")
-        return grid
+    def redraw(self, os: set[tuple[int, int]]) -> None:
+        for r in range(self.height):
+            for c in range(self.width):
+                val = self.grid.values[r][c]
+                if (r, c) in os:
+                    self.grid.values[r][c] = "O"
+                elif val != "#":
+                    self.grid.values[r][c] = "."
 
-    def calc_load(self, grid: CharGrid, os: set[Cell]) -> int:
-        return sum(grid.get_height() - o.row for o in os)
+    def calc_load(self, os: set[tuple[int, int]]) -> int:
+        return sum(self.height - row for row, _ in os)
 
-    def part_1(self, grid: Input) -> Output1:
-        os = self.tilt_up(grid)
-        grid = self.redraw(grid, os)
-        return self.calc_load(grid, os)
+    def part_1(self, grid_in: Input) -> Output1:
+        self.grid = grid_in
+        self.height = self.grid.get_height()
+        self.width = self.grid.get_width()
+        os = self.tilt_up()
+        self.redraw(os)
+        return self.calc_load(os)
 
-    def part_2(self, grid: Input) -> Output2:
-        start_grid = CharGrid.from_strings(
-            [row for row in grid.get_rows_as_strings()]
-        )
-        d = defaultdict[tuple[Cell, ...], list[int]](list)
+    def part_2(self, grid_in: Input) -> Output2:
+        self.grid = grid_in
+        self.height = self.grid.get_height()
+        self.width = self.grid.get_width()
+        d = defaultdict[frozenset[tuple[int, int]], list[int]](list)
         i = 0
         while True:
             if i % 100 == 0:
                 log(i)
-            grid, os = self.spin_cycle(grid)
-            key = tuple(o for o in sorted(os))
-            if i > 100 and key in d and len(d[key]) > 2:
-                cycle = d[key]
-                period = cycle[1] - cycle[0]
-                offset = cycle[0]
-                log(f"{i=}, {d[key]=}, {offset=}, {period=}")
-                break
-            d[key].append(i)
             i += 1
-        grid = start_grid
-        for i in range(offset):
-            grid, os = self.spin_cycle(grid)
-        for i in range((1_000_000_000 - offset) % period):
-            grid, os = self.spin_cycle(grid)
-        return self.calc_load(grid, os)
+            os = self.spin_cycle()
+            key = frozenset(os)
+            d[key].append(i)
+            if i > 100:
+                cycle = d[key]
+                if len(cycle) < 2:
+                    continue
+                period = cycle[1] - cycle[0]
+                loops = (1_000_000_000 - i) // period
+                left = 1_000_000_000 - (i + loops * period)
+                log(f"{i=}, {d[key]=}, {period=}, {loops=}, {left=}")
+                assert i + loops * period + left == 1_000_000_000
+                for i in range(left):
+                    os = self.spin_cycle()
+                return self.calc_load(os)
 
     @aoc_samples(
         (
