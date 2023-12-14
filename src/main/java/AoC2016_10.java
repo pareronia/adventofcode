@@ -1,4 +1,5 @@
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -10,9 +11,6 @@ import java.util.function.Function;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.Data;
-import lombok.Value;
 
 public class AoC2016_10 extends AoCBase {
 
@@ -70,8 +68,8 @@ public class AoC2016_10 extends AoCBase {
 	
     private void run() {
         for (final Input input : this.inputs) {
-            findBot(input.getToBot())
-                    .receive(input.getValue(), this::findBot, this::output);
+            findBot(input.toBot())
+                    .receive(input.value(), this::findBot, this::output);
         }
     }
 
@@ -119,22 +117,35 @@ public class AoC2016_10 extends AoCBase {
 	        "value 2 goes to bot 2"
 	);
 	
-	@Data
 	private static final class Bot {
 	    private final Integer number;
 	    private final Integer lowTo;
 	    private final Integer highTo;
-	    private List<Integer> values = new ArrayList<>();
-	    private Set<Set<Integer>> compares = new HashSet<>();
+	    private final List<Integer> values = new ArrayList<>();
+	    private final Set<Set<Integer>> compares = new HashSet<>();
 	    
-	    public void receive(
+	    protected Bot(final Integer number, final Integer lowTo, final Integer highTo) {
+            this.number = number;
+            this.lowTo = lowTo;
+            this.highTo = highTo;
+        }
+
+        public Integer getNumber() {
+            return number;
+        }
+
+        public Set<Set<Integer>> getCompares() {
+            return compares;
+        }
+
+        public void receive(
 	            final Integer value,
 	            final Function<Integer, Bot> botLookup,
 	            final BiConsumer<Integer, Integer> output
 	    ) {
 	       this.values.add(value);
 	       if (this.values.size() == 2) {
-	           this.values.sort(null);
+	           Collections.sort(this.values);
 	           final Integer lowValue = this.values.get(0);
 	           final Integer highValue = this.values.get(1);
 	           if (this.lowTo < 1000) {
@@ -153,9 +164,5 @@ public class AoC2016_10 extends AoCBase {
 	    }
 	}
 	
-	@Value
-	private static final class Input {
-	    private final Integer value;
-	    private final Integer toBot;
-	}
+	record Input(int value, int toBot) { }
 }

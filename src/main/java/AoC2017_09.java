@@ -6,8 +6,6 @@ import java.util.List;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_09 extends AoCBase {
 
     private static final char ESCAPE = '!';
@@ -32,11 +30,7 @@ public final class AoC2017_09 extends AoCBase {
         return new AoC2017_09(input, true);
     }
     
-    @RequiredArgsConstructor
-    private static final class Result {
-        private final int totalScore;
-        private final int nonCancelledChars;
-    }
+    record Result(int totalScore, int nonCancelledChars) { }
     
     private Result solve() {
         int open = 0;

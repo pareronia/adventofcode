@@ -9,8 +9,6 @@ import java.util.Map;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_06 extends AoCBase {
 
     private final transient List<Integer> input;
@@ -75,9 +73,5 @@ public final class AoC2017_06 extends AoCBase {
         );
     }
     
-    @RequiredArgsConstructor
-    private static final class Result {
-        private final Map<List<Integer>, Integer> map;
-        private final List<Integer> last;
-    }
+    record Result(Map<List<Integer>, Integer> map, List<Integer> last) { }
 }

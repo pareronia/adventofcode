@@ -13,11 +13,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public final class AoC2016_17 extends AoCBase {
 
     private static final Position START = Position.of(0, 0);
@@ -51,7 +46,7 @@ public final class AoC2016_17 extends AoCBase {
         });
         return paths.stream()
                 .findFirst()
-                .map(Path::getPath)
+                .map(Path::path)
                 .orElseThrow();
     }
     
@@ -86,14 +81,7 @@ public final class AoC2016_17 extends AoCBase {
         );
     }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    @ToString
-    private static final class Path {
-        @Getter
-        private final String path;
-        @Getter
-        private final Position position;
+    record Path(String path, Position position) {
         
         public int length() {
             return this.path.length();
@@ -104,16 +92,11 @@ public final class AoC2016_17 extends AoCBase {
         }
     }
 
-    @RequiredArgsConstructor
-    private static final class PathFinder {
+    record PathFinder(Position start, Position destination, String salt) {
         private static final List<Character> OPEN_CHARS = List.of('b', 'c', 'd', 'e', 'f');
         private static final List<Direction> DIRECTIONS = List.of(
                 Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT);
         private static final char[] DOORS = { 'U', 'D', 'L', 'R' };
-
-        private final Position start;
-        private final Position destination;
-        private final String salt;
     
         public void findPaths(final Function<Path, Boolean> stop) {
             final Deque<Path> paths = new ArrayDeque<>();
@@ -128,7 +111,7 @@ public final class AoC2016_17 extends AoCBase {
                 for (final Direction direction : DIRECTIONS) {
                     final Path newPath = buildNewPath(path, direction);
                     if (doors[DIRECTIONS.indexOf(direction)]
-                            && isInBounds(newPath.getPosition())) {
+                            && isInBounds(newPath.position())) {
                         paths.add(newPath);
                     }
                 }
@@ -137,7 +120,7 @@ public final class AoC2016_17 extends AoCBase {
         
         private boolean[] areDoorsOpen(final Path path) {
             final String data = new StringBuilder().append(this.salt)
-                    .append(path.getPath()).toString();
+                    .append(path.path()).toString();
             final String md5Hex = MD5.md5Hex(data);
             final boolean[] doors = new boolean[DOORS.length];
             for (int d = 0; d < DIRECTIONS.size(); d++) {
@@ -148,8 +131,8 @@ public final class AoC2016_17 extends AoCBase {
     
         private Path buildNewPath(final Path path, final Direction direction) {
             return new Path(
-                    path.getPath() + DOORS[DIRECTIONS.indexOf(direction)],
-                    path.getPosition().translate(direction));
+                    path.path() + DOORS[DIRECTIONS.indexOf(direction)],
+                    path.position().translate(direction));
         }
     
         private boolean isInBounds(final Point position) {

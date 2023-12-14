@@ -15,8 +15,6 @@ import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Value;
-
 public class AoC2016_04 extends AoCBase {
     
     private static final Pattern REGEXP = Pattern.compile("([-a-z]+)-([0-9]+)\\[([a-z]{5})\\]$");
@@ -29,7 +27,7 @@ public class AoC2016_04 extends AoCBase {
 		this.rooms = inputs.stream()
 		        .map(REGEXP::matcher)
 		        .filter(Matcher::matches)
-		        .map(m -> new Room(m.group(1), Integer.valueOf(m.group(2)), m.group(3)))
+		        .map(m -> new Room(m.group(1), Integer.parseInt(m.group(2)), m.group(3)))
 		        .collect(toList());
 		log(rooms);
 	}
@@ -46,15 +44,15 @@ public class AoC2016_04 extends AoCBase {
 	public Integer solvePart1() {
 		return this.rooms.stream()
 		        .filter(Room::isReal)
-		        .collect(summingInt(Room::getSectorId));
+		        .collect(summingInt(Room::sectorId));
 	}
 
 	@Override
 	public Integer solvePart2() {
 	    final List<Integer> matches = this.rooms.stream()
-	            .filter(r -> MATCH.matcher(r.getName()).matches())
+	            .filter(r -> MATCH.matcher(r.name()).matches())
 	            .filter(r -> r.decrypt().equals("northpole object storage"))
-	            .map(Room::getSectorId)
+	            .map(Room::sectorId)
 	            .collect(toList());
 	    assert matches.size() == 1;
 		return matches.get(0);
@@ -78,11 +76,7 @@ public class AoC2016_04 extends AoCBase {
 			"totally-real-room-200[decoy]"
 	);
 	
-	@Value
-	private static final class Room {
-	    private final String name;
-	    private final Integer sectorId;
-	    private final String checkum;
+	record Room(String name, int sectorId, String checkum) {
 	    
 	    public boolean isReal() {
 	        return Utils.asCharacterStream(this.name.replace("-", ""))

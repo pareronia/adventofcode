@@ -10,8 +10,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_03 extends AoCBase {
 
     private final transient Integer input;
@@ -30,10 +28,10 @@ public final class AoC2017_03 extends AoCBase {
         return new AoC2017_03(input, true);
     }
     
-    @RequiredArgsConstructor(staticName = "of")
-    private static final class DirectionAndPeriod {
-        private final Direction direction;
-        private final int period;
+    record DirectionAndPeriod(Direction direction, int period) {
+        public static DirectionAndPeriod of(final Direction direction, final int period) {
+            return new DirectionAndPeriod(direction, period);
+        }
     }
 
     private static class CoordinateSupplier implements Supplier<Position> {

@@ -13,9 +13,8 @@ import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.RequiredArgsConstructor;
-
-public class AoC2015_19 extends SolutionBase<ReplacementsAndMolecule, Integer, Integer> {
+public class AoC2015_19
+        extends SolutionBase<AoC2015_19.ReplacementsAndMolecule, Integer, Integer> {
     
     private AoC2015_19(final boolean debug) {
         super(debug);
@@ -133,23 +132,26 @@ public class AoC2015_19 extends SolutionBase<ReplacementsAndMolecule, Integer, I
     }
     
     private static final String TEST1 =
-              "H => HO\r\n"
-            + "H => OH\r\n"
-            + "O => HH\r\n"
-            + "\r\n"
-            + "HOH";
+              """
+    	H => HO\r
+    	H => OH\r
+    	O => HH\r
+    	\r
+    	HOH""";
     private static final String TEST2 =
-              "H => HO\r\n"
-            + "H => OH\r\n"
-            + "O => HH\r\n"
-            + "\r\n"
-            + "HOHOHO";
+              """
+    	H => HO\r
+    	H => OH\r
+    	O => HH\r
+    	\r
+    	HOHOHO""";
     private static final String TEST3 =
-              "H => HO\r\n"
-            + "H => OH\r\n"
-            + "Oo => HH\r\n"
-            + "\r\n"
-            + "HOHOHO";
+              """
+    	H => HO\r
+    	H => OH\r
+    	Oo => HH\r
+    	\r
+    	HOHOHO""";
     private static final List<String> TEST4 = splitLines(
                 "e => H\r\n"
               + "e => O\r\n"
@@ -168,21 +170,19 @@ public class AoC2015_19 extends SolutionBase<ReplacementsAndMolecule, Integer, I
               + "\r\n"
               + "HOHOHO"
     );
-}
 
-@RequiredArgsConstructor
-final class ReplacementsAndMolecule {
-    
-    final Map<String, List<String>> replacements;
-    final String molecule;
-    
-    public static ReplacementsAndMolecule fromInput(final List<String> inputs) {
-        final List<List<String>> blocks = StringOps.toBlocks(inputs);
-        final Map<String, List<String>> replacements = blocks.get(0).stream()
-            .map(s -> s.split(" => "))
-            .collect(groupingBy(sp -> sp[0], mapping(s -> s[1], toList())));
-        assert blocks.get(1).size() == 1;
-        final String molecule = blocks.get(1).get(0);
-        return new ReplacementsAndMolecule(replacements, molecule);
+    record ReplacementsAndMolecule(
+            Map<String, List<String>> replacements,
+            String molecule
+    ) {
+        public static ReplacementsAndMolecule fromInput(final List<String> inputs) {
+            final List<List<String>> blocks = StringOps.toBlocks(inputs);
+            final Map<String, List<String>> replacements = blocks.get(0).stream()
+                .map(s -> s.split(" => "))
+                .collect(groupingBy(sp -> sp[0], mapping(s -> s[1], toList())));
+            assert blocks.get(1).size() == 1;
+            final String molecule = blocks.get(1).get(0);
+            return new ReplacementsAndMolecule(replacements, molecule);
+        }
     }
 }

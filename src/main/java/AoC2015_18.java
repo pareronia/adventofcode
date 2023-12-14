@@ -13,10 +13,7 @@ import com.github.pareronia.aoc.Grid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.AccessLevel;
-import lombok.RequiredArgsConstructor;
-
-public class AoC2015_18 extends SolutionBase<GameOfLife, Integer, Integer> {
+public class AoC2015_18 extends SolutionBase<AoC2015_18.GameOfLife, Integer, Integer> {
     
     private AoC2015_18(final boolean debug) {
         super(debug);
@@ -123,39 +120,44 @@ public class AoC2015_18 extends SolutionBase<GameOfLife, Integer, Integer> {
             "#.#..#\r\n" +
             "####.."
     );
-}
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-final class GameOfLife implements Cloneable {
-    private static final char ON = '#';
-    
-    final Set<Cell> grid;
-    final int height;
-    final int width;
-    
-    public static GameOfLife fromInput(final List<String> inputs) {
-        final int height = inputs.size();
-        final int width = inputs.get(0).length();
-        final Set<Cell> grid = IntStream.range(0, height).boxed()
-            .flatMap(r -> IntStream.range(0, width).mapToObj(c -> Cell.at(r, c)))
-            .filter(c -> inputs.get(c.getRow()).charAt(c.getCol()) == ON)
-            .collect(toSet());
-        return new GameOfLife(Collections.unmodifiableSet(grid), height, width);
-    }
-    
-    public static GameOfLife clone(final GameOfLife gameOfLife) {
-        try {
-            return gameOfLife.clone();
-        } catch (final CloneNotSupportedException e) {
-            throw new RuntimeException(e);
+    static final class GameOfLife implements Cloneable {
+        private static final char ON = '#';
+        
+        final Set<Cell> grid;
+        final int height;
+        final int width;
+        
+        protected GameOfLife(final Set<Cell> grid, final int height, final int width) {
+            this.grid = grid;
+            this.height = height;
+            this.width = width;
         }
-    }
 
-    @Override
-    protected GameOfLife clone() throws CloneNotSupportedException {
-        return new GameOfLife(
-                grid.stream().collect(toSet()),
-                height,
-                width);
+        public static GameOfLife fromInput(final List<String> inputs) {
+            final int height = inputs.size();
+            final int width = inputs.get(0).length();
+            final Set<Cell> grid = IntStream.range(0, height).boxed()
+                .flatMap(r -> IntStream.range(0, width).mapToObj(c -> Cell.at(r, c)))
+                .filter(c -> inputs.get(c.getRow()).charAt(c.getCol()) == ON)
+                .collect(toSet());
+            return new GameOfLife(Collections.unmodifiableSet(grid), height, width);
+        }
+        
+        public static GameOfLife clone(final GameOfLife gameOfLife) {
+            try {
+                return gameOfLife.clone();
+            } catch (final CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        @Override
+        protected GameOfLife clone() throws CloneNotSupportedException {
+            return new GameOfLife(
+                    grid.stream().collect(toSet()),
+                    height,
+                    width);
+        }
     }
 }

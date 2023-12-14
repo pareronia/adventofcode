@@ -7,8 +7,6 @@ import com.github.pareronia.aoc.codec.MD5;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2016_05 extends AoCBase {
 
 	private final String input;
@@ -54,9 +52,9 @@ public class AoC2016_05 extends AoCBase {
 
 	@Override
 	public String solvePart2() {
-		final char[] validPositions = new char[] { '0', '1', '2', '3', '4', '5', '6', '7' };
+		final char[] validPositions = { '0', '1', '2', '3', '4', '5', '6', '7' };
 		Integer index = 0;
-		final char[] result = new char[] { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
+		final char[] result = { ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ' };
 		final Set<Character> seen = new HashSet<>();
 		while (true) {
 			final ValueAndIndex md5 = findMd5StartingWith5Zeroes(index);
@@ -91,9 +89,9 @@ public class AoC2016_05 extends AoCBase {
 
 	private static final List<String> TEST = splitLines("abc");
 	
-	@RequiredArgsConstructor(staticName = "of")
-	private static final class ValueAndIndex {
-	    private final String value;
-	    private final int index;
+	record ValueAndIndex(String value, int index) {
+	    public static ValueAndIndex of(final String value, final int index) {
+	        return new ValueAndIndex(value, index);
+	    }
     }
 }

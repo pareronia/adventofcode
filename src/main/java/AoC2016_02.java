@@ -14,8 +14,6 @@ import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2016_02 extends AoCBase {
     
     private static final Map<Position, Character> LAYOUT1 = Map.of(
@@ -93,11 +91,18 @@ public class AoC2016_02 extends AoCBase {
             "UUUUD"
     );
     
-    @RequiredArgsConstructor(staticName = "fromLayout")
     private static final class Keypad {
         private final Map<Position, Character> positions;
         private Position current = Position.ORIGIN;
         
+        private Keypad(final Map<Position, Character> positions) {
+            this.positions = positions;
+        }
+        
+        public static Keypad fromLayout(final Map<Position, Character> positions) {
+            return new Keypad(positions);
+        }
+
         public String executeInstructions(final List<List<Direction>> directions) {
             return directions.stream()
                 .map(this::executeInstruction)
