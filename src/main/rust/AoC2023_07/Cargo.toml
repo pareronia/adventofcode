@@ -1,0 +1,9 @@
+[package]
+name = "AoC2023_07"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aoc = { path = "../aoc" }
+counter = "0.5"
+itertools = "0.11"
