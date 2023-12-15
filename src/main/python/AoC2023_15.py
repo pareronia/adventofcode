@@ -5,11 +5,11 @@
 
 import sys
 from collections import defaultdict
+from functools import reduce
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = list[str]
 Output1 = int
@@ -21,51 +21,57 @@ rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
 """
 
 
+def hash(s: str) -> int:
+    return reduce(
+        lambda acc, ch: ((acc + ord(ch)) * 17) % 256, (ch for ch in s), 0
+    )
+
+
+class Boxes:
+    def __init__(self) -> None:
+        self.boxes = defaultdict[int, list[tuple[str, int]]](list)
+
+    def add_lens(self, label: str, focal_length: int) -> None:
+        lenses = self.boxes[hash(label)]
+        for lens in lenses:
+            if lens[0] == label:
+                idx = lenses.index(lens)
+                lenses[idx] = (label, focal_length)
+                break
+        else:
+            lenses.append((label, focal_length))
+
+    def remove_lens(self, label: str) -> None:
+        lenses = self.boxes[hash(label)]
+        for lens in lenses:
+            if lens[0] == label:
+                lenses.remove(lens)
+
+    def get_total_focusing_power(self) -> int:
+        return sum(
+            (box + 1) * i * lens[1]
+            for box in self.boxes
+            for i, lens in enumerate(self.boxes[box], start=1)
+        )
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return list(input_data)[0].split(",")
 
-    def hash(self, s: str) -> int:
-        ans = 0
-        for ch in s:
-            ans += ord(ch)
-            ans *= 17
-            ans %= 256
-        return ans
-
     def part_1(self, steps: Input) -> Output1:
-        ans = 0
-        for step in steps:
-            ans += self.hash(step)
-        return ans
+        return sum(hash(step) for step in steps)
 
     def part_2(self, steps: Input) -> Output2:
-        boxes = defaultdict[int, list[tuple[str, int]]](list)
+        boxes = Boxes()
         for step in steps:
             if "=" in step:
                 label, fl = step.split("=")
-                box = self.hash(label)
-                lst = boxes[box]
-                for x in lst:
-                    if x[0] == label:
-                        idx = lst.index(x)
-                        lst[idx] = (label, int(fl))
-                        break
-                else:
-                    lst.append((label, int(fl)))
+                boxes.add_lens(label, int(fl))
             else:
                 label = step[:-1]
-                box = self.hash(label)
-                lst = boxes[box]
-                for x in lst:
-                    if x[0] == label:
-                        lst.remove(x)
-            log(boxes)
-        ans = 0
-        for box in boxes:
-            for i, x in enumerate(boxes[box]):
-                ans += (box + 1) * (i + 1) * x[1]
-        return ans
+                boxes.remove_lens(label)
+        return boxes.get_total_focusing_power()
 
     @aoc_samples(
         (
