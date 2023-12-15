@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.Utils.last;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
@@ -69,32 +70,25 @@ public final class AoC2023_14
         });
     }
     
-    private int calcLoad(final CharGrid grid, final Set<Cell> os) {
-        return os.stream()
+    private int calcLoad(final CharGrid grid) {
+        return grid.getAllEqualTo('O')
             .mapToInt(o -> grid.getHeight() - o.getRow())
             .sum();
     }
     
-    record SpinResult(CharGrid grid, Set<Cell> os) {}
-    
-    private SpinResult spinCycle(CharGrid grid) {
-        this.redraw(grid, this.tiltUp(grid));
-        grid = grid.rotate();
-        this.redraw(grid, this.tiltUp(grid));
-        grid = grid.rotate();
-        this.redraw(grid, this.tiltUp(grid));
-        grid = grid.rotate();
-        this.redraw(grid, this.tiltUp(grid));
-        grid = grid.rotate();
-        final Set<Cell> os = grid.getAllEqualTo('O').collect(toSet());
-        return new SpinResult(grid, os);
-    }
+    private CharGrid spinCycle(CharGrid grid) {
+        for (int i = 0; i < 4; i++) {
+            this.redraw(grid, this.tiltUp(grid));
+            grid = grid.rotate();
+        }
+        return grid;
+     }
 
     @Override
-    public Integer solvePart1(final CharGrid grid) {
-        final Set<Cell> os = this.tiltUp(grid);
-        this.redraw(grid, os);
-        return this.calcLoad(grid, os);
+    public Integer solvePart1(final CharGrid gridIn) {
+        final CharGrid grid = gridIn.doClone();
+        this.redraw(grid, this.tiltUp(grid));
+        return this.calcLoad(grid);
     }
     
     @Override
@@ -102,29 +96,29 @@ public final class AoC2023_14
         CharGrid g = grid.doClone();
         final Map<Set<Cell>, List<Integer>> map = new HashMap<>();
         final int total = 1_000_000_000;
-        SpinResult result = null;
         int cycles = 0;
         while (true) {
             cycles++;
-            result = this.spinCycle(g);
-            map.computeIfAbsent(result.os(), k -> new ArrayList<>()).add(cycles);
-            g = result.grid;
-            if (cycles > 100 && map.getOrDefault(result.os(), List.of()).size() > 1) {
-                break;
+            g = this.spinCycle(g);
+            final Set<Cell> os = g.getAllEqualTo('O').collect(toSet());
+            map.computeIfAbsent(os, k -> new ArrayList<>()).add(cycles);
+            if (cycles > 100 && map.getOrDefault(os, List.of()).size() > 1) {
+                final List<Integer> cycle = map.get(os);
+                final int period = last(cycle, 1) - last(cycle, 2);
+                final int loops = Math.floorDiv(total - cycles, period);
+                final int left = total - (cycles + loops * period);
+                log("cycles: %d, cycle: %s, period: %d, loops: %d, left: %d"
+                        .formatted(cycles, cycle, period, loops, left));
+                assert cycles + loops * period + left == total;
+                for (int i = 0; i < left; i++) {
+                    g = this.spinCycle(g);
+                }
+                return this.calcLoad(g);
+            }
+            if (cycles > 1000) {
+                throw new IllegalStateException("Unsolvable");
             }
         }
-        final List<Integer> cycle = map.get(result.os());
-        final int period = cycle.get(cycle.size() - 1) - cycle.get(cycle.size() - 2);
-        final int loops = Math.floorDiv(total - cycles, period);
-        final int left = total - (cycles + loops * period);
-        log("cycles: %d, cycle: %s, period: %d, loops: %d, left: %d".formatted(
-                cycles, cycle, period, loops, left));
-        assert cycles + loops * period + left == total;
-        for (int i = 0; i < left; i++) {
-            result = this.spinCycle(g);
-            g = result.grid;
-        }
-        return this.calcLoad(result.grid(), result.os());
     }
     
     @Override

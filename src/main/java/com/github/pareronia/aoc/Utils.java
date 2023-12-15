@@ -34,7 +34,11 @@ public class Utils {
     }
 	
     public static <T> T last(final List<T> list) {
-        return Objects.requireNonNull(list).get(list.size() - 1);
+        return Utils.last(list, 1);
+    }
+    
+    public static <T> T last(final List<T> list, final int index) {
+        return Objects.requireNonNull(list).get(list.size() - index);
     }
     
     public static <T> T last(final T[] list) {
