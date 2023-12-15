@@ -4,7 +4,6 @@
 #
 
 import sys
-from collections import defaultdict
 from functools import reduce
 
 from aoc.common import InputData
@@ -29,29 +28,21 @@ def hash(s: str) -> int:
 
 class Boxes:
     def __init__(self) -> None:
-        self.boxes = defaultdict[int, list[tuple[str, int]]](list)
+        self.boxes: list[dict[str, int]] = [{} for _ in range(256)]
 
     def add_lens(self, label: str, focal_length: int) -> None:
-        lenses = self.boxes[hash(label)]
-        for lens in lenses:
-            if lens[0] == label:
-                idx = lenses.index(lens)
-                lenses[idx] = (label, focal_length)
-                break
-        else:
-            lenses.append((label, focal_length))
+        self.boxes[hash(label)][label] = focal_length
 
     def remove_lens(self, label: str) -> None:
-        lenses = self.boxes[hash(label)]
-        for lens in lenses:
-            if lens[0] == label:
-                lenses.remove(lens)
+        box = self.boxes[hash(label)]
+        if label in box:
+            del box[label]
 
     def get_total_focusing_power(self) -> int:
         return sum(
-            (box + 1) * i * lens[1]
-            for box in self.boxes
-            for i, lens in enumerate(self.boxes[box], start=1)
+            b * i * focal_length
+            for b, box in enumerate(self.boxes, start=1)
+            for i, focal_length in enumerate(box.values(), start=1)
         )
 
 
