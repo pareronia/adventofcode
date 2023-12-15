@@ -1,8 +1,9 @@
 import static com.github.pareronia.aoc.IterTools.enumerateFrom;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
@@ -76,41 +77,28 @@ public final class AoC2023_15
     
     private final class Boxes {
         @SuppressWarnings("unchecked")
-        private final List<Lens>[] boxes = new List[256];
+        private final Map<String, Integer>[] boxes = new Map[256];
         
         protected Boxes() {
             for (int i = 0; i < this.boxes.length; i++) {
-                this.boxes[i] = new ArrayList<>();
+                this.boxes[i] = new LinkedHashMap<>();
             }
         }
 
         public void addLens(final String label, final int focalLength) {
-            final List<Lens> lenses = this.boxes[AoC2023_15.this.hash(label)];
-            lenses.stream()
-                .filter(item -> item.label.equals(label))
-                .findFirst()
-                .ifPresentOrElse(
-                    lens -> lenses.set(lenses.indexOf(lens),
-                                       new Lens(label, focalLength)),
-                    () -> lenses.add(new Lens(label, focalLength)));
+            this.boxes[AoC2023_15.this.hash(label)].put(label, focalLength);
         }
         
         public void removeLens(final String label) {
-            final List<Lens> lenses = this.boxes[AoC2023_15.this.hash(label)];
-            lenses.stream()
-                .filter(item -> item.label.equals(label))
-                .findFirst()
-                .ifPresent(lenses::remove);
+            this.boxes[AoC2023_15.this.hash(label)].remove(label);
         }
         
         public int getTotalFocusingPower() {
             return enumerateFrom(1, Arrays.stream(boxes))
-                .flatMapToInt(box -> enumerateFrom(1, box.value().stream())
-                .mapToInt(e -> box.index() * e.index() * e.value().focalLength()))
+                .flatMapToInt(box -> enumerateFrom(1, box.value().values().stream())
+                .mapToInt(e -> box.index() * e.index() * e.value()))
                 .sum();
         }
-        
-        record Lens(String label, int focalLength) { }
     }
 
     private static final String TEST =
