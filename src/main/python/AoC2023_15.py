@@ -4,10 +4,12 @@
 #
 
 import sys
+from collections import defaultdict
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
+from aoc.common import log
 
 Input = list[str]
 Output1 = int
@@ -23,24 +25,52 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return list(input_data)[0].split(",")
 
+    def hash(self, s: str) -> int:
+        ans = 0
+        for ch in s:
+            ans += ord(ch)
+            ans *= 17
+            ans %= 256
+        return ans
+
     def part_1(self, steps: Input) -> Output1:
         ans = 0
         for step in steps:
-            prev = 0
-            for ch in step:
-                prev += ord(ch)
-                prev *= 17
-                prev %= 256
-            ans += prev
+            ans += self.hash(step)
         return ans
 
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_2(self, steps: Input) -> Output2:
+        boxes = defaultdict[int, list[tuple[str, int]]](list)
+        for step in steps:
+            if "=" in step:
+                label, fl = step.split("=")
+                box = self.hash(label)
+                lst = boxes[box]
+                for x in lst:
+                    if x[0] == label:
+                        idx = lst.index(x)
+                        lst[idx] = (label, int(fl))
+                        break
+                else:
+                    lst.append((label, int(fl)))
+            else:
+                label = step[:-1]
+                box = self.hash(label)
+                lst = boxes[box]
+                for x in lst:
+                    if x[0] == label:
+                        lst.remove(x)
+            log(boxes)
+        ans = 0
+        for box in boxes:
+            for i, x in enumerate(boxes[box]):
+                ans += (box + 1) * (i + 1) * x[1]
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 1320),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 145),
         )
     )
     def samples(self) -> None:
