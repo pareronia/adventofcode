@@ -1,0 +1,8 @@
+[package]
+name = "AoC2023_15"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aoc = { path = "../aoc" }
+linked-hash-map = "0.5.6"
