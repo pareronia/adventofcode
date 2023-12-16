@@ -89,19 +89,22 @@ public enum Direction {
         return this.vector.getY();
     }
     
+    public boolean isHorizontal() {
+        return this == Direction.LEFT || this == Direction.RIGHT;
+    }
+
+    public boolean isVertical() {
+        return this == Direction.UP || this == Direction.DOWN;
+    }
+    
     public Direction turn(final Turn turn) {
         AssertUtils.assertNotNull(turn, () -> "Expected turn be non-null");
-        switch (this) {
-        case UP:
-            return turn == Turn.AROUND ? DOWN : turn == Turn.LEFT ? LEFT : RIGHT;
-        case RIGHT:
-            return turn == Turn.AROUND ? LEFT : turn == Turn.LEFT ? UP : DOWN;
-        case DOWN:
-            return turn == Turn.AROUND ? UP : turn == Turn.LEFT ? RIGHT : LEFT;
-        case LEFT:
-            return turn == Turn.AROUND ? RIGHT : turn == Turn.LEFT ? DOWN : UP;
-        default:
-            throw new UnsupportedOperationException();
-        }
+        return switch (this) {
+        case UP -> turn == Turn.AROUND ? DOWN : turn == Turn.LEFT ? LEFT : RIGHT;
+        case RIGHT -> turn == Turn.AROUND ? LEFT : turn == Turn.LEFT ? UP : DOWN;
+        case DOWN -> turn == Turn.AROUND ? UP : turn == Turn.LEFT ? RIGHT : LEFT;
+        case LEFT -> turn == Turn.AROUND ? RIGHT : turn == Turn.LEFT ? DOWN : UP;
+        default -> throw new UnsupportedOperationException();
+        };
     }
 }
