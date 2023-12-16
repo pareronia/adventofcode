@@ -163,6 +163,14 @@ class Direction(Enum):
     def y(self) -> int:
         return self.vector.y
 
+    @property
+    def is_horizontal(self) -> bool:
+        return self == Direction.LEFT or self == Direction.RIGHT
+
+    @property
+    def is_vertical(self) -> bool:
+        return self == Direction.UP or self == Direction.DOWN
+
     def turn(self, turn: Turn) -> Direction:
         if self == Direction.UP:
             return (
