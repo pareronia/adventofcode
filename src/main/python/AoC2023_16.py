@@ -129,6 +129,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def part_1(self, grid: Input) -> Output1:
+        sys.setrecursionlimit(10_000)
         log_grid(grid)
         energised = self.get_energised(
             grid, Cell(0, 0), Direction.RIGHT, set()
@@ -136,13 +137,55 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         log(draw(energised, "#", "."))
         return len(energised)
 
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_2(self, grid: Input) -> Output2:
+        sys.setrecursionlimit(10_000)
+        ans = 0
+        for row in range(grid.get_height()):
+            ans = max(
+                ans,
+                len(
+                    self.get_energised(
+                        grid, Cell(row, 0), Direction.RIGHT, set()
+                    )
+                ),
+            )
+            ans = max(
+                ans,
+                len(
+                    self.get_energised(
+                        grid,
+                        Cell(row, grid.get_width() - 1),
+                        Direction.LEFT,
+                        set(),
+                    )
+                ),
+            )
+        for col in range(grid.get_width()):
+            ans = max(
+                ans,
+                len(
+                    self.get_energised(
+                        grid, Cell(0, col), Direction.DOWN, set()
+                    )
+                ),
+            )
+            ans = max(
+                ans,
+                len(
+                    self.get_energised(
+                        grid,
+                        Cell(grid.get_height() - 1, col),
+                        Direction.UP,
+                        set(),
+                    )
+                ),
+            )
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 46),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 51),
         )
     )
     def samples(self) -> None:
@@ -153,7 +196,6 @@ solution = Solution(2023, 16)
 
 
 def main() -> None:
-    sys.setrecursionlimit(10_000)
     solution.run(sys.argv)
 
 
