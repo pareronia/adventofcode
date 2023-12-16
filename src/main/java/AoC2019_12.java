@@ -16,10 +16,6 @@ import com.github.pareronia.aoc.geometry3d.Vector3D;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.ToString;
-
 public class AoC2019_12 extends AoCBase {
     
     private final Position3D[] initialPositions;
@@ -88,7 +84,7 @@ public class AoC2019_12 extends AoCBase {
     public Long solvePart2() {
         final Moon[] moons = Arrays.stream(this.initialPositions)
                 .map(Moon::create).toArray(Moon[]::new);
-        final GetAxis[] axes = new GetAxis[] {
+        final GetAxis[] axes = {
             Position3D::getX, Position3D::getY, Position3D::getZ
         };
         final Map<GetAxis, BigInteger> periods = new HashMap<>();
@@ -135,12 +131,15 @@ public class AoC2019_12 extends AoCBase {
             "<x=9, y=-8, z=-3>"
     );
     
-    @AllArgsConstructor(access = AccessLevel.PRIVATE)
-    @ToString
     private static final class Moon {
         private Position3D position;
         private Vector3D velocity;
         
+        protected Moon(final Position3D position, final Vector3D velocity) {
+            this.position = position;
+            this.velocity = velocity;
+        }
+
         public static Moon create(final Position3D initialPosition) {
             return new Moon(initialPosition, Vector3D.of(0, 0, 0));
         }
@@ -155,6 +154,14 @@ public class AoC2019_12 extends AoCBase {
 
         public void adjustVelocity(final int dx, final int dy, final int dz) {
             this.velocity = this.velocity.add(Vector3D.of(dx, dy, dz), 1);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Moon [position=").append(position)
+                .append(", velocity=").append(velocity).append("]");
+            return builder.toString();
         }
     }
     

@@ -9,30 +9,26 @@ import java.util.Set;
 
 import com.github.pareronia.aocd.Aocd;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
-
 public class AoC2020_07 extends AoCBase {
 	
 	private static final String SHINY_GOLD = "shiny gold";
 	
 	private final Graph graph;
 	
-	private AoC2020_07(List<String> input, boolean debug) {
+	private AoC2020_07(final List<String> input, final boolean debug) {
 		super(debug);
 		this.graph = parse(input);
 	}
 	
-	public static AoC2020_07 create(List<String> input) {
+	public static AoC2020_07 create(final List<String> input) {
 		return new AoC2020_07(input, false);
 	}
 
-	public static AoC2020_07 createDebug(List<String> input) {
+	public static AoC2020_07 createDebug(final List<String> input) {
 		return new AoC2020_07(input, true);
 	}
 	
-	private Graph parse(List<String> inputs) {
+	private Graph parse(final List<String> inputs) {
 		return new Graph(
 			inputs.stream()
 			.flatMap(line -> {
@@ -44,7 +40,7 @@ public class AoC2020_07 extends AoCBase {
 							final String[] contained = r.split(" ");
 							return new Edge(source,
 									contained[1] + " " + contained[2],
-									Integer.valueOf(contained[0]));
+									Integer.parseInt(contained[0]));
 						});
 			})
 			.collect(toSet())
@@ -53,8 +49,8 @@ public class AoC2020_07 extends AoCBase {
 
 	@Override
 	public Long solvePart1() {
-		return this.graph.getEdges().stream()
-				.map(Edge::getSrc)
+		return this.graph.edges().stream()
+				.map(Edge::src)
 				.filter(src -> !src.equals(SHINY_GOLD))
 				.distinct()
 				.filter(src -> this.graph.containsPath(src, SHINY_GOLD))
@@ -66,7 +62,7 @@ public class AoC2020_07 extends AoCBase {
 		return this.graph.countWeights(SHINY_GOLD);
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_07.createDebug(TEST1).solvePart1() == 4;
 		assert AoC2020_07.createDebug(TEST1).solvePart2() == 32;
 		assert AoC2020_07.createDebug(TEST2).solvePart2() == 126;
@@ -97,40 +93,34 @@ public class AoC2020_07 extends AoCBase {
 			"dark violet bags contain no other bags."
 	);
 	
-	@Value
-	private static final class Edge {
-		private final String src;
-		private final String dst;
-		private final Integer weight;
-	}
+	record Edge(String src, String dst, int weight) { }
 	
-	@RequiredArgsConstructor
-	@Getter
-	private static final class Graph {
-		private final Set<Edge> edges;
-		private final Map<String, Boolean> paths = new HashMap<>();
-		private final Map<String, Integer> weights = new HashMap<>();
+	record Graph(Set<Edge> edges, Map<String, Boolean> paths, Map<String, Integer> weights) {
+	    
+	    public Graph(final Set<Edge> edges) {
+	        this(edges, new HashMap<>(), new HashMap<>());
+	    }
 		
-		public boolean containsPath(String src, String dst) {
+		public boolean containsPath(final String src, final String dst) {
 			if (!paths.containsKey(src)) {
 				paths.put(
 					src,
 					this.edges.stream()
-						.filter(e -> e.getSrc().equals(src))
-						.map(e -> e.getDst().equals(dst) || containsPath(e.getDst(), dst))
+						.filter(e -> e.src().equals(src))
+						.map(e -> e.dst().equals(dst) || containsPath(e.dst(), dst))
 						.reduce(FALSE, (a, b) -> a || b)
 				);
 			}
 			return paths.get(src);
 		}
 		
-		public Integer countWeights(String src) {
+		public Integer countWeights(final String src) {
 			if (!weights.containsKey(src)) {
 				weights.put(
 					src,
 					this.edges.stream()
-						.filter(e -> e.getSrc().equals(src))
-						.map(e -> e.getWeight() * (1 + countWeights(e.getDst())))
+						.filter(e -> e.src().equals(src))
+						.map(e -> e.weight() * (1 + countWeights(e.dst())))
 						.reduce(0, (a, b) -> a + b)
 				);
 			}

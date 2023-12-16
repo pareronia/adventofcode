@@ -10,8 +10,6 @@ import java.util.Map.Entry;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_16 extends AoCBase {
     
     private static final String PROGRAMS = "abcdefghijklmnop";
@@ -140,23 +138,11 @@ public final class AoC2017_16 extends AoCBase {
             "s1,x3/4,pe/b"
     );
     
-    private static abstract class Move {
-    }
+    private interface Move { }
     
-    @RequiredArgsConstructor
-    private static final class Spin extends Move {
-        private final int amount;
-    }
+    record Spin(int amount) implements Move { }
 
-    @RequiredArgsConstructor
-    private static final class Exchange extends Move {
-        private final int pos1;
-        private final int pos2;
-    }
+    record Exchange(int pos1, int pos2) implements Move { }
     
-    @RequiredArgsConstructor
-    private static final class Partner extends Move {
-        private final Character program1;
-        private final Character program2;
-    }
+    record Partner(Character program1, Character program2) implements Move { }
 }

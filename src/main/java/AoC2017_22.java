@@ -15,8 +15,6 @@ import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_22 extends AoCBase {
     
     private final Map<Position, State> input;
@@ -117,9 +115,12 @@ public final class AoC2017_22 extends AoCBase {
         "..."
     );
     
-    @RequiredArgsConstructor
     private enum State {
         CLEAN('.'), WEAKENED('W'), INFECTED('#'), FLAGGED('F');
+
+        State(final char value) {
+            this.value = value;
+        }
 
         private final char value;
 

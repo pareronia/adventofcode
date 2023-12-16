@@ -6,23 +6,20 @@ import java.util.function.Predicate;
 
 import com.github.pareronia.aocd.Aocd;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2020_02 extends AoCBase {
 	
 	private final List<String> inputs;
 
-	private AoC2020_02(List<String> input, boolean debug) {
+	private AoC2020_02(final List<String> input, final boolean debug) {
 		super(debug);
 		this.inputs = input;
 	}
 	
-	public static AoC2020_02 create(List<String> input) {
+	public static AoC2020_02 create(final List<String> input) {
 		return new AoC2020_02(input, false);
 	}
 
-	public static AoC2020_02 createDebug(List<String> input) {
+	public static AoC2020_02 createDebug(final List<String> input) {
 		return new AoC2020_02(input, true);
 	}
 	
@@ -43,7 +40,7 @@ public class AoC2020_02 extends AoCBase {
 				.count();
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_02.createDebug(TEST).solvePart1() == 2;
 		assert AoC2020_02.createDebug(TEST).solvePart2() == 1;
 		
@@ -58,15 +55,9 @@ public class AoC2020_02 extends AoCBase {
 			"2-9 c: ccccccccc"
 	);
 	
-	@RequiredArgsConstructor
-	@ToString
-	private static final class PasswordAndPolicy {
-		private final Integer first;
-		private final Integer second;
-		private final String wanted;
-		private final String password;
+	record PasswordAndPolicy(int first, int second, String wanted, String password) {
 		
-		public static PasswordAndPolicy create(String input) {
+		public static PasswordAndPolicy create(final String input) {
 			final String[] splits = requireNonNull(input).split(": ");
 			final String[] leftAndRight = splits[0].split(" ");
 			final String[] firstAndSecond = leftAndRight[0].split("-");
@@ -77,7 +68,7 @@ public class AoC2020_02 extends AoCBase {
 			return new PasswordAndPolicy(first, second, wanted, password);
 		}
 		
-		private boolean equal(char c, String string) {
+		private boolean equal(final char c, final String string) {
 			return String.valueOf(c).equals(string);
 		}
 		

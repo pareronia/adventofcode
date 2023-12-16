@@ -5,9 +5,6 @@ import java.util.Map;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public final class AoC2017_25 extends AoCBase {
     
     private final String start;
@@ -114,17 +111,7 @@ public final class AoC2017_25 extends AoCBase {
         + "    - Continue with state A."
     );
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Step {
-        private final int write;
-        private final int move;
-        private final String goTo;
-    }
+    record Step(int write, int move, String goTo) { }
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class State {
-        private final Step[] steps;
-    }
+    record State(Step[] steps) { }
 }

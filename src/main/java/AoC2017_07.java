@@ -20,11 +20,6 @@ import java.util.Set;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
-
 public final class AoC2017_07 extends AoCBase {
 
     private final transient Map<String, Node> input;
@@ -52,7 +47,7 @@ public final class AoC2017_07 extends AoCBase {
                         return new Node(name, weight, children);
                     }
                 })
-                .collect(toMap(n -> n.getName(), n -> n));
+                .collect(toMap(AoC2017_07.Node::getName, n -> n));
     }
 
     private void buildTree() {
@@ -176,29 +171,66 @@ public final class AoC2017_07 extends AoCBase {
             "cntj (57)"
     );
     
-    @RequiredArgsConstructor
-    @ToString
     private static final class Node {
-        @Getter
         private final String name;
-        @Getter
         private final int weight;
-        @Getter
         private final Set<String> childKeys;
-        @Setter
-        @ToString.Exclude
         private Node parent;
-        @Getter
-        @Setter
         private int fullWeight;
-        @Getter
-        @Setter
-        @ToString.Exclude
         private Set<Node> children;
         
-        @ToString.Include(name = "parent")
+        protected Node(final String name, final int weight, final Set<String> childKeys) {
+            this.name = name;
+            this.weight = weight;
+            this.childKeys = childKeys;
+        }
+
+        public int getFullWeight() {
+            return fullWeight;
+        }
+
+        public void setFullWeight(final int fullWeight) {
+            this.fullWeight = fullWeight;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public int getWeight() {
+            return weight;
+        }
+
+        public Set<String> getChildKeys() {
+            return childKeys;
+        }
+
+        public Set<Node> getChildren() {
+            return children;
+        }
+
+        public void setChildren(final Set<Node> children) {
+            this.children = children;
+        }
+
+        public void setParent(final Node parent) {
+            this.parent = parent;
+        }
+
         public Optional<Node> getParent() {
             return Optional.ofNullable(this.parent);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Node [name=").append(name)
+                .append(", weight=").append(weight)
+                .append(", childKeys=").append(childKeys)
+                .append(", fullWeight=").append(fullWeight)
+                .append(", parent=").append(getParent())
+                .append("]");
+            return builder.toString();
         }
     }
 }

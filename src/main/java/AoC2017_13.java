@@ -6,8 +6,6 @@ import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_13 extends AoCBase {
     
     private final List<Layer> layers;
@@ -71,9 +69,5 @@ public final class AoC2017_13 extends AoCBase {
             "6: 4"
     );
     
-    @RequiredArgsConstructor
-    private static final class Layer {
-        private final int depth;
-        private final int range;
-    }
+    record Layer(int depth, int range) { }
 }

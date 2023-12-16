@@ -12,9 +12,6 @@ import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2019_10 extends AoCBase {
     
     private static final char ASTEROID = '#';
@@ -77,12 +74,12 @@ public class AoC2019_10 extends AoCBase {
 	
 	@Override
 	public Integer solvePart1() {
-	    return best().getOthers().size();
+	    return best().others().size();
 	}
 	
 	@Override
 	public Integer solvePart2() {
-	    return best().getOthers().values().stream()
+	    return best().others().values().stream()
 	        .skip(199)
 	        .limit(1)
 	        .findFirst()
@@ -172,14 +169,10 @@ public class AoC2019_10 extends AoCBase {
 	        "###.##.####.##.#..##"
     );
 	
-	@RequiredArgsConstructor
-	@Getter
-	private static final class Asteroid {
-	    private final Position position;
-	    private final Map<Double, Position> others;
+	record Asteroid(Position position, Map<Double, Position> others) {
 	    
 	    public static Comparator<Asteroid> byOthersCountDescending() {
-	        return (a, b) -> Integer.compare(b.getOthers().size(), a.getOthers().size());
+	        return (a, b) -> Integer.compare(b.others().size(), a.others().size());
 	    }
 	}
 }

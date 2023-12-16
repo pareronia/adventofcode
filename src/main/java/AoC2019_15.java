@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -17,11 +18,6 @@ import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2019_15 extends AoCBase {
     
@@ -89,12 +85,15 @@ public class AoC2019_15 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
     private class DFS {
         private final Set<Position> positions;
         private int max = 0;
         private final Set<Position> seen = new HashSet<>();
         
+        protected DFS(final Set<Position> positions) {
+            this.positions = positions;
+        }
+
         public int dfs(final Position start) {
             if (seen.size() > max) {
                 max = seen.size();
@@ -121,7 +120,7 @@ public class AoC2019_15 extends AoCBase {
     public Integer solvePart1() {
         return new FloodFill().floodFill(Location.START).stream()
                 .filter(l -> l.isO2)
-                .map(Location::getMoves)
+                .map(Location::moves)
                 .map(List::size)
                 .findFirst().orElseThrow();
     }
@@ -131,10 +130,10 @@ public class AoC2019_15 extends AoCBase {
         final Set<Location> locations
                 = new FloodFill().floodFill(Location.START);
         final Set<Position> positions = locations.stream()
-                .map(Location::getPosition)
+                .map(Location::position)
                 .collect(toSet());
         final Position posO2 = locations.stream()
-                .filter(Location::isO2).map(Location::getPosition)
+                .filter(Location::isO2).map(Location::position)
                 .findFirst().orElseThrow();
         return new DFS(positions).dfs(posO2);
     }
@@ -154,8 +153,8 @@ public class AoC2019_15 extends AoCBase {
         WEST(Direction.LEFT, 3),
         EAST(Direction.RIGHT, 4);
         
-        private long value;
-        private Direction direction;
+        private final long value;
+        private final Direction direction;
 
         Move(final Direction direction, final int value) {
             this.value = value;
@@ -176,7 +175,7 @@ public class AoC2019_15 extends AoCBase {
     private enum Status {
         WALL(0), MOVED(1), FOUND_O2(2);
         
-        private long value;
+        private final long value;
         
         Status(final int value) {
             this.value = value;
@@ -189,19 +188,27 @@ public class AoC2019_15 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @ToString
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    private static final class Location {
+    record Location(Position position, boolean isO2, List<Move> moves) {
         
         public static final Location START = new Location(Position.of(0, 0), false, List.of());
-        
-        @Getter
-        @EqualsAndHashCode.Include
-        private final Position position;
-        @Getter
-        private final boolean isO2;
-        @Getter
-        private final List<Move> moves;
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(position);
+        }
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Location other = (Location) obj;
+            return Objects.equals(position, other.position);
+        }
     }
 }

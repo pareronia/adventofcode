@@ -13,10 +13,6 @@ import java.util.stream.Stream;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Value;
-
 public class AoC2019_06 extends AoCBase {
 	
 	private static final String CENTER_OF_MASS = "COM";
@@ -51,8 +47,8 @@ public class AoC2019_06 extends AoCBase {
 
 	@Override
 	public Integer solvePart1() {
-		return this.graph.getEdges().stream()
-				.map(Edge::getDst)
+		return this.graph.edges().stream()
+				.map(Edge::dst)
 				.map(dst -> this.graph.pathToRoot(dst).size() - 1)
 				.collect(summingInt(Integer::intValue));
 	}
@@ -108,28 +104,23 @@ public class AoC2019_06 extends AoCBase {
 			"I)SAN"
 	);
 	
-	@Value
-	private static final class Edge {
-		private final String src;
-		private final String dst;
-	}
+	record Edge(String src, String dst) { }
 	
-	@RequiredArgsConstructor
-	@Getter
-	private static final class Graph {
-		private final Set<Edge> edges;
-		private final String root = CENTER_OF_MASS;
-		private final Map<String, List<String>> paths = new HashMap<>();
+	record Graph(Set<Edge> edges, String root, Map<String, List<String>> paths) {
+		
+		public Graph(final Set<Edge> edges) {
+		    this(edges, CENTER_OF_MASS, new HashMap<>());
+		}
 		
 		public List<String> pathToRoot(final String from) {
 		    if (!paths.containsKey(from)) {
                 final Edge edge = findEdgeWithDst(from);
                 final List<String> path = new ArrayList<>();
                 path.add(from);
-                if (edge.getSrc().equals(root)) {
+                if (edge.src().equals(root)) {
                     path.add(root);
                 } else {
-                    path.addAll(pathToRoot(edge.getSrc()));
+                    path.addAll(pathToRoot(edge.src()));
                 }
                 paths.put(from, path);
 		    }
@@ -138,7 +129,7 @@ public class AoC2019_06 extends AoCBase {
 		
 		private Edge findEdgeWithDst(final String dst) {
 		    final List<Edge> found = this.edges.stream()
-		        .filter(e -> e.getDst().equals(dst))
+		        .filter(e -> e.dst().equals(dst))
 		        .collect(toList());
 		    assert found.size() == 1;
 		    return found.get(0);
