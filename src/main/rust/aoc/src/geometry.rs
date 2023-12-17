@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::str::FromStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -29,6 +30,17 @@ pub enum Direction {
 }
 
 impl Direction {
+    pub fn capital() -> HashSet<Direction> {
+        vec![
+            Direction::Up,
+            Direction::Right,
+            Direction::Down,
+            Direction::Left,
+        ]
+        .into_iter()
+        .collect()
+    }
+
     pub fn is_horizontal(&self) -> bool {
         *self == Direction::Right || *self == Direction::Left
     }
@@ -40,7 +52,7 @@ impl Direction {
                 Turn::Left => Direction::Left,
                 Turn::Right => Direction::Right,
             },
-            Direction::Right => match turn{
+            Direction::Right => match turn {
                 Turn::Around => Direction::Left,
                 Turn::Left => Direction::Up,
                 Turn::Right => Direction::Down,
@@ -49,7 +61,7 @@ impl Direction {
                 Turn::Around => Direction::Up,
                 Turn::Left => Direction::Right,
                 Turn::Right => Direction::Left,
-            } ,
+            },
             Direction::Left => match turn {
                 Turn::Around => Direction::Right,
                 Turn::Left => Direction::Down,

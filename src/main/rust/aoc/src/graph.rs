@@ -186,6 +186,41 @@ where
             paths,
         }
     }
+    
+    pub fn distance(
+        start: T,
+        is_end: impl Fn(T) -> bool,
+        adjacent: impl Fn(T) -> Vec<T>,
+        cost: impl Fn(T) -> usize,
+    ) -> usize {
+        let mut q: BinaryHeap<State<T>> = BinaryHeap::new();
+        q.push(State {
+            node: start,
+            distance: 0,
+        });
+        let mut distances: HashMap<T, usize> = HashMap::new();
+        distances.insert(start, 0);
+        while let Some(state) = q.pop() {
+            if is_end(state.node) {
+                return state.distance;
+            }
+            let total = *distances.get(&state.node).unwrap_or(&usize::MAX);
+            if state.distance > total {
+                continue;
+            }
+            adjacent(state.node).iter().for_each(|n| {
+                let risk = total + cost(*n);
+                if risk < *distances.get(n).unwrap_or(&usize::MAX) {
+                    distances.insert(*n, risk);
+                    q.push(State {
+                        node: *n,
+                        distance: risk,
+                    });
+                }
+            });
+        }
+        panic!("unsolvable");
+    }
 }
 
 #[cfg(test)]
