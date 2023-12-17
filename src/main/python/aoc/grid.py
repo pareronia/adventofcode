@@ -144,6 +144,19 @@ class Grid(ABC, Generic[T]):
             for c in range(self.get_width())
         )
 
+    def get_cells_dir(self, cell: Cell, dir: Direction) -> Iterator[Cell]:
+        if dir == Direction.UP:
+            iter_dir = IterDir.UP
+        elif dir == Direction.RIGHT:
+            iter_dir = IterDir.RIGHT
+        elif dir == Direction.DOWN:
+            iter_dir = IterDir.DOWN
+        elif dir == Direction.LEFT:
+            iter_dir = IterDir.LEFT
+        else:
+            raise ValueError(f"Not supported: {dir}")
+        return (c for c in GridIterator(self, cell, iter_dir))
+
     def get_cells_n(self, cell: Cell) -> Iterator[Cell]:
         return (c for c in GridIterator(self, cell, IterDir.UP))
 
