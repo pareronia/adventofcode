@@ -20,12 +20,43 @@ impl XY {
     }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Direction {
     Up,
     Right,
     Down,
     Left,
+}
+
+impl Direction {
+    pub fn is_horizontal(&self) -> bool {
+        *self == Direction::Right || *self == Direction::Left
+    }
+
+    pub fn turn(&self, turn: Turn) -> Direction {
+        match self {
+            Direction::Up => match turn {
+                Turn::Around => Direction::Down,
+                Turn::Left => Direction::Left,
+                Turn::Right => Direction::Right,
+            },
+            Direction::Right => match turn{
+                Turn::Around => Direction::Left,
+                Turn::Left => Direction::Up,
+                Turn::Right => Direction::Down,
+            },
+            Direction::Down => match turn {
+                Turn::Around => Direction::Up,
+                Turn::Left => Direction::Right,
+                Turn::Right => Direction::Left,
+            } ,
+            Direction::Left => match turn {
+                Turn::Around => Direction::Right,
+                Turn::Left => Direction::Down,
+                Turn::Right => Direction::Up,
+            },
+        }
+    }
 }
 
 impl FromStr for Direction {
@@ -40,6 +71,12 @@ impl FromStr for Direction {
             _ => panic!("Invalid Direction '{}'", s),
         }
     }
+}
+
+pub enum Turn {
+    Around,
+    Left,
+    Right,
 }
 
 impl TryFrom<Direction> for XY {
