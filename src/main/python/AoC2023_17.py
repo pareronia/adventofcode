@@ -4,9 +4,6 @@
 #
 
 import sys
-from collections import defaultdict
-from queue import PriorityQueue
-from typing import Callable
 from typing import Iterator
 from typing import NamedTuple
 from typing import TypeVar
@@ -14,9 +11,9 @@ from typing import TypeVar
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-# from aoc.common import log
 from aoc.geometry import Direction
 from aoc.geometry import Turn
+from aoc.graph import a_star
 from aoc.grid import Cell
 from aoc.grid import IntGrid
 
@@ -55,118 +52,46 @@ class Move(NamedTuple):
         return True
 
 
-def dijkstra(
-    start: T,
-    is_end: Callable[[T], bool],
-    adjacent: Callable[[T], Iterator[T]],
-    get_cost: Callable[[T], int],
-) -> tuple[int, dict[T, int], list[T]]:
-    q: PriorityQueue[tuple[int, T]] = PriorityQueue()
-    q.put((0, start))
-    best: defaultdict[T, int] = defaultdict(lambda: 1_000_000_000)
-    best[start] = 0
-    parent: dict[T, T] = {}
-    path = []
-    while not q.empty():
-        cost, node = q.get()
-        if is_end(node):
-            path = [node]
-            curr = node
-            while curr in parent:
-                curr = parent[curr]
-                path.append(curr)
-            break
-        c_total = best[node]
-        for n in adjacent(node):
-            new_risk = c_total + get_cost(n)
-            if new_risk < best[n]:
-                best[n] = new_risk
-                parent[n] = node
-                q.put((new_risk, n))
-    return cost, best, path
-
-
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return IntGrid.from_strings([line for line in input_data])
 
-    def part_1(self, grid: Input) -> Output1:
-        def adjacent(block: Move) -> Iterator[Move]:
-            # log(block.cell)
+    def solve(self, grid: Input, min_moves: int, max_moves: int) -> int:
+        def adjacent(move: Move) -> Iterator[Move]:
             for dir in Direction.capitals():
-                if dir == block.dir:
+                if dir == move.dir:
                     continue
-                if block.dir is not None and dir == block.dir.turn(
-                    Turn.AROUND
-                ):
+                if move.dir is not None and dir == move.dir.turn(Turn.AROUND):
                     continue
-                it = grid.get_cells_dir(block.cell, dir)
+                it = grid.get_cells_dir(move.cell, dir)
+                ns = [next(it, None) for _ in range(max_moves)]
                 tot = 0
-                for n in [next(it, None), next(it, None), next(it, None)]:
-                    if n is None:
-                        continue
-                    tot += grid.get_value(n)
-                    # log(f"-> {(n, dir, tot)}")
-                    yield Move(n, dir, tot)
-
-        def get_cost(block: Move) -> int:
-            return block.cost
-
-        start = Cell(0, 0)
-        end = Cell(grid.get_max_row_index(), grid.get_max_col_index())
-        cost, best, path = dijkstra(
-            Move(start, None, 0),
-            lambda block: block.cell == end,
-            adjacent,
-            get_cost,
-        )
-        return cost
-
-    def part_2(self, grid: Input) -> Output2:
-        def adjacent(block: Move) -> Iterator[Move]:
-            # log(block.cell)
-            for dir in Direction.capitals():
-                if dir == block.dir:
-                    continue
-                if block.dir is not None and dir == block.dir.turn(
-                    Turn.AROUND
-                ):
-                    continue
-                it = grid.get_cells_dir(block.cell, dir)
-                tot = 0
-                ns = []
-                for i in range(4):
-                    ns.append(next(it, None))
-                if None in ns:
-                    continue
-                for i in range(6):
-                    ns.append(next(it, None))
-                for i, n in enumerate(ns):
+                for i, n in enumerate(ns, start=1):
                     if n is None:
                         break
                     tot += grid.get_value(n)
-                    if i < 3:
-                        continue
-                    # log((n, dir, tot))
-                    yield Move(n, dir, tot)
-
-        def get_cost(block: Move) -> int:
-            return block.cost
+                    if i >= min_moves:
+                        yield Move(n, dir, tot)
 
         start = Cell(0, 0)
         end = Cell(grid.get_max_row_index(), grid.get_max_col_index())
-        cost, best, path = dijkstra(
+        cost, _, _ = a_star(
             Move(start, None, 0),
             lambda block: block.cell == end,
             adjacent,
-            get_cost,
+            lambda block: block.cost,
         )
-        # log([p.cell for p in reversed(path)])
         return cost
+
+    def part_1(self, grid: Input) -> Output1:
+        return self.solve(grid, 1, 3)
+
+    def part_2(self, grid: Input) -> Output2:
+        return self.solve(grid, 4, 10)
 
     @aoc_samples(
         (
-            # ("part_1", TEST, 102),
+            ("part_1", TEST, 102),
             ("part_2", TEST, 94),
         )
     )
