@@ -4,23 +4,17 @@
 #
 
 import sys
-from typing import Iterator
-from typing import NamedTuple
-from typing import TypeVar
+from collections import defaultdict
+from queue import PriorityQueue
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.geometry import Direction
-from aoc.geometry import Turn
-from aoc.graph import a_star
-from aoc.grid import Cell
 from aoc.grid import IntGrid
 
 Input = IntGrid
 Output1 = int
 Output2 = int
-T = TypeVar("T")
 
 
 TEST = """\
@@ -39,17 +33,8 @@ TEST = """\
 4322674655533
 """
 
-
-class Move(NamedTuple):
-    cell: Cell
-    dir: Direction | None
-    cost: int
-
-    def __eq__(self, other) -> bool:  # type:ignore[no-untyped-def]
-        return True
-
-    def __lt__(self, other) -> bool:  # type:ignore[no-untyped-def]
-        return True
+DIRS = {(0, 1), (0, -1), (1, 0), (-1, 0)}
+Move = tuple[int, int, int, int]
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
@@ -57,31 +42,34 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return IntGrid.from_strings([line for line in input_data])
 
     def solve(self, grid: Input, min_moves: int, max_moves: int) -> int:
-        def adjacent(move: Move) -> Iterator[Move]:
-            for dir in Direction.capitals():
-                if dir == move.dir:
-                    continue
-                if move.dir is not None and dir == move.dir.turn(Turn.AROUND):
-                    continue
-                it = grid.get_cells_dir(move.cell, dir)
-                ns = [next(it, None) for _ in range(max_moves)]
-                tot = 0
-                for i, n in enumerate(ns, start=1):
-                    if n is None:
-                        break
-                    tot += grid.get_value(n)
-                    if i >= min_moves:
-                        yield Move(n, dir, tot)
+        max_r = grid.get_height() - 1
+        max_c = grid.get_width() - 1
 
-        start = Cell(0, 0)
-        end = Cell(grid.get_max_row_index(), grid.get_max_col_index())
-        cost, _, _ = a_star(
-            Move(start, None, 0),
-            lambda block: block.cell == end,
-            adjacent,
-            lambda block: block.cost,
-        )
-        return cost
+        q: PriorityQueue[tuple[int, Move]] = PriorityQueue()
+        q.put((0, (0, 0, 0, 0)))
+        best: defaultdict[Move, int] = defaultdict(lambda: int(1e9))
+        best[(0, 0, 0, 0)] = 0
+        while not q.empty():
+            cost, move = q.get()
+            r, c, dr, dc = move
+            if r == max_r and c == max_c:
+                return cost
+            heatloss = best[move]
+            for drr, dcc in DIRS - {(dr, dc), (-dr, -dc)}:
+                rr, cc, hl = r, c, 0
+                for i in range(1, max_moves + 1):
+                    rr += drr
+                    cc += dcc
+                    if not (0 <= rr <= max_r and 0 <= cc <= max_c):
+                        break
+                    hl += grid.values[rr][cc]
+                    if i >= min_moves:
+                        n = (rr, cc, drr, dcc)
+                        new_heatloss = heatloss + hl
+                        if new_heatloss < best[n]:
+                            best[n] = new_heatloss
+                            q.put((new_heatloss, n))
+        raise RuntimeError("unsolvable")
 
     def part_1(self, grid: Input) -> Output1:
         return self.solve(grid, 1, 3)
