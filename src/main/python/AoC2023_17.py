@@ -91,8 +91,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return IntGrid.from_strings([line for line in input_data])
 
     def part_1(self, grid: Input) -> Output1:
-        # log(grid)
-
         def adjacent(block: Move) -> Iterator[Move]:
             # log(block.cell)
             for dir in Direction.capitals():
@@ -124,13 +122,52 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         )
         return cost
 
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_2(self, grid: Input) -> Output2:
+        def adjacent(block: Move) -> Iterator[Move]:
+            # log(block.cell)
+            for dir in Direction.capitals():
+                if dir == block.dir:
+                    continue
+                if block.dir is not None and dir == block.dir.turn(
+                    Turn.AROUND
+                ):
+                    continue
+                it = grid.get_cells_dir(block.cell, dir)
+                tot = 0
+                ns = []
+                for i in range(4):
+                    ns.append(next(it, None))
+                if None in ns:
+                    continue
+                for i in range(6):
+                    ns.append(next(it, None))
+                for i, n in enumerate(ns):
+                    if n is None:
+                        break
+                    tot += grid.get_value(n)
+                    if i < 3:
+                        continue
+                    # log((n, dir, tot))
+                    yield Move(n, dir, tot)
+
+        def get_cost(block: Move) -> int:
+            return block.cost
+
+        start = Cell(0, 0)
+        end = Cell(grid.get_max_row_index(), grid.get_max_col_index())
+        cost, best, path = dijkstra(
+            Move(start, None, 0),
+            lambda block: block.cell == end,
+            adjacent,
+            get_cost,
+        )
+        # log([p.cell for p in reversed(path)])
+        return cost
 
     @aoc_samples(
         (
-            ("part_1", TEST, 102),
-            # ("part_2", TEST, "TODO"),
+            # ("part_1", TEST, 102),
+            ("part_2", TEST, 94),
         )
     )
     def samples(self) -> None:
