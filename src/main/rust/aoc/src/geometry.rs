@@ -19,6 +19,10 @@ impl XY {
     pub fn y(&self) -> i32 {
         self.y
     }
+
+    pub fn manhattan_distance(&self, other: &XY) -> u32 {
+        ((self.x - other.x).abs() + (self.y - other.y).abs()) as u32
+    }
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
