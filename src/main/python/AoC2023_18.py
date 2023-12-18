@@ -20,7 +20,7 @@ class DigInstruction(NamedTuple):
     big_amount: int
 
 
-Input = list[DigInstruction]
+Input = InputData
 Output1 = int
 Output2 = int
 
@@ -42,89 +42,61 @@ L 2 (#015232)
 U 2 (#7a21e3)
 """
 
+DIRS = [
+    Direction.RIGHT,
+    Direction.DOWN,
+    Direction.LEFT,
+    Direction.UP,
+]
+
 
 class Polygon(NamedTuple):
     vertices: list[Position]
 
     def shoelace(self) -> int:
-        ans = 0
         size = len(self.vertices)
-        for i in range(size):
-            ans += self.vertices[i].x * (
-                self.vertices[(i + 1) % size].y - self.vertices[i - 1].y
-            )
-        return abs(ans) // 2
+        s = sum(
+            self.vertices[i].x
+            * (self.vertices[(i + 1) % size].y - self.vertices[i - 1].y)
+            for i in range(size)
+        )
+        return abs(s) // 2
 
     def circumference(self) -> int:
-        ans = 0
-        for i in range(1, len(self.vertices)):
-            ans += self.vertices[i].manhattan_distance(self.vertices[i - 1])
-        return ans
+        return sum(
+            self.vertices[i].manhattan_distance(self.vertices[i - 1])
+            for i in range(1, len(self.vertices))
+        )
 
-    def picks(self) -> int:
-        a = self.shoelace()
-        b = self.circumference()
-        return a - b // 2 + 1
-
-    def area(self) -> int:
-        return self.picks() + self.circumference()
+    def inside_area(self) -> int:
+        return self.shoelace() + self.circumference() // 2 + 1
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        ans = []
-        for line in input_data:
-            d, a, hx = line.split()
-            bd = [
-                Direction.RIGHT,
-                Direction.DOWN,
-                Direction.LEFT,
-                Direction.UP,
-            ][int(hx[7])]
-            ba = int(hx[2:7], 16)
-            ans.append(
-                DigInstruction(
-                    Direction.from_str(d),
-                    int(a),
-                    bd,
-                    ba,
-                )
-            )
-        return ans
+        return input_data
 
-    def to_positions(
-        self, instructions: list[DigInstruction]
-    ) -> list[Position]:
-        pos = Position(0, 0)
-        ans = [pos]
+    def solve(self, instructions: list[tuple[Direction, int]]) -> int:
+        vertices = [Position(0, 0)]
         for instruction in instructions:
-            pos = pos.translate(
-                instruction.direction.vector, instruction.amount
+            vertices.append(
+                vertices[-1].translate(instruction[0].vector, instruction[1])
             )
-            ans.append(pos)
-        return ans
+        return Polygon(vertices).inside_area()
 
-    def to_positions_big(
-        self, instructions: list[DigInstruction]
-    ) -> list[Position]:
-        pos = Position(0, 0)
-        ans = [pos]
-        for instruction in instructions:
-            pos = pos.translate(
-                instruction.big_direction.vector, instruction.big_amount
-            )
-            ans.append(pos)
-        return ans
+    def part_1(self, input: Input) -> Output1:
+        instructions = [
+            (Direction.from_str(d), int(a))
+            for d, a, _ in (line.split() for line in input)
+        ]
+        return self.solve(instructions)
 
-    def part_1(self, instructions: Input) -> Output1:
-        positions = self.to_positions(instructions)
-        polygon = Polygon(positions)
-        return polygon.area()
-
-    def part_2(self, instructions: Input) -> Output2:
-        positions = self.to_positions_big(instructions)
-        polygon = Polygon(positions)
-        return polygon.area()
+    def part_2(self, input: Input) -> Output2:
+        instructions = [
+            (DIRS[int(hx[7])], int(hx[2:7], 16))
+            for _, _, hx in (line.split() for line in input)
+        ]
+        return self.solve(instructions)
 
     @aoc_samples(
         (
