@@ -4,23 +4,20 @@
 #
 
 import sys
-from typing import NamedTuple, Iterator
+from typing import NamedTuple
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 from aoc.geometry import Direction
-from aoc.geometry import Draw
 from aoc.geometry import Position
-from aoc.graph import flood_fill
-from aoc.navigation import Heading
-from aoc.navigation import NavigationWithHeading
 
 
 class DigInstruction(NamedTuple):
     direction: Direction
     amount: int
+    big_direction: Direction
+    big_amount: int
 
 
 Input = list[DigInstruction]
@@ -46,49 +43,93 @@ U 2 (#7a21e3)
 """
 
 
+class Polygon(NamedTuple):
+    vertices: list[Position]
+
+    def shoelace(self) -> int:
+        ans = 0
+        size = len(self.vertices)
+        for i in range(size):
+            ans += self.vertices[i].x * (
+                self.vertices[(i + 1) % size].y - self.vertices[i - 1].y
+            )
+        return abs(ans) // 2
+
+    def circumference(self) -> int:
+        ans = 0
+        for i in range(1, len(self.vertices)):
+            ans += self.vertices[i].manhattan_distance(self.vertices[i - 1])
+        return ans
+
+    def picks(self) -> int:
+        a = self.shoelace()
+        b = self.circumference()
+        return a - b // 2 + 1
+
+    def area(self) -> int:
+        return self.picks() + self.circumference()
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         ans = []
         for line in input_data:
-            d, a, _ = line.split()
-            ans.append(DigInstruction(Direction.from_str(d), int(a)))
+            d, a, hx = line.split()
+            bd = [
+                Direction.RIGHT,
+                Direction.DOWN,
+                Direction.LEFT,
+                Direction.UP,
+            ][int(hx[7])]
+            ba = int(hx[2:7], 16)
+            ans.append(
+                DigInstruction(
+                    Direction.from_str(d),
+                    int(a),
+                    bd,
+                    ba,
+                )
+            )
+        return ans
+
+    def to_positions(
+        self, instructions: list[DigInstruction]
+    ) -> list[Position]:
+        pos = Position(0, 0)
+        ans = [pos]
+        for instruction in instructions:
+            pos = pos.translate(
+                instruction.direction.vector, instruction.amount
+            )
+            ans.append(pos)
+        return ans
+
+    def to_positions_big(
+        self, instructions: list[DigInstruction]
+    ) -> list[Position]:
+        pos = Position(0, 0)
+        ans = [pos]
+        for instruction in instructions:
+            pos = pos.translate(
+                instruction.big_direction.vector, instruction.big_amount
+            )
+            ans.append(pos)
         return ans
 
     def part_1(self, instructions: Input) -> Output1:
-        log(instructions)
-        nav = NavigationWithHeading(Position(0, 0), Heading.NORTH)
-        for ins in instructions:
-            for i in range(ins.amount):
-                nav.drift(Heading.from_direction(ins.direction), 1)
-        positions = {_ for _ in nav.get_visited_positions(True)}
-        for line in Draw.draw(positions, "#", "."):
-            log(line)
-        min_x = min(p.x for p in positions)
-        max_y = max(p.y for p in positions)
-        pos = Position(min_x - 1, max_y + 1)
-        while True:
-            pos = Position(pos.x + 1, pos.y - 1)
-            if pos in positions:
-                break
-        start = Position(pos.x + 1, pos.y - 1)
-        log(start)
+        positions = self.to_positions(instructions)
+        polygon = Polygon(positions)
+        return polygon.area()
 
-        def adjacent(pos: Position) -> Iterator[Position]:
-            for d in Direction.octants():
-                n = pos.translate(d.vector)
-                if n not in positions:
-                    yield n
-
-        inside = flood_fill(start, adjacent)
-        return len(inside) + len(positions)
-
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_2(self, instructions: Input) -> Output2:
+        positions = self.to_positions_big(instructions)
+        polygon = Polygon(positions)
+        return polygon.area()
 
     @aoc_samples(
         (
             ("part_1", TEST, 62),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 952408144115),
         )
     )
     def samples(self) -> None:
