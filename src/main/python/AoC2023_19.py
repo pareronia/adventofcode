@@ -14,7 +14,7 @@ from aoc import my_aocd
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
+from aoc.common import clog
 
 TEST = """\
 px{a<2006:qkq,m>2090:A,rfg}
@@ -36,8 +36,12 @@ hdj{m>838:A,pv}
 {x=2127,m=1623,a=2188,s=1013}
 """
 
-
 Range = tuple[int, int]
+ACCEPTED = "A"
+REJECTED = "R"
+CONTINUE = "=continue="
+CATCHALL = "catch-all"
+IN = "in"
 
 
 class Part(NamedTuple):
@@ -45,6 +49,11 @@ class Part(NamedTuple):
     m: int
     a: int
     s: int
+
+    @classmethod
+    def from_str(cls, string: str) -> Part:
+        x, m, a, s = [int(sp.split("=")[1]) for sp in string[1:-1].split(",")]
+        return Part(x, m, a, s)
 
     def score(self) -> int:
         return sum([self.x, self.m, self.a, self.s])
@@ -56,6 +65,15 @@ class PartRange(NamedTuple):
     a: Range
     s: Range
 
+    @classmethod
+    def from_part(cls, part: Part) -> PartRange:
+        return PartRange(
+            (part.x, part.x),
+            (part.m, part.m),
+            (part.a, part.a),
+            (part.s, part.s),
+        )
+
     def copy_with(self, prop: str, value: Range) -> PartRange:
         return PartRange(
             value if prop == "x" else self.x,
@@ -64,80 +82,85 @@ class PartRange(NamedTuple):
             value if prop == "s" else self.s,
         )
 
+    def copy(self) -> PartRange:
+        return PartRange(self.x, self.m, self.a, self.s)
+
+    def matches(self, part: Part) -> bool:
+        return (
+            self.x[0] <= part.x <= self.x[1]
+            and self.m[0] <= part.m <= self.m[1]
+            and self.a[0] <= part.a <= self.a[1]
+            and self.s[0] <= part.s <= self.s[1]
+        )
+
     def score(self) -> int:
         return prod(r[1] - r[0] + 1 for r in [self.x, self.m, self.a, self.s])
 
 
 class Rule(NamedTuple):
-    operand1: str
+    operand1: str | None
     operation: str
-    operand2: int
+    operand2: int | None
     result: str
 
-    def eval(self, part: Part) -> str | None:
-        if (
-            self.operation == "<"
-            and int.__lt__(getattr(part, self.operand1), self.operand2)
-        ) or (
-            self.operation == ">"
-            and int.__gt__(getattr(part, self.operand1), self.operand2)
-        ):
-            return self.result
+    @classmethod
+    def from_str(cls, string: str) -> Rule:
+        if ":" in string:
+            op, res = string.split(":")
+            return Rule(op[0], op[1], int(op[2:]), res)
         else:
-            return None
+            return Rule(None, CATCHALL, None, string)
 
-    def eval_range(self, r: PartRange) -> list[tuple[PartRange, str | None]]:
-        if self.operand2 == 0:
-            # TODO: janky!!
-            nr = r.copy_with(self.operand1, getattr(r, self.operand1))
-            return [(nr, self.result)]
-        lo, hi = getattr(r, self.operand1)
-        if self.operation == "<":
-            match = (lo, self.operand2 - 1)
-            nomatch = (self.operand2, hi)
+    def eval(self, range: PartRange) -> list[tuple[PartRange, str]]:
+        if self.operation == CATCHALL:
+            return [(range.copy(), self.result)]
         else:
-            match = (self.operand2 + 1, hi)
-            nomatch = (lo, self.operand2)
-        ans = list[tuple[PartRange, str | None]]()
-        if match[0] <= match[1]:
-            nr = r.copy_with(self.operand1, match)
-            ans.append((nr, self.result))
-        if nomatch[0] <= nomatch[1]:
-            nr = r.copy_with(self.operand1, nomatch)
-            ans.append((nr, None))
-        return ans
+            assert self.operand1 is not None and self.operand2 is not None
+            lo, hi = getattr(range, self.operand1)
+            if self.operation == "<":
+                match = (lo, self.operand2 - 1)
+                nomatch = (self.operand2, hi)
+            else:
+                match = (self.operand2 + 1, hi)
+                nomatch = (lo, self.operand2)
+            ans = list[tuple[PartRange, str]]()
+            if match[0] <= match[1]:
+                nr = range.copy_with(self.operand1, match)
+                ans.append((nr, self.result))
+            if nomatch[0] <= nomatch[1]:
+                nr = range.copy_with(self.operand1, nomatch)
+                ans.append((nr, CONTINUE))
+            return ans
 
 
 class Workflow(NamedTuple):
     name: str
     rules: list[Rule]
 
-    def eval(self, part: Part) -> str:
-        for rule in self.rules:
-            res = rule.eval(part)
-            # log(
-            #     f"eval [{self.name}: "
-            #     f"{rule.operand1}{rule.operation}{rule.operand2}] on {part}"
-            #     f"-> {res}"
-            # )
-            if res is not None:
-                return res
-        assert False
+    @classmethod
+    def from_str(cls, string: str) -> Workflow:
+        i = string.index("{")
+        name = string[:i]
+        rules = [
+            Rule.from_str(r)
+            for r in string[:-1][i + 1 :].split(",")  # noqa[E203]
+        ]
+        return Workflow(name, rules)
 
-    def eval_range(self, range: PartRange) -> list[tuple[PartRange, str]]:
+    def eval(self, range: PartRange) -> list[tuple[PartRange, str]]:
         ans = list[tuple[PartRange, str]]()
         ranges = [range]
         for rule in self.rules:
             new_ranges = list[PartRange]()
             for r in ranges:
-                ress = rule.eval_range(r)
+                ress = rule.eval(r)
                 for res in ress:
-                    if res[1] is not None:
+                    if res[1] is not CONTINUE:
                         ans.append((res[0], res[1]))
                     else:
                         new_ranges.append(res[0])
-                log(
-                    f"eval [{self.name}: "
+                clog(
+                    lambda: f"eval [{self.name}: "
                     f"{rule.operand1}{rule.operation}{rule.operand2}]"
                     f" on {r} -> {ress}"
                 )
@@ -158,75 +181,52 @@ Output2 = int
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         ww, pp = my_aocd.to_blocks(input_data)
-        workflows = dict[str, Workflow]()
-        for w in ww:
-            i = w.index("{")
-            name = w[:i]
-            rules = list[Rule]()
-            rr = w[:-1][i + 1 :].split(",")  # noqa[E203]
-            for r in rr:
-                if ":" in r:
-                    op, res = r.split(":")
-                    operand1 = op[0]
-                    operation = op[1]
-                    operand2 = int(op[2:])
-                else:
-                    operand1 = "x"
-                    operation = ">"
-                    operand2 = 0
-                    res = r
-                rules.append(Rule(operand1, operation, operand2, res))
-            workflows[name] = Workflow(name, rules)
-        parts = list[Part]()
-        for p in pp:
-            x, m, a, s = p[1:-1].split(",")
-            parts.append(
-                Part(
-                    int(x.split("=")[1]),
-                    int(m.split("=")[1]),
-                    int(a.split("=")[1]),
-                    int(s.split("=")[1]),
-                )
-            )
-        return System(workflows, parts)
+        return System(
+            {wf.name: wf for wf in [Workflow.from_str(w) for w in ww]},
+            [Part.from_str(p) for p in pp],
+        )
 
-    def part_1(self, system: Input) -> Output1:
-        ans = 0
-        for part in system.parts:
-            w = system.workflows["in"]
-            while True:
-                res = w.eval(part)
-                if res == "A":
-                    ans += part.score()
-                    break
-                elif res == "R":
-                    break
-                else:
-                    w = system.workflows[res]
-                    continue
-        return ans
-
-    def part_2(self, system: Input) -> Output2:
-        ans = 0
-        prs = [(PartRange((1, 4000), (1, 4000), (1, 4000), (1, 4000)), "in")]
-        d = defaultdict[str, int](int)
-        d["in"] = 4000**4
-        log(d)
+    def solve(
+        self, workflows: dict[str, Workflow], prs: list[tuple[PartRange, str]]
+    ) -> dict[str, list[PartRange]]:
+        solution = defaultdict[str, list[PartRange]](list)
         while prs:
             new_prs = list[tuple[PartRange, str]]()
             for pr in prs:
-                for res in system.workflows[pr[1]].eval_range(pr[0]):
-                    d[res[1]] += res[0].score()
-                    if res[1] == "R":
-                        continue
-                    elif res[1] == "A":
-                        ans += res[0].score()
-                        continue
+                for res in workflows[pr[1]].eval(pr[0]):
+                    if res[1] == REJECTED or res[1] == ACCEPTED:
+                        solution[res[1]].append(res[0])
                     else:
                         new_prs.append((res[0], res[1]))
-            log(d)
             prs = new_prs
-        return ans
+        return solution
+
+    def part_1(self, system: Input) -> Output1:
+        solution = self.solve(
+            system.workflows,
+            [(PartRange.from_part(part), IN) for part in system.parts],
+        )
+        return sum(
+            part.score()
+            for part in system.parts
+            if [acc for acc in solution[ACCEPTED] if acc.matches(part)]
+        )
+
+    def part_2(self, system: Input) -> Output2:
+        solution = self.solve(
+            system.workflows,
+            [(PartRange((1, 4000), (1, 4000), (1, 4000), (1, 4000)), IN)],
+        )
+        rej, acc = [
+            sum(
+                sum(range.score() for range in ranges)
+                for k, ranges in solution.items()
+                if k == kk
+            )
+            for kk in (REJECTED, ACCEPTED)
+        ]
+        assert acc + rej == 4000**4
+        return acc
 
     @aoc_samples(
         (
