@@ -3,7 +3,11 @@
 # Advent of Code 2023 Day 19
 #
 
+from __future__ import annotations
+
 import sys
+from collections import defaultdict
+from math import prod
 from typing import NamedTuple
 
 from aoc import my_aocd
@@ -33,6 +37,9 @@ hdj{m>838:A,pv}
 """
 
 
+Range = tuple[int, int]
+
+
 class Part(NamedTuple):
     x: int
     m: int
@@ -43,23 +50,62 @@ class Part(NamedTuple):
         return sum([self.x, self.m, self.a, self.s])
 
 
+class PartRange(NamedTuple):
+    x: Range
+    m: Range
+    a: Range
+    s: Range
+
+    def copy_with(self, prop: str, value: Range) -> PartRange:
+        return PartRange(
+            value if prop == "x" else self.x,
+            value if prop == "m" else self.m,
+            value if prop == "a" else self.a,
+            value if prop == "s" else self.s,
+        )
+
+    def score(self) -> int:
+        return prod(r[1] - r[0] + 1 for r in [self.x, self.m, self.a, self.s])
+
+
 class Rule(NamedTuple):
+    operand1: str
     operation: str
+    operand2: int
     result: str
 
     def eval(self, part: Part) -> str | None:
-        if self.operation.startswith("x"):
-            x = part.x  # noqa[F841]
-        elif self.operation.startswith("m"):
-            m = part.m  # noqa[F841]
-        elif self.operation.startswith("a"):
-            a = part.a  # noqa[F841]
-        elif self.operation.startswith("s"):
-            s = part.s  # noqa[F841]
-        if eval(self.operation):  # nosec
+        if (
+            self.operation == "<"
+            and int.__lt__(getattr(part, self.operand1), self.operand2)
+        ) or (
+            self.operation == ">"
+            and int.__gt__(getattr(part, self.operand1), self.operand2)
+        ):
             return self.result
         else:
             return None
+
+    def eval_range(self, r: PartRange) -> list[tuple[PartRange, str | None]]:
+        if self.operand2 == 0:
+            # TODO: janky!!
+            nr = r.copy_with(self.operand1, getattr(r, self.operand1))
+            return [(nr, self.result)]
+        lo, hi = getattr(r, self.operand1)
+        if self.operation == "<":
+            match = (lo, self.operand2 - 1)
+            nomatch = (self.operand2, hi)
+        else:
+            match = (self.operand2 + 1, hi)
+            nomatch = (lo, self.operand2)
+        ans = list[tuple[PartRange, str | None]]()
+        if match[0] <= match[1]:
+            nr = r.copy_with(self.operand1, match)
+            ans.append((nr, self.result))
+        if nomatch[0] <= nomatch[1]:
+            nr = r.copy_with(self.operand1, nomatch)
+            ans.append((nr, None))
+        return ans
 
 
 class Workflow(NamedTuple):
@@ -69,13 +115,34 @@ class Workflow(NamedTuple):
     def eval(self, part: Part) -> str:
         for rule in self.rules:
             res = rule.eval(part)
-            log(
-                f"eval workflow {self.name}, {rule.operation} on {part=}"
-                f"-> {res}"
-            )
+            # log(
+            #     f"eval [{self.name}: "
+            #     f"{rule.operand1}{rule.operation}{rule.operand2}] on {part}"
+            #     f"-> {res}"
+            # )
             if res is not None:
                 return res
         assert False
+
+    def eval_range(self, range: PartRange) -> list[tuple[PartRange, str]]:
+        ans = list[tuple[PartRange, str]]()
+        ranges = [range]
+        for rule in self.rules:
+            new_ranges = list[PartRange]()
+            for r in ranges:
+                ress = rule.eval_range(r)
+                for res in ress:
+                    if res[1] is not None:
+                        ans.append((res[0], res[1]))
+                    else:
+                        new_ranges.append(res[0])
+                log(
+                    f"eval [{self.name}: "
+                    f"{rule.operand1}{rule.operation}{rule.operand2}]"
+                    f" on {r} -> {ress}"
+                )
+            ranges = new_ranges
+        return ans
 
 
 class System(NamedTuple):
@@ -100,10 +167,15 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             for r in rr:
                 if ":" in r:
                     op, res = r.split(":")
+                    operand1 = op[0]
+                    operation = op[1]
+                    operand2 = int(op[2:])
                 else:
-                    op = "True"
+                    operand1 = "x"
+                    operation = ">"
+                    operand2 = 0
                     res = r
-                rules.append(Rule(op, res))
+                rules.append(Rule(operand1, operation, operand2, res))
             workflows[name] = Workflow(name, rules)
         parts = list[Part]()
         for p in pp:
@@ -119,7 +191,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return System(workflows, parts)
 
     def part_1(self, system: Input) -> Output1:
-        log(system)
         ans = 0
         for part in system.parts:
             w = system.workflows["in"]
@@ -135,13 +206,32 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     continue
         return ans
 
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_2(self, system: Input) -> Output2:
+        ans = 0
+        prs = [(PartRange((1, 4000), (1, 4000), (1, 4000), (1, 4000)), "in")]
+        d = defaultdict[str, int](int)
+        d["in"] = 4000**4
+        log(d)
+        while prs:
+            new_prs = list[tuple[PartRange, str]]()
+            for pr in prs:
+                for res in system.workflows[pr[1]].eval_range(pr[0]):
+                    d[res[1]] += res[0].score()
+                    if res[1] == "R":
+                        continue
+                    elif res[1] == "A":
+                        ans += res[0].score()
+                        continue
+                    else:
+                        new_prs.append((res[0], res[1]))
+            log(d)
+            prs = new_prs
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 19114),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 167409079868000),
         )
     )
     def samples(self) -> None:
