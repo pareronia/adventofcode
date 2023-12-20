@@ -6,6 +6,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
@@ -66,7 +67,6 @@ public final class AoC2023_20
     
     @Override
     public Integer solvePart1(final Map<String, Module> modules) {
-        log(modules);
         int hi = 0;
         int lo = 0;
         for (int i = 0; i < 1000; i++) {
@@ -110,6 +110,11 @@ public final class AoC2023_20
     @Override
     public Long solvePart2(final Map<String, Module> modules) {
         final Map<String, List<Integer>> memo = new HashMap<>();
+        final String to_rx = modules.entrySet().stream()
+            .filter(e -> e.getValue().getOutputs().stream()
+                            .anyMatch(o -> o.equals("rx")))
+            .map(Entry::getKey)
+            .findFirst().orElseThrow();
         for (int i = 1; i <= 10000; i++) {
             final Deque<Pulse> q = new ArrayDeque<>();
             modules.get("broadcaster").getOutputs().forEach(o -> {
@@ -121,7 +126,7 @@ public final class AoC2023_20
                     continue;
                 }
                 
-                if (pulse.dest.equals("ql") && pulse.value == 1) {
+                if (pulse.dest.equals(to_rx) && pulse.value == 1) {
                     memo.computeIfAbsent(pulse.src, k -> new ArrayList<>()).add(i);
                     if (memo.values().stream().allMatch(v -> v.size() > 1)) {
                         log(memo);
@@ -164,7 +169,7 @@ public final class AoC2023_20
     }
     
     public static void main(final String[] args) throws Exception {
-        AoC2023_20.createDebug().run();
+        AoC2023_20.create().run();
     }
     
     @RequiredArgsConstructor
