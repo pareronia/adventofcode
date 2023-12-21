@@ -38,11 +38,12 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return CharGrid.from_strings([_ for _ in input_data])
 
-    def solve(self, grid: CharGrid, steps: int) -> int:
+    def solve(self, grid: CharGrid, steps: list[int]) -> list[int]:
         w = grid.get_width()
         start = (w // 2, w // 2)
         plots = set[tuple[int, int]]([start])
-        for _ in range(steps):
+        ans = []
+        for i in range(1, max(steps) + 1):
             new_plots = set[tuple[int, int]]()
             for r, c in plots:
                 for dr, dc in DIRS:
@@ -55,20 +56,23 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     ):
                         new_plots.add((rr, cc))
             plots = new_plots
-        return len(plots)
+            if i in steps:
+                ans.append(len(plots))
+        return ans
 
     def part_1(self, grid: Input) -> Output1:
-        return self.solve(grid, 64)
+        return self.solve(grid, [64])[0]
 
     def part_2(self, grid: Input) -> Output2:
         w = grid.get_width()
         modulo = STEPS % w
         x = STEPS // w
-        values = [self.solve(grid, i * w + modulo) for i in range(3)]
+        values = self.solve(grid, [i * w + modulo for i in range(3)])
         log(values)
         a = (values[2] + values[0] - 2 * values[1]) // 2
         b = values[1] - values[0] - a
         c = values[0]
+        log((f"{a=}", f"{b=}", f"{c=}"))
         return a * x * x + b * x + c
 
     @aoc_samples(())
