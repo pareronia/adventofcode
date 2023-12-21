@@ -9,7 +9,7 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 from aoc.common import log
-from aoc.grid import CharGrid, Cell
+from aoc.grid import CharGrid
 
 Input = CharGrid
 Output1 = int
@@ -30,32 +30,48 @@ TEST = """\
 ...........
 """
 
+DIRS = {(0, 1), (0, -1), (1, 0), (-1, 0)}
+STEPS = 26_501_365
+
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return CharGrid.from_strings([_ for _ in input_data])
 
-    def part_1(self, grid: Input) -> Output1:
-        start = next(grid.get_all_equal_to("S"))
-        plots = set[Cell]([start])
-        for _ in range(64):
-            new_plots = set[Cell]()
-            for cell in plots:
-                for n in grid.get_capital_neighbours(cell):
-                    if grid.get_value(n) != "#":
-                        new_plots.add(n)
+    def solve(self, grid: CharGrid, steps: int) -> int:
+        w = grid.get_width()
+        start = (w // 2, w // 2)
+        plots = set[tuple[int, int]]([start])
+        for _ in range(steps):
+            new_plots = set[tuple[int, int]]()
+            for r, c in plots:
+                for dr, dc in DIRS:
+                    rr, cc = r + dr, c + dc
+                    wr, wc = rr % w, cc % w
+                    if (
+                        0 <= wr < w
+                        and 0 <= wc < w
+                        and grid.values[wr][wc] != "#"
+                    ):
+                        new_plots.add((rr, cc))
             plots = new_plots
         return len(plots)
 
-    def part_2(self, input: Input) -> Output2:
-        return 0
+    def part_1(self, grid: Input) -> Output1:
+        return self.solve(grid, 64)
 
-    @aoc_samples(
-        (
-            # ("part_1", TEST, 16),
-            # ("part_2", TEST, "TODO"),
-        )
-    )
+    def part_2(self, grid: Input) -> Output2:
+        w = grid.get_width()
+        modulo = STEPS % w
+        x = STEPS // w
+        values = [self.solve(grid, i * w + modulo) for i in range(3)]
+        log(values)
+        a = (values[2] + values[0] - 2 * values[1]) // 2
+        b = values[1] - values[0] - a
+        c = values[0]
+        return a * x * x + b * x + c
+
+    @aoc_samples(())
     def samples(self) -> None:
         pass
 
