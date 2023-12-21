@@ -67,11 +67,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         w = grid.get_width()
         modulo = STEPS % w
         x = STEPS // w
-        values = self.solve(grid, [i * w + modulo for i in range(3)])
+        # https://old.reddit.com/r/adventofcode/comments/18nni6t/2023_21_part_2_optimization_hint/
+        steps = [w - modulo - 2] + [i * w + modulo for i in range(2)]
+        log(steps)
+        values = self.solve(grid, steps)
         log(values)
-        a = (values[2] + values[0] - 2 * values[1]) // 2
-        b = values[1] - values[0] - a
-        c = values[0]
+        a = (values[2] + values[0]) // 2 - values[1]
+        b = (values[2] - values[0]) // 2
+        c = values[1]
         log((f"{a=}", f"{b=}", f"{c=}"))
         return a * x * x + b * x + c
 
