@@ -62,12 +62,15 @@ impl aoc::Puzzle for AoC2023_21 {
         let steps = 26_501_365;
         let modulo = steps % grid.width();
         let x: u64 = steps as u64 / grid.width() as u64;
-        let stepses: Vec<usize> =
-            (0..3).map(|i| i * grid.width() + modulo).collect();
+        // https://old.reddit.com/r/adventofcode/comments/18nni6t/2023_21_part_2_optimization_hint/
+        let mut stepses: Vec<usize> = vec![grid.width() - modulo - 2];
+        (0..2).map(|i| i * grid.width() + modulo).for_each(|s| {
+            stepses.push(s);
+        });
         let values = self.solve(grid, &stepses);
-        let a = (values[2] + values[0] - 2 * values[1]) / 2;
-        let b = values[1] - values[0] - a;
-        let c = values[0];
+        let a = (values[2] + values[0]) / 2 - values[1];
+        let b = (values[2] - values[0]) / 2;
+        let c = values[1];
         a * x * x + b * x + c
     }
 
