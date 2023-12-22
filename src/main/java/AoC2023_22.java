@@ -1,10 +1,12 @@
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -12,17 +14,14 @@ import java.util.Set;
 import com.github.pareronia.aoc.MutableBoolean;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
-import com.github.pareronia.aoc.geometry.Draw;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry3d.Cuboid;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2023_22
-        extends SolutionBase<List<Cuboid>, Integer, Integer> {
+        extends SolutionBase<AoC2023_22.Stack, Integer, Integer> {
     
     private AoC2023_22(final boolean debug) {
         super(debug);
@@ -37,40 +36,18 @@ public final class AoC2023_22
     }
     
     @Override
-    protected List<Cuboid> parseInput(final List<String> inputs) {
-        final ArrayList<Cuboid> bricks = new ArrayList<>();
-        for (final String line : inputs) {
-            final StringSplit split = StringOps.splitOnce(line, "~");
-            final String[] xyz1 = split.left().split(",");
-            final String[] xyz2 = split.right().split(",");
-            bricks.add(new Cuboid(
-                Integer.parseInt(xyz1[0]),
-                Integer.parseInt(xyz2[0]),
-                Integer.parseInt(xyz1[1]),
-                Integer.parseInt(xyz2[1]),
-                Integer.parseInt(xyz1[2]),
-                Integer.parseInt(xyz2[2])
-            ));
-        }
-        return bricks;
+    protected Stack parseInput(final List<String> inputs) {
+        return Stack.fromInput(inputs);
     }
 
     @Override
-    public Integer solvePart1(final List<Cuboid> bricks) {
-        final Stack stack = new Stack(bricks);
-        stack.sort();
-        stack.display().forEach(this::log);
-        log("");
-        Draw.draw(stack.getViewY(), '#', '.').forEach(this::log);
-        stack.stack();
-        stack.sort();
-        log("");
-        Draw.draw(stack.getViewY(), '#', '.').forEach(this::log);
+    public Integer solvePart1(final Stack stack) {
+//        stack.display().forEach(this::log);
+//        log("");
+//        Draw.draw(stack.getViewY(), '#', '.').forEach(this::log);
+        final Map<Integer, List<Cuboid>> bricksByZ1 = stack.getBricksByZ1();
+        final Map<Integer, List<Cuboid>> bricksByZ2 = stack.getBricksByZ2();
         int ans = 0;
-        final Map<Integer, List<Cuboid>> bricksByZ1 = bricks.stream()
-                .collect(groupingBy(Cuboid::getZ1));
-        final Map<Integer, List<Cuboid>> bricksByZ2 = bricks.stream()
-                .collect(groupingBy(Cuboid::getZ2));
         for (final int z : bricksByZ2.keySet()) {
             for (final Cuboid brick : bricksByZ2.get(z)) {
                 final List<Cuboid> supportees = bricksByZ1.getOrDefault(brick.getZ2() + 1, List.of()).stream()
@@ -80,7 +57,6 @@ public final class AoC2023_22
                     ans++;
                     continue;
                 }
-//                System.out.println("hey");
                 boolean onlySupporter = false;
                 for (final Cuboid supportee : supportees) {
                     if (bricksByZ2.get(supportee.getZ1() - 1).stream()
@@ -100,14 +76,51 @@ public final class AoC2023_22
     }
     
     @Override
-    public Integer solvePart2(final List<Cuboid> bricks) {
-        return 0;
+    public Integer solvePart2(final Stack stack) {
+        final Map<Integer, List<Cuboid>> bricksByZ1 = stack.getBricksByZ1();
+        final Map<Integer, List<Cuboid>> bricksByZ2 = stack.getBricksByZ2();
+        final Map<Cuboid, Set<Cuboid>> supportees = new HashMap<>();
+        final Map<Cuboid, Set<Cuboid>> supporters = new HashMap<>();
+        for (final Cuboid brick : stack.getBricks()) {
+            supportees.put(brick, bricksByZ1.getOrDefault(brick.getZ2() + 1, List.of()).stream()
+                .filter(b -> Cuboid.overlapX(b, brick) && Cuboid.overlapY(b, brick))
+                .collect(toSet()));
+            log(() -> "%s supportees: %s".formatted(Stack.displayBrick(brick), Stack.displayBricks(supportees.get(brick))));
+            supporters.put(brick, bricksByZ2.getOrDefault(brick.getZ1() - 1, List.of()).stream()
+                .filter(b -> Cuboid.overlapX(b, brick) && Cuboid.overlapY(b, brick))
+                .collect(toSet()));
+            log(() -> "%s supporters: %s".formatted(Stack.displayBrick(brick), Stack.displayBricks(supporters.get(brick))));
+        }
+        int ans = 0;
+        for (final Cuboid brick : stack.getBricks()) {
+            final Deque<Cuboid> q = new ArrayDeque<>();
+            final Set<Cuboid> falling = new HashSet<>();
+            falling.add(brick);
+            q.add(brick);
+            while (!q.isEmpty()) {
+                final Cuboid b = q.poll();
+                log(() -> Stack.displayBrick(b));
+                for (final Cuboid spee : supportees.get(b)) {
+                    final Set<Cuboid> sprs = supporters.get(spee);
+                    if (!sprs.isEmpty() && sprs.stream().allMatch(s -> falling.contains(s))) {
+                        if (!falling.contains(spee)) {
+                            q.add(spee);
+                        }
+                        falling.add(spee);
+                    }
+                }
+                log(() -> "Falling: %s".formatted(Stack.displayBricks(falling)));
+            }
+            falling.remove(brick);
+            ans += falling.size();
+        }
+        return ans;
     }
     
     @Override
     @Samples({
         @Sample(method = "part1", input = TEST, expected = "5"),
-//        @Sample(method = "part2", input = TEST, expected = "TODO"),
+        @Sample(method = "part2", input = TEST, expected = "7"),
     })
     public void samples() {
     }
@@ -116,18 +129,53 @@ public final class AoC2023_22
         AoC2023_22.create().run();
     }
     
-    @RequiredArgsConstructor
-    private final class Stack {
+    static final class Stack {
         private final List<Cuboid> bricks;
-
-        public void sort() {
-            Collections.sort(bricks,
-                comparing(Cuboid::getZ1)
-                .thenComparing(comparing(Cuboid::getY1))
-                .thenComparing(comparing(Cuboid::getX1))
-            );
+        
+        protected Stack(final List<Cuboid> bricks) {
+            this.bricks = bricks;
         }
 
+        public List<Cuboid> getBricks() {
+            return bricks;
+        }
+
+        public Map<Integer, List<Cuboid>> getBricksByZ1() {
+            return bricks.stream().collect(groupingBy(Cuboid::getZ1));
+        }
+        
+        public Map<Integer, List<Cuboid>> getBricksByZ2() {
+            return bricks.stream().collect(groupingBy(Cuboid::getZ2));
+        }
+        
+        public static Stack fromInput(final List<String> inputs) {
+            final List<Cuboid> bricks = new ArrayList<>();
+            for (final String line : inputs) {
+                final StringSplit split = StringOps.splitOnce(line, "~");
+                final String[] xyz1 = split.left().split(",");
+                final String[] xyz2 = split.right().split(",");
+                bricks.add(Cuboid.of(
+                    Integer.parseInt(xyz1[0]),
+                    Integer.parseInt(xyz2[0]),
+                    Integer.parseInt(xyz1[1]),
+                    Integer.parseInt(xyz2[1]),
+                    Integer.parseInt(xyz1[2]),
+                    Integer.parseInt(xyz2[2])
+                ));
+            }
+            final Stack stack = new Stack(bricks);
+            stack.stack();
+            return stack;
+        }
+
+//        public void sort() {
+//            Collections.sort(bricks,
+//                comparing(Cuboid::getZ1)
+//                .thenComparing(comparing(Cuboid::getY1))
+//                .thenComparing(comparing(Cuboid::getX1))
+//            );
+//        }
+//
         public Set<Position> getViewY() {
           return bricks.stream()
               .flatMap(Cuboid::positions)
@@ -143,7 +191,7 @@ public final class AoC2023_22
             );
         }
         
-        public boolean overlapsXY(final Collection<Cuboid> cuboids,final Cuboid brick) {
+        private boolean overlapsXY(final Collection<Cuboid> cuboids,final Cuboid brick) {
             return cuboids.stream()
                 .anyMatch(c -> Cuboid.overlapX(c, brick) && Cuboid.overlapY(c, brick));
         }
@@ -160,14 +208,12 @@ public final class AoC2023_22
                     .sorted()
                     .filter(z -> z > 1)
                     .forEach(z -> {
-//                        log("z: %d".formatted(z));
                         final List<Cuboid> list = new ArrayList<>(bricksByZ1.get(z));
                         for (final Cuboid brick : list) {
                             if (!overlapsXY(bricksByZ2.getOrDefault(z - 1, List.of()), brick)) {
                                 bricksByZ1.getOrDefault(brick.getZ1(), new ArrayList<>()).remove(brick);
                                 bricksByZ2.getOrDefault(brick.getZ2(), new ArrayList<>()).remove(brick);
                                 final Cuboid m = moveToZ(brick, -1);
-//                                log("move: %s -> %s".formatted(displayBrick(brick), displayBrick(m)));
                                 bricksByZ1.computeIfAbsent(m.getZ1(), k -> new ArrayList<>()).add(m);
                                 bricksByZ2.computeIfAbsent(m.getZ2(), k -> new ArrayList<>()).add(m);
                                 moved.setTrue();
@@ -180,25 +226,20 @@ public final class AoC2023_22
         }
         
         public List<String> display() {
-            return Stack.displayBricks(bricks);
+            return displayBricks(bricks);
         }
         
-        private static List<String> displayBricks(final Collection<Cuboid> bricks) {
+        public static List<String> displayBricks(final Collection<Cuboid> bricks) {
             return bricks.stream()
                 .map(Stack::displayBrick)
                 .toList();
         }
         
-        private static String displayBrick(final Cuboid brick) {
+        public static String displayBrick(final Cuboid brick) {
             return "%d,%d,%d->%d,%d,%d".formatted(
                 brick.getX1(), brick.getY1(), brick.getZ1(),
                 brick.getX2(), brick.getY2(), brick.getZ2()
             );
-        }
-        
-        @SuppressWarnings("unused")
-        private void log(final Object obj) {
-            AoC2023_22.this.log(obj);
         }
     }
 
