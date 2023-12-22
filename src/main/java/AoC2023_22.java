@@ -1,17 +1,20 @@
 import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.MutableBoolean;
+import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
 import com.github.pareronia.aoc.geometry.Position;
@@ -42,79 +45,15 @@ public final class AoC2023_22
 
     @Override
     public Integer solvePart1(final Stack stack) {
-//        stack.display().forEach(this::log);
-//        log("");
-//        Draw.draw(stack.getViewY(), '#', '.').forEach(this::log);
-        final Map<Integer, List<Cuboid>> bricksByZ1 = stack.getBricksByZ1();
-        final Map<Integer, List<Cuboid>> bricksByZ2 = stack.getBricksByZ2();
-        int ans = 0;
-        for (final int z : bricksByZ2.keySet()) {
-            for (final Cuboid brick : bricksByZ2.get(z)) {
-                final List<Cuboid> supportees = bricksByZ1.getOrDefault(brick.getZ2() + 1, List.of()).stream()
-                    .filter(b -> Cuboid.overlapX(b, brick) && Cuboid.overlapY(b, brick))
-                    .toList();
-                if (supportees.isEmpty()) {
-                    ans++;
-                    continue;
-                }
-                boolean onlySupporter = false;
-                for (final Cuboid supportee : supportees) {
-                    if (bricksByZ2.get(supportee.getZ1() - 1).stream()
-                            .filter(b -> !b.equals(brick))
-                            .noneMatch(b -> Cuboid.overlapX(b, supportee) && Cuboid.overlapY(b, supportee))) {
-                        onlySupporter = true;
-                        break;
-                    }
-                }
-                if (!onlySupporter) {
-                    ans++;
-                }
-            }
-            
-        }
-        return ans;
+        return stack.getDeletable().size();
     }
     
     @Override
     public Integer solvePart2(final Stack stack) {
-        final Map<Integer, List<Cuboid>> bricksByZ1 = stack.getBricksByZ1();
-        final Map<Integer, List<Cuboid>> bricksByZ2 = stack.getBricksByZ2();
-        final Map<Cuboid, Set<Cuboid>> supportees = new HashMap<>();
-        final Map<Cuboid, Set<Cuboid>> supporters = new HashMap<>();
-        for (final Cuboid brick : stack.getBricks()) {
-            supportees.put(brick, bricksByZ1.getOrDefault(brick.getZ2() + 1, List.of()).stream()
-                .filter(b -> Cuboid.overlapX(b, brick) && Cuboid.overlapY(b, brick))
-                .collect(toSet()));
-            log(() -> "%s supportees: %s".formatted(Stack.displayBrick(brick), Stack.displayBricks(supportees.get(brick))));
-            supporters.put(brick, bricksByZ2.getOrDefault(brick.getZ1() - 1, List.of()).stream()
-                .filter(b -> Cuboid.overlapX(b, brick) && Cuboid.overlapY(b, brick))
-                .collect(toSet()));
-            log(() -> "%s supporters: %s".formatted(Stack.displayBrick(brick), Stack.displayBricks(supporters.get(brick))));
-        }
-        int ans = 0;
-        for (final Cuboid brick : stack.getBricks()) {
-            final Deque<Cuboid> q = new ArrayDeque<>();
-            final Set<Cuboid> falling = new HashSet<>();
-            falling.add(brick);
-            q.add(brick);
-            while (!q.isEmpty()) {
-                final Cuboid b = q.poll();
-                log(() -> Stack.displayBrick(b));
-                for (final Cuboid spee : supportees.get(b)) {
-                    final Set<Cuboid> sprs = supporters.get(spee);
-                    if (!sprs.isEmpty() && sprs.stream().allMatch(s -> falling.contains(s))) {
-                        if (!falling.contains(spee)) {
-                            q.add(spee);
-                        }
-                        falling.add(spee);
-                    }
-                }
-                log(() -> "Falling: %s".formatted(Stack.displayBricks(falling)));
-            }
-            falling.remove(brick);
-            ans += falling.size();
-        }
-        return ans;
+        return stack.getNotDeletable().stream()
+            .map(stack::delete)
+            .mapToInt(Set::size)
+            .sum();
     }
     
     @Override
@@ -130,26 +69,35 @@ public final class AoC2023_22
     }
     
     static final class Stack {
-        private final List<Cuboid> bricks;
+        private final Set<Cuboid> bricks;
+        private final Map<Cuboid, Set<Cuboid>> supportees;
+        private final Map<Cuboid, Set<Cuboid>> supporters;
+        private final Map<Integer, List<Cuboid>> bricksByZ1;
+        private final Map<Integer, List<Cuboid>> bricksByZ2;
         
-        protected Stack(final List<Cuboid> bricks) {
+        protected Stack(final Set<Cuboid> bricks) {
             this.bricks = bricks;
+            this.bricksByZ1 = this.bricks.stream()
+                    .collect(groupingBy(Cuboid::getZ1));
+            this.bricksByZ2 = this.bricks.stream()
+                    .collect(groupingBy(Cuboid::getZ2));
+            this.stack();
+            this.supportees = this.bricks.stream()
+                .collect(toMap(
+                    brick -> brick,
+                    brick -> this.getBricksByZ1(brick.getZ2() + 1).stream()
+                                .filter(b -> Stack.overlapsXY(b, brick))
+                                .collect(toSet())));
+            this.supporters = this.bricks.stream()
+                .collect(toMap(
+                    brick -> brick,
+                    brick -> this.getBricksByZ2(brick.getZ1() - 1).stream()
+                                .filter(b -> Stack.overlapsXY(b, brick))
+                                .collect(toSet())));
         }
 
-        public List<Cuboid> getBricks() {
-            return bricks;
-        }
-
-        public Map<Integer, List<Cuboid>> getBricksByZ1() {
-            return bricks.stream().collect(groupingBy(Cuboid::getZ1));
-        }
-        
-        public Map<Integer, List<Cuboid>> getBricksByZ2() {
-            return bricks.stream().collect(groupingBy(Cuboid::getZ2));
-        }
-        
         public static Stack fromInput(final List<String> inputs) {
-            final List<Cuboid> bricks = new ArrayList<>();
+            final Set<Cuboid> bricks = new HashSet<>();
             for (final String line : inputs) {
                 final StringSplit split = StringOps.splitOnce(line, "~");
                 final String[] xyz1 = split.left().split(",");
@@ -163,21 +111,19 @@ public final class AoC2023_22
                     Integer.parseInt(xyz2[2])
                 ));
             }
-            final Stack stack = new Stack(bricks);
-            stack.stack();
-            return stack;
+            return new Stack(bricks);
         }
 
-//        public void sort() {
-//            Collections.sort(bricks,
-//                comparing(Cuboid::getZ1)
-//                .thenComparing(comparing(Cuboid::getY1))
-//                .thenComparing(comparing(Cuboid::getX1))
-//            );
-//        }
-//
+        public List<Cuboid> getBricksByZ1(final int z1) {
+            return this.bricksByZ1.getOrDefault(z1, new ArrayList<>());
+        }
+
+        public List<Cuboid> getBricksByZ2(final int z2) {
+            return this.bricksByZ2.getOrDefault(z2, new ArrayList<>());
+        }
+
         public Set<Position> getViewY() {
-          return bricks.stream()
+          return this.bricks.stream()
               .flatMap(Cuboid::positions)
               .map(p -> Position.of(p.getX(), p.getZ()))
               .collect(toSet());
@@ -191,42 +137,51 @@ public final class AoC2023_22
             );
         }
         
-        private boolean overlapsXY(final Collection<Cuboid> cuboids,final Cuboid brick) {
-            return cuboids.stream()
-                .anyMatch(c -> Cuboid.overlapX(c, brick) && Cuboid.overlapY(c, brick));
+        private static boolean overlapsXY(final Cuboid lhs, final Cuboid rhs) {
+            return Cuboid.overlapX(lhs, rhs) && Cuboid.overlapY(lhs, rhs);
         }
         
-        public void stack() {
-            final Map<Integer, List<Cuboid>> bricksByZ1 = bricks.stream()
-                .collect(groupingBy(Cuboid::getZ1));
-            final Map<Integer, List<Cuboid>> bricksByZ2 = bricks.stream()
-                .collect(groupingBy(Cuboid::getZ2));
+        private static boolean overlapsXY(
+                final Collection<Cuboid> cuboids,
+                final Cuboid brick
+        ) {
+            return cuboids.stream().anyMatch(c -> Stack.overlapsXY(c, brick));
+        }
+        
+        private void stack() {
             final MutableBoolean moved = new MutableBoolean(true);
+            final Predicate<Cuboid> isNotSupported = brick -> !overlapsXY(
+                this.bricksByZ2.getOrDefault(brick.getZ1() - 1, List.of()),
+                brick);
+            final Consumer<Cuboid> moveDown = brick -> {
+                final Cuboid movedBrick = moveToZ(brick, -1);
+                this.getBricksByZ1(brick.getZ1()).remove(brick);
+                this.getBricksByZ2(brick.getZ2()).remove(brick);
+                this.bricksByZ1.computeIfAbsent(
+                        movedBrick.getZ1(), k -> new ArrayList<>())
+                    .add(movedBrick);
+                this.bricksByZ2.computeIfAbsent(
+                        movedBrick.getZ2(), k -> new ArrayList<>())
+                    .add(movedBrick);
+                moved.setTrue();
+            };
             while (moved.isTrue()) {
                 moved.setFalse();
-                bricksByZ1.keySet().stream()
+                this.bricksByZ1.keySet().stream()
                     .sorted()
                     .filter(z -> z > 1)
                     .forEach(z -> {
-                        final List<Cuboid> list = new ArrayList<>(bricksByZ1.get(z));
-                        for (final Cuboid brick : list) {
-                            if (!overlapsXY(bricksByZ2.getOrDefault(z - 1, List.of()), brick)) {
-                                bricksByZ1.getOrDefault(brick.getZ1(), new ArrayList<>()).remove(brick);
-                                bricksByZ2.getOrDefault(brick.getZ2(), new ArrayList<>()).remove(brick);
-                                final Cuboid m = moveToZ(brick, -1);
-                                bricksByZ1.computeIfAbsent(m.getZ1(), k -> new ArrayList<>()).add(m);
-                                bricksByZ2.computeIfAbsent(m.getZ2(), k -> new ArrayList<>()).add(m);
-                                moved.setTrue();
-                            }
-                        }
+                        new ArrayList<>(this.getBricksByZ1(z)).stream()
+                            .filter(isNotSupported)
+                            .forEach(moveDown);
                     });
             }
-            bricks.clear();
-            bricksByZ2.values().stream().forEach(bricks::addAll);
+            this.bricks.clear();
+            bricksByZ2.values().stream().forEach(this.bricks::addAll);
         }
         
         public List<String> display() {
-            return displayBricks(bricks);
+            return Stack.displayBricks(bricks);
         }
         
         public static List<String> displayBricks(final Collection<Cuboid> bricks) {
@@ -240,6 +195,43 @@ public final class AoC2023_22
                 brick.getX1(), brick.getY1(), brick.getZ1(),
                 brick.getX2(), brick.getY2(), brick.getZ2()
             );
+        }
+        
+        public Set<Cuboid> getDeletable() {
+            return this.bricks.stream()
+                .filter(this::isNotSingleSupporter)
+                .collect(toSet());
+        }
+
+        private boolean isNotSingleSupporter(final Cuboid brick) {
+            return this.supportees.get(brick).stream()
+                .map(this.supporters::get)
+                .noneMatch(Set.of(brick)::equals);
+        }
+        
+        public Set<Cuboid> getNotDeletable() {
+            return SetUtils.disjunction(this.bricks, this.getDeletable());
+        }
+        
+        public Set<Cuboid> delete(final Cuboid brick) {
+            final Deque<Cuboid> q = new ArrayDeque<>();
+            final Set<Cuboid> falling = new HashSet<>();
+            falling.add(brick);
+            q.add(brick);
+            while (!q.isEmpty()) {
+                final Cuboid b = q.poll();
+                for (final Cuboid s : this.supportees.get(b)) {
+                    if (this.supporters.get(s).stream()
+                                .allMatch(falling::contains)) {
+                        if (!falling.contains(s)) {
+                            q.add(s);
+                        }
+                        falling.add(s);
+                    }
+                }
+            }
+            falling.remove(brick);
+            return falling;
         }
     }
 
