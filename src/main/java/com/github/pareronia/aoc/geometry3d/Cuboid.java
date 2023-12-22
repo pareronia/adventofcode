@@ -58,12 +58,12 @@ public class Cuboid {
             || !overlapZ(cuboid1, cuboid2));
     }
 
-    private static boolean overlapX(final Cuboid cuboid1, final Cuboid cuboid2) {
+    public static boolean overlapX(final Cuboid cuboid1, final Cuboid cuboid2) {
         return RangeInclusive.between(cuboid1.x1, cuboid1.x2)
             .isOverlappedBy(RangeInclusive.between(cuboid2.x1, cuboid2.x2));
     }
 
-    private static boolean overlapY(final Cuboid cuboid1, final Cuboid cuboid2) {
+    public static boolean overlapY(final Cuboid cuboid1, final Cuboid cuboid2) {
         return RangeInclusive.between(cuboid1.y1, cuboid1.y2)
                 .isOverlappedBy(RangeInclusive.between(cuboid2.y1, cuboid2.y2));
     }
