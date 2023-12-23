@@ -56,12 +56,24 @@ class PathFinder:
     def find_longest_hike_length_with_only_downward_slopes(self) -> int:
         forks = self._find_forks()
         graph = self._build_graph(forks, downward_slope_only=True)
-        return self._find_longest(graph, self.start, set[Cell]())
+        return self._find_longest(graph, self.start, self.end, set[Cell]())
 
     def find_longest_hike_length(self) -> int:
         forks = self._find_forks()
         graph = self._build_graph(forks, downward_slope_only=False)
-        return self._find_longest(graph, self.start, set[Cell]())
+        dist_from_start: int = next(_ for _ in graph[self.start])[1]
+        dist_to_end: int = next(_ for _ in graph[self.end])[1]
+        new_start = next(
+            k for k, v in graph.items() if (self.start, dist_from_start) in v
+        )
+        new_end = next(
+            k for k, v in graph.items() if (self.end, dist_to_end) in v
+        )
+        return (
+            dist_from_start
+            + dist_to_end
+            + self._find_longest(graph, new_start, new_end, set[Cell]())
+        )
 
     def _find_forks(self) -> set[Cell]:
         def is_fork(cell: Cell) -> bool:
@@ -108,16 +120,22 @@ class PathFinder:
         return graph
 
     def _find_longest(
-        self, graph: dict[Cell, set[Edge]], curr: Cell, seen: set[Cell]
+        self,
+        graph: dict[Cell, set[Edge]],
+        curr: Cell,
+        end: Cell,
+        seen: set[Cell],
     ) -> int:
-        if curr == self.end:
+        if curr == end:
             return 0
         ans = -1_000_000_000
         seen.add(curr)
         for vertex, distance in graph[curr]:
             if vertex in seen:
                 continue
-            ans = max(ans, distance + self._find_longest(graph, vertex, seen))
+            ans = max(
+                ans, distance + self._find_longest(graph, vertex, end, seen)
+            )
         seen.remove(curr)
         return ans
 
