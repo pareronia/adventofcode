@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import com.github.pareronia.aoc.CharGrid;
@@ -75,7 +76,18 @@ public final class AoC2023_23
             log(pois);
             final Map<Cell, Set<Edge>> graph = this.buildGraph(pois, false);
             log(graph);
-            return this.findLongest(graph, start, end, new HashSet<>());
+            final int distFromStart = graph.get(this.start).iterator().next().weight;
+            final int distToEnd = graph.get(this.end).iterator().next().weight;
+            final Cell newStart = graph.entrySet().stream()
+                .filter(e -> e.getValue().contains(new Edge(this.start, distFromStart)))
+                .map(Entry::getKey)
+                .findFirst().orElseThrow();
+            final Cell newEnd = graph.entrySet().stream()
+                .filter(e -> e.getValue().contains(new Edge(this.end, distToEnd)))
+                .map(Entry::getKey)
+                .findFirst().orElseThrow();
+            return distFromStart + distToEnd
+                + this.findLongest(graph, newStart, newEnd, new HashSet<>());
         }
         
         public int findLongestHikeLengthWithDownwardSlopesOnly() {
@@ -83,7 +95,7 @@ public final class AoC2023_23
             log(pois);
             final Map<Cell, Set<Edge>> graph = this.buildGraph(pois, true);
             log(graph);
-            return this.findLongest(graph, start, end, new HashSet<>());
+            return this.findLongest(graph, this.start, this.end, new HashSet<>());
         }
         
         private int findLongest(
