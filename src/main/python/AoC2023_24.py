@@ -81,12 +81,57 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        hs = []
+        for line in input:
+            pp, vv = line.split(" @ ")
+            pos = Position3D.of(*map(int, pp.split(", ")))
+            vel = Vector3D.of(*map(int, vv.split(", ")))
+            hs.append((pos, vel))
+        # (DistanceDifference % (RockVelocity-HailVelocity) = 0
+        v_x, v_y, v_z = set[int](), set[int](), set[int]()
+        for hs_a, hs_b in itertools.combinations(hs, 2):
+            p_a, v_a = hs_a
+            p_b, v_b = hs_b
+            if v_a.x == v_b.x and v_a.x != 0:
+                dp_x = p_a.x - p_b.x
+                tmp = set[int]()
+                for v in range(-1000, 1000):
+                    if v != v_a.x and dp_x % (v - v_a.x) == 0:
+                        tmp.add(v)
+                v_x = v_x | tmp if len(v_x) == 0 else v_x & tmp
+            if v_a.y == v_b.y and v_a.y != 0:
+                dp_y = p_a.y - p_b.y
+                tmp = set[int]()
+                for v in range(-1000, 1000):
+                    if v != v_a.y and dp_y % (v - v_a.y) == 0:
+                        tmp.add(v)
+                v_y = v_y | tmp if len(v_y) == 0 else v_y & tmp
+            if v_a.z == v_b.z and v_a.z != 0:
+                dp_z = p_a.z - p_b.z
+                tmp = set[int]()
+                for v in range(-1000, 1000):
+                    if v != v_a.z and dp_z % (v - v_a.z) == 0:
+                        tmp.add(v)
+                v_z = v_z | tmp if len(v_z) == 0 else v_z & tmp
+        if not len(v_x) == len(v_y) == len(v_z) == 1:
+            raise RuntimeError()
+        v_r = Vector3D(v_x.pop(), v_y.pop(), v_z.pop())
+        p_a, v_a = hs[0]
+        p_b, v_b = hs[1]
+        m_a = (v_a.y - v_r.y) / (v_a.x - v_r.x)
+        m_b = (v_b.y - v_r.y) / (v_b.x - v_r.x)
+        c_a = p_a.y - (m_a * p_a.x)
+        c_b = p_b.y - (m_b * p_b.x)
+        x = int((c_b - c_a) / (m_a - m_b))
+        y = int(m_a * x + c_a)
+        t = (x - p_a.x) // (v_a.x - v_r.x)
+        z = p_a.z + (v_a.z - v_r.z) * t
+        return x + y + z
 
     @aoc_samples(
         (
             # ("part_1", TEST, 2),
-            # ("part_2", TEST, "TODO"),
+            # ("part_2", TEST, 47),
         )
     )
     def samples(self) -> None:
