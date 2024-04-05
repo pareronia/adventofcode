@@ -5,8 +5,6 @@ import java.util.function.Function;
 
 import com.github.pareronia.aocd.Aocd;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2021_03 extends AoCBase {
     
     private final List<String> lines;
@@ -91,10 +89,7 @@ public class AoC2021_03 extends AoCBase {
 	        "01010"
     );
 	
-	@RequiredArgsConstructor
-	private static final class BitCount {
-	    private final int ones;
-	    private final int zeroes;
+	record BitCount(int ones, int zeroes) {
 	    
 	    public char mostCommon() {
 	        return ones >= zeroes ? '1' : '0';

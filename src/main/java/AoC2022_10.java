@@ -14,8 +14,6 @@ import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_10 extends AoCBase {
     private static final int PERIOD = 40;
     private static final int MAX = 220;
@@ -261,10 +259,7 @@ public class AoC2022_10 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Instruction {
-        private final OpCode operation;
-        private final Optional<Integer> operand;
+    record Instruction(OpCode operation, Optional<Integer> operand) {
         
         public static Instruction fromString(final String value) {
             final String[] splits = value.split(" ");

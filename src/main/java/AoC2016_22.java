@@ -22,12 +22,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2016_22 extends AoCBase {
 
     private static final Pattern REGEX = Pattern.compile(
@@ -61,16 +55,16 @@ public class AoC2016_22 extends AoCBase {
     
     private Set<Node> getUnusableNodes() {
         final Integer maxAvailable = this.nodes.stream()
-                .max(comparing(Node::getAvailable))
-                .map(Node::getAvailable).orElseThrow();
+                .max(comparing(Node::available))
+                .map(Node::available).orElseThrow();
         return this.nodes.stream()
-                .filter(n -> n.getUsed() > maxAvailable)
+                .filter(n -> n.used() > maxAvailable)
                 .collect(toSet());
     }
     
     private Node getEmptyNode() {
         final List<Node> emptyNodes = nodes.stream()
-                .filter(n -> n.getUsed() == 0)
+                .filter(n -> n.used() == 0)
                 .collect(toList());
         assertTrue(emptyNodes.size() == 1, () -> "Expected 1 empty node");
         return emptyNodes.get(0);
@@ -78,25 +72,25 @@ public class AoC2016_22 extends AoCBase {
     
     private Integer getMaxX() {
         return this.nodes.stream()
-                .max(comparing(Node::getX))
-                .map(Node::getX).orElseThrow();
+                .max(comparing(Node::x))
+                .map(Node::x).orElseThrow();
     }
     
     private Integer getMaxY() {
         return this.nodes.stream()
-                .max(comparing(Node::getY))
-                .map(Node::getY).orElseThrow();
+                .max(comparing(Node::y))
+                .map(Node::y).orElseThrow();
     }
     
     private Node getGoalNode() {
         return nodes.stream()
-                .filter(n -> n.getX() == getMaxX() && n.getY() == 0)
+                .filter(n -> n.x() == getMaxX() && n.y() == 0)
                 .findFirst().orElseThrow();
     }
     
     private Node getAccessibleNode() {
         return nodes.stream()
-                .filter(n -> n.getX() == 0 && n.getY() == 0)
+                .filter(n -> n.x() == 0 && n.y() == 0)
                 .findFirst().orElseThrow();
     }
 
@@ -106,7 +100,7 @@ public class AoC2016_22 extends AoCBase {
                 .filter(Node::isNotEmpty)
                 .flatMap(a -> this.nodes.stream()
                                 .filter(b -> !a.equals(b))
-                                .filter(b -> a.getUsed() <= b.getAvailable()))
+                                .filter(b -> a.used() <= b.available()))
                 .count();
     }
     
@@ -114,12 +108,12 @@ public class AoC2016_22 extends AoCBase {
         final Integer maxX = getMaxX();
         final Integer maxY = getMaxY();
         final List<Node> sorted = this.nodes.stream()
-                .sorted(comparing(n -> n.getX() * maxY + n.getY()))
+                .sorted(comparing(n -> n.x() * maxY + n.y()))
                 .collect(toList());
         final List<List<Node>> grid = Stream.iterate(0, i -> i <= maxX, i -> i + 1)
                 .map(i -> sorted.stream()
                                 .skip(i * (maxY + 1))
-                                .takeWhile(n -> n.getX() == i)
+                                .takeWhile(n -> n.x() == i)
                                 .collect(toList()))
                 .collect(toList());
         final Set<Node> unusableNodes = getUnusableNodes();
@@ -147,7 +141,7 @@ public class AoC2016_22 extends AoCBase {
     }
     
     private Position toPosition(final Node node) {
-        return Position.of(node.getX(), node.getY());
+        return Position.of(node.x(), node.y());
     }
     
     private Function<Path, Boolean> stopAt(
@@ -191,7 +185,7 @@ public class AoC2016_22 extends AoCBase {
         new PathFinder(goalNode, accessibleNode, max, unusableNodes)
                 .findPaths(stopAt(accessibleNode, paths));
         final Integer length = paths.stream()
-                .map(Path::getLength)
+                .map(Path::length)
                 .collect(summingInt(Integer::valueOf));
         log(length);
         return length + 1;
@@ -202,7 +196,7 @@ public class AoC2016_22 extends AoCBase {
         final Set<Node> unusableNodes = getUnusableNodes();
         log(unusableNodes);
         final Set<Integer> holeYs = unusableNodes.stream()
-                .map(Node::getY)
+                .map(Node::y)
                 .collect(toSet());
         assertTrue(holeYs.size() == 1, () -> "Expected all unusable nodes in 1 row");
         final Integer holeY = holeYs.iterator().next();
@@ -210,13 +204,13 @@ public class AoC2016_22 extends AoCBase {
             throw new IllegalStateException("Unsolvable");
         }
         assertFalse(unusableNodes.stream()
-                    .max(comparing(Node::getX))
-                    .map(Node::getX)
+                    .max(comparing(Node::x))
+                    .map(Node::x)
                     .orElseThrow() != getMaxX(),
                 () -> "Expected unusable row to touch side");
         final Integer holeX = unusableNodes.stream()
-                .min(comparing(Node::getX))
-                .map(Node::getX)
+                .min(comparing(Node::x))
+                .map(Node::x)
                 .orElseThrow();
         final Position hole = Position.of(holeX - 1, holeY);
         final Position emptyNode = toPosition(getEmptyNode());
@@ -259,13 +253,22 @@ public class AoC2016_22 extends AoCBase {
             "/dev/grid/node-x2-y2    9T    6T     3T   66%"
     );
     
-    @RequiredArgsConstructor
     private static final class PathFinder {
         private final Position start;
         private final Position destination;
         private final Position max;
         private final Set<Position> unusable;
     
+        public PathFinder(
+                final Position start, final Position destination,
+                final Position max, final Set<Position> unusable
+        ) {
+            this.start = start;
+            this.destination = destination;
+            this.max = max;
+            this.unusable = unusable;
+        }
+
         public void findPaths(final Function<Path, Boolean> stop) {
             final Deque<Path> paths = new ArrayDeque<>();
             Path path = new Path(0, this.start);
@@ -278,19 +281,19 @@ public class AoC2016_22 extends AoCBase {
                 }
                 for (final Direction direction : Direction.CAPITAL) {
                     final Path newPath = buildNewPath(path, direction);
-                    if (isInBounds(newPath.getPosition())
-                            && isUsable(newPath.getPosition())
-                            && !seen.contains(newPath.getPosition())) {
+                    if (isInBounds(newPath.position())
+                            && isUsable(newPath.position())
+                            && !seen.contains(newPath.position())) {
                         paths.add(newPath);
-                        seen.add(newPath.getPosition());
+                        seen.add(newPath.position());
                     }
                 }
             }
         }
         
         private Path buildNewPath(final Path path, final Direction direction) {
-            return new Path(path.getLength() + 1,
-                    path.getPosition().translate(direction));
+            return new Path(path.length() + 1,
+                    path.position().translate(direction));
         }
         
         private boolean isInBounds(final Position position) {
@@ -305,37 +308,13 @@ public class AoC2016_22 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    @ToString
-    private static final class Path {
-        @Getter
-        private final Integer length;
-        @Getter
-        private final Position position;
-        
+    record Path(int length, Position position) {
         public boolean isAt(final Position position) {
             return this.position.equals(position);
         }
     }
-
-    @AllArgsConstructor
-    @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-    @ToString(onlyExplicitlyIncluded = true)
-    private static final class Node {
-        @Getter
-        @EqualsAndHashCode.Include
-        @ToString.Include
-        private final Integer x;
-        @Getter
-        @EqualsAndHashCode.Include
-        @ToString.Include
-        private final Integer y;
-        @Getter
-        private final Integer used;
-        @Getter
-        private final Integer available;
-        
+    
+    record Node(int x, int y, int used, int available) {
         public boolean isNotEmpty() {
             return this.used != 0;
         }

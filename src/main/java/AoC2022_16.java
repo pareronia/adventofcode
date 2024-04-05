@@ -13,8 +13,6 @@ import com.github.pareronia.aoc.graph.AStar;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_16 extends AoCBase {
     
     private final String[] valves;
@@ -68,7 +66,6 @@ public class AoC2022_16 extends AoCBase {
         return new AoC2022_16(input, true);
     }
     
-    @RequiredArgsConstructor
     private final class DFS {
         private final int[][] distances;
         private final int maxTime;
@@ -78,6 +75,12 @@ public class AoC2022_16 extends AoCBase {
         private int maxFlow = 0;
         private int cnt = 0;
         
+        public DFS(final int[][] distances, final int maxTime, final boolean sample) {
+            this.distances = distances;
+            this.maxTime = maxTime;
+            this.sample = sample;
+        }
+
         public void dfs(final int start, final int time) {
             cnt++;
             for (int i = 0; i < valves.length; i++) {

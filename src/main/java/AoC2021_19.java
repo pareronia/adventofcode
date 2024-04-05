@@ -20,10 +20,6 @@ import com.github.pareronia.aoc.geometry3d.Vector3D;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_19 extends AoCBase {
     
     private final List<ScannerData> scannerData;
@@ -43,7 +39,7 @@ public class AoC2021_19 extends AoCBase {
                 points.add(new Position3D(
                     coordinates.get(0), coordinates.get(1), coordinates.get(2)));
             }
-            scannerData.add(new ScannerData(Integer.valueOf(id), points));
+            scannerData.add(new ScannerData(Integer.parseInt(id), points));
         }
         this.scannerData = Collections.unmodifiableList(scannerData);
     }
@@ -61,20 +57,20 @@ public class AoC2021_19 extends AoCBase {
         final Deque<ScannerData> q = new ArrayDeque<>(List.copyOf(this.scannerData));
         final ScannerData sc0 = q.pop();
         lockedIn.put(sc0, Vector3D.of(0, 0, 0));
-        assert sc0.getId() == 0;
+        assert sc0.id() == 0;
         while (!q.isEmpty()) {
             final ScannerData sc = q.pop();
             final Optional<OverlappingScanner> overlapping
                     = locateOverlappingScanner(sc, lockedIn);
             if (overlapping.isPresent()) {
                 lockedIn.put(
-                        overlapping.get().getScannerData(),
-                        overlapping.get().getVector());
+                        overlapping.get().scannerData(),
+                        overlapping.get().vector());
             } else {
                 q.add(sc);
             }
         }
-        log(lockedIn.keySet().stream().map(ScannerData::getId).collect(toList()));
+        log(lockedIn.keySet().stream().map(ScannerData::id).collect(toList()));
         return lockedIn;
     }
     
@@ -91,7 +87,7 @@ public class AoC2021_19 extends AoCBase {
                     final Vector3D vector = overlap.get();
                     log(vector);
                     final ScannerData overlapping = new ScannerData(
-                            sc.getId(),
+                            sc.id(),
                             Transformations3D.translate(positions, vector));
                     return Optional.of(new OverlappingScanner(overlapping, vector));
                 }
@@ -109,7 +105,7 @@ public class AoC2021_19 extends AoCBase {
         final List<Vector3D> overlaptx
             = other.beacons.stream()
                 .flatMap(b -> positions.stream().map(p -> new Position3DPair(b, p)))
-                .collect(groupingBy(t -> Vector3D.from(t.getTwo(), t.getOne()),
+                .collect(groupingBy(t -> Vector3D.from(t.two(), t.one()),
                                     counting()))
                 .entrySet().stream()
                     .filter(e -> e.getValue() >= 12L)
@@ -117,7 +113,7 @@ public class AoC2021_19 extends AoCBase {
                     .collect(toList());
         if (overlaptx.size() > 0) {
             log(String.format(
-                    "overlaptx between sc%d and sc%d", sc.getId(), other.getId()));
+                    "overlaptx between sc%d and sc%d", sc.id(), other.id()));
             assert overlaptx.size() == 1;
             return Optional.of(overlaptx.get(0));
         } else {
@@ -140,10 +136,10 @@ public class AoC2021_19 extends AoCBase {
         return scanners.values().stream()
             .flatMap(v1 -> scanners.values().stream()
                             .map(v2 -> new Vector3DPair(v1, v2)))
-            .filter(t -> !t.getOne().equals(t.getTwo()))
-            .map(t -> Position3D.of(0, 0, 0).translate(t.getOne())
+            .filter(t -> !t.one().equals(t.two()))
+            .map(t -> Position3D.of(0, 0, 0).translate(t.one())
                         .manhattanDistance(
-                                Position3D.of(0, 0, 0).translate(t.getTwo())))
+                                Position3D.of(0, 0, 0).translate(t.two())))
             .mapToInt(Integer::intValue)
             .max().orElseThrow();
     }
@@ -330,32 +326,11 @@ public class AoC2021_19 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    static final class ScannerData {
-        private final int id;
-        private final List<Position3D> beacons;
-    }
+    record ScannerData(int id, List<Position3D> beacons) {}
     
-    @RequiredArgsConstructor
-    @Getter
-    private static final class OverlappingScanner {
-        private final ScannerData scannerData;
-        private final Vector3D vector;
-    }
+    record OverlappingScanner(ScannerData scannerData, Vector3D vector) {}
     
-    @RequiredArgsConstructor
-    @Getter
-    private static final class Position3DPair {
-        private final Position3D one;
-        private final Position3D two;
-    }
+    record Position3DPair(Position3D one, Position3D two) {}
     
-    @RequiredArgsConstructor
-    @Getter
-    private static final class Vector3DPair {
-        private final Vector3D one;
-        private final Vector3D two;
-    }
+    record Vector3DPair(Vector3D one, Vector3D two) {}
 }

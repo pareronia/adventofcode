@@ -14,9 +14,6 @@ import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Builder;
-import lombok.ToString;
-
 public class AoC2020_04 extends AoCBase {
 	
 	private final Set<Passport> passports;
@@ -127,17 +124,27 @@ public class AoC2020_04 extends AoCBase {
 			"iyr:2010 hgt:158cm hcl:#b6652a ecl:blu byr:1944 eyr:2021 pid:093154719"
 	);
 	
-	@Builder
-	@ToString
-	private static final class Passport {
-		private final String byr;  // (Birth Year)
-		private final String iyr;  // (Issue Year)
-		private final String eyr;  // (Expiration Year)
-		private final String hgt;  // (Height)
-		private final String hcl;  // (Hair Color)
-		private final String ecl;  // (Eye Color)
-		private final String pid;  // (Passport ID)
-		private final String cid;  // (Country ID)
+	record Passport(
+		String byr,  // (Birth Year)
+		String iyr,  // (Issue Year)
+		String eyr,  // (Expiration Year)
+		String hgt,  // (Height)
+		String hcl,  // (Hair Color)
+		String ecl,  // (Eye Color)
+		String pid   // (Passport ID)
+    ) {
+		
+		private static Passport create(final PassportBuilder builder) {
+		    return new Passport(
+                builder.byr,
+                builder.iyr,
+                builder.eyr,
+                builder.hgt,
+                builder.hcl,
+                builder.ecl,
+                builder.pid
+		    );
+		}
 
 		public boolean isValid1() {
 			return this.byr != null
@@ -194,6 +201,63 @@ public class AoC2020_04 extends AoCBase {
 			return isValid1()
 					&& byrValid() && iyrValid() && eyrValid() && hgtValid()
 					&& hclValid() && eclValid() && pidValid();
+		}
+		
+		public static PassportBuilder builder() {
+		    return new PassportBuilder();
+		}
+		
+		public static final class PassportBuilder {
+            private String byr;
+            private String iyr;
+            private String eyr;
+            private String hgt;
+            private String hcl;
+            private String ecl;
+            private String pid;
+		    
+            public PassportBuilder byr(final String byr) {
+                this.byr = byr;
+                return this;
+            }
+
+            public PassportBuilder iyr(final String iyr) {
+                this.iyr = iyr;
+                return this;
+            }
+
+            public PassportBuilder eyr(final String eyr) {
+                this.eyr = eyr;
+                return this;
+            }
+
+            public PassportBuilder hgt(final String hgt) {
+                this.hgt = hgt;
+                return this;
+            }
+
+            public PassportBuilder hcl(final String hcl) {
+                this.hcl = hcl;
+                return this;
+            }
+
+            public PassportBuilder ecl(final String ecl) {
+                this.ecl = ecl;
+                return this;
+            }
+
+            public PassportBuilder pid(final String pid) {
+                this.pid = pid;
+                return this;
+            }
+
+            public PassportBuilder cid(final String cid) {
+                return this;
+            }
+
+            public Passport build() {
+		        return Passport.create(this);
+		    }
 		}
 	}
 }

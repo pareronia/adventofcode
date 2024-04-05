@@ -11,10 +11,6 @@ import java.util.regex.Pattern;
 import com.github.pareronia.aoc.game_of_life.GameOfLife;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2020_24 extends AoCBase {
 
     private static final Map<String, Direction> DIRS = Map.of(
@@ -111,20 +107,14 @@ public class AoC2020_24 extends AoCBase {
 			"wseweeenwnesenwwwswnew"
 	);
 	
-	@RequiredArgsConstructor(staticName = "at")
-	@EqualsAndHashCode
-	@ToString
-	private static final class Tile {
-		private final int q;
-		private final int r;
+	record Tile(int q, int r) {
+		
+		public static Tile at(final int q, final int r) {
+		    return new Tile(q, r);
+		}
 	}
 
-	@RequiredArgsConstructor
-	@ToString
-	private static final class Direction {
-	    private final int q;
-	    private final int r;
-	}
+	record Direction(int q, int r) {}
 	
 	private static final class HexGrid implements GameOfLife.Type<Tile> {
 

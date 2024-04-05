@@ -6,16 +6,11 @@ import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
-
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 public class AoC2020_23 extends AoCBase {
 	
@@ -134,13 +129,52 @@ public class AoC2020_23 extends AoCBase {
 	);
 	
 	
-	@AllArgsConstructor
-	@Getter
-	@Setter
-	@EqualsAndHashCode
-	@ToString
 	private static final class Cup {
 		private final Integer label;
-		@ToString.Exclude private Cup next;
+		private Cup next;
+
+        public Cup(final Integer label, final AoC2020_23.Cup next) {
+            this.label = label;
+            this.next = next;
+        }
+
+        public Integer getLabel() {
+            return label;
+        }
+
+        public Cup getNext() {
+            return next;
+        }
+
+        public void setNext(final Cup next) {
+            this.next = next;
+        }
+        
+		@Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Cup [label=").append(label).append("]");
+            return builder.toString();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Cup other = (Cup) obj;
+            return Objects.equals(label, other.label) && Objects.equals(next, other.next);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(label, next);
+        }
 	}
 }

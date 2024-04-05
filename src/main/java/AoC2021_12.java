@@ -11,11 +11,6 @@ import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_12 extends AoCBase {
     
     private final System system;
@@ -61,7 +56,7 @@ public class AoC2021_12 extends AoCBase {
             onPath.run();
             return;
         }
-        for (final Cave to : this.system.getTunnels().get(start)) {
+        for (final Cave to : this.system.tunnels().get(start)) {
             if (proceed.apply(to, state)) {
                 final State newState = State.copyOf(state);
                 if (to.isSmall()) {
@@ -76,11 +71,11 @@ public class AoC2021_12 extends AoCBase {
     }
     
     private int solve(final BiFunction<Cave, State, Boolean> proceed) {
-        final Cave start = this.system.getStart();
+        final Cave start = this.system.start();
         final State state = new State(new HashSet<>(Set.of(start)), new HashSet<>());
         final MutableInt count = new MutableInt();
         
-        dfs(start, this.system.getEnd(), state, proceed, () -> count.increment());
+        dfs(start, this.system.end(), state, proceed, () -> count.increment());
         
         return count.intValue();
     }
@@ -160,10 +155,7 @@ public class AoC2021_12 extends AoCBase {
         "start-RW"
     );
     
-    @RequiredArgsConstructor
-    private static final class State {
-        private final Set<Cave> smallCavesSeen;
-        private final Set<Cave> smallCavesSeenTwice;
+    record State(Set<Cave> smallCavesSeen, Set<Cave> smallCavesSeenTwice) {
         
         public static State copyOf(final State state) {
             return new State(new HashSet<>(Set.copyOf(state.smallCavesSeen)),
@@ -171,12 +163,7 @@ public class AoC2021_12 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    @ToString
-    private static final class Cave {
-        private final String name;
+    record Cave(String name) {
         
         public boolean isSmall() {
             return StringUtils.isAllLowerCase(name);
@@ -191,21 +178,7 @@ public class AoC2021_12 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    @ToString
-    private static final class Tunnel {
-        private final Cave from;
-        private final Cave to;
-    }
+    record Tunnel(Cave from, Cave to) {}
     
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    private static final class System {
-        private final Map<Cave, Set<Cave>> tunnels;
-        private final Cave start;
-        private final Cave end;
-    }
+    record System(Map<Cave, Set<Cave>> tunnels, Cave start, Cave end) {}
 }

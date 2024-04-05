@@ -13,8 +13,6 @@ import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2020_11 extends AoCBase {
 	
     private static final char FLOOR = '.';
@@ -141,9 +139,5 @@ public class AoC2020_11 extends AoCBase {
 	        "L.LLLLL.LL"
 	);
 	
-	@RequiredArgsConstructor
-	private static final class CycleResult {
-	    private final CharGrid grid;
-	    private final boolean changed;
-	}
+	record CycleResult(CharGrid grid, boolean changed) {}
 }

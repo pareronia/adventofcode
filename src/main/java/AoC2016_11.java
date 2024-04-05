@@ -12,20 +12,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.Value;
-import lombok.With;
 
 public final class AoC2016_11 extends AoCBase {
     
@@ -42,7 +35,7 @@ public final class AoC2016_11 extends AoCBase {
         for (int i = 0; i < inputs.size(); i++) {
             String floor = inputs.get(i);
             floor = floor.replaceAll(",? and", ",");
-            floor = floor.replaceAll("\\.", "");
+            floor = floor.replace(".", "");
             final String contains = floor.split(" contains ")[1];
             final String[] contained = contains.split(", ");
             for (final String containee : contained) {
@@ -135,32 +128,17 @@ public final class AoC2016_11 extends AoCBase {
             "The fourth floor contains nothing relevant."
     );
     
-    @Value
     static final class State {
         private static final List<Integer> FLOORS = List.of(1, 2, 3, 4);
         private static final int TOP = FLOORS.stream().mapToInt(Integer::intValue).max().getAsInt();
         private static final int BOTTOM = FLOORS.stream().mapToInt(Integer::intValue).min().getAsInt();
         private static final int MAX_ITEMS_PER_MOVE = 2;
         
-        @Getter(AccessLevel.PRIVATE)
-        @With(AccessLevel.PRIVATE)
         private final Integer elevator;
-        @Getter(AccessLevel.PRIVATE)
-        @With(AccessLevel.PRIVATE)
         private final Map<String, Integer> chips;
-        @Getter(AccessLevel.PRIVATE)
-        @With(AccessLevel.PRIVATE)
         private final Map<String, Integer> gennys;
-        @With(AccessLevel.PRIVATE)
-        @EqualsAndHashCode.Exclude
         private final Integer diff;
-        @Getter(AccessLevel.PRIVATE)
-        @ToString.Exclude
-        @EqualsAndHashCode.Exclude
         private final Map<Integer, List<String>> chipsPerFloor;
-        @Getter(AccessLevel.PRIVATE)
-        @ToString.Exclude
-        @EqualsAndHashCode.Exclude
         private final Map<Integer, List<String>> gennysPerFloor;
 
         private State(
@@ -199,7 +177,18 @@ public final class AoC2016_11 extends AoCBase {
             this(elevator, chips, gennys, 0);
         }
         
-        @ToString.Include
+        public Map<String, Integer> getChips() {
+            return chips;
+        }
+
+        public Map<String, Integer> getGennys() {
+            return gennys;
+        }
+
+        public Integer getDiff() {
+            return diff;
+        }
+
         boolean isSafe() {
             for (final Entry<String, Integer> chip : this.chips.entrySet()) {
                 final List<String> gennysOnSameFloor
@@ -331,6 +320,22 @@ public final class AoC2016_11 extends AoCBase {
             return states;
         }
         
+        private State withElevator(final int elevator) {
+            return new State(elevator, this.chips, this.gennys, this.diff);
+        }
+        
+        private State withDiff(final int diff) {
+            return new State(this.elevator, this.chips, this.gennys, diff);
+        }
+        
+        private State withChips(final Map<String, Integer> chips) {
+            return new State(this.elevator, chips, this.gennys, this.diff);
+        }
+        
+        private State withGennys(final Map<String, Integer> gennys) {
+            return new State(this.elevator, this.chips, gennys, this.diff);
+        }
+        
         private State moveUpWithChips(final List<String> chips) {
             return withChipsTo(chips, this.elevator + 1)
                     .withElevator(this.elevator + 1)
@@ -378,12 +383,44 @@ public final class AoC2016_11 extends AoCBase {
             }
             return true;
         }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final State other = (State) obj;
+            return Objects.equals(elevator, other.elevator)
+                    && Objects.equals(chips, other.chips)
+                    && Objects.equals(gennys, other.gennys);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(chips, elevator, gennys);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("State [elevator=").append(elevator).append(", chips=").append(chips).append(", gennys=")
+                    .append(gennys).append(", diff=").append(diff)
+                    .append(", isSafe=").append(isSafe()).append("]");
+            return builder.toString();
+        }
     }
     
-    @RequiredArgsConstructor(staticName = "of")
-    private static final class Step {
-        private final int numberOfSteps;
-        private final State state;
+    record Step(int numberOfSteps, State state) {;
+        
+        public static Step of(final int numberOfSteps, final State state) {
+            return new Step(numberOfSteps, state);
+        }
         
         public int score() {
             return -state.getDiff() * numberOfSteps;

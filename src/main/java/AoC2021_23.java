@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.stream.IntStream;
@@ -15,12 +16,6 @@ import java.util.stream.Stream;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.Builder;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2021_23 extends AoCBase {
     
@@ -57,7 +52,7 @@ public class AoC2021_23 extends AoCBase {
             roomC.add(0, Enum.valueOf(Amphipod.class, chars.get(2).toString()));
             roomD.add(0, Enum.valueOf(Amphipod.class, chars.get(3).toString()));
         }
-        return new Diagram(
+        return Diagram.create(
             hallway,
             roomA.toArray(new Amphipod[roomA.size()]),
             roomB.toArray(new Amphipod[roomB.size()]),
@@ -170,10 +165,7 @@ public class AoC2021_23 extends AoCBase {
 
     enum Amphipod { EMPTY, A, B, C, D }
     
-    @RequiredArgsConstructor
-    private static final class State implements Comparable<State> {
-        private final Diagram diagram;
-        private final int cost;
+    record State(Diagram diagram, int cost) implements Comparable<State> {
         
         @Override
         public int compareTo(final State other) {
@@ -181,16 +173,8 @@ public class AoC2021_23 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @Getter
-    @Builder
-    @EqualsAndHashCode
-    @ToString
-    static final class Room {
-        private final Amphipod destinationFor;
-        @ToString.Exclude private final int capacity;
-        private final Amphipod[] amphipods;
-        
+    record Room(Amphipod destinationFor, int capacity, Amphipod[] amphipods) {
+
         public int vacancyFor(final Amphipod amphipod) {
             assert amphipod != Amphipod.EMPTY;
 //            System.out.println("Room " + destinationFor + ": " + amphipods[0] + ","+ amphipods[1]);
@@ -244,49 +228,62 @@ public class AoC2021_23 extends AoCBase {
                     .filter(a -> a == Amphipod.EMPTY)
                     .count();
         }
+
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Arrays.hashCode(amphipods);
+            return prime * result + Objects.hash(capacity, destinationFor);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Room other = (Room) obj;
+            return Arrays.equals(amphipods, other.amphipods)
+                    && capacity == other.capacity
+                    && destinationFor == other.destinationFor;
+        }
     }
     
-    @EqualsAndHashCode
-    @Getter
-    @ToString
-    static final class Diagram {
-        private final Room hallway;
-        private final Room roomA;
-        private final Room roomB;
-        private final Room roomC;
-        private final Room roomD;
+    record Diagram(Room hallway, Room roomA, Room roomB, Room roomC, Room roomD) {
         
-        public Diagram(
-                final Amphipod[] hallway,
+        public static Diagram create(
+                final Amphipod[] amphipodsHallway,
                 final Amphipod[] amphipodsA,
                 final Amphipod[] amphipodsB,
                 final Amphipod[] amphipodsC,
                 final Amphipod[] amphipodsD) {
-            this.hallway = Room.builder()
-                    .destinationFor(Amphipod.EMPTY)
-                    .capacity(hallway.length)
-                    .amphipods(hallway)
-                    .build();
-            this.roomA = Room.builder()
-                    .destinationFor(Amphipod.A)
-                    .capacity(amphipodsA.length)
-                    .amphipods(amphipodsA)
-                    .build();
-            this.roomB = Room.builder()
-                    .destinationFor(Amphipod.B)
-                    .capacity(amphipodsB.length)
-                    .amphipods(amphipodsB)
-                    .build();
-            this.roomC = Room.builder()
-                    .destinationFor(Amphipod.C)
-                    .capacity(amphipodsC.length)
-                    .amphipods(amphipodsC)
-                    .build();
-            this.roomD = Room.builder()
-                    .destinationFor(Amphipod.D)
-                    .capacity(amphipodsD.length)
-                    .amphipods(amphipodsD)
-                    .build();
+            final Room hallway = new Room(
+                    Amphipod.EMPTY,
+                    amphipodsHallway.length,
+                    amphipodsHallway);
+            final Room roomA = new Room(
+                    Amphipod.A,
+                    amphipodsA.length,
+                    amphipodsA);
+            final Room roomB = new Room(
+                    Amphipod.B,
+                    amphipodsB.length,
+                    amphipodsB);
+            final Room roomC = new Room(
+                    Amphipod.C,
+                    amphipodsC.length,
+                    amphipodsC);
+            final Room roomD = new Room(
+                    Amphipod.D,
+                    amphipodsD.length,
+                    amphipodsD);
+            return new Diagram(hallway, roomA, roomB, roomC, roomD);
         }
         
         public boolean complete() {
@@ -311,7 +308,7 @@ public class AoC2021_23 extends AoCBase {
         }
         
         public Diagram copy() {
-            return new Diagram(
+            return Diagram.create(
                     Arrays.copyOf(this.hallway.amphipods, this.hallway.amphipods.length),
                     Arrays.copyOf(this.roomA.amphipods, this.roomA.amphipods.length),
                     Arrays.copyOf(this.roomB.amphipods, this.roomB.amphipods.length),
@@ -567,13 +564,27 @@ public class AoC2021_23 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @ToString
     static abstract class Move {
         private final Amphipod room;
         private final int posFrom;
         private final int posTo;
         private final int energy;
+        
+        protected Move(final Amphipod room, final int posFrom, final int posTo, final int energy) {
+            this.room = room;
+            this.posFrom = posFrom;
+            this.posTo = posTo;
+            this.energy = energy;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Move [room=").append(room).append(", posFrom=")
+                .append(posFrom).append(", posTo=")
+                .append(posTo).append(", energy=").append(energy).append("]");
+            return builder.toString();
+        }
     }
     
     static final class MoveFromHallway extends Move {

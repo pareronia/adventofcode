@@ -12,10 +12,6 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_19 extends AoCBase {
     
     private final List<Blueprint> blueprints;
@@ -39,7 +35,7 @@ public class AoC2022_19 extends AoCBase {
     
     private int solve(final Blueprint blueprint, final int maxTime) {
         final Deque<State> q = new ArrayDeque<>();
-        q.add(new State(0, 0, 1, 0, 0, 0, 0, 0, 0));
+        q.add(State.create(0, 0, 1, 0, 0, 0, 0, 0, 0));
         final Set<State> seen = new HashSet<>();
         int best = Integer.MIN_VALUE;
         while (!q.isEmpty()) {
@@ -147,27 +143,27 @@ public class AoC2022_19 extends AoCBase {
         }
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    @EqualsAndHashCode
-    private static final class State {
+    record State(
+        byte time,
+        byte oreStore,
+        byte oreRobot,
+        byte clayStore,
+        byte clayRobot,
+        byte obisidianStore,
+        byte obsidianRobot,
+        byte geodeStore,
+        byte geodeRobot
+    ) {
         private static final double CUSHION = 1.5d;
 
-        private final byte time;
-        private final byte oreStore;
-        private final byte oreRobot;
-        private final byte clayStore;
-        private final byte clayRobot;
-        private final byte obisidianStore;
-        private final byte obsidianRobot;
-        private final byte geodeStore;
-        private final byte geodeRobot;
-
-        public State(final int time, final int oreStore, final int oreRobot,
+        public static State create(
+                final int time, final int oreStore, final int oreRobot,
                 final int clayStore, final int clayRobot,
                 final int obisidianStore, final int obsidianRobot,
                 final int geodStore, final int geodRobot
         ) {
-            this(   (byte) time,
+            return new State(
+                    (byte) time,
                     (byte) oreStore,
                     (byte) oreRobot,
                     (byte) clayStore,
@@ -213,7 +209,7 @@ public class AoC2022_19 extends AoCBase {
         }
 
         public State buildGeodeRobot(final Blueprint blueprint) {
-            return new State(
+            return State.create(
                 this.time + 1,
                 this.oreStore + this.oreRobot - blueprint.geodeOreCost,
                 this.oreRobot,
@@ -286,7 +282,7 @@ public class AoC2022_19 extends AoCBase {
                 final int oreStore, final int oreRobot, final int clayStore,
                 final int clayRobot, final int obisidianStore,
                 final int obsidianRobot, final int geodeStore, final int geodeRobot) {
-            return new State(
+            return State.create(
                     this.time + 1,
                     Math.min(oreStore, cushion(maxOre)),
                     oreRobot,

@@ -12,9 +12,6 @@ import com.github.pareronia.aoc.geometry3d.Cuboid;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_22 extends AoCBase {
     
     private static final Pattern PATTERN = Pattern.compile(
@@ -201,12 +198,10 @@ public class AoC2021_22 extends AoCBase {
         + "off x=-93533..-4276,y=-16170..68771,z=-104985..-24507"
     );
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class RebootStep {
-        private final RangeInclusive<Integer> x;
-        private final RangeInclusive<Integer> y;
-        private final RangeInclusive<Integer> z;
-        private final boolean on;
-    }
+    record RebootStep(
+        RangeInclusive<Integer> x,
+        RangeInclusive<Integer> y,
+        RangeInclusive<Integer> z,
+        boolean on
+    ) {}
 }

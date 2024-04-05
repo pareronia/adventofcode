@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.PriorityQueue;
 import java.util.Set;
 import java.util.TreeSet;
@@ -22,11 +23,6 @@ import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public final class AoC2016_24 extends AoCBase {
 
@@ -64,7 +60,7 @@ public final class AoC2016_24 extends AoCBase {
             .filter(cell -> this.grid.getValue(cell) != WALL)
             .map(newPos -> {
                 final char value = this.grid.getValue(newPos);
-                if (this.pois.keySet().contains(value)) {
+                if (this.pois.containsKey(value)) {
                     return Path.from(path, newPos, value);
                 } else {
                     return Path.from(path, newPos);
@@ -120,12 +116,10 @@ public final class AoC2016_24 extends AoCBase {
         return dist;
     }
     
-    @RequiredArgsConstructor(staticName = "of")
-    @EqualsAndHashCode
-    @ToString
-    private static final class FromTo {
-        private final char from;
-        private final char to;
+    record FromTo(char from, char to) {
+        public static FromTo of(final char from, final char to) {
+            return new FromTo(from, to);
+        }
     }
         
     public Integer solveAlt() {
@@ -185,15 +179,8 @@ public final class AoC2016_24 extends AoCBase {
             "###########"
     );
     
-    @ToString(onlyExplicitlyIncluded = true)
-    @EqualsAndHashCode(callSuper = false, onlyExplicitlyIncluded = true)
     private static final class Path {
-        @Getter
-        @ToString.Include
         private final int length;
-        @Getter
-        @ToString.Include
-        @EqualsAndHashCode.Include
         private final Cell position;
         private final List<Character> pois;
         
@@ -214,13 +201,10 @@ public final class AoC2016_24 extends AoCBase {
             return new Path(other.length + 1, position, pois);
         }
         
-        @ToString.Include
-        @EqualsAndHashCode.Include
         public Set<Character> getPois() {
             return new TreeSet<>(this.pois);
         }
         
-        @ToString.Include
         public List<Character> getPoisList() {
             return this.pois;
         }
@@ -231,9 +215,48 @@ public final class AoC2016_24 extends AoCBase {
                     + Math.abs(this.position.getCol() - destination.getCol());
         }
         
-        @ToString.Include
         public int score() {
             return this.length * 100 + MAX_POIS - this.pois.size();
+        }
+
+        public int getLength() {
+            return length;
+        }
+
+        public Cell getPosition() {
+            return position;
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Path other = (Path) obj;
+            return Objects.equals(position, other.position)
+                && Objects.equals(getPois(), other.getPois());
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(getPois(), position);
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Path [length=").append(length)
+                .append(", position=").append(position).append(", getPois=")
+                .append(getPois()).append(", getPoisList=")
+                .append(getPoisList()).append(", score=").append(score())
+                .append("]");
+            return builder.toString();
         }
     }
 }

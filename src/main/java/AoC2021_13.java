@@ -15,10 +15,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_13 extends AoCBase {
     
     private static final char FILL = '\u2592';
@@ -38,7 +34,7 @@ public class AoC2021_13 extends AoCBase {
         this._folds = new ArrayList<>();
         for (final String line : blocks.get(1)) {
             final String[] split = line.substring("fold along ".length()).split("=");
-            _folds.add(new Fold("x".equals(split[0]) ? true : false, Integer.valueOf(split[1])));
+            _folds.add(new Fold("x".equals(split[0]) ? true : false, Integer.parseInt(split[1])));
         }
     }
     
@@ -117,12 +113,7 @@ public class AoC2021_13 extends AoCBase {
         "▒▒▒▒▒ "
     );
     
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    private static final class Fold {
-        private final boolean xAxis;
-        private final int value;
+    record Fold(boolean xAxis, int value) {
         
         public Set<Position> applyTo(final Set<Position> positions) {
             if (this.xAxis) {

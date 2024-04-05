@@ -14,9 +14,6 @@ import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2022_22 extends AoCBase {
 
     private static final Pattern REGEX = Pattern.compile("([LR])([0-9]+)");
@@ -239,10 +236,5 @@ public class AoC2022_22 extends AoCBase {
         "10R5L5R10L4R5L5"
     );
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Move {
-        private final Turn turn;
-        private final int steps;
-    }
+    record Move(Turn turn, int steps) {}
 }

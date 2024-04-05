@@ -21,10 +21,6 @@ import com.github.pareronia.aocd.Puzzle;
 import com.github.pareronia.aocd.SystemUtils;
 import com.github.pareronia.aocd.User;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2019_17 extends AoCBase {
     
     private static final char SCAFFOLD = '#';
@@ -113,8 +109,7 @@ public class AoC2019_17 extends AoCBase {
             "....#####......"
     );
     
-    @RequiredArgsConstructor
-    private final class GridBuilder {
+    private static final class GridBuilder {
 
         public CharGrid build(final Deque<Long> output) {
             return CharGrid.from(asStrings(output));
@@ -136,11 +131,7 @@ public class AoC2019_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Move {
-        private final Cell from;
-        private final Cell to;
-        private final Direction direction;
+    record Move(Cell from, Cell to, Direction direction) {
         
         @Override
         public String toString() {
@@ -148,10 +139,7 @@ public class AoC2019_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Command {
-        private final char letter;
-        private final int count;
+    record Command(char letter, int count) {
         
         @Override
         public String toString() {
@@ -163,9 +151,12 @@ public class AoC2019_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
     private static final class PathFinder {
         private final CharGrid grid;
+
+        public PathFinder(final CharGrid grid) {
+            this.grid = grid;
+        }
 
         public List<Cell> findPath() {
             final Cell robot = grid.findAllMatching(Direction.CAPITAL_ARROWS::contains)
@@ -280,20 +271,11 @@ public class AoC2019_17 extends AoCBase {
                 return false;
             }
             
-            @RequiredArgsConstructor
-            @EqualsAndHashCode
-            @ToString
-            private static final class State {
-                private final Cell prev;
-                private final Cell curr;
-            }
+            record State(Cell prev, Cell curr) {}
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class IntCodeComputer {
-        private final List<Long> program;
-        private final boolean debug;
+    record IntCodeComputer(List<Long> program, boolean debug) {
         
         public Deque<Long> runCamera() {
             final IntCode intCode = new IntCode(this.program, this.debug);

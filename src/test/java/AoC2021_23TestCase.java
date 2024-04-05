@@ -17,7 +17,7 @@ public class AoC2021_23TestCase {
     public void movesInitial() {
         final AoC2021_23.Amphipod[] hallway = new AoC2021_23.Amphipod[11];
         Arrays.fill(hallway, EMPTY);
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
             hallway,
             new AoC2021_23.Amphipod[] { B, B },
             new AoC2021_23.Amphipod[] { C, C },
@@ -32,7 +32,7 @@ public class AoC2021_23TestCase {
     public void movesInitial_4() {
         final AoC2021_23.Amphipod[] hallway = new AoC2021_23.Amphipod[11];
         Arrays.fill(hallway, EMPTY);
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 hallway,
                 new AoC2021_23.Amphipod[] { B, D, D, B },
                 new AoC2021_23.Amphipod[] { C, B, C, C },
@@ -47,7 +47,7 @@ public class AoC2021_23TestCase {
     public void movesEnd() {
         final AoC2021_23.Amphipod[] hallway = new AoC2021_23.Amphipod[11];
         Arrays.fill(hallway, EMPTY);
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 hallway,
                 new AoC2021_23.Amphipod[] { A, A },
                 new AoC2021_23.Amphipod[] { B, B },
@@ -62,7 +62,7 @@ public class AoC2021_23TestCase {
     public void movesEnd_4() {
         final AoC2021_23.Amphipod[] hallway = new AoC2021_23.Amphipod[11];
         Arrays.fill(hallway, EMPTY);
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 hallway,
                 new AoC2021_23.Amphipod[] { A, A, A, A },
                 new AoC2021_23.Amphipod[] { B, B, B, B },
@@ -75,7 +75,7 @@ public class AoC2021_23TestCase {
     
     @Test
     public void moves1() {
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 // ...B.....B.
                 //  |C|A|.|.|
                 //  |D|A|C|D|
@@ -84,31 +84,31 @@ public class AoC2021_23TestCase {
                 new AoC2021_23.Amphipod[] { A, A },
                 new AoC2021_23.Amphipod[] { C, EMPTY },
                 new AoC2021_23.Amphipod[] { D, EMPTY });
-        assert diagram.getHallway().getAmphipods().length == 11;
+        assert diagram.hallway().amphipods().length == 11;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
         assertThat(moves).hasSize(4);
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
+        assertThat(moves.stream().filter(AoC2021_23.MoveFromHallway.class::isInstance)).isEmpty();
     }
     
     @Test
     public void moves2() {
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 new AoC2021_23.Amphipod[] { A, A, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY },
                 new AoC2021_23.Amphipod[] { EMPTY, EMPTY },
                 new AoC2021_23.Amphipod[] { B, B },
                 new AoC2021_23.Amphipod[] { C, C },
                 new AoC2021_23.Amphipod[] { D, D });
-        assert diagram.getHallway().getAmphipods().length == 11;
+        assert diagram.hallway().amphipods().length == 11;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveToHallway)).isEmpty();
+        assertThat(moves.stream().filter(AoC2021_23.MoveToHallway.class::isInstance)).isEmpty();
         assertThat(moves).hasSize(1);
     }
 
     @Test
     public void moves3() {
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 // A..........
                 //  |.|B|C|D|
                 //  |A|B|C|D|
@@ -117,62 +117,62 @@ public class AoC2021_23TestCase {
                 new AoC2021_23.Amphipod[] { B, B },
                 new AoC2021_23.Amphipod[] { C, C },
                 new AoC2021_23.Amphipod[] { D, D });
-        assert diagram.getHallway().getAmphipods().length == 11;
+        assert diagram.hallway().amphipods().length == 11;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveToHallway)).isEmpty();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).hasSize(1);
+        assertThat(moves.stream().filter(AoC2021_23.MoveToHallway.class::isInstance)).isEmpty();
+        assertThat(moves.stream().filter(AoC2021_23.MoveFromHallway.class::isInstance)).hasSize(1);
         assertThat(moves).hasSize(1);
     }
     
     @Test
     public void moves4() {
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 new AoC2021_23.Amphipod[] { C, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY },
                 new AoC2021_23.Amphipod[] { D, EMPTY },
                 new AoC2021_23.Amphipod[] { A, A },
                 new AoC2021_23.Amphipod[] { C, B },
                 new AoC2021_23.Amphipod[] { D, B });
-        assert diagram.getHallway().getAmphipods().length == 11;
+        assert diagram.hallway().amphipods().length == 11;
         assert diagram.freeLeftFromA().size() == 1;
         assert diagram.freeRightFromA().size() == 5;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
         assertThat(moves).hasSize(24);
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
+        assertThat(moves.stream().filter(AoC2021_23.MoveFromHallway.class::isInstance)).isEmpty();
     }
 
     @Test
     public void moves4_4() {
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 new AoC2021_23.Amphipod[] { B, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY },
                 new AoC2021_23.Amphipod[] { B, D, D, EMPTY },
                 new AoC2021_23.Amphipod[] { C, B, C, C },
                 new AoC2021_23.Amphipod[] { D, A, B, A },
                 new AoC2021_23.Amphipod[] { A, C, A, D });
-        assert diagram.getHallway().getAmphipods().length == 11;
+        assert diagram.hallway().amphipods().length == 11;
         assert diagram.freeLeftFromA().size() == 1;
         assert diagram.freeRightFromA().size() == 5;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
+        assertThat(moves.stream().filter(AoC2021_23.MoveFromHallway.class::isInstance)).isEmpty();
         assertThat(moves).hasSize(24);
     }
 
     @Test
     public void moves5_4() {
-        final AoC2021_23.Diagram diagram = new AoC2021_23.Diagram(
+        final AoC2021_23.Diagram diagram = AoC2021_23.Diagram.create(
                 new AoC2021_23.Amphipod[] { B, D, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY },
                 new AoC2021_23.Amphipod[] { B, D, EMPTY, EMPTY },
                 new AoC2021_23.Amphipod[] { C, B, C, C },
                 new AoC2021_23.Amphipod[] { D, A, B, A },
                 new AoC2021_23.Amphipod[] { A, C, A, D });
-        assert diagram.getHallway().getAmphipods().length == 11;
+        assert diagram.hallway().amphipods().length == 11;
         assert diagram.freeLeftFromA().size() == 0;
         assert diagram.freeRightFromA().size() == 5;
         
         final List<AoC2021_23.Move> moves = diagram.moves();
-        assertThat(moves.stream().filter(m -> m instanceof AoC2021_23.MoveFromHallway)).isEmpty();
+        assertThat(moves.stream().filter(AoC2021_23.MoveFromHallway.class::isInstance)).isEmpty();
         assertThat(moves).hasSize(20);
     }
     

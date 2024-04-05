@@ -8,9 +8,6 @@ import java.util.Set;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2020_18 extends AoCBase {
     
     private final List<String> input;
@@ -85,7 +82,7 @@ public class AoC2020_18 extends AoCBase {
         return this.input.stream()
                 .map(this::tokenize)
                 .map(this::evaluate)
-                .mapToLong(ResultAndPosition::getResult)
+                .mapToLong(ResultAndPosition::result)
                 .sum();
 	}
 
@@ -95,7 +92,7 @@ public class AoC2020_18 extends AoCBase {
 	            .map(this::fixForAdditionPreference)
 	            .map(this::tokenize)
 	            .map(this::evaluate)
-	            .mapToLong(ResultAndPosition::getResult)
+	            .mapToLong(ResultAndPosition::result)
 	            .sum();
 	}
 
@@ -120,10 +117,5 @@ public class AoC2020_18 extends AoCBase {
 			"((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"
 	);
 	
-	@RequiredArgsConstructor
-    private static final class ResultAndPosition {
-	    @Getter
-        private final long result;
-        private final int position;
-	}
+    record ResultAndPosition(long result, int position) {}
 }

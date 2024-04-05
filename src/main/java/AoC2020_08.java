@@ -11,8 +11,6 @@ import com.github.pareronia.aoc.vm.VirtualMachine.InfiniteLoopException;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Value;
-
 public class AoC2020_08 extends AoCBase {
     
 	private final List<Instruction_> instructions;
@@ -129,9 +127,5 @@ public class AoC2020_08 extends AoCBase {
 	        "acc +6"
 	);
 	
-	@Value
-	private static final class Instruction_ {
-	    private final String operator;
-	    private final Integer operand;
-	}
+	record Instruction_(String operator, Integer operand) {}
 }

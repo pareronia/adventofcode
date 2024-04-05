@@ -6,10 +6,6 @@ import java.util.function.Function;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2021_02 extends AoCBase {
     
     // private static final String FORWARD = "forward";
@@ -40,12 +36,12 @@ public class AoC2021_02 extends AoCBase {
     public Long solvePart1() {
 	    long hor = 0, ver = 0;
 	    for (final Command command : this.commands) {
-	        if (UP.equals(command.getDirection())) {
-	            ver -= command.getAmount();
-	        } else if (DOWN.equals(command.getDirection())) {
-	            ver += command.getAmount();
+	        if (UP.equals(command.direction())) {
+	            ver -= command.amount();
+	        } else if (DOWN.equals(command.direction())) {
+	            ver += command.amount();
 	        } else {
-	            hor += command.getAmount();
+	            hor += command.amount();
 	        }
         }
 	    return hor * ver;
@@ -55,13 +51,13 @@ public class AoC2021_02 extends AoCBase {
 	public Long solvePart2() {
 	    long hor = 0, ver = 0, aim = 0;
 	    for (final Command command : this.commands) {
-	        if (UP.equals(command.getDirection())) {
-	            aim -= command.getAmount();
-	        } else if (DOWN.equals(command.getDirection())) {
-	            aim += command.getAmount();
+	        if (UP.equals(command.direction())) {
+	            aim -= command.amount();
+	        } else if (DOWN.equals(command.direction())) {
+	            aim += command.amount();
 	        } else {
-	            hor += command.getAmount();
-	            ver += (aim * command.getAmount());
+	            hor += command.amount();
+	            ver += (aim * command.amount());
 	        }
         }
 	    return hor * ver;
@@ -88,14 +84,10 @@ public class AoC2021_02 extends AoCBase {
             "forward 2"
     );
 	
-	@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-	@Getter
-	private static final class Command {
-	    private final String direction;
-	    private final int amount;
+	record Command(String direction, int amount) {
 	    
 	    public static Command create(final String direction, final String amount) {
-	        return new Command(direction, Integer.valueOf(amount));
+	        return new Command(direction, Integer.parseInt(amount));
 	    }
 	}
 }

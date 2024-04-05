@@ -9,9 +9,6 @@ import java.util.function.Function;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2021_04 extends AoCBase {
     
     private final List<Integer> draws;
@@ -62,7 +59,7 @@ public class AoC2021_04 extends AoCBase {
             return bingoes.size() == stopCount;
         });
         final Bingo lastBingo = bingoes.get(bingoes.size() - 1);
-        return lastBingo.getDraw() * lastBingo.getBoard().value();
+        return lastBingo.draw() * lastBingo.board().value();
 	}
 	
 	@Override
@@ -117,21 +114,23 @@ public class AoC2021_04 extends AoCBase {
                         .collect(joining(" "))));
     }
     
-    @RequiredArgsConstructor
-    @Getter
-    private static final class Bingo {
-        private final int draw;
-        private final Board board;
-    }
+    record Bingo(int draw, Board board) {}
 
-    @Getter
 	private static class Board {
         private static final int MARKED = -1;
         
 	    private final int[][] numbers;
 	    private boolean complete = false;
 	    
-	    public Board(final List<String> numbers) {
+	    public boolean isComplete() {
+            return complete;
+        }
+
+        public int[][] getNumbers() {
+            return numbers;
+        }
+
+        public Board(final List<String> numbers) {
 	        final int[][] cells = new int[numbers.size()][numbers.get(0).length()];
 	        for (int i = 0; i < numbers.size(); i++) {
 	            cells[i] = Arrays.stream(numbers.get(i).split("\\s+"))

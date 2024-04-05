@@ -3,14 +3,12 @@ import java.util.List;
 
 import com.github.pareronia.aocd.Aocd;
 
-import lombok.Value;
-
 public class AoC2020_13 extends AoCBase {
 	
     private final Integer target;
 	private final List<Bus> buses;
 	
-	private AoC2020_13(List<String> input, boolean debug) {
+	private AoC2020_13(final List<String> input, final boolean debug) {
 		super(debug);
 		assert input.size() == 2;
 		this.target = Integer.valueOf(input.get(0));
@@ -24,11 +22,11 @@ public class AoC2020_13 extends AoCBase {
 		}
 	}
 	
-	public static AoC2020_13 create(List<String> input) {
+	public static AoC2020_13 create(final List<String> input) {
 		return new AoC2020_13(input, false);
 	}
 
-	public static AoC2020_13 createDebug(List<String> input) {
+	public static AoC2020_13 createDebug(final List<String> input) {
 		return new AoC2020_13(input, true);
 	}
 	
@@ -38,8 +36,8 @@ public class AoC2020_13 extends AoCBase {
 	    while (true) {
 	        final int t = this.target + cnt;
 	        for (final Bus b : this.buses) {
-	            if (t % b.getPeriod() == 0) {
-	                return b.getPeriod() * cnt;
+	            if (t % b.period() == 0) {
+	                return b.period() * cnt;
 	            }
             }
 	        cnt++;
@@ -53,10 +51,10 @@ public class AoC2020_13 extends AoCBase {
 	    for (int i = 0; i < this.buses.size() - 1; i++) {
 	        final Bus cur = this.buses.get(i);
 	        final Bus nxt = this.buses.get(i + 1);
-	        lcm = lcm * cur.getPeriod();
+	        lcm = lcm * cur.period();
 	        while (true) {
 	            r += lcm;
-	            if ((r + (long) nxt.getOffset()) % nxt.getPeriod() == 0)  {
+	            if ((r + (long) nxt.offset()) % nxt.period() == 0)  {
 	                break;
 	            }
 	        }
@@ -64,7 +62,7 @@ public class AoC2020_13 extends AoCBase {
 		return r;
 	}
 
-	public static void main(String[] args) throws Exception {
+	public static void main(final String[] args) throws Exception {
 		assert AoC2020_13.createDebug(TEST1).solvePart1() == 295;
 		assert AoC2020_13.createDebug(TEST2).solvePart2() == 108;
 		assert AoC2020_13.createDebug(TEST3).solvePart2() == 3417;
@@ -107,9 +105,5 @@ public class AoC2020_13 extends AoCBase {
 	        "1789,37,47,1889"
 	);
 	
-	@Value
-	private static final class Bus {
-	    private final Integer period;
-	    private final Integer offset;
-	}
+	record Bus(Integer period, Integer offset) {}
 }

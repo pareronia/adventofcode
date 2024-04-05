@@ -5,10 +5,12 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
@@ -20,10 +22,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 // TODO: needs more cleanup
 public class AoC2022_17 extends AoCBase {
@@ -236,7 +234,7 @@ public class AoC2022_17 extends AoCBase {
             return positions.stream()
                 .collect(groupingBy(
                     Position::getX,
-                    mapping(p -> p.getY(), reducing(Integer.MIN_VALUE, Math::max))));
+                    mapping(Position::getY, reducing(Integer.MIN_VALUE, Math::max))));
         }
 
         public boolean contains(final Position p) {
@@ -275,10 +273,13 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
     public static final class JetSupplier implements Supplier<Direction> {
         private final List<Direction> jets;
         private int idx = 0;
+
+        public JetSupplier(final List<Direction> jets) {
+            this.jets = jets;
+        }
 
         @Override
         public Direction get() {
@@ -286,13 +287,29 @@ public class AoC2022_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    @ToString
-    private static final class State {
-        private final int shape;
-        private final int[] tops;
-        private final Direction jet;
+    record State(int shape, int[] tops, Direction jet) {
+        
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + Arrays.hashCode(tops);
+            return prime * result + Objects.hash(jet, shape);
+        }
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final State other = (State) obj;
+            return jet == other.jet && shape == other.shape && Arrays.equals(tops, other.tops);
+        }
     }
     
     private static final record Cycle(int cycle, int top) { }

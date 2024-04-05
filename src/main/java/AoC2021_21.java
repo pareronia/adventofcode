@@ -2,15 +2,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 // TODO: add iterative verson
 public class AoC2021_21 extends AoCBase {
@@ -33,14 +28,18 @@ public class AoC2021_21 extends AoCBase {
         return new AoC2021_21(input, true);
     }
     
-    @AllArgsConstructor
-    @EqualsAndHashCode
-    @ToString
     private static final class Game {
         private int pos1;
         private int pos2;
         private int score1;
         private int score2;
+
+        public Game(final int pos1, final int pos2, final int score1, final int score2) {
+            this.pos1 = pos1;
+            this.pos2 = pos2;
+            this.score1 = score1;
+            this.score2 = score2;
+        }
         
         public void turn1(final int[] rolls) {
             for (final int roll : rolls) {
@@ -54,6 +53,35 @@ public class AoC2021_21 extends AoCBase {
                 pos2 = (pos2 + roll) % 10;
             }
             score2 += pos2 + 1;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Game [pos1=").append(pos1).append(", pos2=")
+                .append(pos2).append(", score1=").append(score1)
+                .append(", score2=").append(score2).append("]");
+            return builder.toString();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Game other = (Game) obj;
+            return pos1 == other.pos1 && pos2 == other.pos2 && score1 == other.score1 && score2 == other.score2;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(pos1, pos2, score1, score2);
         }
     }
     
@@ -98,13 +126,13 @@ public class AoC2021_21 extends AoCBase {
             final int nPos = (game.pos1 + roll.getKey()) % 10;
             final int nScore = game.score1 + nPos + 1;
             if (nScore >= 21 ) {
-                wins = new LongPair(wins.getOne() + roll.getValue(), wins.getTwo());
+                wins = new LongPair(wins.one() + roll.getValue(), wins.two());
             } else {
                 final Game newGame = new Game(game.pos2, nPos, game.score2, nScore);
                 final LongPair nwins = solve2(newGame);
                 wins = new LongPair(
-                        wins.getOne() + roll.getValue() * nwins.getTwo(),
-                        wins.getTwo() + roll.getValue() * nwins.getOne());
+                        wins.one() + roll.getValue() * nwins.two(),
+                        wins.two() + roll.getValue() * nwins.one());
             }
         }
         winsCache.put(game, wins);
@@ -116,7 +144,7 @@ public class AoC2021_21 extends AoCBase {
         final LongPair ans
             = solve2(new Game(this.p1 - 1, this.p2 - 1, 0, 0));
         log(ans);
-        return Math.max(ans.getOne(), ans.getTwo());
+        return Math.max(ans.one(), ans.two());
     }
 
     public static void main(final String[] args) throws Exception {
@@ -136,10 +164,5 @@ public class AoC2021_21 extends AoCBase {
         "Player 2 starting position: 8"
     );
     
-    @RequiredArgsConstructor
-    @Getter
-    private static final class LongPair {
-        private final Long one;
-        private final Long two;
-    }
+    record LongPair(Long one, Long two) {}
 }
