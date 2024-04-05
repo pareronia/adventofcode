@@ -296,6 +296,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "AoC2023_07"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "counter",
+ "itertools",
+]
+
+[[package]]
 name = "AoC2023_08"
 version = "0.1.0"
 dependencies = [
@@ -305,6 +314,58 @@ dependencies = [
 
 [[package]]
 name = "AoC2023_09"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+]
+
+[[package]]
+name = "AoC2023_15"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "linked-hash-map",
+]
+
+[[package]]
+name = "AoC2023_16"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "itertools",
+]
+
+[[package]]
+name = "AoC2023_17"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+]
+
+[[package]]
+name = "AoC2023_18"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+]
+
+[[package]]
+name = "AoC2023_19"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "itertools",
+]
+
+[[package]]
+name = "AoC2023_21"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+]
+
+[[package]]
+name = "AoC2023_23"
 version = "0.1.0"
 dependencies = [
  "aoc",
@@ -370,6 +431,15 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "counter"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2d458e66999348f56fd3ffcfbb7f7951542075ca8359687c703de6500c1ddccd"
+dependencies = [
+ "num-traits",
+]
 
 [[package]]
 name = "crossbeam-channel"
@@ -498,6 +568,12 @@ name = "libc"
 version = "0.2.147"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4668fb0ea861c1df094127ac5f1da3409a82116a4ba74fca2e58ef927159bb3"
+
+[[package]]
+name = "linked-hash-map"
+version = "0.5.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0717cef1bc8b636c6e1c1bbdefc09e6322da8a9321966e8928ef80d20f7f770f"
 
 [[package]]
 name = "md-5"

@@ -90,6 +90,14 @@ public enum Direction {
         return this.vector.getY();
     }
     
+    public boolean isHorizontal() {
+        return this == Direction.LEFT || this == Direction.RIGHT;
+    }
+
+    public boolean isVertical() {
+        return this == Direction.UP || this == Direction.DOWN;
+    }
+    
     public Direction turn(final Turn turn) {
         AssertUtils.assertNotNull(turn, () -> "Expected turn be non-null");
         return switch (this) {

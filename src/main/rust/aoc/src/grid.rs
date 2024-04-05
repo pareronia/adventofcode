@@ -1,3 +1,4 @@
+use crate::geometry::XY;
 use std::cmp::Ordering;
 use std::fmt::{Display, Error, Formatter};
 
@@ -10,6 +11,22 @@ pub struct Cell {
 impl Cell {
     pub fn at(row: usize, col: usize) -> Cell {
         Cell { row, col }
+    }
+
+    pub fn try_at(
+        &self,
+        direction: crate::geometry::Direction,
+    ) -> Option<Cell> {
+        let xy = XY::try_from(direction).unwrap();
+        if xy.y() > 0 && xy.y() > self.row as i32
+            || xy.x() < 0 && xy.x().abs() > self.col as i32
+        {
+            return None;
+        }
+        Some(Cell {
+            row: (self.row as i32 - xy.y()) as usize,
+            col: (self.col as i32 + xy.x()) as usize,
+        })
     }
 
     pub fn capital_neighbours(&self) -> Vec<Cell> {
@@ -435,6 +452,31 @@ impl Display for CharGrid {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    pub fn cell_get_at() {
+        assert_eq!(Cell::at(0, 5).try_at(crate::geometry::Direction::Up), None);
+        assert_eq!(
+            Cell::at(5, 0).try_at(crate::geometry::Direction::Left),
+            None
+        );
+        assert_eq!(
+            Cell::at(5, 5).try_at(crate::geometry::Direction::Up),
+            Some(Cell::at(4, 5))
+        );
+        assert_eq!(
+            Cell::at(5, 5).try_at(crate::geometry::Direction::Right),
+            Some(Cell::at(5, 6))
+        );
+        assert_eq!(
+            Cell::at(5, 5).try_at(crate::geometry::Direction::Down),
+            Some(Cell::at(6, 5))
+        );
+        assert_eq!(
+            Cell::at(5, 5).try_at(crate::geometry::Direction::Left),
+            Some(Cell::at(5, 4))
+        );
+    }
 
     #[test]
     #[should_panic]

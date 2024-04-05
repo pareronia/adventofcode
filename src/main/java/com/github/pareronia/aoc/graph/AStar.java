@@ -41,6 +41,34 @@ public class AStar {
         return new Result<>(start, best, parent);
     }
 
+    public static <T> long distance(
+            final T start,
+            final Predicate<T> end,
+            final Function<T, Stream<T>> adjacent,
+            final Function<T, Integer> cost
+    ) {
+        final PriorityQueue<State<T>> q = new PriorityQueue<>();
+        q.add(new State<>(start, 0));
+        final Map<T, Long> best = new HashMap<>();
+        best.put(start, 0L);
+        while (!q.isEmpty()) {
+            final State<T> state = q.poll();
+            if (end.test(state.node)) {
+                return state.cost;
+            }
+            final long cTotal = best.getOrDefault(state.node, Long.MAX_VALUE);
+            adjacent.apply(state.node)
+                .forEach(n -> {
+                    final long newRisk = cTotal + cost.apply(n);
+                    if (newRisk < best.getOrDefault(n, Long.MAX_VALUE)) {
+                        best.put(n, newRisk);
+                        q.add(new State<>(n, newRisk));
+                    }
+            });
+        }
+        throw new IllegalStateException("Unsolvable");
+    }
+
     private static final class State<T> implements Comparable<State<T>> {
         private final T node;
         private final long cost;
