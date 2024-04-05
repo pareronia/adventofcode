@@ -4,6 +4,7 @@ import static java.util.stream.Collectors.mapping;
 import static java.util.stream.Collectors.toList;
 
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,13 +48,10 @@ public class AoC2015_19
             final String c = m.substring(i, i + 1);
             if (replacements.containsKey(c)) {
                 key = c;
-            } else if (i + 2 <= m.length()) {
-                final String cc = m.substring(i, i + 2);
-                if (replacements.containsKey(cc)) {
-                    key = cc;
-                } else {
-                    continue;
-                }
+            } else if (replacements.containsKey(m.substring(i, Math.min(m.length(), i + 2)))) {
+                key = m.substring(i, Math.min(m.length(), i + 2));
+            } else {
+                continue;
             }
             for (final String r : replacements.get(key)) {
                 molecules.add(m.substring(0, i) + r + m.substring(i + key.length()));
@@ -128,7 +126,7 @@ public class AoC2015_19
         assert test.solve2bis(test.parseInput(TEST4)) == 3;
         assert test.solve2bis(test.parseInput(TEST5)) == 6;
         
-        AoC2015_19.create().run();
+        AoC2015_19.createDebug().run();
     }
     
     private static final String TEST1 =
@@ -151,7 +149,7 @@ public class AoC2015_19
     	H => OH\r
     	Oo => HH\r
     	\r
-    	HOHOHO""";
+    	HOHOoHO""";
     private static final List<String> TEST4 = splitLines(
                 "e => H\r\n"
               + "e => O\r\n"
@@ -177,9 +175,10 @@ public class AoC2015_19
     ) {
         public static ReplacementsAndMolecule fromInput(final List<String> inputs) {
             final List<List<String>> blocks = StringOps.toBlocks(inputs);
+            // replacement result depends on order of input -> using LinkedHashMap
             final Map<String, List<String>> replacements = blocks.get(0).stream()
                 .map(s -> s.split(" => "))
-                .collect(groupingBy(sp -> sp[0], mapping(s -> s[1], toList())));
+                .collect(groupingBy(sp -> sp[0], LinkedHashMap::new, mapping(s -> s[1], toList())));
             assert blocks.get(1).size() == 1;
             final String molecule = blocks.get(1).get(0);
             return new ReplacementsAndMolecule(replacements, molecule);
