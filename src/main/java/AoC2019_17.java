@@ -87,7 +87,7 @@ public class AoC2019_17 extends AoCBase {
     
     @Override
     public Integer solvePart2() {
-        return solve2(4, 3);
+        return solve2(5, 3);
     }
 
     public static void main(final String[] args) throws Exception {
