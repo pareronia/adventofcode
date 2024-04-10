@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.StringOps.splitLines;
 import static java.util.stream.Stream.iterate;
 
 import java.util.ArrayDeque;
@@ -8,8 +9,8 @@ import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2019_19 extends SolutionBase<List<Long>, Integer, Integer> {
-    
+public class AoC2019_19 extends SolutionBase<AoC2019_19.Beam, Integer, Integer> {
+        
     private AoC2019_19(final boolean debug) {
         super(debug);
     }
@@ -23,43 +24,122 @@ public class AoC2019_19 extends SolutionBase<List<Long>, Integer, Integer> {
     }
  
     @Override
-    protected List<Long> parseInput(final List<String> inputs) {
-        return IntCode.parse(inputs.get(0));
+    protected Beam parseInput(final List<String> inputs) {
+        return Beam.fromString(inputs.get(0));
     }
 
     @Override
-    public Integer solvePart1(final List<Long> program) {
-        return (int) iterate(0, r -> r < 50, r -> r + 1)
+    public Integer solvePart1(final Beam beam) {
+        return solve1(beam, 50);
+    }
+    
+    private int solve1(final Beam beam, final int size) {
+        return (int) iterate(0, r -> r < size, r -> r + 1)
             .flatMap(r ->
-                iterate(0, c -> c < 50, c -> c + 1).map(c -> Cell.at(r, c))
+                iterate(0, c -> c < size, c -> c + 1).map(c -> Cell.at(r, c))
             )
-            .filter(cell -> inBeam(program, cell))
+            .filter(beam::contains)
             .count();
     }
 
     @Override
-    public Integer solvePart2(final List<Long> program) {
-        for (int r = 600; r < 1_100; r++) {
-            for (int c = 900; c < 1_100; c++) {
-                if (this.inBeam(program, Cell.at(r + 99,  c - 99))
-                        && this.inBeam(program, Cell.at(r,  c))) {
-                    return r * 10_000 + (c - 99);
-                }
+    public Integer solvePart2(final Beam beam) {
+        return solve2(beam, 100);
+    }
+    
+    private int solve2(final Beam beam, final int size) {
+        int r = size - 1, c = 0;
+        while (true) {
+            while (!beam.contains(Cell.at(r, c))) {
+               c++;
             }
+            if (beam.contains(Cell.at(r - (size - 1),  c + (size - 1)))) {
+                return (r - (size - 1)) * 10_000 + c;
+            }
+            r++;
         }
-        throw new IllegalStateException("Unsolvable");
     }
 
+    @Override
+    public void samples() {
+        assert solve1(parseInput(splitLines(TEST1)), 10) == 27;
+        assert solve2(parseInput(splitLines(TEST2)), 10) == 250020;
+    }
+    
     public static void main(final String[] args) throws Exception {
         AoC2019_19.create().run();
     }
     
-    private boolean inBeam(final List<Long> program, final Cell cell) {
-        final Deque<Long> input = new ArrayDeque<>();
-        input.add((long) cell.getRow());
-        input.add((long) cell.getCol());
-        final Deque<Long> output = new ArrayDeque<>();
-        new IntCode(program, false).runTillHasOutput(input, output);
-        return output.getFirst() == 1;
+    record Beam(List<Long> program) {
+        
+        public static Beam fromString(final String string) {
+            return new Beam(IntCode.parse(string));
+        }
+
+        public boolean contains(final Cell cell) {
+            final Deque<Long> input = new ArrayDeque<>();
+            input.add((long) cell.getRow());
+            input.add((long) cell.getCol());
+            final Deque<Long> output = new ArrayDeque<>();
+            new IntCode(program, false).runTillHasOutput(input, output);
+            return output.getFirst() == 1;
+        }
     }
+    
+    private static final String TEST1 = """
+            3,20,3,21,2,21,22,24,1,24,20,24,9,24,204,25,99,0,0,0,0,0,10,10,\
+            0,1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,\
+            0,0,1,1,1,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,\
+            0,0,0,1,1,1,1,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,\
+            0,0,0,1,1
+            """;
+    private static final String TEST2 = """
+            3,20,3,21,2,21,22,24,1,24,20,24,9,24,204,25,99,0,0,0,0,0,40,35,\
+            0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,\
+            1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,\
+            1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,\
+            1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,\
+            1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,\
+            1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,\
+            1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,\
+            1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,\
+            1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,\
+            1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,\
+            1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,\
+            1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,\
+            1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,\
+            0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1,1,\
+            1,1,1,1,1,1
+            """;
 }
