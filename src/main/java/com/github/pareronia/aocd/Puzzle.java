@@ -40,6 +40,7 @@ public class Puzzle {
 	private final SystemUtils systemUtils;
 	private final int year;
 	private final int day;
+	private final User user;
 	private final Path inputDataFile;
 	private final Path titleFile;
 	private final Path answer1File;
@@ -54,6 +55,7 @@ public class Puzzle {
 		this.systemUtils = systemUtils;
 		this.year = year;
 		this.day = day;
+		this.user = user;
 		this.inputDataFile = user.getMemoDir().resolve(String.format("%d_%02d_input.txt", year, day));
 		this.titleFile = aocdDir.resolve("titles").resolve(String.format("%d_%02d.txt", year, day));
 		this.answer1File = user.getMemoDir().resolve(String.format("%d_%02da_answer.txt", year, day));
@@ -86,6 +88,10 @@ public class Puzzle {
 
     public int getDay() {
         return day;
+    }
+
+    public User getUser() {
+        return user;
     }
 
     public <V1, V2> void check(final Callable<V1> part1, final Callable<V2> part2) throws Exception {
@@ -139,11 +145,14 @@ public class Puzzle {
 	            System.err.println("!! PUZZLE NOT YET RELEASED !!");
 	            return inputData;
 	        }
-	        systemUtils.getInput(year, day, inputDataFile);
-	        inputData = systemUtils.readAllLinesIfExists(inputDataFile);
-	    }
-	    if (inputData.isEmpty()) {
-	        System.err.println("!! INPUT DATA MISSING !!");
+	        final String token = this.user.getToken();
+            if (!token.startsWith("offline|")) {
+	            systemUtils.getInput(token, year, day, inputDataFile);
+	            inputData = systemUtils.readAllLinesIfExists(inputDataFile);
+	            if (inputData.isEmpty()) {
+	                System.err.println("!! INPUT DATA MISSING !!");
+	            }
+	        }
 	    }
 	    return inputData;
 	}

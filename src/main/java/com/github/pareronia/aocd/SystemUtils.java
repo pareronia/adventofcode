@@ -115,11 +115,11 @@ public class SystemUtils {
 	    return System.nanoTime();
 	}
 	
-	public void getInput(final int year, final int day, final Path path) {
+	public void getInput(final String token, final int year, final int day, final Path path) {
 	    final HttpClient http = HttpClient.newHttpClient();
 	    final HttpRequest request = HttpRequest.newBuilder()
 	            .uri(URI.create(String.format("https://adventofcode.com/%d/day/%d/input", year, day)))
-	            .header("Cookie", "session=" + getToken())
+	            .header("Cookie", "session=" + token)
 	            .build();
         try {
             http.send(request, BodyHandlers.ofFile(path));

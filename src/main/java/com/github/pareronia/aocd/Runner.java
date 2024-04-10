@@ -51,6 +51,10 @@ class Runner {
 	private final ClassFactory classFactory;
 	
 	Response run(final Request request) throws Exception {
+	    return run(request, true);
+	}
+	
+	Response run(final Request request, final boolean warmup) throws Exception {
 		final Class<?> klass;
 		try {
 			final String className = "AoC" + request.year.toString()
@@ -60,15 +64,23 @@ class Runner {
 			return Response.EMPTY;
 		}
 		if (SolutionBase.class.isAssignableFrom(klass)) {
-		    warmUpSolutionPart(1, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpSolutionPart(1, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result1 = runSolutionPart(1, klass, List.copyOf(request.inputs));
-		    warmUpSolutionPart(2, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpSolutionPart(2, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result2 = runSolutionPart(2, klass, List.copyOf(request.inputs));
 		    return Response.create(result1, result2);
 		} else {
-		    warmUpPart(1, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpPart(1, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
-		    warmUpPart(2, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpPart(2, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
 		    return Response.create(result1, result2);
 		}

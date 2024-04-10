@@ -22,12 +22,17 @@ public class UserTestCase {
 		when(systemUtils.getAocdDir()).thenReturn(Paths.get("aocdDir"));
 		when(systemUtils.getUserIds()).thenReturn(Map.of("token", "uid"));
 
-		user = User.create(systemUtils, "token");
+		user = new User(systemUtils, "token", "name");
 	}
 
 	@Test
 	public void getToken() {
 		assertThat(user.getToken()).isEqualTo("token");
+	}
+	
+	@Test
+	public void getName() {
+		assertThat(user.getName()).isEqualTo("name");
 	}
 	
 	@Test

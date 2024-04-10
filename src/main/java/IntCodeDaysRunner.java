@@ -3,6 +3,7 @@ import java.util.Set;
 import com.github.pareronia.aocd.MultipleDaysRunner;
 import com.github.pareronia.aocd.MultipleDaysRunner.Day;
 import com.github.pareronia.aocd.MultipleDaysRunner.Listener;
+import com.github.pareronia.aocd.User;
 
 public class IntCodeDaysRunner {
 
@@ -18,6 +19,6 @@ public class IntCodeDaysRunner {
     );
 
 	public static void main(final String[] args) throws Exception {
-	   new MultipleDaysRunner().run(DAYS, new Listener() {});
+	   new MultipleDaysRunner().run(DAYS, User.getUserNames(), new Listener() {});
 	}
 }

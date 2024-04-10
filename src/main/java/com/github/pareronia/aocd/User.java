@@ -25,17 +25,20 @@ package com.github.pareronia.aocd;
 
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Set;
 
 public class User {
 	
 	private final String token;
 	private final Path memoDir;
 	private final String id;
+	private final String name;
 
-	private User(final SystemUtils systemUtils, final String token) {
+	protected User(final SystemUtils systemUtils, final String token, final String name) {
 		this.token = token;
 		this.id = systemUtils.getUserIds().get(token);
 		this.memoDir = systemUtils.getAocdDir().resolve(this.id);
+		this.name = name;
 	}
 
 	public String getToken() {
@@ -50,20 +53,25 @@ public class User {
 	    return id;
 	}
 
-	public static User create(final SystemUtils systemUtils, final String token) {
-		return new User(systemUtils, token);
-	}
+	public String getName() {
+        return name;
+    }
 
-	public static User getDefaultUser() {
+    public static User getDefaultUser() {
 		final SystemUtils systemUtils = new SystemUtils();
 		final String token = systemUtils.getToken();
-		return new User(systemUtils, token);
+		return new User(systemUtils, token, "default");
 	}
 	
 	public static User getUser(final String name) {
 		final SystemUtils systemUtils = new SystemUtils();
 		final Map<String, String> tokens = systemUtils.getTokens();
 		final String token = tokens.get(name);
-		return new User(systemUtils, token);
+		return new User(systemUtils, token, name);
+	}
+	
+	public static Set<String> getUserNames() {
+	    final SystemUtils systemUtils = new SystemUtils();
+	    return systemUtils.getTokens().keySet();
 	}
 }
