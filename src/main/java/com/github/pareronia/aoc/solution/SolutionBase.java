@@ -9,17 +9,20 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aocd.SystemUtils;
 
 public abstract class SolutionBase<Input, Output1, Output2> {
 
     protected final boolean debug;
     protected final Puzzle puzzle;
     protected final Logger logger;
+    protected final SystemUtils systemUtils;
     
     protected SolutionBase(final boolean debug) {
         this.debug = debug;
         this.logger = new Logger(debug);
         this.puzzle = puzzle(this.getClass());
+        this.systemUtils = new SystemUtils();
     }
 
     protected abstract Input parseInput(List<String> inputs);
@@ -36,7 +39,8 @@ public abstract class SolutionBase<Input, Output1, Output2> {
         this.samples();
         
         final Timed<Input> timed = Timed.timed(
-               () -> this.parseInput(this.getInputData()));
+               () -> this.parseInput(this.getInputData()),
+               systemUtils::getSystemNanoTime);
         final Input input = timed.getResult();
         System.out.println(String.format("Input took %s",
                                    printDuration(timed.getDuration())));

@@ -13,6 +13,7 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aoc.solution.SolutionBase;
+import com.github.pareronia.aoc.solution.Timed;
 import com.github.pareronia.aocd.RunServer.RequestHandler;
 
 class Runner {
@@ -112,10 +113,9 @@ class Runner {
     {
         final Object puzzle = createPuzzle(klass, input);
         final Method method = klass.getDeclaredMethod("solvePart" + part);
-		final long start = systemUtils.getSystemNanoTime();
-		final Object answer = method.invoke(puzzle);
-		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
-		return new Result(answer, duration);
+        final Timed<Object> timed = Timed.timed(
+                () -> method.invoke(puzzle), systemUtils::getSystemNanoTime);
+		return new Result(timed.getResult(), timed.getDuration());
     }
     
     private Result runSolutionPart(
@@ -126,10 +126,9 @@ class Runner {
     {
         final Object puzzle = createPuzzle(klass);
         final Method method = SolutionBase.class.getDeclaredMethod("part" + part, List.class);
-		final long start = systemUtils.getSystemNanoTime();
-		final Object answer = method.invoke(puzzle, input);
-		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
-		return new Result(answer, duration);
+        final Timed<Object> timed = Timed.timed(
+                () -> method.invoke(puzzle, input), systemUtils::getSystemNanoTime);
+		return new Result(timed.getResult(), timed.getDuration());
     }
 
     private Object createPuzzle(final Class<?> klass, final List<String> input) throws Exception {

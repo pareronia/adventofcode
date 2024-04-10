@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aocd.SystemUtils;
 
 public class SolutionUtils {
 
@@ -41,7 +42,9 @@ public class SolutionUtils {
     public static <V> V lap(final String prefix, final Callable<V> callable)
             throws Exception
     {
-        final Timed<V> timed = Timed.timed(callable);
+        final Timed<V> timed = Timed.timed(
+                callable,
+                () -> new SystemUtils().getSystemNanoTime());
         final V answer = timed.getResult();
         final String duration = printDuration(timed.getDuration());
         System.out.println(String.format("%s : %s, took: %s",
