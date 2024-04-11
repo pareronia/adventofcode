@@ -121,19 +121,9 @@ public class AoC2015_18 extends SolutionBase<AoC2015_18.GameOfLife, Integer, Int
             "####.."
     );
 
-    static final class GameOfLife implements Cloneable {
+    record GameOfLife(Set<Cell> grid, int height, int width) implements Cloneable {
         private static final char ON = '#';
         
-        final Set<Cell> grid;
-        final int height;
-        final int width;
-        
-        protected GameOfLife(final Set<Cell> grid, final int height, final int width) {
-            this.grid = grid;
-            this.height = height;
-            this.width = width;
-        }
-
         public static GameOfLife fromInput(final List<String> inputs) {
             final int height = inputs.size();
             final int width = inputs.get(0).length();

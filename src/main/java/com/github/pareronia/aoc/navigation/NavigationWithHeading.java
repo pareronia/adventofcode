@@ -43,12 +43,12 @@ public class NavigationWithHeading extends Navigation {
     }
     
     public NavigationWithHeading forward(final Integer amount) {
-        translate(this.heading.getVector(), amount);
+        translate(this.heading.vector(), amount);
         return this;
     }
     
     public NavigationWithHeading drift(final Heading heading, final Integer amount) {
-        translate(heading.getVector(), amount);
+        translate(heading.vector(), amount);
         return this;
     }
 

@@ -69,7 +69,7 @@ public class AoC2020_24 extends AoCBase {
         for (int i = 0; i < 100; i++) {
             gol = gol.nextGeneration();
         }
-        return gol.getAlive().size();
+        return gol.alive().size();
 	}
 	
 	public static void main(final String[] args) throws Exception {

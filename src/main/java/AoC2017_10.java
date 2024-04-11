@@ -34,7 +34,7 @@ public final class AoC2017_10 extends AoCBase {
                 .collect(toList());
         final State state = new State(elements, lengths, 0, 0);
         final State ans = KnotHash.round(state);
-        return ans.getElements().get(0) * ans.getElements().get(1);
+        return ans.elements().get(0) * ans.elements().get(1);
     }
     
     @Override

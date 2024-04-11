@@ -61,7 +61,7 @@ public class AoC2020_17 extends AoCBase {
         for (int i = 0; i < GENERATIONS; i++) {
             gol = gol.nextGeneration();
         }
-        return gol.getAlive().size();
+        return gol.alive().size();
 	}
 	
     @Override

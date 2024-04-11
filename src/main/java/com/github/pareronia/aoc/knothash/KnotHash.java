@@ -49,10 +49,10 @@ public class KnotHash {
     }
     
     public static State round(final State state) {
-        final List<Integer> elements = state.getElements();
-        final List<Integer> lengths = state.getLengths();
-        int cur = state.getCur();
-        int skip = state.getSkip();
+        final List<Integer> elements = state.elements();
+        final List<Integer> lengths = state.lengths();
+        int cur = state.cur();
+        int skip = state.skip();
         for (final int len : lengths) {
             reverse(elements, cur, len);
             cur = (cur + len + skip) % elements.size();
@@ -91,33 +91,5 @@ public class KnotHash {
                 .collect(joining());
     }
 
-    public static final class State {
-        private final List<Integer> elements;
-        private final List<Integer> lengths;
-        private final int cur;
-        private final int skip;
-        
-        public State(final List<Integer> elements, final List<Integer> lengths, final int cur, final int skip) {
-            this.elements = elements;
-            this.lengths = lengths;
-            this.cur = cur;
-            this.skip = skip;
-        }
-
-        public List<Integer> getElements() {
-            return elements;
-        }
-
-        public List<Integer> getLengths() {
-            return lengths;
-        }
-
-        public int getCur() {
-            return cur;
-        }
-
-        public int getSkip() {
-            return skip;
-        }
-    }
+    public record State(List<Integer> elements, List<Integer> lengths, int cur, int skip) {}
 }

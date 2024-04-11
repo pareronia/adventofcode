@@ -78,20 +78,20 @@ public final class AoC2023_22
         protected Stack(final Set<Cuboid> bricks) {
             this.bricks = bricks;
             this.bricksByZ1 = this.bricks.stream()
-                    .collect(groupingBy(Cuboid::getZ1));
+                    .collect(groupingBy(Cuboid::z1));
             this.bricksByZ2 = this.bricks.stream()
-                    .collect(groupingBy(Cuboid::getZ2));
+                    .collect(groupingBy(Cuboid::z2));
             this.stack();
             this.supportees = this.bricks.stream()
                 .collect(toMap(
                     brick -> brick,
-                    brick -> this.getBricksByZ1(brick.getZ2() + 1).stream()
+                    brick -> this.getBricksByZ1(brick.z2() + 1).stream()
                                 .filter(b -> Stack.overlapsXY(b, brick))
                                 .collect(toSet())));
             this.supporters = this.bricks.stream()
                 .collect(toMap(
                     brick -> brick,
-                    brick -> this.getBricksByZ2(brick.getZ1() - 1).stream()
+                    brick -> this.getBricksByZ2(brick.z1() - 1).stream()
                                 .filter(b -> Stack.overlapsXY(b, brick))
                                 .collect(toSet())));
         }
@@ -131,9 +131,9 @@ public final class AoC2023_22
         
         private static Cuboid moveToZ(final Cuboid block, final int dz) {
             return new Cuboid(
-                block.getX1(), block.getX2(),
-                block.getY1(), block.getY2(),
-                block.getZ1() + dz, block.getZ2() + dz
+                block.x1(), block.x2(),
+                block.y1(), block.y2(),
+                block.z1() + dz, block.z2() + dz
             );
         }
         
@@ -151,17 +151,17 @@ public final class AoC2023_22
         private void stack() {
             final MutableBoolean moved = new MutableBoolean(true);
             final Predicate<Cuboid> isNotSupported = brick -> !overlapsXY(
-                this.bricksByZ2.getOrDefault(brick.getZ1() - 1, List.of()),
+                this.bricksByZ2.getOrDefault(brick.z1() - 1, List.of()),
                 brick);
             final Consumer<Cuboid> moveDown = brick -> {
                 final Cuboid movedBrick = moveToZ(brick, -1);
-                this.getBricksByZ1(brick.getZ1()).remove(brick);
-                this.getBricksByZ2(brick.getZ2()).remove(brick);
+                this.getBricksByZ1(brick.z1()).remove(brick);
+                this.getBricksByZ2(brick.z2()).remove(brick);
                 this.bricksByZ1.computeIfAbsent(
-                        movedBrick.getZ1(), k -> new ArrayList<>())
+                        movedBrick.z1(), k -> new ArrayList<>())
                     .add(movedBrick);
                 this.bricksByZ2.computeIfAbsent(
-                        movedBrick.getZ2(), k -> new ArrayList<>())
+                        movedBrick.z2(), k -> new ArrayList<>())
                     .add(movedBrick);
                 moved.setTrue();
             };
@@ -192,8 +192,8 @@ public final class AoC2023_22
         
         public static String displayBrick(final Cuboid brick) {
             return "%d,%d,%d->%d,%d,%d".formatted(
-                brick.getX1(), brick.getY1(), brick.getZ1(),
-                brick.getX2(), brick.getY2(), brick.getZ2()
+                brick.x1(), brick.y1(), brick.z1(),
+                brick.x2(), brick.y2(), brick.z2()
             );
         }
         
