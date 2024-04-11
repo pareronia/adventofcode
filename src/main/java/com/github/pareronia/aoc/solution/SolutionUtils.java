@@ -10,16 +10,20 @@ import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 import com.github.pareronia.aocd.SystemUtils;
+import com.github.pareronia.aocd.User;
 
 public class SolutionUtils {
 
     public static Puzzle puzzle(final Class<?> klass) {
        final String[] split
                = klass.getSimpleName().substring("AoC".length()).split("_");
-       return Aocd.puzzle(Integer.parseInt(split[0]), Integer.parseInt(split[1]));
+       return Puzzle.builder()
+               .year(Integer.parseInt(split[0]))
+               .day(Integer.parseInt(split[1]))
+               .user(User.getDefaultUser())
+               .build();
     }
     
     public static String printDuration(final Duration duration) {
@@ -45,8 +49,8 @@ public class SolutionUtils {
         final Timed<V> timed = Timed.timed(
                 callable,
                 () -> new SystemUtils().getSystemNanoTime());
-        final V answer = timed.getResult();
-        final String duration = printDuration(timed.getDuration());
+        final V answer = timed.result();
+        final String duration = printDuration(timed.duration());
         System.out.println(String.format("%s : %s, took: %s",
                                          prefix, answer, duration));
         return answer;

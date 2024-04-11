@@ -35,6 +35,7 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -64,33 +65,18 @@ public class SystemUtils {
 		}
 	}
 	
-	public String getToken() {
-		final String tokenFromEnv = System.getenv("AOC_SESSION");
-		if (StringUtils.isNotBlank(tokenFromEnv)) {
-			return tokenFromEnv;
-		}
-		return readAllLines(getAocdDir().resolve("token")).stream()
-				.findFirst()
-				.orElseThrow(() -> new AocdException("Missing session ID"));
+	public String getTokenFromEnv() {
+		return System.getenv("AOC_SESSION");
 	}
 	
-	@SuppressWarnings("unchecked")
-    public Map<String, String> getUserIds() {
-	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("token2id.json"))) {
+    @SuppressWarnings("unchecked")
+    public Map<String, String> readMapFromJsonFile(final Path path) {
+        try (Reader reader = Files.newBufferedReader(path)) {
 	        return Json.fromJson(reader, Map.class);
         } catch (final IOException e) {
 			throw new AocdException(e);
         }
-	}
-
-	@SuppressWarnings("unchecked")
-    public Map<String, String> getTokens() {
-	    try (Reader reader = Files.newBufferedReader(getAocdDir().resolve("tokens.json"))) {
-	        return Json.fromJson(reader, Map.class);
-        } catch (final IOException e) {
-			throw new AocdException(e);
-        }
-	}
+    }
 
 	public List<String> readAllLinesIfExists(final Path path) {
  		if (Files.notExists(Objects.requireNonNull(path))) {
@@ -102,6 +88,18 @@ public class SystemUtils {
 	public Optional<String> readFirstLineIfExists(final Path path) {
 		return readAllLinesIfExists(path).stream().findFirst();
 	}
+	
+	public Optional<String> readFirstLine(final Path path) {
+		return readAllLines(path).stream().findFirst();
+	}
+	
+	public void writeAllLines(final Path path, final List<String> lines) {
+	    try {
+            Files.write(path, lines, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+        } catch (final IOException e) {
+			throw new AocdException(e);
+        }
+    }
 	
 	public LocalDate getLocalDate() {
 	    return LocalDate.now(Aocd.AOC_TZ);
@@ -115,14 +113,14 @@ public class SystemUtils {
 	    return System.nanoTime();
 	}
 	
-	public void getInput(final String token, final int year, final int day, final Path path) {
+	public List<String> getInput(final String cookie, final int year, final int day) {
 	    final HttpClient http = HttpClient.newHttpClient();
 	    final HttpRequest request = HttpRequest.newBuilder()
-	            .uri(URI.create(String.format("https://adventofcode.com/%d/day/%d/input", year, day)))
-	            .header("Cookie", "session=" + token)
+	            .uri(URI.create("https://adventofcode.com/%d/day/%d/input".formatted(year, day)))
+	            .header("Cookie", "session=" + cookie)
 	            .build();
         try {
-            http.send(request, BodyHandlers.ofFile(path));
+            return http.send(request, BodyHandlers.ofLines()).body().toList();
         } catch (IOException | InterruptedException e) {
 			throw new AocdException(e);
         }

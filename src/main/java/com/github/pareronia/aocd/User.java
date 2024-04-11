@@ -23,55 +23,77 @@ SOFTWARE.
  */
 package com.github.pareronia.aocd;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
-public class User {
-	
-	private final String token;
-	private final Path memoDir;
-	private final String id;
-	private final String name;
+import com.github.pareronia.aoc.StringUtils;
 
-	protected User(final SystemUtils systemUtils, final String token, final String name) {
-		this.token = token;
-		this.id = systemUtils.getUserIds().get(token);
-		this.memoDir = systemUtils.getAocdDir().resolve(this.id);
-		this.name = name;
-	}
-
-	public String getToken() {
-		return token;
-	}
-
-	public Path getMemoDir() {
-		return memoDir;
-	}
-	
-	public String getId() {
-	    return id;
-	}
-
-	public String getName() {
-        return name;
-    }
+public record User(String name, String token, String id, Path memoDir) {
 
     public static User getDefaultUser() {
-		final SystemUtils systemUtils = new SystemUtils();
-		final String token = systemUtils.getToken();
-		return new User(systemUtils, token, "default");
-	}
-	
-	public static User getUser(final String name) {
-		final SystemUtils systemUtils = new SystemUtils();
-		final Map<String, String> tokens = systemUtils.getTokens();
-		final String token = tokens.get(name);
-		return new User(systemUtils, token, name);
-	}
-	
-	public static Set<String> getUserNames() {
-	    final SystemUtils systemUtils = new SystemUtils();
-	    return systemUtils.getTokens().keySet();
-	}
+        return User.builder().build();
+    }
+
+    public static UserBuilder builder() {
+        return new UserBuilder(new SystemUtils());
+    }
+
+    public static class UserBuilder {
+        private final SystemUtils systemUtils;
+        private String name;
+
+        protected UserBuilder(final SystemUtils systemUtils) {
+            this.systemUtils = systemUtils;
+        }
+
+        public UserBuilder name(final String name) {
+            this.name = name;
+            return this;
+        }
+
+        public User build() {
+            return build(this.name);
+        }
+
+        public Set<User> getAllUsers() {
+            return getTokens().keySet().stream().map(this::build).collect(toSet());
+        }
+
+        private User build(String name) {
+            final String token;
+            if (name == null) {
+                name = "default";
+                token = getToken();
+            } else {
+                token = getTokens().get(name);
+            }
+            Objects.requireNonNull(token);
+            final String id = getUserIds().get(token);
+            final Path memoDir = systemUtils.getAocdDir().resolve(id);
+            return new User(name, token, id, memoDir);
+        }
+
+        public String getToken() {
+            final String tokenFromEnv = systemUtils.getTokenFromEnv();
+            if (StringUtils.isNotBlank(tokenFromEnv)) {
+                return tokenFromEnv;
+            }
+            return systemUtils.readFirstLine(systemUtils.getAocdDir().resolve("token"))
+                    .orElseThrow(() -> new AocdException("Missing session ID"));
+        }
+
+        private Map<String, String> getUserIds() {
+            final Path path = systemUtils.getAocdDir().resolve("token2id.json");
+            return systemUtils.readMapFromJsonFile(path);
+        }
+
+        private Map<String, String> getTokens() {
+            final Path path = systemUtils.getAocdDir().resolve("tokens.json");
+            return systemUtils.readMapFromJsonFile(path);
+        }
+    }
 }

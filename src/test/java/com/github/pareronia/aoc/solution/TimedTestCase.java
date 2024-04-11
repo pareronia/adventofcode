@@ -24,7 +24,7 @@ class TimedTestCase {
         
         final Timed<String> timed = Timed.timed(() -> "abc", nanoTimeSupplier);
         
-        assertThat(timed.getResult()).isEqualTo("abc");
-        assertThat(timed.getDuration().toNanos()).isEqualTo(1000L);
+        assertThat(timed.result()).isEqualTo("abc");
+        assertThat(timed.duration().toNanos()).isEqualTo(1000L);
     }
 }

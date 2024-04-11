@@ -115,7 +115,7 @@ class Runner {
         final Method method = klass.getDeclaredMethod("solvePart" + part);
         final Timed<Object> timed = Timed.timed(
                 () -> method.invoke(puzzle), systemUtils::getSystemNanoTime);
-		return new Result(timed.getResult(), timed.getDuration());
+		return new Result(timed.result(), timed.duration());
     }
     
     private Result runSolutionPart(
@@ -128,7 +128,7 @@ class Runner {
         final Method method = SolutionBase.class.getDeclaredMethod("part" + part, List.class);
         final Timed<Object> timed = Timed.timed(
                 () -> method.invoke(puzzle, input), systemUtils::getSystemNanoTime);
-		return new Result(timed.getResult(), timed.getDuration());
+		return new Result(timed.result(), timed.duration());
     }
 
     private Object createPuzzle(final Class<?> klass, final List<String> input) throws Exception {

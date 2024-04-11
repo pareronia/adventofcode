@@ -41,9 +41,9 @@ public abstract class SolutionBase<Input, Output1, Output2> {
         final Timed<Input> timed = Timed.timed(
                () -> this.parseInput(this.getInputData()),
                systemUtils::getSystemNanoTime);
-        final Input input = timed.getResult();
+        final Input input = timed.result();
         System.out.println(String.format("Input took %s",
-                                   printDuration(timed.getDuration())));
+                                   printDuration(timed.duration())));
         puzzle.check(
            () -> lap("Part 1", () -> this.solvePart1(input)),
            () -> lap("Part 2", () -> this.solvePart2(input))
@@ -59,7 +59,7 @@ public abstract class SolutionBase<Input, Output1, Output2> {
     }
     
     protected List<String> getInputData() {
-        return puzzle.getInputData();
+        return puzzle.inputData();
     }
     
     protected void setTrace(final boolean trace) {

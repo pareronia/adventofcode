@@ -7,6 +7,7 @@ import com.github.pareronia.aocd.User;
 
 public class IntCodeDaysRunner {
 
+    private static final Set<User> ALL_USERS = User.builder().getAllUsers();
     private static final Set<Day> DAYS = Set.of(
             Day.at(2019, 2),
             Day.at(2019, 5),
@@ -19,6 +20,6 @@ public class IntCodeDaysRunner {
     );
 
 	public static void main(final String[] args) throws Exception {
-	   new MultipleDaysRunner().run(DAYS, User.getUserNames(), new Listener() {});
+	   new MultipleDaysRunner().run(DAYS, ALL_USERS, new Listener() {});
 	}
 }

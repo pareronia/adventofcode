@@ -27,16 +27,15 @@ public class MultipleDaysRunner {
     private final SystemUtils systemUtils = new SystemUtils();
 	
 	public void run(final Set<Day> days, final Listener listener) throws Exception {
-	    for (final Day day : new TreeSet<>(days)) {
-            final var puzzle = Aocd.puzzle(day.year, day.day);
-            this.run(puzzle, listener);
-        }
+	    this.run(days, Set.of(User.getDefaultUser()), listener);
 	}
 	
-	public void run(final Set<Day> days, final Set<String> users, final Listener listener) throws Exception {
+	public void run(final Set<Day> days, final Set<User> users, final Listener listener) throws Exception {
 	    for (final Day day : new TreeSet<>(days)) {
-	        for (final String user : users) {
-	            final var puzzle = Aocd.puzzle(day.year, day.day, user);
+	        for (final User user : users) {
+	            final var puzzle = Puzzle.builder()
+	                    .year(day.year).day(day.day).user(user)
+	                    .build();
 	            this.run(puzzle, listener);
             }
         }
@@ -44,9 +43,9 @@ public class MultipleDaysRunner {
 	
 	private void run(final Puzzle puzzle, final Listener listener) throws Exception {
 	    final List<String> input = new ArrayList<>();
-	    input.add(String.valueOf(puzzle.getYear()));
-	    input.add(String.valueOf(puzzle.getDay()));
-	    final List<String> inputData = puzzle.getInputData();
+	    input.add(String.valueOf(puzzle.year()));
+	    input.add(String.valueOf(puzzle.day()));
+	    final List<String> inputData = puzzle.inputData();
 	    if (inputData.isEmpty()) {
 	        return;
 	    }
@@ -56,13 +55,13 @@ public class MultipleDaysRunner {
 	    final var response = Runner.create(systemUtils).run(request, false);
 	    final String result1 = Optional.ofNullable(response.getPart1())
 	            .map(Part::getAnswer).orElse(null);
-	    listener.result(puzzle, 1, puzzle.getAnswer1(), result1);
-	    if (puzzle.getDay() == 25) {
+	    listener.result(puzzle, 1, puzzle.answer1(), result1);
+	    if (puzzle.day() == 25) {
 	        return;
 	    }
 	    final String result2 = Optional.ofNullable(response.getPart2())
 	            .map(Part::getAnswer).orElse(null);
-	    listener.result(puzzle, 2, puzzle.getAnswer2(), result2);
+	    listener.result(puzzle, 2, puzzle.answer2(), result2);
 	}
 	
 	public static void main(final String[] _args) throws Exception {
@@ -92,9 +91,9 @@ public class MultipleDaysRunner {
 	        final var failDecider = new Puzzle.FailDecider();
 	        final String message;
 	        final Status status = failDecider.fail(expected, actual);
-            final int day = puzzle.getDay();
-            final int year = puzzle.getYear();
-            final String name = puzzle.getUser().getName();
+            final int day = puzzle.day();
+            final int year = puzzle.year();
+            final String name = puzzle.user().name();
             if (status == Puzzle.FailDecider.Status.FAIL) {
 	            message = String.format(
 	                "%d/%02d/%d/%-10s: FAIL - expected '%s', got '%s'",
