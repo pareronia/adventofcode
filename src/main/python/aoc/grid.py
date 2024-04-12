@@ -29,6 +29,15 @@ class Cell(NamedTuple):
     def get_all_neighbours(self) -> Iterator[Cell]:
         return (self.at(d) for d in Direction.octants())
 
+    def to(self, other: Cell) -> Direction:
+        if self.row == other.row:
+            if self.col == other.col:
+                return Direction.NONE
+            return Direction.RIGHT if self.col < other.col else Direction.LEFT
+        elif self.col == other.col:
+            return Direction.DOWN if self.row < other.row else Direction.UP
+        raise ValueError("not supported")
+
 
 @unique
 class IterDir(Enum):

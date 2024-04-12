@@ -86,6 +86,13 @@ class Turn(Enum):
                 return v
         raise ValueError
 
+    @classmethod
+    def from_directions(cls, dir1: Direction, dir2: Direction) -> Turn:
+        for v in Turn:
+            if dir1.turn(v) == dir2:
+                return v
+        raise ValueError
+
 
 @unique
 class Direction(Enum):
@@ -138,6 +145,10 @@ class Direction(Enum):
             Direction.LEFT,
             Direction.LEFT_AND_UP,
         }
+
+    @classmethod
+    def capital_arrows(cls) -> set[str]:
+        return {d.arrow for d in Direction.capitals() if d.arrow is not None}
 
     @classmethod
     def from_str(cls, s: str) -> Direction:
