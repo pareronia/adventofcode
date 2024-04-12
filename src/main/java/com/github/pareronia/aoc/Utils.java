@@ -1,6 +1,7 @@
 package com.github.pareronia.aoc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +53,13 @@ public class Utils {
     public static <T> List<T> concat(final List<T> list1, final T item) {
         final ArrayList<T> ans = new ArrayList<>(list1);
         ans.add(item);
+        return ans;
+    }
+    
+    @SafeVarargs
+    public static <T> List<T> concatAll(final List<T>... lists) {
+        final List<T> ans = new ArrayList<>(lists[0]);
+        Arrays.stream(lists).skip(1).forEach(ans::addAll);
         return ans;
     }
     

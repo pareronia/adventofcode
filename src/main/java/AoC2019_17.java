@@ -1,4 +1,6 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.StringOps.splitLines;
+import static com.github.pareronia.aoc.Utils.concatAll;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -22,34 +24,34 @@ import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aoc.solution.Logger;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2019_17 extends AoCBase {
+public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
     
     private static final char SCAFFOLD = '#';
     private static final char NEWLINE = '\n';
     
-    private final List<Long> program;
-    
-    private AoC2019_17(final List<String> input, final boolean debug) {
+    private AoC2019_17(final boolean debug) {
         super(debug);
-        assert input.size() == 1;
-        this.program = IntCode.parse(input.get(0));
     }
 
-    public static AoC2019_17 create(final List<String> input) {
-        return new AoC2019_17(input, false);
+    public static AoC2019_17 create() {
+        return new AoC2019_17(false);
     }
 
-    public static AoC2019_17 createDebug(final List<String> input) {
-        return new AoC2019_17(input, true);
+    public static AoC2019_17 createDebug() {
+        return new AoC2019_17(true);
+    }
+
+    @Override
+    protected List<Long> parseInput(final List<String> inputs) {
+        return IntCode.parse(inputs.get(0));
     }
     
     @Override
-    public Integer solvePart1() {
+    public Integer solvePart1(final List<Long> program) {
         final CharGrid grid = new GridBuilder().build(
-            new IntCodeComputer(this.program, this.debug).runCamera());
+            new IntCodeComputer(program, this.debug).runCamera());
         log(grid);
         return grid.getAllEqualTo(SCAFFOLD)
             .filter(cell -> grid.getCapitalNeighbours(cell)
@@ -58,63 +60,42 @@ public class AoC2019_17 extends AoCBase {
             .sum();
     }
 
-    private List<String> findInput(final CharGrid grid, final int maxSize, final int minRepeats) {
-        final PathFinder pathFinder = new PathFinder(grid, this.debug);
-        final List<Cell> path = pathFinder.findPath();
-        log("Path: " + path);
-        final List<Move> moves = pathFinder.toMoves(path);
-        log("Moves: " + moves);
-        final List<List<Command>> commands = pathFinder.toCommands(moves);
-        log("Commands: " + commands);
-        final List<Command> compressed = pathFinder.compressCommands(commands);
-        log("Compressed: " + compressed.stream().map(Command::toString).collect(joining(", ")));
-        final List<String> input = pathFinder.createAsciiInput(
-                compressed, maxSize, minRepeats);
-        log("Input: " + input);
-        return input;
-    }
-    
-    private int solve2(final int maxSize, final int minRepeats) {
-        final IntCodeComputer computer = new IntCodeComputer(this.program, this.debug);
+    @Override
+    public Integer solvePart2(final List<Long> program) {
+        final IntCodeComputer computer = new IntCodeComputer(program, this.debug);
         final CharGrid grid = new GridBuilder().build(computer.runCamera());
-        final List<String> input = findInput(grid, maxSize, minRepeats);
+        final List<String> input = new PathFinder(grid, this.debug).createAsciiInput(5, 3);
         return computer.runRobot(input).getLast().intValue();
     }
-    
+
     @Override
-    public Integer solvePart2() {
-        return solve2(5, 3);
+    protected void samples() {
+        assert new PathFinder(CharGrid.from(splitLines(TEST)), true)
+            .createAsciiInput(3, 2)
+            .equals(List.of("A,B,C,B,A,C", "R,8,R,8", "R,4,R,4,R,8", "L,6,L,2", "n"));
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2019_17.createDebug(List.of("1")).findInput(CharGrid.from(TEST), 3, 2)
-            .equals(List.of("A,B,C,B,A,C", "R,8,R,8", "R,4,R,4,R,8", "L,6,L,2", "n"));
-        
-        final Puzzle puzzle = Aocd.puzzle(2019, 17);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2019_17.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2019_17.create(inputData)::solvePart2)
-        );
+        AoC2019_17.create().run();
     }
     
-    private static final List<String> TEST = splitLines(
-            "#######...#####\r\n" +
-            "#.....#...#...#\r\n" +
-            "#.....#...#...#\r\n" +
-            "......#...#...#\r\n" +
-            "......#...###.#\r\n" +
-            "......#.....#.#\r\n" +
-            "^########...#.#\r\n" +
-            "......#.#...#.#\r\n" +
-            "......#########\r\n" +
-            "........#...#..\r\n" +
-            "....#########..\r\n" +
-            "....#...#......\r\n" +
-            "....#...#......\r\n" +
-            "....#...#......\r\n" +
-            "....#####......"
-    );
+    private static final String TEST = """
+            #######...#####
+            #.....#...#...#
+            #.....#...#...#
+            ......#...#...#
+            ......#...###.#
+            ......#.....#.#
+            ^########...#.#
+            ......#.#...#.#
+            ......#########
+            ........#...#..
+            ....#########..
+            ....#...#......
+            ....#...#......
+            ....#...#......
+            ....#####......
+            """;
     
     private static final class GridBuilder {
 
@@ -135,14 +116,6 @@ public class AoC2019_17 extends AoCBase {
                 }
             }
             return strings;
-        }
-    }
-    
-    record Move(Cell from, Cell to, Direction direction) {
-        
-        @Override
-        public String toString() {
-            return String.format("%s -> %s : %s", this.from, this.to, this.direction);
         }
     }
     
@@ -186,27 +159,16 @@ public class AoC2019_17 extends AoCBase {
             return path.stream().collect(toList());
         }
         
-        public List<Move> toMoves(final List<Cell> path) {
-            final Cell start = path.get(0);
-            final List<Move> moves = new ArrayList<>();
-            moves.add(new Move(start, start, Direction.fromChar(grid.getValue(start))));
-            range(path.size() - 1).forEach(i -> {
-                final Direction move = path.get(i).to(path.get(i + 1));
-                moves.add(new Move(path.get(i), path.get(i + 1), move));
-            });
-            return moves;
-        }
-        
-        public List<List<Command>> toCommands(final List<Move> moves) {
+        public List<Command> toCommands(final List<Direction> moves) {
             final List<List<Command>> commands = new ArrayList<>();
             final Deque<Command> curr = new ArrayDeque<>();
             range(moves.size() - 1).forEach(i -> {
                 final Command last = curr.peekLast();
-                if (moves.get(i).direction == moves.get(i + 1).direction){
+                if (moves.get(i) == moves.get(i + 1)){
                     curr.addLast(new Command(last.letter, 1));
                 } else {
                     final Turn turn = Turn.fromDirections(
-                            moves.get(i).direction, moves.get(i + 1).direction);
+                            moves.get(i), moves.get(i + 1));
                     if (last != null) {
                         commands.add(curr.stream().collect(toList()));
                         curr.clear();
@@ -215,21 +177,25 @@ public class AoC2019_17 extends AoCBase {
                 }
             });
             commands.add(curr.stream().collect(toList()));
-            return commands;
+            return commands.stream()
+                    .map(lst -> new Command(lst.get(0).letter, lst.size()))
+                    .toList();
         }
         
-        public List<Command> compressCommands(final List<List<Command>> commands) {
-            final List<Command> compressed = new ArrayList<>();
-            for (final List<Command> list : commands) {
-                assert list.stream().map(c -> c.letter).distinct().count() == 1;
-                compressed.add(new Command(list.get(0).letter, list.size()));
-            }
-            return compressed;
-        }
-        
-        public List<String> createAsciiInput(final List<Command> compressed,
-                final int maxSize, final int minRepeats) {
-            List<Command> lst = new ArrayList<>(compressed);
+        public List<String> createAsciiInput(
+                final int maxSize, final int minRepeats
+        ) {
+            final List<Cell> path = this.findPath();
+            log("Path: " + path);
+            final List<Direction> moves = concatAll(
+                List.of(Direction.fromChar(grid.getValue(path.get(0)))),
+                range(path.size() - 1).intStream()
+                    .mapToObj(i1 -> path.get(i1).to(path.get(i1 + 1)))
+                    .toList());
+            log("Moves: " + moves);
+            final List<Command> commands = this.toCommands(moves);
+            log("Commands: " + commands);
+            List<Command> lst = new ArrayList<>(commands);
             final Map<String, List<Command>> map = new HashMap<>();
             for (final String x : List.of("A", "B", "C")) {
                 for (int i = maxSize; i >= 2; i--) {
@@ -249,7 +215,7 @@ public class AoC2019_17 extends AoCBase {
             }
             log(map);
             final List<String> main = new ArrayList<>();
-            lst = new ArrayList<>(compressed);
+            lst = new ArrayList<>(commands);
             while (!lst.isEmpty()) {
                 for (final Entry<String, List<Command>> func : map.entrySet()) {
                     if (Collections.indexOfSubList(lst, func.getValue()) == 0) {
@@ -269,6 +235,7 @@ public class AoC2019_17 extends AoCBase {
                         .collect(joining(",")))
                 .forEach(input::add);
             input.add("n");
+            log(input);
             return input;
         }
         
@@ -344,9 +311,9 @@ public class AoC2019_17 extends AoCBase {
         }
         
         public Deque<Long> runRobot(final List<String> commands) {
-            final List<Long> newProgram = new ArrayList<>();
-            newProgram.add(2L);
-            newProgram.addAll(this.program.subList(1, this.program.size()));
+            final List<Long> newProgram = concatAll(
+                    List.of(2L),
+                    this.program.subList(1, this.program.size()));
             final IntCode intCode = new IntCode(newProgram, this.debug);
             final Deque<Long> input = new ArrayDeque<>();
             final Deque<Long> output = new ArrayDeque<>();
