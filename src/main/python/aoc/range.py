@@ -1,3 +1,8 @@
+from __future__ import annotations
+
+from typing import NamedTuple
+
+
 class Range:
     @classmethod
     def left_join(
@@ -16,3 +21,22 @@ class Range:
         else:
             others.add(r1)
         return overlap, others
+
+
+class RangeInclusive(NamedTuple):
+    minimum: int
+    maximum: int
+
+    @classmethod
+    def between(cls, minimum: int, maximum: int) -> RangeInclusive:
+        return RangeInclusive(minimum, maximum)
+
+    def contains(self, element: int) -> bool:
+        return self.minimum <= element <= self.maximum
+
+    def is_overlapped_by(self, other: RangeInclusive) -> bool:
+        return (
+            other.contains(self.minimum)
+            or other.contains(self.maximum)
+            or self.contains(other.minimum)
+        )
