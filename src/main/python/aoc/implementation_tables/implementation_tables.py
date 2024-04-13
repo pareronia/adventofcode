@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 def _build_link(base_dir: str, pattern: str, year: int, day: int) -> str:
-    path = os.path.join(base_dir, pattern.format(year=year, day=day))
+    path = base_dir + "/" + pattern.format(year=year, day=day)
     return f"[✓]({path})" if os.path.exists(path) else ""
 
 
@@ -52,9 +52,9 @@ def _get_rows() -> list[Row]:
 def main(file_name: str) -> None:
     log.debug(f"file: {file_name}")
     rows = _get_rows()
-    with open(file_name, "r") as f:
+    with open(file_name, "r", encoding="utf-8") as f:
         tmp = f.read()
-    with open(file_name, "w") as f:
+    with open(file_name, "w", encoding="utf-8") as f:
         in_table = False
         for line in tmp.splitlines():
             if line.startswith("<!-- @BEGIN:ImplementationsTable"):
