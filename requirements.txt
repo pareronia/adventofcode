@@ -1,10 +1,10 @@
 advent-of-code-data==1.3.2
 advent-of-code-ocr==1.0.0
-bandit[toml]==1.7.5
-flake8==6.1.0
-ipython==8.16.1
-isort==5.12.0
-junitparser==3.1.0
-numpy==1.26.1
+bandit[toml]==1.7.8
+flake8==7.0.0
+ipython==8.23.0
+isort==5.13.2
+junitparser==3.1.2
+numpy==1.26.4
 prettyprinter==0.18.0
-vulture==2.10
+vulture==2.11
