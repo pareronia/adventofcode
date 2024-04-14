@@ -6,12 +6,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -22,6 +19,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import com.github.pareronia.aoc.CharGrid;
+import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -76,15 +74,15 @@ public class AoC2020_20 extends AoCBase {
 		CharGrid image = CharGrid.from(this.tileSet.createImageGrid());
 		print(image);
 		log("Looking for Nessies...");
-		Map<Integer, Integer> nessies = null;
+		List<Cell> nessies = null;
 		final Iterator<CharGrid> permutations = image.getPermutations();
 		while (permutations.hasNext()) {
 			image = permutations.next();
 			nessies = NessieFinder.findNessies(image);
 			if (nessies.size() > 1) {
-				for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
+				for (final Cell nessie : nessies) {
 					log(String.format("Found 1 Nessie at (%d, %d)!",
-							nessie.getKey(), nessie.getValue()));
+							nessie.getRow(), nessie.getCol()));
 				}
 				break;
 			} else if (nessies.size() == 1) {
@@ -117,113 +115,114 @@ public class AoC2020_20 extends AoCBase {
 	}
 
 	private static final String TEST =
-			"Tile 2311:\r\n" +
-			"..##.#..#.\r\n" +
-			"##..#.....\r\n" +
-			"#...##..#.\r\n" +
-			"####.#...#\r\n" +
-			"##.##.###.\r\n" +
-			"##...#.###\r\n" +
-			".#.#.#..##\r\n" +
-			"..#....#..\r\n" +
-			"###...#.#.\r\n" +
-			"..###..###\r\n" +
-			"\r\n" +
-			"Tile 1951:\r\n" +
-			"#.##...##.\r\n" +
-			"#.####...#\r\n" +
-			".....#..##\r\n" +
-			"#...######\r\n" +
-			".##.#....#\r\n" +
-			".###.#####\r\n" +
-			"###.##.##.\r\n" +
-			".###....#.\r\n" +
-			"..#.#..#.#\r\n" +
-			"#...##.#..\r\n" +
-			"\r\n" +
-			"Tile 1171:\r\n" +
-			"####...##.\r\n" +
-			"#..##.#..#\r\n" +
-			"##.#..#.#.\r\n" +
-			".###.####.\r\n" +
-			"..###.####\r\n" +
-			".##....##.\r\n" +
-			".#...####.\r\n" +
-			"#.##.####.\r\n" +
-			"####..#...\r\n" +
-			".....##...\r\n" +
-			"\r\n" +
-			"Tile 1427:\r\n" +
-			"###.##.#..\r\n" +
-			".#..#.##..\r\n" +
-			".#.##.#..#\r\n" +
-			"#.#.#.##.#\r\n" +
-			"....#...##\r\n" +
-			"...##..##.\r\n" +
-			"...#.#####\r\n" +
-			".#.####.#.\r\n" +
-			"..#..###.#\r\n" +
-			"..##.#..#.\r\n" +
-			"\r\n" +
-			"Tile 1489:\r\n" +
-			"##.#.#....\r\n" +
-			"..##...#..\r\n" +
-			".##..##...\r\n" +
-			"..#...#...\r\n" +
-			"#####...#.\r\n" +
-			"#..#.#.#.#\r\n" +
-			"...#.#.#..\r\n" +
-			"##.#...##.\r\n" +
-			"..##.##.##\r\n" +
-			"###.##.#..\r\n" +
-			"\r\n" +
-			"Tile 2473:\r\n" +
-			"#....####.\r\n" +
-			"#..#.##...\r\n" +
-			"#.##..#...\r\n" +
-			"######.#.#\r\n" +
-			".#...#.#.#\r\n" +
-			".#########\r\n" +
-			".###.#..#.\r\n" +
-			"########.#\r\n" +
-			"##...##.#.\r\n" +
-			"..###.#.#.\r\n" +
-			"\r\n" +
-			"Tile 2971:\r\n" +
-			"..#.#....#\r\n" +
-			"#...###...\r\n" +
-			"#.#.###...\r\n" +
-			"##.##..#..\r\n" +
-			".#####..##\r\n" +
-			".#..####.#\r\n" +
-			"#..#.#..#.\r\n" +
-			"..####.###\r\n" +
-			"..#.#.###.\r\n" +
-			"...#.#.#.#\r\n" +
-			"\r\n" +
-			"Tile 2729:\r\n" +
-			"...#.#.#.#\r\n" +
-			"####.#....\r\n" +
-			"..#.#.....\r\n" +
-			"....#..#.#\r\n" +
-			".##..##.#.\r\n" +
-			".#.####...\r\n" +
-			"####.#.#..\r\n" +
-			"##.####...\r\n" +
-			"##..#.##..\r\n" +
-			"#.##...##.\r\n" +
-			"\r\n" +
-			"Tile 3079:\r\n" +
-			"#.#.#####.\r\n" +
-			".#..######\r\n" +
-			"..#.......\r\n" +
-			"######....\r\n" +
-			"####.#..#.\r\n" +
-			".#...#.##.\r\n" +
-			"#.#####.##\r\n" +
-			"..#.###...\r\n" +
-			"..#.......\r\n" +
-			"..#.###...";
+			"""
+        Tile 2311:\r
+        ..##.#..#.\r
+        ##..#.....\r
+        #...##..#.\r
+        ####.#...#\r
+        ##.##.###.\r
+        ##...#.###\r
+        .#.#.#..##\r
+        ..#....#..\r
+        ###...#.#.\r
+        ..###..###\r
+        \r
+        Tile 1951:\r
+        #.##...##.\r
+        #.####...#\r
+        .....#..##\r
+        #...######\r
+        .##.#....#\r
+        .###.#####\r
+        ###.##.##.\r
+        .###....#.\r
+        ..#.#..#.#\r
+        #...##.#..\r
+        \r
+        Tile 1171:\r
+        ####...##.\r
+        #..##.#..#\r
+        ##.#..#.#.\r
+        .###.####.\r
+        ..###.####\r
+        .##....##.\r
+        .#...####.\r
+        #.##.####.\r
+        ####..#...\r
+        .....##...\r
+        \r
+        Tile 1427:\r
+        ###.##.#..\r
+        .#..#.##..\r
+        .#.##.#..#\r
+        #.#.#.##.#\r
+        ....#...##\r
+        ...##..##.\r
+        ...#.#####\r
+        .#.####.#.\r
+        ..#..###.#\r
+        ..##.#..#.\r
+        \r
+        Tile 1489:\r
+        ##.#.#....\r
+        ..##...#..\r
+        .##..##...\r
+        ..#...#...\r
+        #####...#.\r
+        #..#.#.#.#\r
+        ...#.#.#..\r
+        ##.#...##.\r
+        ..##.##.##\r
+        ###.##.#..\r
+        \r
+        Tile 2473:\r
+        #....####.\r
+        #..#.##...\r
+        #.##..#...\r
+        ######.#.#\r
+        .#...#.#.#\r
+        .#########\r
+        .###.#..#.\r
+        ########.#\r
+        ##...##.#.\r
+        ..###.#.#.\r
+        \r
+        Tile 2971:\r
+        ..#.#....#\r
+        #...###...\r
+        #.#.###...\r
+        ##.##..#..\r
+        .#####..##\r
+        .#..####.#\r
+        #..#.#..#.\r
+        ..####.###\r
+        ..#.#.###.\r
+        ...#.#.#.#\r
+        \r
+        Tile 2729:\r
+        ...#.#.#.#\r
+        ####.#....\r
+        ..#.#.....\r
+        ....#..#.#\r
+        .##..##.#.\r
+        .#.####...\r
+        ####.#.#..\r
+        ##.####...\r
+        ##..#.##..\r
+        #.##...##.\r
+        \r
+        Tile 3079:\r
+        #.#.#####.\r
+        .#..######\r
+        ..#.......\r
+        ######....\r
+        ####.#..#.\r
+        .#...#.##.\r
+        #.#####.##\r
+        ..#.###...\r
+        ..#.......\r
+        ..#.###...""";
 	
 	static final class Tile {
 		private final Integer id;
@@ -319,10 +318,9 @@ public class AoC2020_20 extends AoCBase {
 			if (this == obj) {
 				return true;
 			}
-			if (!(obj instanceof Tile)) {
+			if (!(obj instanceof final Tile other)) {
 				return false;
 			}
-			final Tile other = (Tile) obj;
 			return Objects.equals(id, other.id);
 		}
 	}
@@ -392,7 +390,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		private Set<char[]> getEdgesForMatching(final Tile tile) {
 		    if (Arrays.stream(placedTiles)
-		            .flatMap(a -> Arrays.stream(a))
+		            .flatMap(Arrays::stream)
 		            .anyMatch(tile::equals)) {
 				return tile.getAllEdges();
 			} else {
@@ -477,8 +475,7 @@ public class AoC2020_20 extends AoCBase {
 		
 		public List<String> createImageGrid() {
 			final List<String> grid = new ArrayList<>();
-			for (int i = 0; i < placedTiles.length; i++) {
-				final Tile[] tiles = placedTiles[i];
+			for (final AoC2020_20.Tile[] tiles : placedTiles) {
 				for (int j = 0; j < tiles[0].grid.getHeight(); j++) {
 					final StringBuilder row = new StringBuilder();
 					for (final Tile tile : tiles) {
@@ -508,8 +505,8 @@ public class AoC2020_20 extends AoCBase {
         private static final Pattern PATTERN1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#");
         private static final char NESSIE_CHAR = '\u2592';
 
-		public static Map<Integer,Integer> findNessies(final CharGrid grid) {
-			final Map<Integer, Integer> nessies = new HashMap<>();
+		public static List<Cell> findNessies(final CharGrid grid) {
+			final List<Cell> nessies = new ArrayList<>();
 			for (int i = 1; i < grid.getHeight(); i++) {
 				final Matcher m1 = PATTERN1.matcher(grid.getRowAsString(i));
 				while (m1.find()) {
@@ -518,7 +515,7 @@ public class AoC2020_20 extends AoCBase {
 						final Matcher m2 = PATTERN2
 								.matcher(grid.getRowAsString(i + 1).substring(tail));
 						if (m2.find()) {
-							nessies.put(i, tail);
+							nessies.add(Cell.at(i, tail));
 						}
 					}
 				}
@@ -526,14 +523,14 @@ public class AoC2020_20 extends AoCBase {
 			return nessies;
 		}
 		
-		public static CharGrid markNessies(final Map<Integer, Integer> nessies, final CharGrid gridIn) {
+		public static CharGrid markNessies(final List<Cell> nessies, final CharGrid gridIn) {
 			final List<String> grid = gridIn.getRowsAsStringList();
-			for (final Entry<Integer, Integer> nessie : nessies.entrySet()) {
-				final int idx = nessie.getValue();
-				final char[] chars0 = grid.get(nessie.getKey() - 1).toCharArray();
+			for (final Cell nessie : nessies) {
+				final int idx = nessie.getCol();
+				final char[] chars0 = grid.get(nessie.getRow() - 1).toCharArray();
 				chars0[idx+18] = NESSIE_CHAR;
-				grid.set(nessie.getKey() - 1, new String(chars0));
-				final char[] chars1 = grid.get(nessie.getKey()).toCharArray();
+				grid.set(nessie.getRow() - 1, new String(chars0));
+				final char[] chars1 = grid.get(nessie.getRow()).toCharArray();
 				chars1[idx] = NESSIE_CHAR;
 				chars1[idx+5] = NESSIE_CHAR;
 				chars1[idx+6] = NESSIE_CHAR;
@@ -542,15 +539,15 @@ public class AoC2020_20 extends AoCBase {
 				chars1[idx+17] = NESSIE_CHAR;
 				chars1[idx+18] = NESSIE_CHAR;
 				chars1[idx+19] = NESSIE_CHAR;
-				grid.set(nessie.getKey(), new String(chars1));
-				final char[] chars2 = grid.get(nessie.getKey() + 1).toCharArray();
+				grid.set(nessie.getRow(), new String(chars1));
+				final char[] chars2 = grid.get(nessie.getRow() + 1).toCharArray();
 				chars2[idx+1] = NESSIE_CHAR;
 				chars2[idx+4] = NESSIE_CHAR;
 				chars2[idx+7] = NESSIE_CHAR;
 				chars2[idx+10] = NESSIE_CHAR;
 				chars2[idx+13] = NESSIE_CHAR;
 				chars2[idx+16] = NESSIE_CHAR;
-				grid.set(nessie.getKey() + 1, new String(chars2));
+				grid.set(nessie.getRow() + 1, new String(chars2));
 			}
 			for (int j = 0; j < grid.size(); j++) {
 				final char[] chars = grid.get(j).toCharArray();
