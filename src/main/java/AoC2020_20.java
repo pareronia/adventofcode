@@ -1,4 +1,5 @@
 import static com.github.pareronia.aoc.SetUtils.union;
+import static com.github.pareronia.aoc.StringOps.toBlocks;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
@@ -15,63 +16,49 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Stream;
-import java.util.stream.StreamSupport;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_20 extends AoCBase {
+public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 	
-	private final TileSet tileSet;
-	private final Logger logger;
-	
-	private AoC2020_20(final List<String> input, final boolean debug) {
+	private AoC2020_20(final boolean debug) {
 		super(debug);
-		this.logger = obj -> log(() -> obj);
-		this.tileSet = parse(input);
 	}
 
-	public static final AoC2020_20 create(final List<String> input) {
-		return new AoC2020_20(input, false);
+	public static final AoC2020_20 create() {
+		return new AoC2020_20(false);
 	}
 
-	public static final AoC2020_20 createDebug(final List<String> input) {
-		return new AoC2020_20(input, true);
+	public static final AoC2020_20 createDebug() {
+		return new AoC2020_20(true);
 	}
 	
-	private TileSet parse(final List<String> inputs) {
-		final Set<Tile> tiles = toBlocks(inputs).stream()
-				.map(block -> {
-					Integer id = null;
-					final List<String> grid = new ArrayList<>();
-					for (final String line : block) {
-						if (line.startsWith("Tile ")) {
-							id = Integer.valueOf(line.substring("Tile ".length(), line.length() - 1));
-						} else {
-							grid.add(line);
-						}
-					}
-					return new Tile(id, grid);
-				})
+	@Override
+    protected Set<Tile> parseInput(final List<String> inputs) {
+		return toBlocks(inputs).stream()
+				.map(Tile::fromInput)
 				.collect(toSet());
-		return new TileSet(tiles, logger);
 	}
 	
 	@Override
-	public Long solvePart1() {
-		this.tileSet.getTiles().forEach(this::log);
-		return Math.prod(this.tileSet.findCorners().stream().map(Tile::getId).collect(toSet()));
+	public Long solvePart1(final Set<Tile> tiles) {
+	    final TileSet tileSet = new TileSet(tiles, obj -> log(() -> obj));
+		tileSet.getTiles().forEach(this::log);
+		return Math.prod(tileSet.findCorners().stream().map(Tile::id).collect(toSet()));
 	}
 	
 	@Override
-	public Long solvePart2() {
-		this.tileSet.puzzle();
-		this.tileSet.removeTileEdges();
-		this.tileSet.printPlacedTiles();
-		CharGrid image = CharGrid.from(this.tileSet.createImageGrid());
+	public Long solvePart2(final Set<Tile> tiles) {
+	    final TileSet tileSet = new TileSet(tiles, obj -> log(() -> obj));
+		tileSet.puzzle();
+		tileSet.removeTileEdges();
+		tileSet.printPlacedTiles();
+		CharGrid image = CharGrid.from(tileSet.createImageGrid());
 		print(image);
 		log("Looking for Nessies...");
 		List<Cell> nessies = null;
@@ -102,150 +89,140 @@ public class AoC2020_20 extends AoCBase {
 		image.getRowsAsStrings().forEach(this::log);
 	}
 	
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "20899048083289"),
+	    @Sample(method = "part2", input = TEST, expected = "273"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2020_20.createDebug(splitLines(TEST)).solvePart1() == 20899048083289L;
-		assert AoC2020_20.createDebug(splitLines(TEST)).solvePart2() == 273L;
-		
-        final Puzzle puzzle = Aocd.puzzle(2020, 20);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2020_20.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2020_20.create(inputData)::solvePart2)
-        );
+		AoC2020_20.create().run();
 	}
 
 	private static final String TEST =
 			"""
-        Tile 2311:\r
-        ..##.#..#.\r
-        ##..#.....\r
-        #...##..#.\r
-        ####.#...#\r
-        ##.##.###.\r
-        ##...#.###\r
-        .#.#.#..##\r
-        ..#....#..\r
-        ###...#.#.\r
-        ..###..###\r
-        \r
-        Tile 1951:\r
-        #.##...##.\r
-        #.####...#\r
-        .....#..##\r
-        #...######\r
-        .##.#....#\r
-        .###.#####\r
-        ###.##.##.\r
-        .###....#.\r
-        ..#.#..#.#\r
-        #...##.#..\r
-        \r
-        Tile 1171:\r
-        ####...##.\r
-        #..##.#..#\r
-        ##.#..#.#.\r
-        .###.####.\r
-        ..###.####\r
-        .##....##.\r
-        .#...####.\r
-        #.##.####.\r
-        ####..#...\r
-        .....##...\r
-        \r
-        Tile 1427:\r
-        ###.##.#..\r
-        .#..#.##..\r
-        .#.##.#..#\r
-        #.#.#.##.#\r
-        ....#...##\r
-        ...##..##.\r
-        ...#.#####\r
-        .#.####.#.\r
-        ..#..###.#\r
-        ..##.#..#.\r
-        \r
-        Tile 1489:\r
-        ##.#.#....\r
-        ..##...#..\r
-        .##..##...\r
-        ..#...#...\r
-        #####...#.\r
-        #..#.#.#.#\r
-        ...#.#.#..\r
-        ##.#...##.\r
-        ..##.##.##\r
-        ###.##.#..\r
-        \r
-        Tile 2473:\r
-        #....####.\r
-        #..#.##...\r
-        #.##..#...\r
-        ######.#.#\r
-        .#...#.#.#\r
-        .#########\r
-        .###.#..#.\r
-        ########.#\r
-        ##...##.#.\r
-        ..###.#.#.\r
-        \r
-        Tile 2971:\r
-        ..#.#....#\r
-        #...###...\r
-        #.#.###...\r
-        ##.##..#..\r
-        .#####..##\r
-        .#..####.#\r
-        #..#.#..#.\r
-        ..####.###\r
-        ..#.#.###.\r
-        ...#.#.#.#\r
-        \r
-        Tile 2729:\r
-        ...#.#.#.#\r
-        ####.#....\r
-        ..#.#.....\r
-        ....#..#.#\r
-        .##..##.#.\r
-        .#.####...\r
-        ####.#.#..\r
-        ##.####...\r
-        ##..#.##..\r
-        #.##...##.\r
-        \r
-        Tile 3079:\r
-        #.#.#####.\r
-        .#..######\r
-        ..#.......\r
-        ######....\r
-        ####.#..#.\r
-        .#...#.##.\r
-        #.#####.##\r
-        ..#.###...\r
-        ..#.......\r
-        ..#.###...""";
+            Tile 2311:
+            ..##.#..#.
+            ##..#.....
+            #...##..#.
+            ####.#...#
+            ##.##.###.
+            ##...#.###
+            .#.#.#..##
+            ..#....#..
+            ###...#.#.
+            ..###..###
+            
+            Tile 1951:
+            #.##...##.
+            #.####...#
+            .....#..##
+            #...######
+            .##.#....#
+            .###.#####
+            ###.##.##.
+            .###....#.
+            ..#.#..#.#
+            #...##.#..
+            
+            Tile 1171:
+            ####...##.
+            #..##.#..#
+            ##.#..#.#.
+            .###.####.
+            ..###.####
+            .##....##.
+            .#...####.
+            #.##.####.
+            ####..#...
+            .....##...
+            
+            Tile 1427:
+            ###.##.#..
+            .#..#.##..
+            .#.##.#..#
+            #.#.#.##.#
+            ....#...##
+            ...##..##.
+            ...#.#####
+            .#.####.#.
+            ..#..###.#
+            ..##.#..#.
+            
+            Tile 1489:
+            ##.#.#....
+            ..##...#..
+            .##..##...
+            ..#...#...
+            #####...#.
+            #..#.#.#.#
+            ...#.#.#..
+            ##.#...##.
+            ..##.##.##
+            ###.##.#..
+            
+            Tile 2473:
+            #....####.
+            #..#.##...
+            #.##..#...
+            ######.#.#
+            .#...#.#.#
+            .#########
+            .###.#..#.
+            ########.#
+            ##...##.#.
+            ..###.#.#.
+            
+            Tile 2971:
+            ..#.#....#
+            #...###...
+            #.#.###...
+            ##.##..#..
+            .#####..##
+            .#..####.#
+            #..#.#..#.
+            ..####.###
+            ..#.#.###.
+            ...#.#.#.#
+            
+            Tile 2729:
+            ...#.#.#.#
+            ####.#....
+            ..#.#.....
+            ....#..#.#
+            .##..##.#.
+            .#.####...
+            ####.#.#..
+            ##.####...
+            ##..#.##..
+            #.##...##.
+            
+            Tile 3079:
+            #.#.#####.
+            .#..######
+            ..#.......
+            ######....
+            ####.#..#.
+            .#...#.##.
+            #.#####.##
+            ..#.###...
+            ..#.......
+            ..#.###...
+            """;
 	
-	static final class Tile {
-		private final Integer id;
-		private final CharGrid grid;
+	record Tile(int id, CharGrid grid) {
 		
-		public Tile(final Integer id, final List<String> grid) {
-			this.id = id;
-			this.grid = CharGrid.from(grid);
+		public static Tile fromInput(final List<String> block) {
+            Integer id = null;
+            final List<String> grid = new ArrayList<>();
+            for (final String line : block) {
+                if (line.startsWith("Tile ")) {
+                    id = Integer.valueOf(line.substring("Tile ".length(), line.length() - 1));
+                } else {
+                    grid.add(line);
+                }
+            }
+            return new Tile(id, CharGrid.from(grid));
 		}
 		
-		public Tile(final Integer id, final CharGrid grid) {
-			this.id = id;
-			this.grid = grid;
-		}
-		
-		public Integer getId() {
-			return id;
-		}
-
-		public CharGrid getGrid() {
-			return grid;
-		}
-
 		private char[] getTopEdge() {
 			return this.grid.getTopEdge();
 		}
@@ -284,7 +261,7 @@ public class AoC2020_20 extends AoCBase {
 
 		public Iterator<Tile> getAllPermutations() {
 			return new Iterator<>() {
-				final Iterator<CharGrid> inner = Tile.this.getGrid().getPermutations();
+				final Iterator<CharGrid> inner = Tile.this.grid().getPermutations();
 				
 				@Override
 				public boolean hasNext() {
@@ -293,7 +270,7 @@ public class AoC2020_20 extends AoCBase {
 
 				@Override
 				public Tile next() {
-					return new Tile(Tile.this.getId(), inner.next());
+					return new Tile(Tile.this.id(), inner.next());
 				}
 			};
 		}
@@ -382,7 +359,7 @@ public class AoC2020_20 extends AoCBase {
 					if (t == null) {
 						return "    ";
 					}
-					return String.valueOf(t.getId());
+					return String.valueOf(t.id());
 				}).collect(joining("  ")));
 				log("");
 			}
@@ -409,7 +386,7 @@ public class AoC2020_20 extends AoCBase {
 		public Set<Tile> findCorners() {
 			return getTiles().stream()
 				.filter(tile1 -> getTiles().stream()
-						.filter(tile2 -> !tile2.getId().equals(tile1.getId()))
+						.filter(tile2 -> tile2.id() != tile1.id())
 						.filter(tile2 -> haveCommonEdge(tile1, tile2))
 						.count() == 2)
 				.collect(toSet());
@@ -422,7 +399,7 @@ public class AoC2020_20 extends AoCBase {
 			Collections.shuffle(cornersList);
 			final Tile corner = cornersList.get(0);
 			log("Unplaced tiles: " + getTiles().size());
-			log("Starting with " + corner.getId());
+			log("Starting with " + corner.id());
 			final Iterator<Tile> allPermutations = corner.getAllPermutations();
 			while (allPermutations.hasNext()) {
 				final Tile next = allPermutations.next();
@@ -566,11 +543,11 @@ public class AoC2020_20 extends AoCBase {
 	
 	static final class TileMatcher {
 		
-		private static Predicate<AoC2020_20.Tile> rightSide(final Tile tile) {
+		private static Predicate<Tile> rightSide(final Tile tile) {
 			return t -> Arrays.equals(tile.getRightEdge(), t.getLeftEdge());
 		}
 		
-		private static Predicate<AoC2020_20.Tile> bottomSide(final Tile tile) {
+		private static Predicate<Tile> bottomSide(final Tile tile) {
 			return t -> Arrays.equals(tile.getBottomEdge(), t.getTopEdge());
 		}
 		
@@ -582,17 +559,12 @@ public class AoC2020_20 extends AoCBase {
 			return findMatch(tile, tiles, bottomSide(tile));
 		}
 		
-		private static Optional<Tile> findMatch(final Tile tile, final Set<Tile> tiles, final Predicate<AoC2020_20.Tile> matcher) {
+		private static Optional<Tile> findMatch(final Tile tile, final Set<Tile> tiles, final Predicate<Tile> matcher) {
 			return tiles.stream()
-				.flatMap(t -> asStream(t.getAllPermutations()))
+				.flatMap(t -> Utils.stream(t.getAllPermutations()))
 				.filter(matcher)
 				.findAny();
 		}
-	    
-		private static <T> Stream<T> asStream(final Iterator<T> sourceIterator) {
-	        final Iterable<T> iterable = () -> sourceIterator;
-	        return StreamSupport.stream(iterable.spliterator(), false);
-	    }
 	}
 	
 	private interface Logger {
