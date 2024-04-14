@@ -6,7 +6,6 @@ import static java.util.stream.Collectors.toSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -54,13 +53,36 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 	
 	@Override
 	public Long solvePart2(final Set<Tile> tiles) {
-	    final TileSet tileSet = new TileSet(tiles, obj -> log(() -> obj));
-		tileSet.puzzle();
-		tileSet.removeTileEdges();
-		tileSet.printPlacedTiles();
-		CharGrid image = CharGrid.from(tileSet.createImageGrid());
-		print(image);
-		log("Looking for Nessies...");
+	    final TileSet ts = new TileSet(new HashSet<>(tiles), obj -> log(() -> obj));
+	    return ts.findCorners().stream()
+	        .map(corner -> {
+	            final TileSet tileSet = new TileSet(new HashSet<>(tiles), obj -> log(() -> obj));
+	            return buildImage(tileSet, corner);
+	        })
+	        .filter(Optional::isPresent)
+	        .map(Optional::get)
+	        .peek(this::print)
+	        .mapToLong(image -> {
+	            final long octothorps = image.countAllEqualTo('#');
+	            log("Octothorps: " + octothorps);
+	            final List<Cell> nessies = findNessies(image);
+	            return octothorps - 15 * nessies.size();
+	        })
+	        .min().getAsLong();
+	}
+
+    private Optional<CharGrid> buildImage(final TileSet tileSet, final Tile corner) {
+        tileSet.puzzle(corner);
+        tileSet.removeTileEdges();
+        tileSet.printPlacedTiles();
+        if (Arrays.stream(tileSet.placedTiles).anyMatch(t -> t == null)) {
+            return Optional.empty();
+        }
+        return Optional.of(CharGrid.from(tileSet.createImageGrid()));
+    }
+
+    private List<Cell> findNessies(CharGrid image) {
+        log("Looking for Nessies...");
 		List<Cell> nessies = null;
 		final Iterator<CharGrid> permutations = image.getPermutations();
 		while (permutations.hasNext()) {
@@ -78,12 +100,10 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 				log("One is not enough? Looking for more Nessies...");
 			}
 		}
-		final long octothorps = image.countAllEqualTo('#');
-		log("Octothorps: " + octothorps);
 		image = NessieFinder.markNessies(nessies, image);
 		print(image);
-		return octothorps - 15 * nessies.size();
-	}
+        return nessies;
+    }
 
 	private void print(final CharGrid image) {
 		image.getRowsAsStrings().forEach(this::log);
@@ -392,12 +412,7 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 				.collect(toSet());
 		}
 
-		public void puzzle() {
-			final Set<Tile> corners = findCorners();
-			// Pick a corner, any corner...
-			final ArrayList<Tile> cornersList = new ArrayList<>(corners);
-			Collections.shuffle(cornersList);
-			final Tile corner = cornersList.get(0);
+		public void puzzle(final Tile corner) {
 			log("Unplaced tiles: " + getTiles().size());
 			log("Starting with " + corner.id());
 			final Iterator<Tile> allPermutations = corner.getAllPermutations();
