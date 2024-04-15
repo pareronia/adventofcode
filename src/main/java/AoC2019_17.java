@@ -24,6 +24,7 @@ import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
 public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
@@ -64,13 +65,13 @@ public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
     public Integer solvePart2(final List<Long> program) {
         final IntCodeComputer computer = new IntCodeComputer(program, this.debug);
         final CharGrid grid = new GridBuilder().build(computer.runCamera());
-        final List<String> input = new PathFinder(grid, this.debug).createAsciiInput(5, 3);
+        final List<String> input = new PathFinder(grid, this.logger).createAsciiInput(5, 3);
         return computer.runRobot(input).getLast().intValue();
     }
 
     @Override
     protected void samples() {
-        assert new PathFinder(CharGrid.from(splitLines(TEST)), true)
+        assert new PathFinder(CharGrid.from(splitLines(TEST)), new Logger(true))
             .createAsciiInput(3, 2)
             .equals(List.of("A,B,C,B,A,C", "R,8,R,8", "R,4,R,4,R,8", "L,6,L,2", "n"));
     }
@@ -131,17 +132,18 @@ public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
         }
     }
     
-    private static final class PathFinder {
+    private static final class PathFinder implements LoggerEnabled {
         private final CharGrid grid;
         private final Logger logger;
         
-        public PathFinder(final CharGrid grid, final boolean debug) {
+        public PathFinder(final CharGrid grid, final Logger logger) {
             this.grid = grid;
-            this.logger = new Logger(debug);
+            this.logger = logger;
         }
-        
-        private void log(final Object obj) {
-            this.logger.log(obj);
+
+        @Override
+        public Logger getLogger() {
+            return this.logger;
         }
 
         public List<Cell> findPath() {

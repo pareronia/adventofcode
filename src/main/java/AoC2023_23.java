@@ -11,6 +11,7 @@ import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -37,13 +38,13 @@ public final class AoC2023_23
 
     @Override
     public Integer solvePart1(final CharGrid grid) {
-        return new PathFinder(grid, this.debug)
+        return new PathFinder(grid, this.logger)
                 .findLongestHikeLengthWithDownwardSlopesOnly();
     }
     
     @Override
     public Integer solvePart2(final CharGrid grid) {
-        return new PathFinder(grid, this.debug).findLongestHikeLength();
+        return new PathFinder(grid, this.logger).findLongestHikeLength();
     }
     
     @Override
@@ -58,19 +59,24 @@ public final class AoC2023_23
         AoC2023_23.create().run();
     }
     
-    static final class PathFinder {
+    static final class PathFinder implements LoggerEnabled {
         private final CharGrid grid;
         private final Cell start;
         private final Cell end;
         private final Logger logger;
 
-        protected PathFinder(final CharGrid grid, final boolean debug) {
+        protected PathFinder(final CharGrid grid, final Logger logger) {
             this.grid = grid;
             this.start = Cell.at(0, 1);
             this.end = Cell.at(grid.getMaxRowIndex(), grid.getMaxColIndex() - 1);
-            this.logger = new Logger(debug);
+            this.logger = logger;
         }
-        
+ 
+        @Override
+        public Logger getLogger() {
+            return this.logger;
+        }
+
         public int findLongestHikeLength() {
             final Set<Cell> pois = this.findPois();
             log(pois);
@@ -181,10 +187,6 @@ public final class AoC2023_23
                 }
             }
             return edges;
-        }
-        
-        private void log(final Object obj) {
-            this.logger.log(obj);
         }
     }
 

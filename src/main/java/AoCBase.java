@@ -1,14 +1,14 @@
 import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.Callable;
-import java.util.function.Supplier;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aoc.solution.SolutionUtils;
 import com.github.pareronia.aocd.Puzzle;
 
-public abstract class AoCBase {
+public abstract class AoCBase implements LoggerEnabled {
 
     protected final Logger logger;
 	protected final boolean debug;
@@ -50,20 +50,9 @@ public abstract class AoCBase {
 	protected void setTrace(final boolean trace) {
 	    this.logger.setTrace(trace);
 	}
-	
-	protected void log(final Object obj) {
-	    this.logger.log(obj);
-	}
 
-	protected void trace(final Object obj) {
-	    this.logger.trace(obj);
-	}
-
-	protected void log(final Supplier<Object> supplier) {
-	    this.logger.log(supplier);
-	}
-
-	protected void trace(final Supplier<Object> supplier) {
-	    this.logger.trace(supplier);
-	}
+    @Override
+    public Logger getLogger() {
+        return this.logger;
+    }
 }

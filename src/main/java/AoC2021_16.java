@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.stream.LongStream;
 
 import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -74,18 +76,16 @@ public class AoC2021_16 extends AoCBase {
             }
         }
         
-        public static class LoggingBITSHandler implements BITSEventHandler {
-            private final boolean debug;
+        public static class LoggingBITSHandler implements BITSEventHandler, LoggerEnabled {
+            private final Logger logger;
 
-            public LoggingBITSHandler(final boolean debug) {
-                this.debug = debug;
+            public LoggingBITSHandler(final Logger logger) {
+                this.logger = logger;
             }
 
-            protected void log(final Object obj) {
-                if (!debug) {
-                    return;
-                }
-                System.out.println(obj);
+            @Override
+            public Logger getLogger() {
+                return this.logger;
             }
 
             @Override
@@ -118,8 +118,8 @@ public class AoC2021_16 extends AoCBase {
             private final Deque<Packet.PacketBuilder> builderStack = new ArrayDeque<>();
             private final Deque<Packet> packetStack = new ArrayDeque<>();
             
-            public DOMBITSHandler(final boolean debug) {
-                super(debug);
+            public DOMBITSHandler(final Logger logger) {
+                super(logger);
             }
 
             @Override
@@ -290,8 +290,8 @@ public class AoC2021_16 extends AoCBase {
     private static final class VersionSumBITSHandler extends AoC2021_16.BITS.LoggingBITSHandler {
         private int versionSum = 0;
 
-        public VersionSumBITSHandler(final boolean debug) {
-            super(debug);
+        public VersionSumBITSHandler(final Logger logger) {
+            super(logger);
         }
 
         public int getVersionSum() {
@@ -307,8 +307,8 @@ public class AoC2021_16 extends AoCBase {
     
     private static final class ValueBITSCalcHandler extends AoC2021_16.BITS.DOMBITSHandler {
 
-        public ValueBITSCalcHandler(final boolean debug) {
-            super(debug);
+        public ValueBITSCalcHandler(final Logger logger) {
+            super(logger);
         }
         
         private long calcValue(final AoC2021_16.BITS.Packet packet) {
@@ -348,14 +348,14 @@ public class AoC2021_16 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final VersionSumBITSHandler handler = new VersionSumBITSHandler(this.debug);
+        final VersionSumBITSHandler handler = new VersionSumBITSHandler(this.logger);
         BITS.Parser.createParser(handler).parseHex(this.hexData);
         return handler.getVersionSum();
     }
     
     @Override
     public Long solvePart2() {
-        final ValueBITSCalcHandler handler = new ValueBITSCalcHandler(this.debug);
+        final ValueBITSCalcHandler handler = new ValueBITSCalcHandler(this.logger);
         BITS.Parser.createParser(handler).parseHex(this.hexData);
         log(handler.getPacket());
         return handler.getValue();

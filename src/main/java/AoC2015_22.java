@@ -11,8 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.function.Supplier;
 
+import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
 public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
@@ -36,12 +37,12 @@ public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
 
     @Override
     protected Long solvePart1(final Game game) {
-        return game.setUpEasyFight(this.debug).run();
+        return game.setUpEasyFight(this.logger).run();
     }
 
     @Override
     protected Long solvePart2(final Game game) {
-        return game.setUpHardFight(this.debug).run();
+        return game.setUpHardFight(this.logger).run();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -154,15 +155,15 @@ public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
             return new Spells(spells);
         }
 
-        public Fight setUpEasyFight(final boolean debug) {
-            return setUpFight(false, debug);
+        public Fight setUpEasyFight(final Logger logger) {
+            return setUpFight(false, logger);
         }
         
-        public Fight setUpHardFight(final boolean debug) {
-            return setUpFight(true, debug);
+        public Fight setUpHardFight(final Logger logger) {
+            return setUpFight(true, logger);
         }
         
-        private Fight setUpFight(final boolean hard, final boolean debug) {
+        private Fight setUpFight(final boolean hard, final Logger logger) {
             return new Fight(
                     this.spells,
                     new Fight.LeastCostlyFirstTurnStorage(),
@@ -170,7 +171,7 @@ public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
                     this.player,
                     this.boss,
                     hard,
-                    debug);
+                    logger);
         }
         
         record Fight(
@@ -180,8 +181,8 @@ public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
             Player player,
             Boss boss,
             boolean difficultyHard,
-            boolean debug
-        ) {
+            Logger logger
+        ) implements LoggerEnabled {
             
             public long run() {
                 this.turnStorage.push(new Turn(0, this.boss, this.player));
@@ -264,13 +265,6 @@ public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
                 return FALSE;
             }
 
-            protected void log(final Supplier<Object> supplier) {
-                if (!debug) {
-                    return;
-                }
-                System.out.println(supplier.get());
-            }
-
             private void logTurn(final Turn playerTurn) {
                 log(() -> String.format("- Player has %d hit points, %d armor, %d mana",
                             playerTurn.player().hitpoints(),
@@ -280,6 +274,11 @@ public class AoC2015_22 extends SolutionBase<AoC2015_22.Game, Long, Long> {
                             playerTurn.boss().hitpoints()));
             }
                
+            @Override
+            public Logger getLogger() {
+                return this.logger;
+            }
+
             interface TurnStorage {
                 void push(Turn turn);
                 Turn pop();

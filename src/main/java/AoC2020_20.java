@@ -19,6 +19,8 @@ import java.util.regex.Pattern;
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -46,17 +48,17 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 	
 	@Override
 	public Long solvePart1(final Set<Tile> tiles) {
-	    final TileSet tileSet = new TileSet(tiles, obj -> log(() -> obj));
+	    final TileSet tileSet = new TileSet(tiles, this.logger);
 		tileSet.getTiles().forEach(this::log);
 		return Math.prod(tileSet.findCorners().stream().map(Tile::id).collect(toSet()));
 	}
 	
 	@Override
 	public Long solvePart2(final Set<Tile> tiles) {
-	    final TileSet ts = new TileSet(new HashSet<>(tiles), obj -> log(() -> obj));
+	    final TileSet ts = new TileSet(new HashSet<>(tiles), this.logger);
 	    return ts.findCorners().stream()
 	        .map(corner -> {
-	            final TileSet tileSet = new TileSet(new HashSet<>(tiles), obj -> log(() -> obj));
+	            final TileSet tileSet = new TileSet(new HashSet<>(tiles), this.logger);
 	            return buildImage(tileSet, corner);
 	        })
 	        .filter(Optional::isPresent)
@@ -322,7 +324,7 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 		}
 	}
 	
-	private static final class TileSet {
+	private static final class TileSet implements LoggerEnabled {
 		private final Set<Tile> tiles;
 		private final Tile[][] placedTiles;
 		private final Logger logger;
@@ -337,11 +339,12 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 			return this.tiles;
 		}
 		
-		private void log(final Object object) {
-			this.logger.log(object);
-		}
-		
-		private void placeTile(final Tile tile, final int row, final int col) {
+		@Override
+        public Logger getLogger() {
+            return logger;
+        }
+
+        private void placeTile(final Tile tile, final int row, final int col) {
 			placedTiles[row][col] = tile;
 			tiles.remove(tile);
 		}
@@ -580,9 +583,5 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 				.filter(matcher)
 				.findAny();
 		}
-	}
-	
-	private interface Logger {
-		void log(Object object);
 	}
 }
