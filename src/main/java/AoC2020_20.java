@@ -95,6 +95,7 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 					log(String.format("Found 1 Nessie at (%d, %d)!",
 							nessie.getRow(), nessie.getCol()));
 				}
+				log("Total Nessies found: " + nessies.size());
 				break;
 			} else if (nessies.size() == 1) {
 				final CharGrid grid = NessieFinder.markNessies(nessies, image);
@@ -116,7 +117,7 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 	    @Sample(method = "part2", input = TEST, expected = "273"),
 	})
 	public static void main(final String[] args) throws Exception {
-		AoC2020_20.create().run();
+		AoC2020_20.createDebug().run();
 	}
 
 	private static final String TEST =
@@ -497,7 +498,7 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 	static final class NessieFinder {
 		
 		private static final Pattern PATTERN2 = Pattern.compile(".\\#..\\#..\\#..\\#..\\#..\\#");
-        private static final Pattern PATTERN1 = Pattern.compile("\\#....\\#\\#....\\#\\#....\\#\\#\\#");
+        private static final Pattern PATTERN1 = Pattern.compile("(?=\\#....\\#\\#....\\#\\#....\\#\\#\\#)");
         private static final char NESSIE_CHAR = '\u2592';
 
 		public static List<Cell> findNessies(final CharGrid grid) {
@@ -506,6 +507,11 @@ public class AoC2020_20 extends SolutionBase<Set<AoC2020_20.Tile>, Long, Long> {
 				final Matcher m1 = PATTERN1.matcher(grid.getRowAsString(i));
 				while (m1.find()) {
 					final int tail = m1.start(0);
+					final int row = i;
+					if (nessies.stream().filter(c -> c.getRow() == row)
+					        .anyMatch(c -> c.getCol() > tail - 20)) {
+					    continue;
+					}
 					if ("#".equals(grid.getRowAsString(i - 1).substring(tail + 18, tail + 19))) {
 						final Matcher m2 = PATTERN2
 								.matcher(grid.getRowAsString(i + 1).substring(tail));
