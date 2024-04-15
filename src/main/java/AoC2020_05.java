@@ -1,30 +1,30 @@
+import static com.github.pareronia.aoc.AssertUtils.unreachable;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_05 extends AoCBase {
+public class AoC2020_05 extends SolutionBase<List<String>, Integer, Integer> {
 	
-	private final List<String> inputs;
-	
-	private AoC2020_05(final List<String> input, final boolean debug) {
+	private AoC2020_05(final boolean debug) {
 		super(debug);
-		this.inputs = input;
 	}
 	
-	public static AoC2020_05 create(final List<String> input) {
-		return new AoC2020_05(input, false);
+	public static AoC2020_05 create() {
+		return new AoC2020_05(false);
 	}
 
-	public static AoC2020_05 createDebug(final List<String> input) {
-		return new AoC2020_05(input, true);
+	public static AoC2020_05 createDebug() {
+		return new AoC2020_05(true);
 	}
 	
 	private List<String> translated(final List<String> inputs) {
 		return inputs.stream()
-				.map(s -> s.replaceAll("F", "0").replaceAll("B", "1")
-							.replaceAll("L", "0").replaceAll("R", "1"))
+				.map(s -> s.replace('F', '0').replace('B', '1')
+							.replace('L', '0').replace('R', '1'))
 				.sorted()
 				.collect(toList());
 	}
@@ -34,46 +34,47 @@ public class AoC2020_05 extends AoCBase {
 	}
 	
 	@Override
-	public Integer solvePart1() {
-		final List<String> list = translated(this.inputs);
+    protected List<String> parseInput(final List<String> inputs) {
+        return inputs;
+    }
+
+    @Override
+	public Integer solvePart1(final List<String> inputs) {
+		final List<String> list = translated(inputs);
 	    return asInt(list.get(list.size() - 1));
 	}
 
 	@Override
-	public Integer solvePart2() {
-		final int last = this.inputs.get(0).length() - 1;
-		final List<String> list = translated(this.inputs);
+	public Integer solvePart2(final List<String> inputs) {
+		final int last = inputs.get(0).length() - 1;
+		final List<String> list = translated(inputs);
 		for (int i = 1; i < list.size() - 1; i++) {
 			if (list.get(i).charAt(last) == list.get(i - 1).charAt(last)) {
 				return asInt(list.get(i)) - 1;
 			}
 		}
-		throw new RuntimeException("Unsolvable");
+		throw unreachable();
 	}
 
+	@Samples({
+	    @Sample(method = "part1", input = TEST1, expected = "820"),
+	    @Sample(method = "part2", input = TEST2, expected = "3"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert createDebug(TEST1).solvePart1() == 820;
-		assert createDebug(TEST2).solvePart2() == 3;
-		
-        final Puzzle puzzle = puzzle(AoC2020_05.class);
-		final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", create(input)::solvePart1),
-           () -> lap("Part 2", create(input)::solvePart2)
-	    );
+		AoC2020_05.create().run();
 	}
 	
-	private static final List<String> TEST1 = splitLines(
-			"FBFBBFFRLR\r\n" +
-			"BFFFBBFRRR\r\n" +
-			"FFFBBBFRRR\r\n" +
-			"BBFFBBFRLL"
-	);
-	private static final List<String> TEST2 = splitLines(
-			"FFFFFFFLLL\r\n" +
-			"FFFFFFFLLR\r\n" +
-			"FFFFFFFLRL\r\n" +
-			"FFFFFFFRLL\r\n" +
-			"FFFFFFFRLR"
-	);
+	private static final String TEST1 = """
+	        FBFBBFFRLR
+	        BFFFBBFRRR
+	        FFFBBBFRRR
+	        BBFFBBFRLL
+	        """;
+	private static final String TEST2 = """
+	        FFFFFFFLLL
+	        FFFFFFFLLR
+	        FFFFFFFLRL
+	        FFFFFFFRLL
+	        FFFFFFFRLR
+	        """;
 }

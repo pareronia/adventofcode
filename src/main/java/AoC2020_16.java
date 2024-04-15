@@ -13,82 +13,56 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.RangeInclusive;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_16 extends AoCBase {
+public class AoC2020_16
+                extends SolutionBase<AoC2020_16.Notes, Integer, Long> {
     
-    private final Set<Rule> rules;
-    private final Ticket myTicket;
-    private final List<Ticket> tickets;
-	
-	private AoC2020_16(final List<String> input, final boolean debug) {
+	private AoC2020_16(final boolean debug) {
 		super(debug);
-		final List<List<String>> blocks = toBlocks(input);
-		this.rules = blocks.get(0).stream()
-		                .map(this::parseRule)
-		                .collect(toSet());
-		this.myTicket = parseTicket(blocks.get(1).get(1));
-		this.tickets = blocks.get(2).stream().skip(1)
-		                .map(this::parseTicket)
-		                .collect(toList());
 	}
 
-    private final Rule parseRule(final String s) {
-        final var splits1 = s.split(": ");
-        final var builder = Rule.builder();
-        builder.field(splits1[0]);
-        for (final var split : splits1[1].split(" or ")) {
-            final var splits3 = split.split("-");
-            final int start = Integer.parseInt(splits3[0]);
-            final int end = Integer.parseInt(splits3[1]);
-            builder.validRange(RangeInclusive.between(start, end));
-        }
-        return builder.build();
-    }
-    
-    private final Ticket parseTicket(final String s) {
-        return new Ticket(Arrays.stream(s.split(","))
-                .map(Integer::parseInt)
-                .collect(toList()));
-    }
-    
-	public static AoC2020_16 create(final List<String> input) {
-		return new AoC2020_16(input, false);
+	public static AoC2020_16 create() {
+		return new AoC2020_16(false);
 	}
 
-	public static AoC2020_16 createDebug(final List<String> input) {
-		return new AoC2020_16(input, true);
+	public static AoC2020_16 createDebug() {
+		return new AoC2020_16(true);
 	}
 
     @Override
-	public Integer solvePart1() {
-	    return this.tickets.stream()
-	            .flatMap(t -> t.invalidValues(rules).stream())
+    protected AoC2020_16.Notes parseInput(final List<String> inputs) {
+        return Notes.fromInput(inputs);
+    }
+
+    @Override
+	public Integer solvePart1(final Notes notes) {
+	    return notes.tickets.stream()
+	            .flatMap(t -> t.invalidValues(notes.rules).stream())
 	            .mapToInt(Integer::valueOf)
 	            .sum();
 	}
 
 	@Override
-	public Long solvePart2() {
-	    return Matches.create(this.tickets, this.rules).stream()
+	public Long solvePart2(final Notes notes) {
+	    return Matches.create(notes.tickets, notes.rules).stream()
                 .filter(m -> m.rule.field.startsWith("departure "))
-                .mapToLong(m -> this.myTicket.values.get(m.idx))
+                .mapToLong(m -> notes.myTicket.values.get(m.idx))
                 .reduce(1, (a, b) -> a * b);
 	}
 
+	@Samples({
+	    @Sample(method = "part1", input = TEST1, expected = "71"),
+	    @Sample(method = "part2", input = TEST2, expected = "1716"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert createDebug(TEST1).solvePart1() == 71;
-		assert createDebug(TEST2).solvePart2() == 1716;
-		
-        final Puzzle puzzle = puzzle(AoC2020_16.class);
-		final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", create(input)::solvePart1),
-           () -> lap("Part 2", create(input)::solvePart2)
-	    );
+		AoC2020_16.create().run();
 	}
 	
-	private static final List<String> TEST1 = splitLines("""
+	private static final String TEST1 = """
             class: 1-3 or 5-7
             row: 6-11 or 33-44
             seat: 13-40 or 45-50
@@ -101,8 +75,8 @@ public class AoC2020_16 extends AoCBase {
             40,4,50
             55,2,20
             38,6,12
-            """);
-	private static final List<String> TEST2 = splitLines("""
+            """;
+	private static final String TEST2 = """
             departure date: 0-1 or 4-19
             departure time: 0-5 or 8-19
             departure track: 0-13 or 16-19
@@ -114,12 +88,26 @@ public class AoC2020_16 extends AoCBase {
             3,9,18
             15,1,5
             5,14,9
-            """);
+            """;
 	
-	private static final record Rule(
+	private record Rule(
 	        String field,
 	        Set<RangeInclusive<Integer>> validRanges
 	) {
+        
+	    public static Rule parseRule(final String s) {
+            final var splits1 = s.split(": ");
+            final var builder = Rule.builder();
+            builder.field(splits1[0]);
+            for (final var split : splits1[1].split(" or ")) {
+                final var splits3 = split.split("-");
+                final int start = Integer.parseInt(splits3[0]);
+                final int end = Integer.parseInt(splits3[1]);
+                builder.validRange(RangeInclusive.between(start, end));
+            }
+            return builder.build();
+        }
+    
 	    public boolean validate(final int value) {
 	        return this.validRanges.stream().anyMatch(r -> r.contains(value));
 	    }
@@ -148,8 +136,14 @@ public class AoC2020_16 extends AoCBase {
 	    }
 	}
 	
-    private static final record Ticket(List<Integer> values) {
+    private record Ticket(List<Integer> values) {
         
+        public static Ticket parseTicket(final String s) {
+            return new Ticket(Arrays.stream(s.split(","))
+                    .map(Integer::parseInt)
+                    .collect(toList()));
+        }
+    
         public boolean invalid(final Set<Rule> rules) {
             return this.values.stream()
                     .anyMatch(fieldDoesNotMatchAnyRule(rules));
@@ -163,6 +157,22 @@ public class AoC2020_16 extends AoCBase {
 
         private Predicate<Integer> fieldDoesNotMatchAnyRule(final Set<Rule> rules) {
             return v -> rules.stream().noneMatch(r -> r.validate(v));
+        }
+    }
+    
+    record Notes(
+            Set<Rule> rules, Ticket myTicket, List<Ticket> tickets) {
+        
+        public static Notes fromInput(final List<String> input) {
+            final List<List<String>> blocks = StringOps.toBlocks(input);
+            final Set<Rule> rules = blocks.get(0).stream()
+                            .map(Rule::parseRule)
+                            .collect(toSet());
+            final Ticket myTicket = Ticket.parseTicket(blocks.get(1).get(1));
+            final List<Ticket> tickets = blocks.get(2).stream().skip(1)
+                            .map(Ticket::parseTicket)
+                            .collect(toList());
+            return new Notes(rules, myTicket, tickets);
         }
     }
     

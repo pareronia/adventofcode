@@ -1,24 +1,24 @@
 import java.util.List;
 
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_25 extends AoCBase {
+public class AoC2020_25
+                extends SolutionBase<AoC2020_25.PublicKeys, Long, String> {
     
     private static final int MOD = 20201227;
 
-    private final List<String> input;
-    
-	private AoC2020_25(final List<String> input, final boolean debug) {
+	private AoC2020_25(final boolean debug) {
 		super(debug);
-		this.input = input;
 	}
     
-    public static AoC2020_25 create(final List<String> input) {
-        return new AoC2020_25(input, false);
+    public static AoC2020_25 create() {
+        return new AoC2020_25(false);
     }
 
-    public static AoC2020_25 createDebug(final List<String> input) {
-        return new AoC2020_25(input, true);
+    public static AoC2020_25 createDebug() {
+        return new AoC2020_25(true);
     }
     
     private long findLoopSize(final long key) {
@@ -40,32 +40,34 @@ public class AoC2020_25 extends AoCBase {
     }
     
     @Override
-	public Long solvePart1() {
-        assert this.input.size() == 2;
-        final long pubKey1 = Integer.parseInt(this.input.get(0));
-        final long pubKey2 = Integer.parseInt(this.input.get(1));
-        final long loopSize2 = findLoopSize(pubKey2);
-        return findEncryptionKey(pubKey1, loopSize2);
+    protected PublicKeys parseInput(final List<String> inputs) {
+        return new PublicKeys(
+                Long.parseLong(inputs.get(0)),
+                Long.parseLong(inputs.get(1)));
+    }
+
+    @Override
+	public Long solvePart1(final PublicKeys keys) {
+        final long loopSize2 = findLoopSize(keys.key2);
+        return findEncryptionKey(keys.key1, loopSize2);
 	}
 
 	@Override
-	public Integer solvePart2() {
-	    return 0;
+	public String solvePart2(final PublicKeys keys) {
+	    return "🎄";
 	}
 
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "14897079")
+	})
 	public static void main(final String[] args) throws Exception {
-		assert createDebug(TEST).solvePart1() == 14897079;
-		
-        final Puzzle puzzle = puzzle(AoC2020_25.class);
-		final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", create(input)::solvePart1),
-           () -> lap("Part 2", create(input)::solvePart2)
-	    );
+		AoC2020_25.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"5764801\r\n" +
-			"17807724"
-	);
+	private static final String TEST = """
+			5764801
+			17807724
+	        """;
+	
+	record PublicKeys(long key1, long key2) {}
 }
