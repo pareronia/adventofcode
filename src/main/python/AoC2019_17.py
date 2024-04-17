@@ -225,12 +225,16 @@ class PathFinder:
         # log(d)
         main = list[str]()
         lst = commands[:]
+        cnt = 0
         while len(lst) > 0:
+            if cnt >= 100:
+                raise RuntimeError("infinite loop")
             for k, v in d.items():
                 if index_of_sublist(lst, v) == 0:
                     main.append(k)
                     lst = lst[len(v) :]  # noqa E203
                     break
+            cnt += 1
         log(main)
         ascii_input = (
             [",".join(main)]
