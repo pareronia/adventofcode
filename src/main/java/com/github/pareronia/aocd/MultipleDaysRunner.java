@@ -30,13 +30,21 @@ public class MultipleDaysRunner {
 	    this.run(days, Set.of(User.getDefaultUser()), listener);
 	}
 	
-	public void run(final Set<Day> days, final Set<User> users, final Listener listener) throws Exception {
+	public void run(final Set<Day> days, final Set<User> users, final Listener listener) {
 	    for (final Day day : new TreeSet<>(days)) {
 	        for (final User user : users) {
 	            final var puzzle = Puzzle.builder()
 	                    .year(day.year).day(day.day).user(user)
 	                    .build();
-	            this.run(puzzle, listener);
+	            try {
+                    this.run(puzzle, listener);
+                } catch (final Exception e) {
+                    System.err.println("%d/%d/%s: FAIL (%s)".formatted(
+                            day.year, day.day, user.name(),
+                            Optional.ofNullable(e.getCause())
+                                .map(Throwable::getMessage)
+                                .orElse(e.getMessage())));
+                }
             }
         }
 	}

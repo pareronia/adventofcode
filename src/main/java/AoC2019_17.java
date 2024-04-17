@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.StringOps.splitLines;
 import static com.github.pareronia.aoc.Utils.concatAll;
@@ -216,9 +217,12 @@ public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
                 }
             }
             log(map);
+            assertTrue(map.size() == 3, () -> "could not find functions");
             final List<String> main = new ArrayList<>();
             lst = new ArrayList<>(commands);
+            int cnt = 0;
             while (!lst.isEmpty()) {
+                assertTrue(cnt < 100, () -> "infinite loop");
                 for (final Entry<String, List<Command>> func : map.entrySet()) {
                     if (Collections.indexOfSubList(lst, func.getValue()) == 0) {
                         main.add(func.getKey());
@@ -227,6 +231,7 @@ public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
                         break;
                     }
                 }
+                cnt++;
             }
             log(main);
             final List<String> input = new ArrayList<>();
