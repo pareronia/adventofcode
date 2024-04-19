@@ -1,80 +1,58 @@
+import static com.github.pareronia.aoc.AssertUtils.unreachable;
 import static com.github.pareronia.aoc.IterTools.combinations;
 import static java.util.Collections.emptyList;
-import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
-import java.util.PriorityQueue;
 import java.util.Set;
 
 import com.github.pareronia.aoc.StringUtils;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2016_11 extends AoCBase {
+public final class AoC2016_11
+                extends SolutionBase<AoC2016_11.State, Integer, Integer> {
     
-    private final transient State initialState;
-
-    private AoC2016_11(final List<String> inputs, final boolean debug) {
+    private AoC2016_11(final boolean debug) {
         super(debug);
-        this.initialState = parse(inputs);
     }
 
-    private State parse(final List<String> inputs) {
-        final Map<String, Integer> chips = new HashMap<>();
-        final Map<String, Integer> generators = new HashMap<>();
-        for (int i = 0; i < inputs.size(); i++) {
-            String floor = inputs.get(i);
-            floor = floor.replaceAll(",? and", ",");
-            floor = floor.replace(".", "");
-            final String contains = floor.split(" contains ")[1];
-            final String[] contained = contains.split(", ");
-            for (final String containee : contained) {
-                final String[] s = containee.split(" ");
-                if ("nothing".equals(s[0])) {
-                   continue;
-                } else if ("generator".equals(s[2])) {
-                    generators.put(s[1], i + 1);
-                } else {
-                    chips.put(StringUtils.substringBefore(s[1], "-"), i + 1);
-                }
-             }
-        }
-        return new State(1, chips, generators);
+    public static AoC2016_11 create() {
+        return new AoC2016_11(false);
     }
 
-    public static AoC2016_11 create(final List<String> input) {
-        return new AoC2016_11(input, false);
-    }
-
-    public static AoC2016_11 createDebug(final List<String> input) {
-        return new AoC2016_11(input, true);
+    public static AoC2016_11 createDebug() {
+        return new AoC2016_11(true);
     }
     
-    private Integer solve(final State initialState) {
-        Integer numberOfSteps = 0;
-        final PriorityQueue<Step> steps
-                = new PriorityQueue<>(comparing(Step::score));
+    @Override
+    protected State parseInput(final List<String> inputs) {
+        return State.fromInput(inputs);
+    }
+
+    private int solve(final State initialState) {
+        final Deque<Step> steps = new ArrayDeque<>();
         steps.add(Step.of(0, initialState));
         final Set<Integer> seen = new HashSet<>();
         seen.add(initialState.equivalentState());
-        int cnt = 0;
         while (!steps.isEmpty()) {
             final Step step = steps.poll();
-            cnt++;
             final State state = step.state;
             if (state.isDestination()) {
-                numberOfSteps = step.numberOfSteps;
-                break;
+                log("#steps: " + step.numberOfSteps);
+                return step.numberOfSteps;
             }
             state.moves().stream()
                     .filter(m -> !seen.contains(m.equivalentState()))
@@ -83,50 +61,38 @@ public final class AoC2016_11 extends AoCBase {
                         steps.add(Step.of(step.numberOfSteps + 1, m));
                     });
         }
-        log(cnt);
-        log("#steps: " + numberOfSteps);
-        return numberOfSteps;
+        throw unreachable();
     }
 
     @Override
-    public Integer solvePart1() {
-        log("==================");
-        log(() -> "Initial state: " + this.initialState);
-        this.initialState.moves().forEach(this::log);
-        return solve(this.initialState);
+    public Integer solvePart1(final State initialState) {
+        return solve(initialState);
     }
     
     @Override
-    public Integer solvePart2() {
-        final Map<String, Integer> chips = new HashMap<>(this.initialState.getChips());
+    public Integer solvePart2(final State initialState) {
+        final Map<String, Integer> chips = new HashMap<>(initialState.getChips());
         chips.put("elerium", 1);
         chips.put("dilithium", 1);
-        final Map<String, Integer> gennys = new HashMap<>(this.initialState.getGennys());
+        final Map<String, Integer> gennys = new HashMap<>(initialState.getGennys());
         gennys.put("elerium", 1);
         gennys.put("dilithium", 1);
-        final State newState = this.initialState.withChips(chips).withGennys(gennys);
-        log("==================");
-        log(() -> "Initial state: " + newState);
-        return solve(newState);
+        return solve(initialState.withChips(chips).withGennys(gennys));
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "11")
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_11.createDebug(TEST).solvePart1() == 11;
-
-        final Puzzle puzzle = Aocd.puzzle(2016, 11);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2016_11.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2016_11.create(inputData)::solvePart2)
-        );
+        AoC2016_11.create().run();
     }
     
-    private static final List<String> TEST = splitLines(
-            "The first floor contains a hydrogen-compatible microchip, and a lithium-compatible microchip.\n" +
-            "The second floor contains a hydrogen generator.\n" +
-            "The third floor contains a lithium generator.\n" +
-            "The fourth floor contains nothing relevant."
-    );
+    private static final String TEST = """
+            The first floor contains a hydrogen-compatible microchip, and a lithium-compatible microchip.
+            The second floor contains a hydrogen generator.
+            The third floor contains a lithium generator.
+            The fourth floor contains nothing relevant.
+            """;
     
     static final class State {
         private static final List<Integer> FLOORS = List.of(1, 2, 3, 4);
@@ -137,7 +103,6 @@ public final class AoC2016_11 extends AoCBase {
         private final Integer elevator;
         private final Map<String, Integer> chips;
         private final Map<String, Integer> gennys;
-        private final Integer diff;
         private final Map<Integer, List<String>> chipsPerFloor;
         private final Map<Integer, List<String>> gennysPerFloor;
 
@@ -145,36 +110,48 @@ public final class AoC2016_11 extends AoCBase {
                 final Integer elevator,
                 final Map<String, Integer> chips,
                 final Map<String, Integer> gennys,
-                final Integer diff,
                 final Map<Integer, List<String>> chipsPerFloor,
                 final Map<Integer, List<String>> gennysPerFloor
                 ) {
             this.elevator = elevator;
             this.chips = chips;
             this.gennys = gennys;
-            this.diff = diff;
             this.chipsPerFloor = chips.keySet().stream().collect(groupingBy(chips::get));
             this.gennysPerFloor = gennys.keySet().stream().collect(groupingBy(gennys::get));
         }
         
-        private State(
-                final Integer elevator,
-                final Map<String, Integer> chips,
-                final Map<String, Integer> gennys,
-                final Integer diff
-                ) {
-            this(   elevator,
-                    Collections.unmodifiableMap(chips),
-                    Collections.unmodifiableMap(gennys),
-                    diff, null, null);
-        }
-
-        public State(
+        State(
                 final Integer elevator,
                 final Map<String, Integer> chips,
                 final Map<String, Integer> gennys
                 ) {
-            this(elevator, chips, gennys, 0);
+            this(   elevator,
+                    Collections.unmodifiableMap(chips),
+                    Collections.unmodifiableMap(gennys),
+                    null, null);
+        }
+        
+        public static State fromInput(final List<String> inputs) {
+            final Map<String, Integer> chips = new HashMap<>();
+            final Map<String, Integer> generators = new HashMap<>();
+            for (int i = 0; i < inputs.size(); i++) {
+                String floor = inputs.get(i);
+                floor = floor.replaceAll(",? and", ",");
+                floor = floor.replace(".", "");
+                final String contains = floor.split(" contains ")[1];
+                final String[] contained = contains.split(", ");
+                for (final String containee : contained) {
+                    final String[] s = containee.split(" ");
+                    if ("nothing".equals(s[0])) {
+                       continue;
+                    } else if ("generator".equals(s[2])) {
+                        generators.put(s[1], i + 1);
+                    } else {
+                        chips.put(StringUtils.substringBefore(s[1], "-"), i + 1);
+                    }
+                 }
+            }
+            return new State(1, chips, generators);
         }
         
         public Map<String, Integer> getChips() {
@@ -183,10 +160,6 @@ public final class AoC2016_11 extends AoCBase {
 
         public Map<String, Integer> getGennys() {
             return gennys;
-        }
-
-        public Integer getDiff() {
-            return diff;
         }
 
         boolean isSafe() {
@@ -308,56 +281,46 @@ public final class AoC2016_11 extends AoCBase {
             for (final String match : intersection) {
                 states.add(withChipsTo(List.of(match), floor + 1)
                         .withGennysTo(List.of(match), floor + 1)
-                        .withElevator(floor + 1)
-                        .withDiff(2));
+                        .withElevator(floor + 1));
                 if (!floorsBelowEmpty(floor)) {
                     states.add(withChipsTo(List.of(match), floor - 1)
                             .withGennysTo(List.of(match), floor - 1)
-                            .withElevator(floor - 1)
-                            .withDiff(-2));
+                            .withElevator(floor - 1));
                 }
             }
             return states;
         }
         
         private State withElevator(final int elevator) {
-            return new State(elevator, this.chips, this.gennys, this.diff);
-        }
-        
-        private State withDiff(final int diff) {
-            return new State(this.elevator, this.chips, this.gennys, diff);
+            return new State(elevator, this.chips, this.gennys);
         }
         
         private State withChips(final Map<String, Integer> chips) {
-            return new State(this.elevator, chips, this.gennys, this.diff);
+            return new State(this.elevator, chips, this.gennys);
         }
         
         private State withGennys(final Map<String, Integer> gennys) {
-            return new State(this.elevator, this.chips, gennys, this.diff);
+            return new State(this.elevator, this.chips, gennys);
         }
         
         private State moveUpWithChips(final List<String> chips) {
             return withChipsTo(chips, this.elevator + 1)
-                    .withElevator(this.elevator + 1)
-                    .withDiff(chips.size());
+                    .withElevator(this.elevator + 1);
         }
         
         private State moveUpWitGennys(final List<String> gennys) {
             return withGennysTo(gennys, this.elevator + 1)
-                    .withElevator(this.elevator + 1)
-                    .withDiff(gennys.size());
+                    .withElevator(this.elevator + 1);
         }
         
         private State moveDownWithChips(final List<String> chips) {
             return withChipsTo(chips, this.elevator - 1)
-                    .withElevator(this.elevator - 1)
-                    .withDiff(-chips.size());
+                    .withElevator(this.elevator - 1);
         }
         
         private State moveDownWithGennys(final List<String> gennys) {
             return withGennysTo(gennys, this.elevator - 1)
-                    .withElevator(this.elevator - 1)
-                    .withDiff(-gennys.size());
+                    .withElevator(this.elevator - 1);
         }
         
         private State withChipsTo(final List<String> chips, final Integer floor) {
@@ -409,8 +372,9 @@ public final class AoC2016_11 extends AoCBase {
         @Override
         public String toString() {
             final StringBuilder builder = new StringBuilder();
-            builder.append("State [elevator=").append(elevator).append(", chips=").append(chips).append(", gennys=")
-                    .append(gennys).append(", diff=").append(diff)
+            builder.append("State [elevator=").append(elevator)
+                    .append(", chips=").append(chips)
+                    .append(", gennys=").append(gennys)
                     .append(", isSafe=").append(isSafe()).append("]");
             return builder.toString();
         }
@@ -420,10 +384,6 @@ public final class AoC2016_11 extends AoCBase {
         
         public static Step of(final int numberOfSteps, final State state) {
             return new Step(numberOfSteps, state);
-        }
-        
-        public int score() {
-            return -state.getDiff() * numberOfSteps;
         }
     }
 }
