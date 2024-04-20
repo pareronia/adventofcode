@@ -7,7 +7,8 @@ from . import Stats
 def print_stats(
     year: int, stats: dict[int, Stats], leaderboard: dict[int, LeaderBoard]
 ) -> list[str]:
-    def format_time(time: str) -> str:
+    def format_time(time: str | None) -> str:
+        assert time is not None
         if time != ">24h":
             time = time[:-3]
         if time[0] == "0":
@@ -50,25 +51,18 @@ def print_stats(
         if i not in leaderboard:
             continue
         rank_first = leaderboard[i].rank_first
+        assert rank_first is not None
         time_first = format_time(leaderboard[i].time_first)
         first = stats[i].first_only + stats[i].both
-        pct_first = (leaderboard[i].rank_first - 1) / first * 100 // 0.01 / 100
-        if leaderboard[i].rank_both is not None:
-            rank_both = leaderboard[i].rank_both
+        pct_first = (rank_first - 1) / first * 100 // 0.01 / 100
+        rank_both = leaderboard[i].rank_both
+        if rank_both is not None:
             time_both = format_time(leaderboard[i].time_both)
-            pct_both = (
-                (leaderboard[i].rank_both - 1)
-                / stats[i].both
-                * 100
-                // 0.01
-                / 100
-            )
+            pct_both = (rank_both - 1) / stats[i].both * 100 // 0.01 / 100
             stars = "**"
             fmt = first_only_fmt
         else:
-            rank_both = "--".rjust(6)
             time_both = "-:--".rjust(5)
-            pct_both = "--.--"
             stars = "*"
             fmt = both_fmt
         output = fmt.format(
@@ -79,9 +73,9 @@ def print_stats(
             first=first,
             pct_first=pct_first,
             time_both=time_both,
-            rank_both=rank_both,
+            rank_both=rank_both or "--".rjust(6),
             both=stats[i].both,
-            pct_both=pct_both,
+            pct_both=pct_both or "--:--",
             stars=stars,
         )
         lines.append(output)
