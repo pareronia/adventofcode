@@ -16,6 +16,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.AssertUtils;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
@@ -29,7 +30,7 @@ public class AoC2022_17 extends AoCBase {
     private static final int OFFSET_X = 2;
     private static final int OFFSET_Y = 3;
     private static final int WIDTH = 7;
-    private static final int KEEP_ROWS = 40;
+    private static final int KEEP_ROWS = 55;
     private static final int LOOP_TRESHOLD = 3_000;
     private static final Set<Position> FLOOR = IntStream.range(0, WIDTH)
             .mapToObj(x -> Position.of(x, -1)).collect(toSet());
@@ -106,6 +107,7 @@ public class AoC2022_17 extends AoCBase {
         State state;
         int cnt = 0;
         while (true) {
+            AssertUtils.assertTrue(cnt < 10000, () -> "infinite loop");
             final var jet = jetSupplier.get();
             state = new State(rock.idx, stack.getTopsNormalised(), jet);
             if (cnt++ == 1) {
