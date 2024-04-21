@@ -16,6 +16,7 @@ public abstract class SolutionBase<Input, Output1, Output2> implements LoggerEna
     protected final Puzzle puzzle;
     protected final Logger logger;
     protected final SystemUtils systemUtils;
+	protected boolean trace;
     
     protected SolutionBase(final boolean debug) {
         this.debug = debug;
@@ -65,4 +66,9 @@ public abstract class SolutionBase<Input, Output1, Output2> implements LoggerEna
     public Logger getLogger() {
         return this.logger;
     }
+	
+	protected void setTrace(final boolean trace) {
+	    this.trace = true;
+	    this.logger.setTrace(trace);
+	}
 }

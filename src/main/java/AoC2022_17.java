@@ -21,11 +21,12 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 // TODO: needs more cleanup
-public class AoC2022_17 extends AoCBase {
+public class AoC2022_17 extends SolutionBase<List<Direction>, Long, Long> {
     
     private static final int OFFSET_X = 2;
     private static final int OFFSET_Y = 3;
@@ -34,52 +35,32 @@ public class AoC2022_17 extends AoCBase {
     private static final int LOOP_TRESHOLD = 3_000;
     private static final Set<Position> FLOOR = IntStream.range(0, WIDTH)
             .mapToObj(x -> Position.of(x, -1)).collect(toSet());
-    private static final List<Set<Position>> SHAPES = List.of(
-        // ####
-        Set.of(Position.of(0, 0), Position.of(1, 0), Position.of(2, 0), Position.of(3, 0)),
-        //  #
-        // ###
-        //  #
-        Set.of(Position.of(1, 2), Position.of(0, 1), Position.of(1, 1), Position.of(2, 1), Position.of(1, 0)),
-        //   #
-        //   #
-        // ###
-        Set.of(Position.of(2, 2), Position.of(2, 1), Position.of(0, 0), Position.of(1, 0), Position.of(2, 0)),
-        // #
-        // #
-        // #
-        // #
-        Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(0, 2), Position.of(0, 3)),
-        // ##
-        // ##
-        Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(1, 0), Position.of(1, 1))
-    );
 
-    private final List<Direction> jets;
-    private final Map<State, List<Cycle>> states;
-    
-    private AoC2022_17(final List<String> input, final boolean debug) {
+    private AoC2022_17(final boolean debug) {
         super(debug);
-        this.jets = Utils.asCharacterStream(input.get(0))
-            .map(Direction::fromChar)
-            .collect(toList());
-        this.states = new HashMap<>();
     }
     
-    public static final AoC2022_17 create(final List<String> input) {
-        return new AoC2022_17(input, false);
+    public static final AoC2022_17 create() {
+        return new AoC2022_17(false);
     }
 
-    public static final AoC2022_17 createDebug(final List<String> input) {
-        return new AoC2022_17(input, true);
+    public static final AoC2022_17 createDebug() {
+        return new AoC2022_17(true);
     }
     
-    public static final AoC2022_17 createTrace(final List<String> input) {
-        final AoC2022_17 puzzle = new AoC2022_17(input, true);
+    public static final AoC2022_17 createTrace() {
+        final AoC2022_17 puzzle = new AoC2022_17(true);
         puzzle.setTrace(true);
         return puzzle;
     }
     
+    @Override
+    protected List<Direction> parseInput(final List<String> inputs) {
+        return Utils.asCharacterStream(inputs.get(0))
+            .map(Direction::fromChar)
+            .collect(toList());
+    }
+
     private void draw(final Stack stack) {
         if (!this.trace) {
             return;
@@ -96,10 +77,11 @@ public class AoC2022_17 extends AoCBase {
     private State drop(
             final int dropIndex,
             final Stack stack,
+            final Map<State, List<Cycle>> states,
             final ShapeSupplier shapeSupplier,
             final JetSupplier jetSupplier
     ) {
-        final var shape = shapeSupplier.get();
+        final Shape shape = shapeSupplier.get();
         final var start = new Rock(shape.idx, shape.shape)
                 .move(Vector.of(OFFSET_X, stack.getTop() + OFFSET_Y));
         trace(() -> start);
@@ -108,10 +90,10 @@ public class AoC2022_17 extends AoCBase {
         int cnt = 0;
         while (true) {
             AssertUtils.assertTrue(cnt < 10000, () -> "infinite loop");
-            final var jet = jetSupplier.get();
+            final Direction jet = jetSupplier.get();
             state = new State(rock.idx, stack.getTopsNormalised(), jet);
             if (cnt++ == 1) {
-                this.states.computeIfAbsent(state, k -> new ArrayList<>())
+                states.computeIfAbsent(state, k -> new ArrayList<>())
                     .add(new Cycle(dropIndex, stack.getTop()));
             }
             trace(() -> "move " + jet.toString());
@@ -137,24 +119,25 @@ public class AoC2022_17 extends AoCBase {
         return state;
     }
 
-    private Long solve(final long requestedDrops) {
+    private Long solve(final List<Direction> jets, final long requestedDrops) {
         final var stack = new Stack(FLOOR);
-        final var jetSupplier = new JetSupplier(this.jets);
+        final var states = new HashMap<State, List<Cycle>>();
+        final var jetSupplier = new JetSupplier(jets);
         final var shapeSupplier = new ShapeSupplier();
         int drops = 0;
         State state;
         while (true) {
-            state = drop(drops++, stack, shapeSupplier, jetSupplier);
+            state = drop(drops++, stack, states, shapeSupplier, jetSupplier);
             if (drops == requestedDrops) {
                 return (long) stack.getTop();
             }
             if (drops >= LOOP_TRESHOLD
-                    && this.states.getOrDefault(state, List.of()).size() > 1) {
+                    && states.getOrDefault(state, List.of()).size() > 1) {
                 break;
             }
         }
         log("drops: " + drops);
-        final List<Cycle> cycles = this.states.get(state);
+        final List<Cycle> cycles = states.get(state);
         final int loopsize = cycles.get(1).cycle - cycles.get(0).cycle;
         log("loopsize: " + loopsize);
         final int diff = cycles.get(1).top - cycles.get(0).top;
@@ -162,36 +145,30 @@ public class AoC2022_17 extends AoCBase {
         final long loops = Math.floorDiv(requestedDrops - drops, loopsize);
         final long left = requestedDrops - (drops + loops * loopsize);
         for (int i = 0; i < left; i++) {
-            drop(drops++, stack, shapeSupplier, jetSupplier);
+            drop(drops++, stack, states, shapeSupplier, jetSupplier);
         }
         return stack.getTop() + loops * diff;
     }
     
     @Override
-    public Long solvePart1() {
-        return solve(2022L);
+    public Long solvePart1(final List<Direction> jets) {
+        return solve(jets, 2022L);
     }
     
     @Override
-    public Long solvePart2() {
-        return solve(1_000_000_000_000L);
+    public Long solvePart2(final List<Direction> jets) {
+        return solve(jets, 1_000_000_000_000L);
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "3068"),
+        @Sample(method = "part2", input = TEST, expected = "1514285714288"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2022_17.createDebug(TEST).solvePart1() == 3068;
-        assert AoC2022_17.createDebug(TEST).solvePart2() == 1_514_285_714_288L;
-
-        final Puzzle puzzle = Aocd.puzzle(2022, 17);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2022_17.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2022_17.create(inputData)::solvePart2)
-        );
+        AoC2022_17.create().run();
     }
 
-    private static final List<String> TEST = splitLines(
-        ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>"
-    );
+    private static final String TEST = ">>><<><>><<<>><>>><<<>>><<<><<<>><>><<>>";
     
     private static final class Stack {
         private Set<Position> positions;
@@ -266,6 +243,28 @@ public class AoC2022_17 extends AoCBase {
     private static final record Shape(int idx, Set<Position> shape) { }
     
     private static final class ShapeSupplier implements Supplier<Shape> {
+
+        private static final List<Set<Position>> SHAPES = List.of(
+            // ####
+            Set.of(Position.of(0, 0), Position.of(1, 0), Position.of(2, 0), Position.of(3, 0)),
+            //  #
+            // ###
+            //  #
+            Set.of(Position.of(1, 2), Position.of(0, 1), Position.of(1, 1), Position.of(2, 1), Position.of(1, 0)),
+            //   #
+            //   #
+            // ###
+            Set.of(Position.of(2, 2), Position.of(2, 1), Position.of(0, 0), Position.of(1, 0), Position.of(2, 0)),
+            // #
+            // #
+            // #
+            // #
+            Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(0, 2), Position.of(0, 3)),
+            // ##
+            // ##
+            Set.of(Position.of(0, 0), Position.of(0, 1), Position.of(1, 0), Position.of(1, 1))
+        );
+
         private int idx = 0;
         
         @Override
@@ -298,6 +297,7 @@ public class AoC2022_17 extends AoCBase {
             result = prime * result + Arrays.hashCode(tops);
             return prime * result + Objects.hash(jet, shape);
         }
+
         @Override
         public boolean equals(final Object obj) {
             if (this == obj) {

@@ -38,6 +38,7 @@ public abstract class AoCBase implements LoggerEnabled {
 	}
 	
 	protected void setTrace(final boolean trace) {
+	    this.trace = true;
 	    this.logger.setTrace(trace);
 	}
 
