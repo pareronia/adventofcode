@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 use std::str::FromStr;
+use core::fmt;
+use core::fmt::Display;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct XY {
@@ -86,6 +88,12 @@ impl FromStr for Direction {
             "L" | "<" => Ok(Direction::Left),
             _ => panic!("Invalid Direction '{}'", s),
         }
+    }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
     }
 }
 
