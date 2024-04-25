@@ -158,10 +158,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             drops += 1
             if drops == requested_drops:
                 return stack.top
-            if drops >= LOOP_TRESHOLD:
-                assert (
-                    len(states.get(state, [])) > 1
-                ), f"No loop found in {drops} drops"
+            if drops >= LOOP_TRESHOLD and len(states.get(state, [])) > 1:
                 cycles = states[state]
                 loop_size = cycles[1].cycle - cycles[0].cycle
                 diff = cycles[1].top - cycles[0].top
