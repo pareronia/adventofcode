@@ -54,7 +54,9 @@ impl aoc::Puzzle for AoC2023_03 {
                 .next()
         }
 
-        let grid = CharGrid::from(&lines.iter().map(|s| s.as_str()).collect());
+        let grid = CharGrid::from(
+            &lines.iter().map(|s| s.as_str()).collect::<Vec<_>>(),
+        );
         grid.get_rows_as_string()
             .iter()
             .enumerate()

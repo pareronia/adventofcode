@@ -186,7 +186,7 @@ where
             paths,
         }
     }
-    
+
     pub fn distance(
         start: T,
         is_end: impl Fn(T) -> bool,

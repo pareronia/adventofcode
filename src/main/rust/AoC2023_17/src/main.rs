@@ -68,7 +68,7 @@ impl aoc::Puzzle for AoC2023_17 {
     aoc::puzzle_year_day!(2023, 17);
 
     fn parse_input(&self, lines: Vec<String>) -> IntGrid {
-        IntGrid::from(&lines.iter().map(AsRef::as_ref).collect())
+        IntGrid::from(&lines.iter().map(AsRef::as_ref).collect::<Vec<_>>())
     }
 
     fn part_1(&self, grid: &IntGrid) -> u32 {

@@ -49,7 +49,9 @@ impl aoc::Puzzle for AoC2022_12 {
     aoc::puzzle_year_day!(2022, 12);
 
     fn parse_input(&self, lines: Vec<String>) -> HeightMap {
-        let grid = CharGrid::from(&lines.iter().map(AsRef::as_ref).collect());
+        let grid = CharGrid::from(
+            &lines.iter().map(AsRef::as_ref).collect::<Vec<_>>(),
+        );
         let start = grid.find_first_matching(|val| val == END).unwrap();
         HeightMap { grid, start }
     }

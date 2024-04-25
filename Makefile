@@ -38,7 +38,7 @@ JAVA_CMD := $(JAVA_EXE) -ea
 JAVAC_CMD := $(JAVAC_EXE) -encoding utf-8 -proc:full
 JAVA_UNITTEST_CMD := org.junit.platform.console.ConsoleLauncher
 JULIA_CMD := julia --optimize
-CARGO_CMD := cargo
+CARGO_CMD := RUSTFLAGS='-C target-cpu=native' cargo
 RUSTFMT := rustfmt
 BAZEL := bazel
 WSLPATH := wslpath

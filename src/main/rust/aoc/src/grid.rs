@@ -352,7 +352,7 @@ pub struct IntGrid {
 }
 
 impl IntGrid {
-    pub fn from(input: &Vec<&str>) -> IntGrid {
+    pub fn from(input: &[&str]) -> IntGrid {
         let width = match input.len() {
             0 => panic!("Empty input to Grid"),
             _ => input[0].chars().count(),
@@ -404,7 +404,7 @@ pub struct CharGrid {
 }
 
 impl CharGrid {
-    pub fn from(input: &Vec<&str>) -> CharGrid {
+    pub fn from(input: &[&str]) -> CharGrid {
         let width = match input.len() {
             0 => panic!("Empty input to Grid"),
             _ => input[0].chars().count(),

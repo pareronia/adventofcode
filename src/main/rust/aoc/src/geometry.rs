@@ -1,7 +1,7 @@
-use std::collections::HashSet;
-use std::str::FromStr;
 use core::fmt;
 use core::fmt::Display;
+use std::collections::HashSet;
+use std::str::FromStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub struct XY {

@@ -108,7 +108,9 @@ impl aoc::Puzzle for AoC2023_16 {
     aoc::puzzle_year_day!(2023, 16);
 
     fn parse_input(&self, lines: Vec<String>) -> Contraption {
-        let grid = CharGrid::from(&lines.iter().map(AsRef::as_ref).collect());
+        let grid = CharGrid::from(
+            &lines.iter().map(AsRef::as_ref).collect::<Vec<_>>(),
+        );
         Contraption { grid }
     }
 
