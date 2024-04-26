@@ -328,6 +328,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "AoC2023_10"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "itertools",
+]
+
+[[package]]
 name = "AoC2023_15"
 version = "0.1.0"
 dependencies = [
@@ -385,6 +393,7 @@ name = "aoc"
 version = "0.1.0"
 dependencies = [
  "aocd",
+ "itertools",
  "lazy_static",
  "regex",
 ]

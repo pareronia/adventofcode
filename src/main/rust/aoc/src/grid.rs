@@ -1,4 +1,5 @@
 use crate::geometry::XY;
+use itertools::Itertools;
 use std::cmp::Ordering;
 use std::fmt::{Display, Error, Formatter};
 
@@ -425,6 +426,35 @@ impl CharGrid {
             data: self.get_sub_grid_data(from, to),
         }
     }
+
+    pub fn merge(grids: &Vec<Vec<&CharGrid>>) -> CharGrid {
+        let height = grids
+            .iter()
+            .flat_map(|r| r.iter())
+            .map(|g| g.height())
+            .unique()
+            .count();
+        let widths = grids
+            .iter()
+            .flat_map(|r| r.iter())
+            .map(|g| g.width())
+            .unique()
+            .count();
+        if height != 1 || widths != 1 {
+            panic!("Grids should be same size")
+        }
+        let mut strings: Vec<String> = vec![];
+        for r in 0..grids.len() {
+            let mut rows_list: Vec<Vec<String>> = vec![];
+            for c in 0..grids[r].len() {
+                rows_list.push(grids[r][c].get_rows_as_string());
+            }
+            for i in 0..rows_list[0].len() {
+                strings.push(rows_list.iter().map(|l| l[i].clone()).join(""));
+            }
+        }
+        CharGrid::from(&strings.iter().map(AsRef::as_ref).collect::<Vec<_>>())
+    }
 }
 
 impl Grid for CharGrid {
@@ -711,5 +741,32 @@ mod tests {
             Some(Cell::at(0, 2))
         );
         assert_eq!(grid.find_first_matching(|val| val == 7), None);
+    }
+
+    #[test]
+    #[should_panic]
+    pub fn merge_not_same_size() {
+        let grid_1 = CharGrid::from(&vec!["AB", "EF"]);
+        let grid_2 = CharGrid::from(&vec!["CD", "GH"]);
+        let grid_3 = CharGrid::from(&vec!["IJ", "MN"]);
+        let grid_4 = CharGrid::from(&vec!["XXX", "XXX"]);
+
+        CharGrid::merge(&vec![vec![&grid_1, &grid_2], vec![&grid_3, &grid_4]]);
+    }
+
+    #[test]
+    pub fn merge() {
+        let grid_1 = CharGrid::from(&vec!["AB", "EF"]);
+        let grid_2 = CharGrid::from(&vec!["CD", "GH"]);
+        let grid_3 = CharGrid::from(&vec!["IJ", "MN"]);
+        let grid_4 = CharGrid::from(&vec!["KL", "OP"]);
+
+        assert_eq!(
+            CharGrid::merge(&vec![
+                vec![&grid_1, &grid_2],
+                vec![&grid_3, &grid_4]
+            ]),
+            CharGrid::from(&vec!["ABCD", "EFGH", "IJKL", "MNOP"])
+        );
     }
 }
