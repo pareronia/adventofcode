@@ -160,10 +160,19 @@ pub trait Grid {
 
     fn get_row_as_string(&self, row: usize) -> String;
 
+    fn get_col_as_string(&self, sol: usize) -> String;
+
     // TODO: iterator
     fn get_rows_as_string(&self) -> Vec<String> {
         (0..self.height())
             .map(|row| self.get_row_as_string(row))
+            .collect()
+    }
+
+    // TODO: iterator
+    fn get_cols_as_string(&self) -> Vec<String> {
+        (0..self.width())
+            .map(|col| self.get_col_as_string(col))
             .collect()
     }
 
@@ -391,6 +400,10 @@ impl Grid for IntGrid {
     fn get_row_as_string(&self, _row: usize) -> String {
         todo!();
     }
+
+    fn get_col_as_string(&self, _col: usize) -> String {
+        todo!();
+    }
 }
 
 impl Display for IntGrid {
@@ -470,6 +483,12 @@ impl Grid for CharGrid {
 
     fn get_row_as_string(&self, row: usize) -> String {
         self.get_data()[row].iter().collect()
+    }
+
+    fn get_col_as_string(&self, col: usize) -> String {
+        (0..self.height())
+            .map(|r| self.get_data()[r][col])
+            .collect()
     }
 }
 
