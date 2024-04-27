@@ -1,5 +1,6 @@
 package com.github.pareronia.aoc;
 
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,6 +22,10 @@ public class IterToolsTestCase {
         assertThat(
             IterTools.product(List.of("A", "B"), List.of("A", "B")))
             .containsExactlyInAnyOrder(List.of("A", "A"), List.of("A", "B"), List.of("B", "A"), List.of("B", "B"));
+        assertThat(
+            IterTools.product(range(3), range(2)))
+            .containsExactlyInAnyOrder(
+                    List.of(0, 0), List.of(0, 1), List.of(1, 0), List.of(1, 1), List.of(2, 0), List.of(2, 1));
     }
     
     @Test

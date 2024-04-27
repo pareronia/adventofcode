@@ -23,8 +23,8 @@ public class IterTools {
             for (final T i : (Iterable<T>) () -> range) {
                 for (final List<T> tmp : ans) {
                     final List<T> lst = new ArrayList<>();
-                    lst.add(i);
                     lst.addAll(tmp);
+                    lst.add(i);
                     set.add(lst);
                 }
             }

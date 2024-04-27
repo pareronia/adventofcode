@@ -10,76 +10,49 @@ import java.util.function.Function;
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2019_10 extends AoCBase {
+public class AoC2019_10
+        extends SolutionBase<List<AoC2019_10.Asteroid>, Integer, Integer> {
     
     private static final char ASTEROID = '#';
 	
-	private final CharGrid grid;
-	
-	private AoC2019_10(final List<String> input, final boolean debug) {
+	private AoC2019_10(final boolean debug) {
 		super(debug);
-		this.grid = CharGrid.from(input);
 	}
 	
-	public static AoC2019_10 create(final List<String> input) {
-		return new AoC2019_10(input, false);
+	public static AoC2019_10 create() {
+		return new AoC2019_10(false);
 	}
 
-	public static AoC2019_10 createDebug(final List<String> input) {
-		return new AoC2019_10(input, true);
+	public static AoC2019_10 createDebug() {
+		return new AoC2019_10(true);
 	}
-	
-	private Position asPosition(final Cell cell) {
-	    return Position.of(cell.getCol(), cell.getRow());
-	}
-	
-	private int distanceSquared(final Position a, final Position b) {
-	    final int dx = a.getX() - b.getX();
-	    final int dy = a.getY() - b.getY();
-	    return dx * dx + dy * dy;
-	}
-	
-	private BinaryOperator<Position> closestTo(final Position pos) {
-	    return (a, b) -> distanceSquared(a, pos) < distanceSquared(b, pos) ? a : b;
-	}
-    
-    private double angle(final Position asteroid, final Position other) {
-        final double angle = Math.atan2(
-                other.getY() - asteroid.getY(),
-                other.getX() - asteroid.getX())
-            + Math.PI / 2;
-        return angle < 0 ? angle + 2 * Math.PI : angle;
+
+	@Override
+    protected List<Asteroid> parseInput(final List<String> inputs) {
+		final CharGrid grid = CharGrid.from(inputs);
+        return grid.getAllEqualTo(ASTEROID)
+            .map(asteroid -> Asteroid.from(asteroid, grid))
+            .toList();
     }
-	
-	private Map<Double, Position> angles(final Position asteroid) {
-	    return this.grid.getAllEqualTo(ASTEROID)
-	        .map(this::asPosition)
-	        .filter(other -> !other.equals(asteroid))
-	        .collect(toMap(
-	                other -> angle(asteroid, other),
-	                Function.identity(),
-	                closestTo(asteroid),
-	                TreeMap::new));
-	}
-	
-	private Asteroid best() {
-	    return this.grid.getAllEqualTo(ASTEROID)
-	        .map(this::asPosition)
-	        .map(asteroid -> new Asteroid(asteroid, angles(asteroid)))
+
+    private Asteroid best(final List<Asteroid> asteroids) {
+	    return asteroids.stream()
 	        .sorted(Asteroid.byOthersCountDescending())
 	        .findFirst().orElseThrow();
 	}
 	
 	@Override
-	public Integer solvePart1() {
-	    return best().others().size();
+	public Integer solvePart1(final List<Asteroid> asteroids) {
+        return best(asteroids).others().size();
 	}
 	
 	@Override
-	public Integer solvePart2() {
-	    return best().others().values().stream()
+	public Integer solvePart2(final List<Asteroid> asteroids) {
+        return best(asteroids).others().values().stream()
 	        .skip(199)
 	        .limit(1)
 	        .findFirst()
@@ -87,92 +60,128 @@ public class AoC2019_10 extends AoCBase {
 	        .orElseThrow();
 	}
 
+	@Samples({
+	    @Sample(method = "part1", input = TEST1, expected = "8"),
+	    @Sample(method = "part1", input = TEST2, expected = "33"),
+	    @Sample(method = "part1", input = TEST3, expected = "35"),
+	    @Sample(method = "part1", input = TEST4, expected = "41"),
+	    @Sample(method = "part1", input = TEST5, expected = "210"),
+	    @Sample(method = "part2", input = TEST5, expected = "802"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2019_10.createDebug(TEST1).solvePart1() == 8;
-		assert AoC2019_10.createDebug(TEST2).solvePart1() == 33;
-		assert AoC2019_10.createDebug(TEST3).solvePart1() == 35;
-		assert AoC2019_10.createDebug(TEST4).solvePart1() == 41;
-		assert AoC2019_10.createDebug(TEST5).solvePart1() == 210;
-		assert AoC2019_10.createDebug(TEST5).solvePart2() == 802;
-
-		final Puzzle puzzle = Puzzle.create(2019, 10);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2019_10.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2019_10.create(input)::solvePart2)
-		);
+	    AoC2019_10.create().run();
 	}
 	
-	private static final List<String> TEST1 = splitLines(
-			".#..#\r\n" +
-			".....\r\n" +
-			"#####\r\n" +
-			"....#\r\n" +
-			"...##"
-	);
-	private static final List<String> TEST2 = splitLines(
-	        "......#.#.\r\n" +
-	        "#..#.#....\r\n" +
-	        "..#######.\r\n" +
-	        ".#.#.###..\r\n" +
-	        ".#..#.....\r\n" +
-	        "..#....#.#\r\n" +
-	        "#..#....#.\r\n" +
-	        ".##.#..###\r\n" +
-	        "##...#..#.\r\n" +
-	        ".#....####"
-	);
-	private static final List<String> TEST3 = splitLines(
-	        "#.#...#.#.\r\n" +
-            ".###....#.\r\n" +
-            ".#....#...\r\n" +
-            "##.#.#.#.#\r\n" +
-            "....#.#.#.\r\n" +
-            ".##..###.#\r\n" +
-            "..#...##..\r\n" +
-            "..##....##\r\n" +
-            "......#...\r\n" +
-            ".####.###."
-	        );
-	private static final List<String> TEST4 = splitLines(
-	        ".#..#..###\r\n" +
-            "####.###.#\r\n" +
-            "....###.#.\r\n" +
-            "..###.##.#\r\n" +
-            "##.##.#.#.\r\n" +
-            "....###..#\r\n" +
-            "..#.#..#.#\r\n" +
-            "#..#.#.###\r\n" +
-            ".##...##.#\r\n" +
-            ".....#.#.."
-	        );
-	private static final List<String> TEST5 = splitLines(
-	        ".#..##.###...#######\r\n" +
-	        "##.############..##.\r\n" +
-	        ".#.######.########.#\r\n" +
-	        ".###.#######.####.#.\r\n" +
-	        "#####.##.#.##.###.##\r\n" +
-	        "..#####..#.#########\r\n" +
-	        "####################\r\n" +
-	        "#.####....###.#.#.##\r\n" +
-	        "##.#################\r\n" +
-	        "#####.##.###..####..\r\n" +
-	        "..######..##.#######\r\n" +
-	        "####.##.####...##..#\r\n" +
-	        ".#####..#.######.###\r\n" +
-	        "##...#.##########...\r\n" +
-	        "#.##########.#######\r\n" +
-	        ".####.#.###.###.#.##\r\n" +
-	        "....##.##.###..#####\r\n" +
-	        ".#.#.###########.###\r\n" +
-	        "#.#.#.#####.####.###\r\n" +
-	        "###.##.####.##.#..##"
-    );
+	private static final String TEST1 = """
+                .#..#
+                .....
+                #####
+                ....#
+                ...##
+                """;
+	private static final String TEST2 = """
+                ......#.#.
+                #..#.#....
+                ..#######.
+                .#.#.###..
+                .#..#.....
+                ..#....#.#
+                #..#....#.
+                .##.#..###
+                ##...#..#.
+                .#....####
+                """;
+	private static final String TEST3 = """
+                #.#...#.#.
+                .###....#.
+                .#....#...
+                ##.#.#.#.#
+                ....#.#.#.
+                .##..###.#
+                ..#...##..
+                ..##....##
+                ......#...
+                .####.###.
+                """;
+	private static final String TEST4 = """
+                .#..#..###
+                ####.###.#
+                ....###.#.
+                ..###.##.#
+                ##.##.#.#.
+                ....###..#
+                ..#.#..#.#
+                #..#.#.###
+                .##...##.#
+                .....#.#..
+                """;
+	private static final String TEST5 = """
+                .#..##.###...#######
+                ##.############..##.
+                .#.######.########.#
+                .###.#######.####.#.
+                #####.##.#.##.###.##
+                ..#####..#.#########
+                ####################
+                #.####....###.#.#.##
+                ##.#################
+                #####.##.###..####..
+                ..######..##.#######
+                ####.##.####...##..#
+                .#####..#.######.###
+                ##...#.##########...
+                #.##########.#######
+                .####.#.###.###.#.##
+                ....##.##.###..#####
+                .#.#.###########.###
+                #.#.#.#####.####.###
+                ###.##.####.##.#..##
+                """;
 	
 	record Asteroid(Position position, Map<Double, Position> others) {
 	    
+	    public static Asteroid from(final Cell cell, final CharGrid grid) {
+	        final Position asteroid = Asteroid.asPosition(cell);
+	        return new Asteroid(asteroid, angles(grid, asteroid));
+	    }
+	    
 	    public static Comparator<Asteroid> byOthersCountDescending() {
 	        return (a, b) -> Integer.compare(b.others().size(), a.others().size());
+	    }
+	    
+	    private static Position asPosition(final Cell cell) {
+	        return Position.of(cell.getCol(), cell.getRow());
+	    }
+	    
+	    private static int distanceSquared(final Position a, final Position b) {
+	        final int dx = a.getX() - b.getX();
+	        final int dy = a.getY() - b.getY();
+	        return dx * dx + dy * dy;
+	    }
+	    
+	    private static BinaryOperator<Position> closestTo(final Position pos) {
+	        return (a, b) -> distanceSquared(a, pos) < distanceSquared(b, pos) ? a : b;
+	    }
+	    
+	    private static double angle(final Position asteroid, final Position other) {
+	        final double angle = Math.atan2(
+	                other.getY() - asteroid.getY(),
+	                other.getX() - asteroid.getX())
+	            + Math.PI / 2;
+	        return angle < 0 ? angle + 2 * Math.PI : angle;
+	    }
+	    
+	    private static Map<Double, Position> angles(
+	            final CharGrid grid, final Position asteroid
+        ) {
+	        return grid.getAllEqualTo(ASTEROID)
+	            .map(Asteroid::asPosition)
+	            .filter(other -> !other.equals(asteroid))
+	            .collect(toMap(
+	                    other -> angle(asteroid, other),
+	                    Function.identity(),
+	                    closestTo(asteroid),
+	                    TreeMap::new));
 	    }
 	}
 }

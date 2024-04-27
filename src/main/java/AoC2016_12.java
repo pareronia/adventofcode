@@ -1,4 +1,4 @@
-import static java.util.stream.Collectors.toList;
+import static com.github.pareronia.aoc.StringOps.splitLines;
 
 import java.util.List;
 
@@ -6,30 +6,35 @@ import com.github.pareronia.aoc.FibonacciUtil;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.assembunny.Assembunny;
 import com.github.pareronia.aoc.assembunny.Assembunny.AssembunnyInstruction;
+import com.github.pareronia.aoc.solution.SolutionBase;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;
-import com.github.pareronia.aocd.Puzzle;
 
-public final class AoC2016_12 extends AoCBase {
+public final class AoC2016_12
+        extends SolutionBase<List<AssembunnyInstruction>, Integer, Integer> {
     
-    private final transient List<AssembunnyInstruction> instructions;
-    
-    private AoC2016_12(final List<String> inputs, final boolean debug) {
+    private AoC2016_12(final boolean debug) {
         super(debug);
-        log(inputs);
-        this.instructions = Assembunny.parse(inputs);
     }
     
-    public static AoC2016_12 create(final List<String> input) {
-        return new AoC2016_12(input, false);
+    public static AoC2016_12 create() {
+        return new AoC2016_12(false);
     }
     
-    public static AoC2016_12 createDebug(final List<String> input) {
-        return new AoC2016_12(input, true);
+    public static AoC2016_12 createDebug() {
+        return new AoC2016_12(true);
     }
-    
-    private Integer solveVM(final Integer initC) {
-        final Program program = new Program(Assembunny.translate(this.instructions));
+
+    @Override
+    protected List<AssembunnyInstruction> parseInput(final List<String> inputs) {
+        return Assembunny.parse(inputs);
+    }
+
+    private Integer solveVM(
+            final List<AssembunnyInstruction> instructions,
+            final Integer initC
+    ) {
+        final Program program = new Program(Assembunny.translate(instructions));
         log(() -> program.getInstructions());
         program.setRegisterValue("c", initC.longValue());
         new VirtualMachine().runProgram(program);
@@ -41,13 +46,16 @@ public final class AoC2016_12 extends AoCBase {
         return FibonacciUtil.binet(number).intValue();
     }
     
-    private Integer solve(final Integer initC) {
-        final List<Integer> values = this.instructions.stream()
+    private Integer solve(
+            final List<AssembunnyInstruction> instructions,
+            final Integer initC
+    ) {
+        final List<Integer> values = instructions.stream()
                 .filter(i -> "cpy".equals(i.getOperator()))
                 .map(i -> i.getOperands().get(0))
                 .filter(StringUtils::isNumeric)
                 .map(Integer::valueOf)
-                .collect(toList());
+                .toList();
         log(() -> values);
         final int number = values.get(0) + values.get(1) + values.get(2)
                             + (initC == 0 ? 0 : 7);
@@ -55,61 +63,60 @@ public final class AoC2016_12 extends AoCBase {
     }
     
     @Override
-    public Integer solvePart1() {
-        return solve(0);
+    public Integer solvePart1(final List<AssembunnyInstruction> instructions) {
+        return solve(instructions, 0);
     }
     
     @Override
-    public Integer solvePart2() {
-        return solve(1);
+    public Integer solvePart2(final List<AssembunnyInstruction> instructions) {
+        return solve(instructions, 1);
     }
-    
+
+    @Override
+    public void samples() {
+        final AoC2016_12 test = AoC2016_12.createDebug();
+        assert test.solveVM(test.parseInput(splitLines(TEST1)), 0) == 42;
+        assert test.solveVM(test.parseInput(splitLines(TEST2)), 0) == 318_003;
+        assert test.solveVM(test.parseInput(splitLines(TEST2)), 1) == 9_227_657;
+        assert test.solve(test.parseInput(splitLines(TEST2)), 0) == 318_003;
+        assert test.solve(test.parseInput(splitLines(TEST2)), 1) == 9_227_657;
+    }
+
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_12.createDebug(TEST1).solveVM(0) == 42;
-        assert AoC2016_12.createDebug(TEST2).solveVM(0) == 318_003;
-        assert AoC2016_12.createDebug(TEST2).solveVM(1) == 9_227_657;
-        assert AoC2016_12.createDebug(TEST2).solve(0) == 318_003;
-        assert AoC2016_12.createDebug(TEST2).solve(1) == 9_227_657;
-        
-		final Puzzle puzzle = Puzzle.create(2016, 12);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2016_12.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2016_12.create(input)::solvePart2)
-		);
+        AoC2016_12.create().run();
     }
     
-    private static final List<String> TEST1 = splitLines(
-            "cpy 41 a\n" +
-            "inc a\n" +
-            "inc a\n" +
-            "dec a\n" +
-            "jnz a 2\n" +
-            "dec a"
-    );
-    private static final List<String> TEST2 = splitLines(
-            "cpy 1 a\n" +
-            "cpy 1 b\n" +
-            "cpy 26 d\n" +
-            "jnz c 2\n" +
-            "jnz 1 5\n" +
-            "cpy 7 c\n" +
-            "inc d\n" +
-            "dec c\n" +
-            "jnz c -2\n" +
-            "cpy a c\n" +
-            "inc a\n" +
-            "dec b\n" +
-            "jnz b -2\n" +
-            "cpy c b\n" +
-            "dec d\n" +
-            "jnz d -6\n" +
-            "cpy 16 c\n" +
-            "cpy 12 d\n" +
-            "inc a\n" +
-            "dec d\n" +
-            "jnz d -2\n" +
-            "dec c\n" +
-            "jnz c -5"
-    );
+    private static final String TEST1 = """
+                cpy 41 a
+                inc a
+                inc a
+                dec a
+                jnz a 2
+                dec a
+                """;
+    private static final String TEST2 = """
+                cpy 1 a
+                cpy 1 b
+                cpy 26 d
+                jnz c 2
+                jnz 1 5
+                cpy 7 c
+                inc d
+                dec c
+                jnz c -2
+                cpy a c
+                inc a
+                dec b
+                jnz b -2
+                cpy c b
+                dec d
+                jnz d -6
+                cpy 16 c
+                cpy 12 d
+                inc a
+                dec d
+                jnz d -2
+                dec c
+                jnz c -5
+                """;
 }

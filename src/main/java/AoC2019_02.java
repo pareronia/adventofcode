@@ -5,54 +5,54 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.github.pareronia.aoc.intcode.IntCode;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2019_02 extends AoCBase {
+public class AoC2019_02 extends SolutionBase<List<Long>, Long, Integer> {
     
-    private final List<Long> program;
-    
-    private AoC2019_02(final List<String> input, final boolean debug) {
+    private AoC2019_02(final boolean debug) {
         super(debug);
-        assert input.size() == 1;
-        this.program = IntCode.parse(input.get(0));
     }
 
-    public static AoC2019_02 create(final List<String> input) {
-        return new AoC2019_02(input, false);
+    public static AoC2019_02 create() {
+        return new AoC2019_02(false);
     }
 
-    public static AoC2019_02 createDebug(final List<String> input) {
-        return new AoC2019_02(input, true);
+    public static AoC2019_02 createDebug() {
+        return new AoC2019_02(true);
     }
     
-    private Long runProgram(final long noun, final long verb) {
-        final List<Long> theProgram = new ArrayList<>(this.program);
+    private Long runProgram(
+            final List<Long> program,
+            final long noun,
+            final long verb
+    ) {
+        final List<Long> theProgram = new ArrayList<>(program);
         theProgram.set(1, noun);
         theProgram.set(2, verb);
         final IntCode intCode = new IntCode(theProgram, this.debug);
         intCode.run(theProgram);
         return intCode.getProgram().get(0);
     }
-    
+
     @Override
-    public Long solvePart1() {
-        return runProgram(12, 2);
+    protected List<Long> parseInput(final List<String> inputs) {
+        return IntCode.parse(inputs.get(0));
     }
 
     @Override
-    public Integer solvePart2() {
+    public Long solvePart1(final List<Long> program) {
+        return runProgram(program, 12, 2);
+    }
+
+    @Override
+    public Integer solvePart2(final List<Long> program) {
         return product(range(100), range(100)).stream()
-            .filter(p -> runProgram(p.get(0), p.get(1)) == 19_690_720)
+            .filter(p -> runProgram(program, p.get(0), p.get(1)) == 19_690_720)
             .map(p -> 100 * p.get(0) + p.get(1))
             .findFirst().orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
-        final Puzzle puzzle = Puzzle.create(2019, 2);
-        final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", AoC2019_02.create(input)::solvePart1),
-           () -> lap("Part 2", AoC2019_02.create(input)::solvePart2)
-	    );
+        AoC2019_02.create().run();
     }
 }
