@@ -13,7 +13,11 @@ force_single_line = true
 skip_gitignore = true
 include_trailing_comma = true
 
+[tool.black]
+line-length = 79
+
 [tool.mypy]
+strict = true
 
 [[tool.mypy.overrides]]
 module = "aocd.*"

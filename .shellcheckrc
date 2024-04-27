@@ -1,0 +1,4 @@
+external-sources=true
+check-sourced=true
+source-path=SCRIPTDIR
+disable=SC2317
