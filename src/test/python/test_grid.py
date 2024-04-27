@@ -12,7 +12,7 @@ class CharGridIteratorTest(unittest.TestCase):
     grid: CharGrid
 
     def setUp(self) -> None:
-        self.grid = CharGrid(["###", "###", "###"])
+        self.grid = CharGrid.from_strings(["###", "###", "###"])
 
     def test_forward(self) -> None:
         it = GridIterator(self.grid, Cell(0, 0), IterDir.FORWARD)
@@ -62,14 +62,14 @@ class CharGridIteratorTest(unittest.TestCase):
         ans = CharGrid.merge(
             [
                 [
-                    CharGrid(["AAA", "BBB", "CCC"]),
-                    CharGrid(["AAA", "BBB", "CCC"]),
-                    CharGrid(["AAA", "BBB", "CCC"]),
+                    CharGrid.from_strings(["AAA", "BBB", "CCC"]),
+                    CharGrid.from_strings(["AAA", "BBB", "CCC"]),
+                    CharGrid.from_strings(["AAA", "BBB", "CCC"]),
                 ],
                 [
-                    CharGrid(["AAA", "BBB", "CCC"]),
-                    CharGrid(["AAA", "BBB", "CCC"]),
-                    CharGrid(["AAA", "BBB", "CCC"]),
+                    CharGrid.from_strings(["AAA", "BBB", "CCC"]),
+                    CharGrid.from_strings(["AAA", "BBB", "CCC"]),
+                    CharGrid.from_strings(["AAA", "BBB", "CCC"]),
                 ],
             ]
         )
@@ -83,6 +83,29 @@ class CharGridIteratorTest(unittest.TestCase):
                 "BBBBBBBBB",
                 "CCCCCCCCC",
             ],
+        )
+
+    def test_set_value(self) -> None:
+        grid = CharGrid.from_strings(["ABC"])
+
+        grid.set_value(Cell(0, 1), "X")
+
+        self.assertEqual(grid, CharGrid.from_strings(["AXC"]))
+
+    def test_roll_row(self) -> None:
+        grid = CharGrid.from_strings(["#.#...."])
+
+        grid.roll_row(0, 4)
+
+        self.assertEqual(grid, CharGrid.from_strings(["....#.#"]))
+
+    def test_roll_column(self) -> None:
+        grid = CharGrid.from_strings(["###....", "###....", "......."])
+
+        grid.roll_column(1, 1)
+
+        self.assertEqual(
+            grid, CharGrid.from_strings(["#.#....", "###....", ".#....."])
         )
 
 

@@ -272,6 +272,9 @@ class CharGrid(Grid[str]):
         return self.values[row][col]
 
     def set_value(self, c: Cell, value: str) -> None:
+        assert self.is_valid_row_index(c.row) and self.is_valid_col_index(
+            c.col
+        )
         self.values[c.row][c.col] = value
 
     def get_row_as_string(self, row: int) -> str:
@@ -284,3 +287,17 @@ class CharGrid(Grid[str]):
 
     def get_cols_as_strings(self) -> Iterator[str]:
         return (self.get_col_as_string(col) for col in range(self.get_width()))
+
+    def roll_row(self, row_idx: int, amount: int) -> None:
+        assert self.is_valid_row_index(row_idx)
+        new_row = (
+            self.values[row_idx][-amount:] + self.values[row_idx][:-amount]
+        )
+        self.values[row_idx] = new_row
+
+    def roll_column(self, col_idx: int, amount: int) -> None:
+        assert self.is_valid_col_index(col_idx)
+        old_col = self.get_col_as_string(col_idx)
+        new_col = old_col[-amount:] + old_col[:-amount]
+        for r, ch in enumerate(new_col):
+            self.set_value(Cell(r, col_idx), ch)
