@@ -3,52 +3,62 @@
 # Advent of Code 2016 Day 16
 #
 
-from aoc import my_aocd
+import sys
+from typing import NamedTuple
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
 
 
-TABLE = str.maketrans('01', '10')
+class DragonCurve(NamedTuple):
+    initial_state: str
+    table: dict[int, int] = str.maketrans("01", "10")
+
+    def dragon_curve(self, input_: str) -> str:
+        return input_ + "0" + input_[::-1].translate(self.table)
+
+    def checksum(self, data: list[str]) -> str:
+        pairs = [
+            "1" if data[i] == data[i + 1] else "0"
+            for i in range(0, len(data) - 1, 2)
+        ]
+        return "".join(pairs) if len(pairs) % 2 != 0 else self.checksum(pairs)
+
+    def checksum_for_size(self, size: int) -> str:
+        data = self.initial_state
+        while len(data) < size:
+            data = self.dragon_curve(data)
+        return self.checksum(list(data[:size]))
 
 
-def _parse(inputs: tuple[str]) -> str:
-    assert len(inputs) == 1
-    return inputs[0]
+Input = DragonCurve
+Output1 = str
+Output2 = str
 
 
-def _dragon_curve(input_: str) -> str:
-    return input_ + "0" + input_[::-1].translate(TABLE)
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return DragonCurve(list(input_data)[0])
+
+    def solve(self, dragon_curve: DragonCurve, size: int) -> str:
+        return dragon_curve.checksum_for_size(size)
+
+    def part_1(self, dragon_curve: DragonCurve) -> str:
+        return self.solve(dragon_curve, 272)
+
+    def part_2(self, dragon_curve: DragonCurve) -> str:
+        return self.solve(dragon_curve, 35651584)
+
+    def samples(self) -> None:
+        assert self.solve(self.parse_input(["10000"]), 20) == "01100"
 
 
-def _checksum(data: list[str]) -> str:
-    pairs = ['1' if data[i] == data[i+1] else '0'
-             for i in range(0, len(data) - 1, 2)]
-    return pairs if len(pairs) % 2 != 0 else _checksum(pairs)
-
-
-def _solve(data: str, size: int) -> str:
-    while len(data) < size:
-        data = _dragon_curve(data)
-    return "".join(_checksum(list(data[:size])))
-
-
-def part_1(inputs: tuple[str]) -> str:
-    return _solve(_parse(inputs), 272)
-
-
-def part_2(inputs: tuple[str]) -> str:
-    return _solve(_parse(inputs), 35651584)
+solution = Solution(2016, 16)
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 16)
-
-    assert _solve("10000", 20) == "01100"
-
-    inputs = my_aocd.get_input(2016, 16, 1)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
