@@ -1,5 +1,6 @@
 import java.util.List;
 
+import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
@@ -51,10 +52,10 @@ public class AoC2016_16
 	
 	record DragonCurve(String initialState) {
 	    private String dragonCurve(final String input) {
-	        final String a = new String(input);
-	        final String b = StringUtils.reverse(input)
-	                .replace('0', '-').replace('1', '0').replace('-', '1');
-	        return new StringBuilder().append(a).append("0").append(b).toString();
+	        final String b = StringOps.translate(
+	                StringUtils.reverse(input), "01", "10");
+	        return new StringBuilder().append(input)
+	                .append("0").append(b).toString();
 	    }
 	    
 	    private char[] checkSum(final char[] data) {
