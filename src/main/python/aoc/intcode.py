@@ -22,6 +22,11 @@ class IntCode:
     _run_till_has_output: bool = False
     _halted: bool = False
 
+    @classmethod
+    def parse(cls, input: list[str]) -> list[int]:
+        assert len(input) == 1
+        return [int(_) for _ in input[0].split(",")]
+
     def __init__(self, prog: list[int]):
         self.prog = prog[:]
         self.ip = 0

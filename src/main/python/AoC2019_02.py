@@ -4,49 +4,47 @@
 #
 
 import itertools
+import sys
 from copy import deepcopy
 
-import aocd
-
-from aoc import my_aocd
+from aoc.common import InputData
+from aoc.common import SolutionBase
 from aoc.intcode import IntCode
 
-
-def _parse(inputs: tuple[str]) -> tuple[int]:
-    assert len(inputs) == 1
-    return [int(_) for _ in inputs[0].split(",")]
-
-
-def _run_prog(prog: list[int], noun: int, verb: int) -> int:
-    prog[1] = noun
-    prog[2] = verb
-    int_code = IntCode(prog)
-    int_code.run()
-    return int_code.get_program()[0]
+Input = list[int]
+Output1 = int
+Output2 = int
 
 
-def part_1(inputs: tuple[str]) -> int:
-    return _run_prog(_parse(inputs), 12, 2)
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return IntCode.parse(list(input_data))
+
+    def run_program(self, prog: list[int], noun: int, verb: int) -> int:
+        prog[1] = noun
+        prog[2] = verb
+        int_code = IntCode(prog)
+        int_code.run()
+        return int_code.get_program()[0]
+
+    def part_1(self, program: list[int]) -> int:
+        return self.run_program(program, 12, 2)
+
+    def part_2(self, program: list[int]) -> int:
+        for noun, verb in itertools.product(range(100), repeat=2):
+            if self.run_program(deepcopy(program), noun, verb) == 19_690_720:
+                return 100 * noun + verb
+        raise RuntimeError("Unsolved")
+
+    def samples(self) -> None:
+        pass
 
 
-def part_2(inputs: tuple[str]) -> int:
-    prog = _parse(inputs)
-    for noun, verb in itertools.product(range(100), repeat=2):
-        if _run_prog(deepcopy(prog), noun, verb) == 19_690_720:
-            return 100 * noun + verb
-    raise RuntimeError("Unsolved")
+solution = Solution(2019, 2)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2019, 2)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    inputs = my_aocd.get_input_data(puzzle, 1)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":
