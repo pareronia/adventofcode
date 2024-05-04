@@ -3,8 +3,16 @@
 # Advent of Code 2021 Day 4
 #
 
+from __future__ import annotations
+
+import itertools
+import sys
 from typing import NamedTuple
+
 from aoc import my_aocd
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 
 class Board:
@@ -15,9 +23,9 @@ class Board:
 
     def __init__(self, numbers: list[str]):
         self.complete = False
-        self.numbers = list()
-        for i, s in enumerate(numbers):
-            self.numbers.append([int(_) for _ in s.split()])
+        self.numbers = [
+            [int(_) for _ in s.split()] for i, s in enumerate(numbers)
+        ]
 
     def __repr__(self) -> str:
         return f"Board(complete: {self.complete}, numbers: {self.numbers})"
@@ -35,23 +43,19 @@ class Board:
                     row[i] = Board.MARKED
 
     def win(self) -> bool:
-        for row in self.numbers:
-            if all(_ == Board.MARKED for _ in row):
-                return True
-        for i in range(self._get_width()):
-            if all(_ == Board.MARKED for _ in self._get_column(i)):
-                return True
-        return False
+        return any(
+            all(val == Board.MARKED for val in rc)
+            for rc in itertools.chain(
+                (row for row in self.numbers),
+                (self._get_column(col) for col in range(self._get_width())),
+            )
+        )
 
     def value(self) -> int:
-        return sum(c
-                   for row in self.numbers
-                   for c in row
-                   if c != Board.MARKED)
+        return sum(c for row in self.numbers for c in row if c != Board.MARKED)
 
     def _get_column(self, col: int) -> list[int]:
-        return [self.numbers[row][col]
-                for row in range(self._get_height())]
+        return [self.numbers[row][col] for row in range(self._get_height())]
 
     def _get_height(self) -> int:
         return len(self.numbers)
@@ -65,42 +69,37 @@ class Bingo(NamedTuple):
     board: Board
 
 
-def _parse(inputs: tuple[str]) -> tuple[list[int], list[Board]]:
-    blocks = my_aocd.to_blocks(inputs)
-    draws = [int(_) for _ in blocks[0][0].split(',')]
-    boards = [Board(_) for _ in blocks[1:]]
-    return draws, boards
+class BingoGame(NamedTuple):
+    draws: list[int]
+    boards: list[Board]
+
+    @classmethod
+    def from_input(cls, inputs: list[str]) -> BingoGame:
+        blocks = my_aocd.to_blocks(inputs)
+        draws = [int(_) for _ in blocks[0][0].split(",")]
+        boards = [Board(_) for _ in blocks[1:]]
+        return BingoGame(draws, boards)
+
+    def play(self, stop_count: int) -> list[Bingo]:
+        bingoes = list[Bingo]()
+        for draw in self.draws:
+            for b in self.boards:
+                b.mark(draw)
+            winners = [
+                b for b in self.boards if not b.is_complete() and b.win()
+            ]
+            for winner in winners:
+                winner.set_complete()
+                bingo = Bingo(draw, winner)
+                bingoes.append(bingo)
+                if len(bingoes) == stop_count:
+                    return bingoes
+        raise RuntimeError("unreachable")
 
 
-def _play(draws: list[int], boards: list[Board], stop) -> None:
-    for draw in draws:
-        [b.mark(draw) for b in boards]
-        winners = [b for b in boards if not b.is_complete() and b.win()]
-        for winner in winners:
-            winner.set_complete()
-            if stop(Bingo(draw, winner)):
-                return
-
-
-def _solve(draws: list[int], boards: list[Board], stop_count: int) -> int:
-    bingoes = []
-
-    def stop(bingo: Bingo) -> bool:
-        bingoes.append(bingo)
-        return len(bingoes) == stop_count
-
-    _play(draws, boards, stop)
-    return bingoes[-1].draw * bingoes[-1].board.value()
-
-
-def part_1(inputs: tuple[str]) -> int:
-    draws, boards = _parse(inputs)
-    return _solve(draws, boards, 1)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    draws, boards = _parse(inputs)
-    return _solve(draws, boards, len(boards))
+Input = list[str]
+Output1 = int
+Output2 = int
 
 
 TEST = """\
@@ -123,21 +122,41 @@ TEST = """\
 18  8 23 26 20
 22 11 13  6  5
  2  0 12  3  7
-""".splitlines()
+"""
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return list(input_data)
+
+    def solve(self, game: BingoGame, stop_count: int) -> int:
+        bingoes = game.play(stop_count)
+        return bingoes[-1].draw * bingoes[-1].board.value()
+
+    def part_1(self, inputs: Input) -> int:
+        game = BingoGame.from_input(inputs)
+        return self.solve(game, 1)
+
+    def part_2(self, inputs: Input) -> int:
+        game = BingoGame.from_input(inputs)
+        return self.solve(game, len(game.boards))
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 4512),
+            ("part_2", TEST, 1924),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2021, 4)
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 4)
-
-    assert part_1(TEST) == 4512
-    assert part_2(TEST) == 1924
-
-    inputs = my_aocd.get_input(2021, 4, 601)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
