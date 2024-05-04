@@ -1,7 +1,6 @@
+import static com.github.pareronia.aoc.AssertUtils.unreachable;
 import static java.util.stream.Collectors.counting;
 import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.summingInt;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 import static java.util.stream.Collectors.toSet;
 
@@ -18,123 +17,44 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.github.pareronia.aoc.StringUtils;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2017_07 extends AoCBase {
+public final class AoC2017_07
+            extends SolutionBase<AoC2017_07.Tower, String, Integer> {
 
-    private final transient Map<String, Node> input;
-
-    private AoC2017_07(final List<String> inputs, final boolean debug) {
+    private AoC2017_07(final boolean debug) {
         super(debug);
-        this.input = parse(inputs);
-        buildTree();
-        log(this.input);
     }
 
-    private Map<String, Node> parse(final List<String> inputs) {
-        return inputs.stream()
-                .map(s -> {
-                    final String[] sp = s.split(" -> ");
-                    final String[] spsp = sp[0].split(" ");
-                    final String name = spsp[0];
-                    final Integer weight = Integer.valueOf(
-                            StringUtils.strip(spsp[1], "()"));
-                    if (sp.length == 1) {
-                        return new Node(name, weight, Set.of());
-                    } else {
-                        final Set<String> children =
-                            Arrays.stream(sp[1].split(", ")).collect(toSet());
-                        return new Node(name, weight, children);
-                    }
-                })
-                .collect(toMap(AoC2017_07.Node::getName, n -> n));
+    public static AoC2017_07 create() {
+        return new AoC2017_07(false);
     }
 
-    private void buildTree() {
-        this.input.values().forEach(n ->
-                n.setChildren(n.getChildKeys().stream()
-                        .map(this.input::get)
-                        .collect(toSet())));
-        this.input.values().forEach(n -> {
-                this.input.values().stream()
-                        .filter(p -> p.getChildren().contains(n))
-                        .findFirst()
-                        .ifPresent(n::setParent);
-                n.setFullWeight(findFullWeight(n));
-        });
+    public static AoC2017_07 createDebug() {
+        return new AoC2017_07(true);
     }
-    
-    private Integer findFullWeight(final Node node) {
-        if (node.getChildren().isEmpty()) {
-            return node.getWeight();
-        }
-        return node.getWeight()
-                + node.getChildren().stream()
-                    .map(this::findFullWeight)
-                    .collect(summingInt(Integer::valueOf));
-    }
-
-    public static AoC2017_07 create(final List<String> input) {
-        return new AoC2017_07(input, false);
-    }
-
-    public static AoC2017_07 createDebug(final List<String> input) {
-        return new AoC2017_07(input, true);
-    }
-    
-    private Node findRoot() {
-        return this.input.values().stream()
-                .filter(n -> !n.getParent().isPresent())
-                .findFirst().orElseThrow();
-    }
-    
-    private List<Node> getSiblings(final Node node) {
-        final Optional<Node> parent = node.getParent();
-        if (parent.isEmpty()) {
-            return Collections.emptyList();
-        }
-        return this.input.values().stream()
-                .filter(e -> e.getParent()
-                        .map(p -> p.equals(parent.get())).orElse(false))
-                .collect(toList());
-    }
-    
-    private Node findUnbalancedNode() {
-        final Deque<Node> queue = new ArrayDeque<>();
-        queue.add(findRoot().getChildren().iterator().next());
-        while (!queue.isEmpty()) {
-            final Node node = queue.poll();
-            final List<Node> siblings = getSiblings(node);
-            final HashMap<Integer, Long> weights = siblings.stream()
-                    .collect(groupingBy(Node::getFullWeight, HashMap::new, counting()));
-            if (weights.size() == 1) {
-                return node.getParent().get();
-            }
-            final int unbalancedWeight = weights.entrySet().stream()
-                    .min(Comparator.comparing(Entry::getValue))
-                    .map(Entry::getKey).orElseThrow();
-            final Node unbalanced = siblings.stream()
-                    .filter(c -> c.getFullWeight() == unbalancedWeight)
-                    .findFirst().orElseThrow();
-            unbalanced.getChildren().forEach(queue::add);
-        }
-        throw new IllegalStateException("Unsolvable");
+ 
+    @Override
+    protected Tower parseInput(final List<String> inputs) {
+        return Tower.fromInput(inputs);
     }
 
     @Override
-    public String solvePart1() {
-        return findRoot().getName();
+    public String solvePart1(final Tower tower) {
+        return tower.findRoot().getName();
     }
     
     @Override
-    public Integer solvePart2() {
-        final Node unbalanced = findUnbalancedNode();
+    public Integer solvePart2(final Tower tower) {
+        final Node unbalanced = tower.findUnbalancedNode();
         log("Unbalanced: " + unbalanced.getName());
-        final Integer combinedWeight = unbalanced.getChildren().stream()
-                .map(Node::getFullWeight)
-                .collect(summingInt(Integer::valueOf));
+        final int combinedWeight = unbalanced.getChildren().stream()
+                .mapToInt(Node::getFullWeight)
+                .sum();
         log("Weight: " + unbalanced.getWeight() + " + " + combinedWeight);
-        final Integer desiredWeigth = getSiblings(unbalanced).stream()
+        final int desiredWeigth = tower.getSiblings(unbalanced).stream()
                 .filter(n -> !n.equals(unbalanced))
                 .findFirst()
                 .map(Node::getFullWeight)
@@ -143,33 +63,29 @@ public final class AoC2017_07 extends AoCBase {
         return desiredWeigth - combinedWeight;
     }
     
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "tknk"),
+        @Sample(method = "part2", input = TEST, expected = "60"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_07.createDebug(TEST).solvePart1().equals("tknk");
-        assert AoC2017_07.createDebug(TEST).solvePart2() == 60;
-
-		final Puzzle puzzle = Puzzle.create(2017, 7);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2017_07.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2017_07.create(input)::solvePart2)
-		);
+        AoC2017_07.create().run();
     }
     
-    public static final List<String> TEST = splitLines(
-            "pbga (66)\n" +
-            "xhth (57)\n" +
-            "ebii (61)\n" +
-            "havc (66)\n" +
-            "ktlj (57)\n" +
-            "fwft (72) -> ktlj, cntj, xhth\n" +
-            "qoyq (66)\n" +
-            "padx (45) -> pbga, havc, qoyq\n" +
-            "tknk (41) -> ugml, padx, fwft\n" +
-            "jptl (61)\n" +
-            "ugml (68) -> gyxo, ebii, jptl\n" +
-            "gyxo (61)\n" +
-            "cntj (57)"
-    );
+    public static final String TEST = """
+            pbga (66)
+            xhth (57)
+            ebii (61)
+            havc (66)
+            ktlj (57)
+            fwft (72) -> ktlj, cntj, xhth
+            qoyq (66)
+            padx (45) -> pbga, havc, qoyq
+            tknk (41) -> ugml, padx, fwft
+            jptl (61)
+            ugml (68) -> gyxo, ebii, jptl
+            gyxo (61)
+            cntj (57)
+            """;
     
     private static final class Node {
         private final String name;
@@ -183,6 +99,31 @@ public final class AoC2017_07 extends AoCBase {
             this.name = name;
             this.weight = weight;
             this.childKeys = childKeys;
+        }
+        
+        public static Node fromInput(final String line) {
+            final String[] sp = line.split(" -> ");
+            final String[] spsp = sp[0].split(" ");
+            final String name = spsp[0];
+            final int weight = Integer.parseInt(
+                    StringUtils.strip(spsp[1], "()"));
+            if (sp.length == 1) {
+                return new Node(name, weight, Set.of());
+            } else {
+                final Set<String> children =
+                    Arrays.stream(sp[1].split(", ")).collect(toSet());
+                return new Node(name, weight, children);
+            }
+        }
+        
+        private int findFullWeight() {
+            if (getChildren().isEmpty()) {
+                return getWeight();
+            }
+            return getWeight()
+                    + getChildren().stream()
+                        .mapToInt(Node::findFullWeight)
+                        .sum();
         }
 
         public int getFullWeight() {
@@ -231,6 +172,66 @@ public final class AoC2017_07 extends AoCBase {
                 .append(", parent=").append(getParent())
                 .append("]");
             return builder.toString();
+        }
+    }
+    
+    record Tower(Map<String, Node> nodes) {
+        
+        public static Tower fromInput(final List<String> inputs) {
+            final Map<String, Node> nodes = inputs.stream()
+                .map(Node::fromInput)
+                .collect(toMap(Node::getName, n -> n));
+            nodes.values().forEach(n ->
+                    n.setChildren(n.getChildKeys().stream()
+                            .map(nodes::get)
+                            .collect(toSet())));
+            nodes.values().forEach(n -> {
+                    nodes.values().stream()
+                            .filter(p -> p.getChildren().contains(n))
+                            .findFirst()
+                            .ifPresent(n::setParent);
+                    n.setFullWeight(n.findFullWeight());
+            });
+            return new Tower(nodes);
+        }
+
+        private Node findRoot() {
+            return this.nodes.values().stream()
+                    .filter(n -> !n.getParent().isPresent())
+                    .findFirst().orElseThrow();
+        }
+
+        public List<Node> getSiblings(final Node node) {
+            final Optional<Node> parent = node.getParent();
+            if (parent.isEmpty()) {
+                return Collections.emptyList();
+            }
+            return nodes.values().stream()
+                    .filter(e -> e.getParent()
+                            .map(p -> p.equals(parent.get())).orElse(false))
+                    .toList();
+        }
+    
+        public Node findUnbalancedNode() {
+            final Deque<Node> queue = new ArrayDeque<>();
+            queue.add(findRoot().getChildren().iterator().next());
+            while (!queue.isEmpty()) {
+                final Node node = queue.poll();
+                final List<Node> siblings = getSiblings(node);
+                final Map<Integer, Long> weights = siblings.stream()
+                        .collect(groupingBy(Node::getFullWeight, HashMap::new, counting()));
+                if (weights.size() == 1) {
+                    return node.getParent().get();
+                }
+                final int unbalancedWeight = weights.entrySet().stream()
+                        .min(Comparator.comparing(Entry::getValue))
+                        .map(Entry::getKey).orElseThrow();
+                final Node unbalanced = siblings.stream()
+                        .filter(c -> c.getFullWeight() == unbalancedWeight)
+                        .findFirst().orElseThrow();
+                unbalanced.getChildren().forEach(queue::add);
+            }
+            throw unreachable();
         }
     }
 }

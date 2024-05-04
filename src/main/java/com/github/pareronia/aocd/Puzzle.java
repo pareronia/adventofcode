@@ -50,13 +50,6 @@ public record Puzzle(
         return new PuzzleBuilder(new SystemUtils());
     }
 
-    @Deprecated
-	public static final Puzzle create(final Integer year, final Integer day) {
-	    return Puzzle.builder()
-	                .year(year).day(day).user(User.getDefaultUser())
-	            .build();
-	}
-	
     public <V1, V2> void check(final Callable<V1> part1, final Callable<V2> part2) throws Exception {
 		final Puzzle.FailDecider failDecider = new Puzzle.FailDecider();
 	    final String[] fails = new String[2];

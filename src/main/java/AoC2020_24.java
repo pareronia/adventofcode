@@ -1,6 +1,6 @@
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -9,9 +9,12 @@ import java.util.regex.MatchResult;
 import java.util.regex.Pattern;
 
 import com.github.pareronia.aoc.game_of_life.GameOfLife;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_24 extends AoCBase {
+public class AoC2020_24
+            extends SolutionBase<AoC2020_24.Floor, Integer, Integer> {
 
     private static final Map<String, Direction> DIRS = Map.of(
          "ne", new Direction(1, -1),
@@ -22,112 +25,109 @@ public class AoC2020_24 extends AoCBase {
          "w", new Direction(-1, 0)
     );
     
-	private final List<String> input;
-	
-	private AoC2020_24(final List<String> input, final boolean debug) {
+	private AoC2020_24(final boolean debug) {
 		super(debug);
-		this.input = input;
 	}
 	
-	public static final AoC2020_24 create(final List<String> input) {
-		return new AoC2020_24(input, false);
+	public static final AoC2020_24 create() {
+		return new AoC2020_24(false);
 	}
 
-	public static final AoC2020_24 createDebug(final List<String> input) {
-		return new AoC2020_24(input, true);
-	}
-	
-	private Set<Tile> buildFloor() {
-	    final Pattern pattern = Pattern.compile("(n?(e|w)|s?(e|w))");
-	    final Set<Tile> tiles = new HashSet<>();
-	    for (final String line : this.input) {
-	        final List<Direction> directions = pattern.matcher(line).results()
-	            .map(MatchResult::group)
-	            .map(DIRS::get)
-	            .collect(toList());
-	        Tile tile = Tile.at(0, 0);
-	        for (final Direction direction : directions) {
-                tile = Tile.at(tile.q + direction.q, tile.r + direction.r);
-            }
-	        if (tiles.contains(tile)) {
-	            tiles.remove(tile);
-	        } else {
-	            tiles.add(tile);
-	        }
-	    }
-        return tiles;
+	public static final AoC2020_24 createDebug() {
+		return new AoC2020_24(true);
 	}
 	
 	@Override
-	public Integer solvePart1() {
-	    return buildFloor().size();
+    protected AoC2020_24.Floor parseInput(final List<String> inputs) {
+        return Floor.fromInput(inputs);
+    }
+
+    @Override
+	public Integer solvePart1(final Floor floor) {
+	    return floor.tiles.size();
 	}
 	
 	@Override
-	public Integer solvePart2() {
-	    GameOfLife<Tile> gol = new GameOfLife<>(new HexGrid(), new Rules(), buildFloor());
+	public Integer solvePart2(final Floor floor) {
+	    GameOfLife<Tile> gol
+	            = new GameOfLife<>(new HexGrid(), new Rules(), floor.tiles);
         for (int i = 0; i < 100; i++) {
             gol = gol.nextGeneration();
         }
         return gol.alive().size();
 	}
 	
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "10"),
+	    @Sample(method = "part2", input = TEST, expected = "2208"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2020_24.createDebug(TEST).solvePart1() == 10;
-		assert AoC2020_24.createDebug(TEST).solvePart2() == 2208;
-		
-        final Puzzle puzzle = Puzzle.create(2020, 24);
-        final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", AoC2020_24.create(input)::solvePart1),
-           () -> lap("Part 2", AoC2020_24.create(input)::solvePart2)
-	    );
+	    AoC2020_24.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"sesenwnenenewseeswwswswwnenewsewsw\r\n" +
-			"neeenesenwnwwswnenewnwwsewnenwseswesw\r\n" +
-			"seswneswswsenwwnwse\r\n" +
-			"nwnwneseeswswnenewneswwnewseswneseene\r\n" +
-			"swweswneswnenwsewnwneneseenw\r\n" +
-			"eesenwseswswnenwswnwnwsewwnwsene\r\n" +
-			"sewnenenenesenwsewnenwwwse\r\n" +
-			"wenwwweseeeweswwwnwwe\r\n" +
-			"wsweesenenewnwwnwsenewsenwwsesesenwne\r\n" +
-			"neeswseenwwswnwswswnw\r\n" +
-			"nenwswwsewswnenenewsenwsenwnesesenew\r\n" +
-			"enewnwewneswsewnwswenweswnenwsenwsw\r\n" +
-			"sweneswneswneneenwnewenewwneswswnese\r\n" +
-			"swwesenesewenwneswnwwneseswwne\r\n" +
-			"enesenwswwswneneswsenwnewswseenwsese\r\n" +
-			"wnwnesenesenenwwnenwsewesewsesesew\r\n" +
-			"nenewswnwewswnenesenwnesewesw\r\n" +
-			"eneswnwswnwsenenwnwnwwseeswneewsenese\r\n" +
-			"neswnwewnwnwseenwseesewsenwsweewe\r\n" +
-			"wseweeenwnesenwwwswnew"
-	);
+	private static final String TEST = """
+	        sesenwnenenewseeswwswswwnenewsewsw
+	        neeenesenwnwwswnenewnwwsewnenwseswesw
+	        seswneswswsenwwnwse
+	        nwnwneseeswswnenewneswwnewseswneseene
+	        swweswneswnenwsewnwneneseenw
+	        eesenwseswswnenwswnwnwsewwnwsene
+	        sewnenenenesenwsewnenwwwse
+	        wenwwweseeeweswwwnwwe
+	        wsweesenenewnwwnwsenewsenwwsesesenwne
+	        neeswseenwwswnwswswnw
+	        nenwswwsewswnenenewsenwsenwnesesenew
+	        enewnwewneswsewnwswenweswnenwsenwsw
+	        sweneswneswneneenwnewenewwneswswnese
+	        swwesenesewenwneswnwwneseswwne
+	        enesenwswwswneneswsenwnewswseenwsese
+	        wnwnesenesenenwwnenwsewesewsesesew
+	        nenewswnwewswnenesenwnesewesw
+	        eneswnwswnwsenenwnwnwwseeswneewsenese
+	        neswnwewnwnwseenwseesewsenwsweewe
+	        wseweeenwnesenwwwswn
+	        """;
 	
 	record Tile(int q, int r) {
 		
 		public static Tile at(final int q, final int r) {
 		    return new Tile(q, r);
 		}
+		
+		public Tile at(final Direction direction) {
+		    return Tile.at(this.q + direction.q, this.r + direction.r);
+		}
 	}
 
 	record Direction(int q, int r) {}
+	
+	record Floor(Set<Tile> tiles) {
+
+        public static Floor fromInput(final List<String> input) {
+            final Pattern pattern = Pattern.compile("(n?(e|w)|s?(e|w))");
+            final Set<Tile> tiles = new HashSet<>();
+            for (final String line : input) {
+                final Tile tile = pattern.matcher(line).results()
+                    .map(MatchResult::group)
+                    .map(DIRS::get)
+                    .reduce(Tile.at(0, 0), Tile::at, (t1, t2) -> t2);
+                if (tiles.contains(tile)) {
+                    tiles.remove(tile);
+                } else {
+                    tiles.add(tile);
+                }
+            }
+            return new Floor(tiles);
+        }
+	}
 	
 	private static final class HexGrid implements GameOfLife.Type<Tile> {
 
         @Override
         public Map<Tile, Long> getNeighbourCounts(final Set<Tile> alive) {
-	        final Map<Tile, Long> neighbourCounts = new HashMap<>();
-	        for (final Tile tile : alive) {
-	            for (final Direction d : DIRS.values()) {
-	                final Tile n = Tile.at(tile.q + d.q, tile.r + d.r);
-	                neighbourCounts.merge(n, 1L, Long::sum);
-	            }
-	        }
-            return neighbourCounts;
+            return alive.stream()
+                .flatMap(tile -> DIRS.values().stream().map(tile::at))
+                .collect(groupingBy(tile -> tile, counting()));
         }
 	}
 	
