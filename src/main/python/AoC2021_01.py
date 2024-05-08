@@ -3,25 +3,11 @@
 # Advent of Code 2021 Day 1
 #
 
-from aoc import my_aocd
+import sys
 
-
-def _parse(inputs: tuple[str]) -> tuple[int]:
-    return tuple(int(_) for _ in inputs)
-
-
-def _solve(depths: tuple[int], window: int) -> int:
-    return sum([depths[i] > depths[i-window]
-                for i in range(window, len(depths))])
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return _solve(_parse(inputs), 1)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return _solve(_parse(inputs), 3)
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 TEST = """\
 199
@@ -34,21 +20,45 @@ TEST = """\
 269
 260
 263
-""".splitlines()
+"""
+
+
+Input = list[int]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [int(_) for _ in input_data]
+
+    def count_increases(self, depths: Input, window: int) -> int:
+        return sum(
+            depths[i] > depths[i - window] for i in range(window, len(depths))
+        )
+
+    def part_1(self, inputs: Input) -> Output1:
+        return self.count_increases(inputs, window=1)
+
+    def part_2(self, inputs: Input) -> Output2:
+        return self.count_increases(inputs, window=3)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 7),
+            ("part_2", TEST, 5),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2021, 1)
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 1)
-
-    assert part_1(TEST) == 7
-    assert part_2(TEST) == 5
-
-    inputs = my_aocd.get_input(2021, 1, 2000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

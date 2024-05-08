@@ -3,36 +3,17 @@
 # Advent of Code 2021 Day 5
 #
 
+from __future__ import annotations
+
 import re
-from collections import defaultdict
-from aoc import my_aocd
-from aoc.common import log
+import sys
+from collections import Counter
+from typing import Iterator
+from typing import NamedTuple
 
-
-def _solve(inputs: tuple[str], diag: bool) -> int:
-    d = defaultdict(int)
-    for s in inputs:
-        x1, y1, x2, y2 = tuple(map(int, re.findall(r'\d+', s)))
-        assert sum(_ < 0 for _ in (x1, y1, x2, y2)) == 0
-        log((x1, y1, x2, y2))
-        mx = 0 if x1 == x2 else 1 if x1 < x2 else -1
-        my = 0 if y1 == y2 else 1 if y1 < y2 else -1
-        if not diag and mx != 0 and my != 0:
-            continue
-        length = max(abs(x1 - x2), abs(y1 - y2))
-        for i in range(0, length + 1):
-            d[(x1 + mx * i, y1 + my * i)] += 1
-    log(d)
-    return sum(x > 1 for x in d.values())
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return _solve(inputs, False)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return _solve(inputs, True)
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 TEST = """\
 0,9 -> 5,9
@@ -45,21 +26,70 @@ TEST = """\
 3,4 -> 1,4
 0,0 -> 8,8
 5,5 -> 8,2
-""".splitlines()
+"""
+
+
+class LineSegment(NamedTuple):
+    x1: int
+    y1: int
+    x2: int
+    y2: int
+    mx: int
+    my: int
+
+    @classmethod
+    def from_input(cls, s: str) -> LineSegment:
+        x1, y1, x2, y2 = map(int, re.findall(r"\d+", s))
+        mx = 0 if x1 == x2 else 1 if x1 < x2 else -1
+        my = 0 if y1 == y2 else 1 if y1 < y2 else -1
+        return LineSegment(x1, y1, x2, y2, mx, my)
+
+    def positions(self) -> Iterator[tuple[int, int]]:
+        length = max(abs(self.x1 - self.x2), abs(self.y1 - self.y2))
+        for i in range(0, length + 1):
+            yield (self.x1 + self.mx * i, self.y1 + self.my * i)
+
+
+Input = list[LineSegment]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [LineSegment.from_input(s) for s in input_data]
+
+    def count_intersections(self, lines: Input, diagonals: bool) -> int:
+        counter = Counter(
+            p
+            for line in lines
+            for p in line.positions()
+            if diagonals or line.mx == 0 or line.my == 0
+        )
+        return sum(v > 1 for v in counter.values())
+
+    def part_1(self, lines: Input) -> Output1:
+        return self.count_intersections(lines, diagonals=False)
+
+    def part_2(self, lines: Input) -> Output2:
+        return self.count_intersections(lines, diagonals=True)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 5),
+            ("part_2", TEST, 12),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2021, 5)
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 5)
-
-    assert part_1(TEST) == 5
-    assert part_2(TEST) == 12
-
-    inputs = my_aocd.get_input(2021, 5, 500)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

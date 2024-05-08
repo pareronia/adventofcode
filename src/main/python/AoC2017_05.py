@@ -2,33 +2,17 @@
 #
 # Advent of Code 2017 Day 5
 #
+
+import sys
 from typing import Callable
-from aoc import my_aocd
-import aocd
 
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
-def _parse(inputs: tuple[str]) -> list[int]:
-    return [int(_) for _ in inputs]
-
-
-def _count_jumps(inputs: tuple[str], strategy: Callable) -> int:
-    offsets = _parse(inputs)
-    i = 0
-    cnt = 0
-    while i < len(offsets):
-        jump = offsets[i]
-        offsets[i] = strategy(jump)
-        i += jump
-        cnt += 1
-    return cnt
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return _count_jumps(inputs, lambda j: j + 1)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return _count_jumps(inputs, lambda j: j - 1 if j >= 3 else j + 1)
+Input = list[int]
+Output1 = int
+Output2 = int
 
 
 TEST = """\
@@ -37,23 +21,48 @@ TEST = """\
 0
 1
 -3
-""".splitlines()
+"""
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [int(_) for _ in input_data]
+
+    def count_jumps(
+        self, input: list[int], jump_calculator: Callable[[int], int]
+    ) -> int:
+        offsets = [_ for _ in input]
+        i = 0
+        cnt = 0
+        while i < len(offsets):
+            jump = offsets[i]
+            offsets[i] = jump_calculator(jump)
+            i += jump
+            cnt += 1
+        return cnt
+
+    def part_1(self, input: Input) -> int:
+        return self.count_jumps(input, lambda j: j + 1)
+
+    def part_2(self, input: Input) -> int:
+        return self.count_jumps(input, lambda j: j - 1 if j >= 3 else j + 1)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 5),
+            ("part_2", TEST, 10),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2017, 5)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2017, 5)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 5
-    assert part_2(TEST) == 10
-
-    inputs = my_aocd.get_input(2017, 5, 1033)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

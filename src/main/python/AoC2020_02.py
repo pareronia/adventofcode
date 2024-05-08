@@ -2,61 +2,68 @@
 #
 # Advent of Code 2020 Day 2
 #
-import re
-from operator import xor
-from typing import Callable
 
-import aocd
+import sys
 
-from aoc import my_aocd
-
-
-def _solve(
-    inputs: tuple[str], check_valid: Callable[[int, int, str, str], bool]
-) -> str:
-    def _parse(line: str) -> (int, int, str, str):
-        m = re.search(r"^(\d{1,2})-(\d{1,2}) ([a-z]{1}): ([a-z]+)$", line)
-        return (int(m.group(1)), int(m.group(2)), m.group(3), m.group(4))
-
-    return str(sum(1 for line in inputs if check_valid(*_parse(line))))
-
-
-def part_1(inputs: tuple[str]) -> str:
-    def check_valid(first: int, second: int, wanted: str, passw: str):
-        return passw.count(wanted) in range(first, second + 1)
-
-    return _solve(inputs, check_valid)
-
-
-def part_2(inputs: tuple[str]) -> str:
-    def check_valid(first: int, second: int, wanted: str, passw: str):
-        first_matched = passw[first - 1] == wanted
-        second_matched = passw[second - 1] == wanted
-        return xor(first_matched, second_matched)
-
-    return _solve(inputs, check_valid)
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 TEST = """\
 1-3 a: abcde
 2-9 c: ccccccccc
 1-3 b: cdefg
-""".splitlines()
+"""
+
+
+Input = list[tuple[int, int, str, str]]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        def parse(line: str) -> tuple[int, int, str, str]:
+            splits = line.split(": ")
+            left_and_right = splits[0].split(" ")
+            first, second = left_and_right[0].split("-")
+            wanted = left_and_right[1][0]
+            password = splits[1]
+            return (int(first), int(second), wanted, password)
+
+        return [parse(line) for line in input_data]
+
+    def part_1(self, inputs: Input) -> int:
+        def check_valid(
+            first: int, second: int, wanted: str, passw: str
+        ) -> bool:
+            return first <= passw.count(wanted) <= second
+
+        return sum(check_valid(*line) for line in inputs)
+
+    def part_2(self, inputs: Input) -> int:
+        def check_valid(
+            first: int, second: int, wanted: str, passw: str
+        ) -> bool:
+            return (passw[first - 1] == wanted) ^ (passw[second - 1] == wanted)
+
+        return sum(check_valid(*line) for line in inputs)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 2),
+            ("part_2", TEST, 1),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2020, 2)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2020, 2)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 2
-    assert part_2(TEST) == 1
-
-    inputs = my_aocd.get_input_data(puzzle, 1000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Iterator
 from typing import NamedTuple
 
 
@@ -40,3 +41,6 @@ class RangeInclusive(NamedTuple):
             or other.contains(self.maximum)
             or self.contains(other.minimum)
         )
+
+    def iterator(self) -> Iterator[int]:
+        return (_ for _ in range(self.minimum, self.maximum + 1))

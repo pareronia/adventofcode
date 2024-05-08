@@ -4,8 +4,13 @@
 #
 
 from __future__ import annotations
-import aocd
-from aoc import my_aocd
+
+import sys
+from dataclasses import dataclass
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 
 class Node:
@@ -15,94 +20,89 @@ class Node:
 
     def __init__(self, value: int):
         self.value = value
-        self.prev = None
-        self.next = None
+        self.prev = None  # type:ignore[assignment]
+        self.next = None  # type:ignore[assignment]
 
 
-class DoublyLinkedList:
-    size: int
-    head: Node
-    tail: Node
+@dataclass
+class Elves:
+    head: Node = None  # type:ignore[assignment]
+    size: int = 0
 
-    def __init__(self):
-        self.size = 0
+    @classmethod
+    def from_input(cls, input: str) -> Elves:
+        elves = Elves()
+        prev: Node = None  # type:ignore[assignment]
+        node: Node = None  # type:ignore[assignment]
+        for i in range(int(input)):
+            node = Node(i + 1)
+            if elves.size == 0:
+                elves.head = node
+            else:
+                node.prev = prev
+                prev.next = node
+            prev = node
+            elves.size += 1
+        elves.head.prev = node
+        node.next = elves.head
+        return elves
 
-    def add_tail(self, value: int):
-        node = Node(value)
-        if self.size == 0:
-            self.tail = node
-            self.head = node
-        else:
-            self.tail.next = node
-            node.prev = self.tail
-            self.tail = node
-        self.size += 1
-
-    def close(self):
-        self.head.prev = self.tail
-        self.tail.next = self.head
-
-    def remove(self, node: Node):
+    def remove(self, node: Node) -> None:
         node.prev.next = node.next
         node.next.prev = node.prev
         self.size -= 1
 
 
-def _parse(inputs: tuple[str]) -> str:
-    assert len(inputs) == 1
-    elves = DoublyLinkedList()
-    for i in range(int(inputs[0])):
-        elves.add_tail(i + 1)
-    elves.close()
-    return elves
+Input = str
+Output1 = int
+Output2 = int
 
 
-def part_1(inputs: tuple[str]) -> int:
-    elves = _parse(inputs)
-    curr = elves.head
-    while elves.size > 1:
-        loser = curr.next
-        elves.remove(loser)
-        curr = curr.next
-    return curr.value
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return list(input_data)[0]
 
+    def part_1(self, input: str) -> int:
+        elves = Elves.from_input(input)
+        curr = elves.head
+        while elves.size > 1:
+            loser = curr.next
+            elves.remove(loser)
+            curr = curr.next
+        return curr.value
 
-def part_2(inputs: tuple[str]) -> int:
-    elves = _parse(inputs)
-    curr = elves.head
-    opposite = elves.head
-    for i in range(elves.size // 2):
-        opposite = opposite.next
-    while elves.size > 1:
-        loser = opposite
-        elves.remove(loser)
-        if elves.size % 2:
+    def part_2(self, input: str) -> int:
+        elves = Elves.from_input(input)
+        curr = elves.head
+        opposite = elves.head
+        for i in range(elves.size // 2):
             opposite = opposite.next
-        else:
-            opposite = opposite.next.next
-        curr = curr.next
-    return curr.value
+        while elves.size > 1:
+            loser = opposite
+            elves.remove(loser)
+            if elves.size % 2:
+                opposite = opposite.next
+            else:
+                opposite = opposite.next.next
+            curr = curr.next
+        return curr.value
+
+    @aoc_samples(
+        (
+            ("part_1", "5", 3),
+            ("part_2", "5", 2),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-TEST = '''\
-5
-'''.splitlines()
+solution = Solution(2016, 19)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2016, 19)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 3
-    assert part_2(TEST) == 2
-
-    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 1)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
