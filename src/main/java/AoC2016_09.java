@@ -3,27 +3,30 @@ import static java.lang.Boolean.TRUE;
 
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2016_09 extends AoCBase {
+public class AoC2016_09 extends SolutionBase<String, Long, Long> {
 
-	private final String input;
-	
-	private AoC2016_09(List<String> inputs, boolean debug) {
+	private AoC2016_09(final boolean debug) {
 		super(debug);
-	    assert inputs.size() == 1;
-		this.input = inputs.get(0);
 	}
 	
-	public static final AoC2016_09 create(List<String> input) {
-		return new AoC2016_09(input, false);
+	public static final AoC2016_09 create() {
+		return new AoC2016_09(false);
 	}
 
-	public static final AoC2016_09 createDebug(List<String> input) {
-		return new AoC2016_09(input, true);
+	public static final AoC2016_09 createDebug() {
+		return new AoC2016_09(true);
 	}
-	
-	private Long decompressedLength(String input, boolean recursive) {
+
+	@Override
+    protected String parseInput(final List<String> inputs) {
+        return inputs.get(0);
+    }
+
+    private Long decompressedLength(final String input, final boolean recursive) {
 	    if (!input.contains("(")) {
 	        return (long) input.length();
 	    }
@@ -60,40 +63,38 @@ public class AoC2016_09 extends AoCBase {
 	}
 
 	@Override
-	public Long solvePart1() {
-	    return decompressedLength(this.input, FALSE);
+	public Long solvePart1(final String input) {
+	    return decompressedLength(input, FALSE);
 	}
 	
 	@Override
-	public Long solvePart2() {
-	    return decompressedLength(this.input, TRUE);
+	public Long solvePart2(final String input) {
+	    return decompressedLength(input, TRUE);
 	}
 
-	public static void main(String[] args) throws Exception {
-		assert AoC2016_09.createDebug(TEST1).solvePart1() == 6;
-		assert AoC2016_09.createDebug(TEST2).solvePart1() == 7;
-		assert AoC2016_09.createDebug(TEST3).solvePart1() == 9;
-		assert AoC2016_09.createDebug(TEST4).solvePart1() == 11;
-		assert AoC2016_09.createDebug(TEST5).solvePart1() == 6;
-		assert AoC2016_09.createDebug(TEST6).solvePart1() == 18;
-		assert AoC2016_09.createDebug(TEST3).solvePart2() == 9;
-		assert AoC2016_09.createDebug(TEST6).solvePart2() == 20;
-		assert AoC2016_09.createDebug(TEST7).solvePart2() == 241920;
-		assert AoC2016_09.createDebug(TEST8).solvePart2() == 445;
-		
-		final List<String> input = Aocd.getData(2016, 9);
-		lap("Part 1", () -> AoC2016_09.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_09.create(input).solvePart2());
+	@Samples({
+	    @Sample(method = "part1", input = TEST1, expected = "6"),
+	    @Sample(method = "part1", input = TEST2, expected = "7"),
+	    @Sample(method = "part1", input = TEST3, expected = "9"),
+	    @Sample(method = "part1", input = TEST4, expected = "11"),
+	    @Sample(method = "part1", input = TEST5, expected = "6"),
+	    @Sample(method = "part1", input = TEST6, expected = "18"),
+	    @Sample(method = "part2", input = TEST3, expected = "9"),
+	    @Sample(method = "part2", input = TEST6, expected = "20"),
+	    @Sample(method = "part2", input = TEST7, expected = "241920"),
+	    @Sample(method = "part2", input = TEST8, expected = "445"),
+	})
+	public static void main(final String[] args) throws Exception {
+	    AoC2016_09.create().run();
 	}
 
-	private static final List<String> TEST1 = splitLines("ADVENT");
-	private static final List<String> TEST2 = splitLines("A(1x5)BC");
-	private static final List<String> TEST3 = splitLines("(3x3)XYZ");
-	private static final List<String> TEST4 = splitLines("A(2x2)BCD(2x2)EFG");
-	private static final List<String> TEST5 = splitLines("(6x1)(1x3)A");
-	private static final List<String> TEST6 = splitLines("X(8x2)(3x3)ABCY");
-	private static final List<String> TEST7
-	                        = splitLines("(27x12)(20x12)(13x14)(7x10)(1x12)A");
-	private static final List<String> TEST8
-	    = splitLines("(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN");
+	private static final String TEST1 = "ADVENT";
+	private static final String TEST2 = "A(1x5)BC";
+	private static final String TEST3 = "(3x3)XYZ";
+	private static final String TEST4 = "A(2x2)BCD(2x2)EFG";
+	private static final String TEST5 = "(6x1)(1x3)A";
+	private static final String TEST6 = "X(8x2)(3x3)ABCY";
+	private static final String TEST7 = "(27x12)(20x12)(13x14)(7x10)(1x12)A";
+	private static final String TEST8
+	            = "(25x3)(3x3)ABC(2x3)XY(5x2)PQRSTX(18x9)(3x2)TWO(5x7)SEVEN";
 }

@@ -1,117 +1,120 @@
-import static java.util.Comparator.comparingInt;
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.IterTools.enumerate;
+import static com.github.pareronia.aoc.Utils.last;
+import static java.util.stream.Collectors.toCollection;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.Counter;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_10 extends AoCBase {
+public class AoC2020_10 extends SolutionBase<List<Integer>, Long, Long> {
 	
-	private final List<Integer> numbers;
-	
-	private AoC2020_10(List<String> input, boolean debug) {
+	private AoC2020_10(final boolean debug) {
 		super(debug);
-		this.numbers = input.stream().map(Integer::valueOf).collect(toList());
-	    this.numbers.add(0);
-	    this.numbers.add(this.numbers.stream().max(comparingInt(n -> n)).orElseThrow() + 3);
-	    Collections.sort(this.numbers);
 	}
 	
-	public static AoC2020_10 create(List<String> input) {
-		return new AoC2020_10(input, false);
+	public static AoC2020_10 create() {
+		return new AoC2020_10(false);
 	}
 
-	public static AoC2020_10 createDebug(List<String> input) {
-		return new AoC2020_10(input, true);
+	public static AoC2020_10 createDebug() {
+		return new AoC2020_10(true);
 	}
 	
 	@Override
-	public Long solvePart1() {
-	    final HashMap<Integer, Long> jumps = Stream.iterate(1, i -> i + 1)
-	            .takeWhile(i -> i < this.numbers.size())
-	            .map(i -> this.numbers.get(i) - this.numbers.get(i - 1))
-	            .collect(groupingBy(jump -> jump, HashMap::new, counting()));
+    protected List<Integer> parseInput(final List<String> inputs) {
+		final List<Integer> numbers = new ArrayList<>(List.of(0));
+		inputs.stream()
+		    .map(Integer::valueOf)
+		    .sorted()
+		    .collect(toCollection(() -> numbers));
+	    numbers.add(last(numbers) + 3);
+        return numbers;
+    }
+
+    @Override
+	public Long solvePart1(final List<Integer> numbers) {
+	    final Counter<Integer> jumps = new Counter<>(
+	        range(numbers.size()).intStream().skip(1)
+	            .mapToObj(i -> numbers.get(i) - numbers.get(i - 1)));
 	    return jumps.get(1) * jumps.get(3);
 	}
 	
     // 0: 1, 1: 1, 4: 1, 5: 1, 6: 2, 7: 4, 10: 4, 11: 4, 12: 8, 15: 8, 16: 8, 19: 8
 	@Override
-	public Long solvePart2() {
-	    log(this.numbers);
+	public Long solvePart2(final List<Integer> numbers) {
 	    final Map<Integer, Long> map = new HashMap<>();
 	    map.put(0, 1L);
-	    this.numbers.stream().skip(1).forEach(i -> {
-	        Stream.iterate(this.numbers.indexOf(i) - 1, j -> j - 1)
-	                .takeWhile(j -> j >= 0)
-	                .map(this.numbers::get)
-	                .filter(j -> i - j <= 3)
-                    .forEach(j -> map.merge(i, map.get(j), Long::sum));
+	    enumerate(numbers.stream().skip(1)).forEach(e -> {
+	        range(e.index(), -1, -1).intStream()
+	                .map(numbers::get)
+	                .filter(j -> e.value() - j <= 3)
+                    .forEach(j -> map.merge(e.value(), map.get(j), Long::sum));
 	        log(map);
 	    });
-		return map.get(this.numbers.get(this.numbers.size() - 1));
+		return map.get(last(numbers));
 	}
 
-	public static void main(String[] args) throws Exception {
-		assert AoC2020_10.createDebug(TEST1).solvePart1() == 35;
-		assert AoC2020_10.createDebug(TEST2).solvePart1() == 220;
-		assert AoC2020_10.createDebug(TEST1).solvePart2() == 8;
-		assert AoC2020_10.createDebug(TEST2).solvePart2() == 19208;
-
-		final List<String> input = Aocd.getData(2020, 10);
-		lap("Part 1", () -> AoC2020_10.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_10.create(input).solvePart2());
+	@Samples({
+	    @Sample(method = "part1", input = TEST1, expected = "35"),
+	    @Sample(method = "part1", input = TEST2, expected = "220"),
+	    @Sample(method = "part2", input = TEST1, expected = "8"),
+	    @Sample(method = "part2", input = TEST2, expected = "19208"),
+	})
+	public static void main(final String[] args) throws Exception {
+	    AoC2020_10.create().run();
 	}
 	
-	private static final List<String> TEST1 = splitLines(
-	        "16\r\n" +
-	        "10\r\n" +
-	        "15\r\n" +
-	        "5\r\n" +
-	        "1\r\n" +
-	        "11\r\n" +
-	        "7\r\n" +
-	        "19\r\n" +
-	        "6\r\n" +
-	        "12\r\n" +
-	        "4"
-	);
-	private static final List<String> TEST2 = splitLines(
-	        "28\r\n" +
-	        "33\r\n" +
-	        "18\r\n" +
-	        "42\r\n" +
-	        "31\r\n" +
-	        "14\r\n" +
-	        "46\r\n" +
-	        "20\r\n" +
-	        "48\r\n" +
-	        "47\r\n" +
-	        "24\r\n" +
-	        "23\r\n" +
-	        "49\r\n" +
-	        "45\r\n" +
-	        "19\r\n" +
-	        "38\r\n" +
-	        "39\r\n" +
-	        "11\r\n" +
-	        "1\r\n" +
-	        "32\r\n" +
-	        "25\r\n" +
-	        "35\r\n" +
-	        "8\r\n" +
-	        "17\r\n" +
-	        "7\r\n" +
-	        "9\r\n" +
-	        "4\r\n" +
-	        "2\r\n" +
-	        "34\r\n" +
-	        "10\r\n" +
-	        "3"
-	);
+	private static final String TEST1 = """
+	        16
+	        10
+	        15
+	        5
+	        1
+	        11
+	        7
+	        19
+	        6
+	        12
+	        4
+	        """;
+	private static final String TEST2 = """
+	        28
+	        33
+	        18
+	        42
+	        31
+	        14
+	        46
+	        20
+	        48
+	        47
+	        24
+	        23
+	        49
+	        45
+	        19
+	        38
+	        39
+	        11
+	        1
+	        32
+	        25
+	        35
+	        8
+	        17
+	        7
+	        9
+	        4
+	        2
+	        34
+	        10
+	        3
+	        """;
 }

@@ -1,70 +1,75 @@
-import static java.util.stream.Collectors.toList;
+import static com.github.pareronia.aoc.AssertUtils.unreachable;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_01 extends AoCBase {
+public class AoC2020_01 extends SolutionBase<List<Integer>, Long, Long> {
 	
-	private final List<Integer> numbers;
-
-	private AoC2020_01(List<String> input, boolean debug) {
+	private AoC2020_01(final boolean debug) {
 		super(debug);
-		this.numbers = input.stream().map(Integer::valueOf).collect(toList());
 	}
 	
-	public static AoC2020_01 create(List<String> input) {
-		return new AoC2020_01(input, false);
+	public static AoC2020_01 create() {
+		return new AoC2020_01(false);
 	}
-	
+
+	public static AoC2020_01 createDebug() {
+		return new AoC2020_01(true);
+	}
+
 	@Override
-	public Long solvePart1() {
-		final Set<Integer> seen = new HashSet<>();
-		for (final Integer n1 : this.numbers) {
+    protected List<Integer> parseInput(final List<String> inputs) {
+        return inputs.stream().map(Integer::valueOf).toList();
+    }
+
+    @Override
+	public Long solvePart1(final List<Integer> numbers) {
+		final Set<Integer> seen = new HashSet<>(numbers.size());
+		for (final Integer n1 : numbers) {
 			seen.add(n1);
 			final Integer n2 = 2020 - n1;
 			if (seen.contains(n2)) {
 				return (long) (n1 * n2);
 			}
 		}
-		return 0L;
+		throw unreachable();
 	}
 
 	@Override
-	public Long solvePart2() {
-		final Set<Integer> seen = new HashSet<>();
-		for (int i = 0; i < this.numbers.size(); i++) {
-			final Integer n1 = this.numbers.get(i);
+	public Long solvePart2(final List<Integer> numbers) {
+		final Set<Integer> seen = new HashSet<>(numbers.size());
+		for (int i = 0; i < numbers.size(); i++) {
+			final Integer n1 = numbers.get(i);
 			seen.add(n1);
-			for (int j = i; j < this.numbers.size(); j++) {
-				final Integer n2 = this.numbers.get(j);
+			for (final Integer n2 : numbers.subList(i, numbers.size())) {
 				final Integer n3 = 2020 - n1 - n2;
 				if (seen.contains(n3)) {
 					return (long) (n1 * n2 * n3);
 				}
 			}
 		}
-		
-		return 0L;
+		throw unreachable();
 	}
 
-	public static void main(String[] args) throws Exception {
-		assert AoC2020_01.create(TEST).solvePart1() == 514579;
-		assert AoC2020_01.create(TEST).solvePart2() == 241861950;
-		
-		final List<String> input = Aocd.getData(2020, 1);
-		lap("Part 1", () -> AoC2020_01.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_01.create(input).solvePart2());
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "514579"),
+	    @Sample(method = "part2", input = TEST, expected = "241861950"),
+	})
+	public static void main(final String[] args) throws Exception {
+	    AoC2020_01.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"1721\r\n" +
-			"979\r\n" +
-			"366\r\n" +
-			"299\r\n" +
-			"675\r\n" +
-			"1456"
-	);
+	private static final String TEST = """
+	        1721
+	        979
+	        366
+	        299
+	        675
+	        1456
+	        """;
 }

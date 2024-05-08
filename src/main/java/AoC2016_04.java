@@ -78,7 +78,7 @@ public class AoC2016_04
 	    
 	    public boolean isReal() {
 	        return new Counter<>(
-	                Utils.asCharacterStream(this.name.replace("-", "")).toList())
+	                Utils.asCharacterStream(this.name.replace("-", "")))
 	            .mostCommon().stream()
 	            .sorted(comparing(e -> e.count() * -100 + e.value().charValue()))
 	            .limit(5)

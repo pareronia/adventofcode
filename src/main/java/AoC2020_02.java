@@ -1,87 +1,86 @@
 import static com.github.pareronia.aoc.Utils.asCharacterStream;
-import static java.util.Objects.requireNonNull;
 
 import java.util.List;
 import java.util.function.Predicate;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_02 extends AoCBase {
+public class AoC2020_02
+    extends SolutionBase<List<AoC2020_02.PasswordAndPolicy>, Long, Long> {
 	
-	private final List<String> inputs;
-
-	private AoC2020_02(final List<String> input, final boolean debug) {
+	private AoC2020_02(final boolean debug) {
 		super(debug);
-		this.inputs = input;
 	}
 	
-	public static AoC2020_02 create(final List<String> input) {
-		return new AoC2020_02(input, false);
+	public static AoC2020_02 create() {
+		return new AoC2020_02(false);
 	}
 
-	public static AoC2020_02 createDebug(final List<String> input) {
-		return new AoC2020_02(input, true);
+	public static AoC2020_02 createDebug() {
+		return new AoC2020_02(true);
 	}
 	
 	@Override
-	public Long solvePart1() {
-		return countValid(PasswordAndPolicy::isValid1);
+    protected List<PasswordAndPolicy> parseInput(final List<String> inputs) {
+        return inputs.stream().map(PasswordAndPolicy::create).toList();
+    }
+
+    @Override
+	public Long solvePart1(final List<PasswordAndPolicy> inputs) {
+		return countValid(inputs, PasswordAndPolicy::isValid1);
 	}
 
 	@Override
-	public Long solvePart2() {
-		return countValid(PasswordAndPolicy::isValid2);
+	public Long solvePart2(final List<PasswordAndPolicy> inputs) {
+		return countValid(inputs, PasswordAndPolicy::isValid2);
 	}
 
-	private long countValid(final Predicate<PasswordAndPolicy> predicate) {
-		return this.inputs.stream()
-				.map(PasswordAndPolicy::create)
-				.filter(predicate)
-				.count();
+	private long countValid(
+	        final List<PasswordAndPolicy> inputs,
+	        final Predicate<PasswordAndPolicy> predicate
+    ) {
+		return inputs.stream().filter(predicate).count();
 	}
 
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "2"),
+	    @Sample(method = "part2", input = TEST, expected = "1"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2020_02.createDebug(TEST).solvePart1() == 2;
-		assert AoC2020_02.createDebug(TEST).solvePart2() == 1;
-		
-		final List<String> input = Aocd.getData(2020, 2);
-		lap("Part 1", () -> AoC2020_02.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_02.create(input).solvePart2());
+	    AoC2020_02.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"1-3 a: abcde\r\n" +
-			"1-3 b: cdefg\r\n" +
-			"2-9 c: ccccccccc"
-	);
+	private static final String TEST = """
+	        1-3 a: abcde
+	        1-3 b: cdefg
+	        2-9 c: ccccccccc
+	        """;
 	
-	record PasswordAndPolicy(int first, int second, String wanted, String password) {
+	record PasswordAndPolicy(int first, int second, char wanted, String password) {
 		
 		public static PasswordAndPolicy create(final String input) {
-			final String[] splits = requireNonNull(input).split(": ");
+			final String[] splits = input.split(": ");
 			final String[] leftAndRight = splits[0].split(" ");
 			final String[] firstAndSecond = leftAndRight[0].split("-");
-			final Integer first = Integer.valueOf(firstAndSecond[0]);
-			final Integer second = Integer.valueOf(firstAndSecond[1]);
-			final String wanted = leftAndRight[1];
+			final int first = Integer.parseInt(firstAndSecond[0]);
+			final int second = Integer.parseInt(firstAndSecond[1]);
+			final char wanted = leftAndRight[1].charAt(0);
 			final String password = splits[1];
 			return new PasswordAndPolicy(first, second, wanted, password);
 		}
 		
-		private boolean equal(final char c, final String string) {
-			return String.valueOf(c).equals(string);
-		}
-		
 		public boolean isValid1() {
 			final long count = asCharacterStream(password)
-					.filter(c -> equal(c, wanted))
+					.filter(c -> c == wanted)
 					.count();
 			return first <= count && count <= second;
 		}
 		
 		public boolean isValid2() {
-			return equal(password.charAt(first - 1), wanted)
-					^ equal(password.charAt(second - 1), wanted);
+			return password.charAt(first - 1) ==  wanted
+			     ^ password.charAt(second - 1) == wanted;
 		}
 	}
 }

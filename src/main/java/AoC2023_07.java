@@ -75,12 +75,12 @@ public final class AoC2023_07
         public static Hand fromInput(final String line) {
             final Function<String, Integer> getValue = cards -> {
                 final List<Counter.Entry<Character>> mc
-                    = new Counter<>(Utils.asCharacterStream(cards).toList()).mostCommon();
+                    = new Counter<>(Utils.asCharacterStream(cards)).mostCommon();
                 return (int) (2 * mc.get(0).count() + (mc.size() > 1 ? mc.get(1).count() : 0));
             };
             final Function<String, String> withJokers = cards -> {
                 final Counter<Character> c = new Counter<>(
-                    Utils.asCharacterStream(cards).filter(ch -> ch != JOKER).toList());
+                    Utils.asCharacterStream(cards).filter(ch -> ch != JOKER));
                 if (c.isEmpty()) {
                     return BEST;
                 }
