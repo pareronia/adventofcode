@@ -89,14 +89,14 @@ runner:
             day_format: *cpp-file_pattern
         julia:
             command: julia
-            options: -O
+            options: -O3
             base_dir: *julia-base_dir
             day_format: *julia-file_pattern
             ext: *julia-file_ext
             server:
                 command:
                     - julia
-                    - -O
+                    - -O3
                     - --
                     - src/main/julia/Runner.jl
                 host: localhost
