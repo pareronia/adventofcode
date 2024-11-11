@@ -1,6 +1,7 @@
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -15,11 +16,13 @@ import com.github.pareronia.aoc.solution.SolutionBase;
 public class AoC2022_14
                 extends SolutionBase<AoC2022_14.Cave, Integer, Integer> {
     
-    private static final Position SOURCE = Position.of(500, 0);
+    public static final Position SOURCE = Position.of(500, 0);
     private static final char START = '+';
     private static final char EMPTY = ' ';
     private static final char ROCK = '▒';
     private static final char SAND = 'o';
+    
+    private final List<Listener> listeners = new ArrayList<>();
 
     private AoC2022_14(final boolean debug) {
         super(debug);
@@ -31,6 +34,10 @@ public class AoC2022_14
 
     public static final AoC2022_14 createDebug() {
         return new AoC2022_14(true);
+    }
+    
+    public void addListener(final Listener listener) {
+        this.listeners.add(listener);
     }
     
     Optional<Position> drop(final boolean[][] occupied, final int maxY) {
@@ -57,11 +64,13 @@ public class AoC2022_14
     }
     
     private int solve(final Cave cave, final int maxY) {
+        this.listeners.forEach(l -> l.start(cave));
         int cnt = 0;
         while (true) {
             final Optional<Position> p = drop(cave.occupied, maxY);
             if (p.isPresent()) {
                 cave.occupied[p.get().getY()][p.get().getX()] = true;
+                this.listeners.forEach(l -> l.stateUpdated(cave));
                 cnt++;
                 if (p.get().equals(SOURCE)) {
                     break;
@@ -70,6 +79,7 @@ public class AoC2022_14
                 break;
             }
         }
+        this.listeners.forEach(Listener::close);
         return cnt;
     }
     
@@ -127,7 +137,7 @@ public class AoC2022_14
         AoC2022_14.create().run();
     }
 
-    private static final String TEST = """
+    protected static final String TEST = """
         498,4 -> 498,6 -> 496,6
         503,4 -> 502,4 -> 502,9 -> 494,9
         """;
@@ -166,5 +176,13 @@ public class AoC2022_14
             }
             return Cave.withRocks(rocks);
         }
+    }
+    
+    public interface Listener {
+        void start(Cave cave);
+        
+        void stateUpdated(Cave cave);
+        
+        default void close() {}
     }
 }
