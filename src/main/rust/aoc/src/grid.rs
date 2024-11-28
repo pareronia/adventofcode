@@ -457,10 +457,10 @@ impl CharGrid {
             panic!("Grids should be same size")
         }
         let mut strings: Vec<String> = vec![];
-        for r in 0..grids.len() {
+        for row in grids {
             let mut rows_list: Vec<Vec<String>> = vec![];
-            for c in 0..grids[r].len() {
-                rows_list.push(grids[r][c].get_rows_as_string());
+            for grid in row {
+                rows_list.push(grid.get_rows_as_string());
             }
             for i in 0..rows_list[0].len() {
                 strings.push(rows_list.iter().map(|l| l[i].clone()).join(""));

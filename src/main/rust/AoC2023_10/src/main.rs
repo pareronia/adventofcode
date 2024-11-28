@@ -164,13 +164,13 @@ impl EnlargeGridInsideFinder {
         let xgrid = CharGrid::merge(&grids);
         let new_loop = xgrid
             .cells()
-            .filter(|cell| xgrid.get(&cell) == 'S' || xgrid.get(&cell) == '#')
+            .filter(|cell| xgrid.get(cell) == 'S' || xgrid.get(cell) == '#')
             .collect::<HashSet<_>>();
         let adjacent = |cell: Cell| {
             xgrid
                 .capital_neighbours(&cell)
                 .into_iter()
-                .filter(|c| !new_loop.contains(&c))
+                .filter(|c| !new_loop.contains(c))
                 .collect()
         };
         let outside = BFS::flood_fill(Cell::at(0, 0), adjacent);
@@ -201,12 +201,12 @@ impl aoc::Puzzle for AoC2023_10 {
     }
 
     fn part_1(&self, grid: &CharGrid) -> usize {
-        LoopFinder::new().find_loop(&grid).len() / 2
+        LoopFinder::new().find_loop(grid).len() / 2
     }
 
     fn part_2(&self, grid: &CharGrid) -> usize {
-        let loop_ = LoopFinder::new().find_loop(&grid);
-        EnlargeGridInsideFinder::new().count_inside(&grid, &loop_)
+        let loop_ = LoopFinder::new().find_loop(grid);
+        EnlargeGridInsideFinder::new().count_inside(grid, &loop_)
     }
 
     fn samples(&self) {

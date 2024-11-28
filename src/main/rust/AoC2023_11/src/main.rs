@@ -16,13 +16,13 @@ struct Observations {
 struct AoC2023_11;
 
 impl Observations {
-    fn from_input(inputs: &Vec<String>) -> Self {
+    fn from_input(inputs: &[String]) -> Self {
         let grid = CharGrid::from(
             &inputs.iter().map(|s| s.as_str()).collect::<Vec<_>>(),
         );
         let galaxies = grid
             .cells()
-            .filter(|cell| grid.get(&cell) == '#')
+            .filter(|cell| grid.get(cell) == '#')
             .collect::<Vec<_>>();
         let empty_rows = grid
             .get_rows_as_string()
@@ -63,7 +63,7 @@ impl AoC2023_11 {
             .galaxies
             .iter()
             .combinations(2)
-            .map(|c| distance(&c[0], &c[1], factor - 1))
+            .map(|c| distance(c[0], c[1], factor - 1))
             .sum()
     }
 }

@@ -33,7 +33,7 @@ struct AoC2019_08;
 impl AoC2019_08 {
     fn get_layers(
         &self,
-        input: &String,
+        input: &str,
         width: usize,
         height: usize,
     ) -> Vec<String> {
@@ -44,7 +44,7 @@ impl AoC2019_08 {
             .collect()
     }
 
-    fn get_image(&self, input: &String, width: usize, height: usize) -> String {
+    fn get_image(&self, input: &str, width: usize, height: usize) -> String {
         let layers = self.get_layers(input, width, height);
         let mut image = String::from("");
         for i in 0..layers[0].len() {

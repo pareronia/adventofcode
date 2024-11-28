@@ -47,7 +47,7 @@ struct AuntSue {
 }
 
 impl AuntSue {
-    fn from_input(line: &String) -> Self {
+    fn from_input(line: &str) -> Self {
         let mut things = [None; Thing::COUNT];
         let line = line.replace(",", "");
         let line = line.replace(":", "");
@@ -66,9 +66,9 @@ struct AoC2015_16;
 impl AoC2015_16 {
     fn find_aunt_sue_with_best_score<'a>(
         &'a self,
-        aunt_sues: &'a Vec<AuntSue>,
+        aunt_sues: &'a [AuntSue],
         ops: &[Op; Thing::COUNT],
-    ) -> &AuntSue {
+    ) -> &'a AuntSue {
         aunt_sues
             .iter()
             .map(|sue| {
@@ -93,7 +93,7 @@ impl aoc::Puzzle for AoC2015_16 {
     aoc::puzzle_year_day!(2015, 16);
 
     fn parse_input(&self, lines: Vec<String>) -> Vec<AuntSue> {
-        lines.iter().map(AuntSue::from_input).collect()
+        lines.iter().map(|line| AuntSue::from_input(line)).collect()
     }
 
     fn part_1(&self, aunt_sues: &Vec<AuntSue>) -> u16 {

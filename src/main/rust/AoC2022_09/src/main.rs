@@ -29,7 +29,7 @@ impl AoC2022_09 {
         }
     }
 
-    fn move_rope(&self, rope: &mut Vec<XY>, move_: &Direction) {
+    fn move_rope(&self, rope: &mut [XY], move_: &Direction) {
         let xy = XY::try_from(*move_).unwrap();
         rope[0] = rope[0].translate(&xy, 1);
         (1..rope.len()).for_each(|j| {

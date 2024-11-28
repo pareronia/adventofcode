@@ -25,7 +25,7 @@ struct AoC2022_11;
 impl AoC2022_11 {
     fn solve(
         &self,
-        monkeys: &mut Vec<Monkey>,
+        monkeys: &mut [Monkey],
         rounds: usize,
         divider: u64,
         modulus: Option<u64>,
@@ -121,7 +121,8 @@ impl aoc::Puzzle for AoC2022_11 {
     }
 
     fn part_1(&self, input: &Vec<Monkey>) -> u64 {
-        let mut monkeys = input.iter().map(Monkey::clone).collect();
+        let mut monkeys =
+            input.iter().map(Monkey::clone).collect::<Vec<Monkey>>();
         self.solve(&mut monkeys, 20, 3, None)
     }
 

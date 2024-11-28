@@ -28,7 +28,7 @@ impl AoC2015_11 {
             && password[pairs.0.unwrap()] != password[pairs.1.unwrap()]
     }
 
-    fn generate_from(&self, input: &String) -> String {
+    fn generate_from(&self, input: &str) -> String {
         fn increment(password: &mut [u8], i: usize) {
             password[i] = b'a' + (password[i] - b'a' + 1) % 26;
             if password[i] as char == 'a' {

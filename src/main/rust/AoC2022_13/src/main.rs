@@ -89,7 +89,7 @@ impl aoc::Puzzle for AoC2022_13 {
     fn part_2(&self, packets: &Vec<Packet>) -> usize {
         let mut packets =
             packets.iter().map(Packet::clone).collect::<Vec<Packet>>();
-        let dividers = vec![
+        let dividers = [
             Packet {
                 value: json!([[2]]),
             },
