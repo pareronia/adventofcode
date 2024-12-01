@@ -31,7 +31,7 @@ public class Counter<T> {
     }
     
     public Long get(final T value) {
-        return this.counts.get(value);
+        return this.counts.getOrDefault(value, 0L);
     }
     
     public Collection<Long> values() {
