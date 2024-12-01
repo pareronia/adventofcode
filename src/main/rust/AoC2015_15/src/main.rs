@@ -18,10 +18,10 @@ struct Ingredients {
 }
 
 impl Ingredients {
-    fn from_input(lines: &Vec<String>) -> Self {
+    fn from_input(lines: &[String]) -> Self {
         let ingredients: Vec<Vec<i32>> = lines
             .iter()
-            .map(|line| aoc::ints_with_check(&line, Property::COUNT))
+            .map(|line| aoc::ints_with_check(line, Property::COUNT))
             .collect();
         Self { ingredients }
     }
@@ -42,7 +42,7 @@ impl Ingredients {
         measures
     }
 
-    fn get_property_score(&self, measures: &Vec<i32>, p: Property) -> i32 {
+    fn get_property_score(&self, measures: &[i32], p: Property) -> i32 {
         (0..self.ingredients.len())
             .map(|i| self.ingredients[i][p as usize] * measures[i])
             .sum()
@@ -50,7 +50,7 @@ impl Ingredients {
 
     fn calculate_score(
         &self,
-        measures: &Vec<i32>,
+        measures: &[i32],
         calories_target: Option<i32>,
     ) -> i32 {
         match calories_target {

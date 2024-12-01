@@ -7,17 +7,12 @@ import java.util.Optional;
 
 import com.github.pareronia.aoc.AssertUtils;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-
-@Getter
 public enum Turn {
 
     LEFT(270, Optional.of('L')),
     RIGHT(90, Optional.of('R')),
     AROUND(180, Optional.empty());
     
-    @Getter(AccessLevel.PACKAGE)
     private final int degrees;
     private final Optional<Character> letter;
     
@@ -61,5 +56,13 @@ public enum Turn {
         }
         System.err.println(String.format("%s -> %s", dir1, dir2));
         throw unreachable();
+    }
+
+    protected int getDegrees() {
+        return degrees;
+    }
+
+    public Optional<Character> getLetter() {
+        return letter;
     }
 }

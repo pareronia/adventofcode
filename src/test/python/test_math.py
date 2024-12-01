@@ -8,7 +8,7 @@ from aoc.math import Fibonacci
 
 class TestFibonacci(unittest.TestCase):
 
-    def test_binet(self):
+    def test_binet(self) -> None:
         self.assertEqual(Fibonacci.binet(0), 0)
         self.assertEqual(Fibonacci.binet(1), 1)
         self.assertEqual(Fibonacci.binet(2), 1)

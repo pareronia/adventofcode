@@ -12,7 +12,7 @@ struct HouseVisits<'a> {
     navigation: NavigationWithHeading<'a>,
 }
 
-impl<'a> HouseVisits<'a> {
+impl HouseVisits<'_> {
     fn new() -> Self {
         Self {
             navigation: NavigationWithHeading::new(

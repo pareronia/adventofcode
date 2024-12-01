@@ -53,25 +53,22 @@ impl Keypad {
 
     fn execute_instructions(
         &mut self,
-        directions: &Vec<Vec<Direction>>,
+        directions: &[Vec<Direction>],
     ) -> String {
         let mut execute_instruction = |directions: &Vec<Direction>| {
             let mut nav = NavigationWithHeading::new_with_bounds(
                 self.current,
                 Heading::North,
-                Box::new(|pos| self.layout.contains_key(&pos)),
+                Box::new(|pos| self.layout.contains_key(pos)),
             );
             directions
                 .iter()
                 .for_each(|&step| nav.navigate(Heading::from(step), 1));
-            self.current = nav.get_position().clone();
+            self.current = *nav.get_position();
             *self.layout.get(&self.current).unwrap()
         };
 
-        directions
-            .iter()
-            .map(|directions| execute_instruction(directions))
-            .collect()
+        directions.iter().map(execute_instruction).collect()
     }
 }
 
@@ -98,11 +95,11 @@ impl aoc::Puzzle for AoC2016_02 {
     }
 
     fn part_1(&self, input: &Vec<Vec<Direction>>) -> String {
-        Keypad::new(&*LAYOUT1).execute_instructions(&input)
+        Keypad::new(&LAYOUT1).execute_instructions(input)
     }
 
     fn part_2(&self, input: &Vec<Vec<Direction>>) -> String {
-        Keypad::new(&*LAYOUT2).execute_instructions(&input)
+        Keypad::new(&LAYOUT2).execute_instructions(input)
     }
 
     fn samples(&self) {

@@ -5,12 +5,7 @@ import static java.util.Arrays.asList;
 import java.util.Collections;
 import java.util.List;
 
-import lombok.Value;
-
-@Value
-public class Instruction {
-    private final Opcode opcode;
-    private final List<Object> operands;
+public record Instruction(Opcode opcode, List<Object> operands) {
 
     public static Instruction NOP() {
         return new Instruction(Opcode.NOP, Collections.emptyList());

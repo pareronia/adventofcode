@@ -9,16 +9,12 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.solution.SolutionBase;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> {
 
@@ -47,14 +43,14 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
             .sorted(comparator)
             .filter(filter)
             .findFirst()
-            .map(Game.PlayerConfig::getTotalCost)
+            .map(Game.PlayerConfig::totalCost)
             .orElseThrow(() -> new IllegalStateException("Unsolvable"));
     }
 
     @Override
     protected Integer solvePart1(final Game game) {
         return solve(
-                game.getPlayerConfigs(),
+                game.playerConfigs(),
                 game.lowestCost(),
                 game.winsFromBoss());
     }
@@ -62,7 +58,7 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
     @Override
     protected Integer solvePart2(final Game game) {
         return solve(
-                game.getPlayerConfigs(),
+                game.playerConfigs(),
                 game.lowestCost().reversed(),
                 game.winsFromBoss().negate());
     }
@@ -71,11 +67,7 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
         AoC2015_21.create().run();
     }
 
-    @RequiredArgsConstructor
-    static final class Game {
-        private final Boss boss;
-        @Getter
-        private final List<PlayerConfig> playerConfigs;
+    record Game(Boss boss, List<PlayerConfig> playerConfigs) {
         
         public static Game fromInput(final List<String> inputs) {
             return new Game(parse(inputs), setUpPlayerConfigs(setUpShop()));
@@ -130,21 +122,10 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
             return configs;
         }
         
-        @RequiredArgsConstructor
-        @Getter
-        @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-        @ToString
-        private static final class ShopItem {
+        record ShopItem(Type type, String name, int cost, int damage, int armor) {
+
             private enum Type { WEAPON, ARMOR, RING, NONE }
             
-            @EqualsAndHashCode.Include
-            private final Type type;
-            @EqualsAndHashCode.Include
-            private final String name;
-            private final Integer cost;
-            private final Integer damage;
-            private final Integer armor;
-
             public static ShopItem weapon(
                     final String name, final Integer cost, final Integer damage) {
                 return new ShopItem(Type.WEAPON, name, cost, damage, 0);
@@ -173,12 +154,29 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
             public boolean isRing() {
                 return this.type == Type.RING;
             }
+
+            @Override
+            public int hashCode() {
+                return Objects.hash(name, type);
+            }
+
+            @Override
+            public boolean equals(final Object obj) {
+                if (this == obj) {
+                    return true;
+                }
+                if (obj == null) {
+                    return false;
+                }
+                if (getClass() != obj.getClass()) {
+                    return false;
+                }
+                final ShopItem other = (ShopItem) obj;
+                return Objects.equals(name, other.name) && type == other.type;
+            }
         }
         
-        @RequiredArgsConstructor
-        @ToString
-        private static final class Shop {
-            private final Set<ShopItem> items;
+        record Shop(Set<ShopItem> items) {
 
             public Set<ShopItem> getWeapons() {
                 return this.items.stream()
@@ -214,44 +212,34 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
             }
         }
         
-        @ToString
-        @Getter
-        static final class PlayerConfig {
-            private final int hitPoints;
-            private final int totalCost;
-            private final int totalDamage;
-            private final int totalArmor;
+        record PlayerConfig(
+            int hitPoints, int totalCost, int totalDamage, int totalArmor) {
             
             public PlayerConfig(final Set<ShopItem> items) {
-                this.hitPoints = 100;
-                this.totalCost = items.stream().mapToInt(ShopItem::getCost).sum();
-                this.totalDamage = items.stream().mapToInt(ShopItem::getDamage).sum();
-                this.totalArmor = items.stream().mapToInt(ShopItem::getArmor).sum();
+                this(
+                    100,
+                    items.stream().mapToInt(ShopItem::cost).sum(),
+                    items.stream().mapToInt(ShopItem::damage).sum(),
+                    items.stream().mapToInt(ShopItem::armor).sum());
             }
         }
         
-        @RequiredArgsConstructor
-        @Getter
-        private static final class Boss {
-            private final int hitPoints;
-            private final int damage;
-            private final int armor;
-        }
+        record Boss(int hitPoints, int damage, int armor) { }
 
         public Comparator<Game.PlayerConfig> lowestCost() {
-            return comparing(Game.PlayerConfig::getTotalCost);
+            return comparing(Game.PlayerConfig::totalCost);
         }
 
         public Predicate<Game.PlayerConfig> winsFromBoss() {
             return playerConfig -> {
-                int playerHP = playerConfig.getHitPoints();
-                int bossHP = this.boss.getHitPoints();
+                int playerHP = playerConfig.hitPoints();
+                int bossHP = this.boss.hitPoints();
                 while (true) {
-                    bossHP -= Math.max(playerConfig.getTotalDamage() - this.boss.getArmor(), 1);
+                    bossHP -= Math.max(playerConfig.totalDamage() - this.boss.armor(), 1);
                     if (bossHP <= 0) {
                         return true;
                     }
-                    playerHP -= Math.max(this.boss.getDamage() - playerConfig.getTotalArmor(), 1);
+                    playerHP -= Math.max(this.boss.damage() - playerConfig.totalArmor(), 1);
                     if (playerHP <= 0) {
                         return false;
                     }

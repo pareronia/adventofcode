@@ -1,15 +1,10 @@
 package com.github.pareronia.aocd;
 
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -18,100 +13,143 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 
 public class PuzzleTestCase {
 	
-	private static final String FS = File.separator;
-	
-	private Puzzle puzzle;
-	
 	private User user;
+	private List<String> input;
 	private SystemUtils systemUtils;
 	
 	@BeforeEach
-	public void setUp() {
+	void setUp() {
 		systemUtils = mock(SystemUtils.class);
-		user = mock(User.class);
-		when(user.getMemoDir()).thenReturn(Paths.get("memoDir"));
-		final Path aocdDir = Paths.get("aocdDir");
-		
-		puzzle = Puzzle.create(systemUtils, 2015, 7, user, aocdDir);
+		user = new User("name", "token", "id", Paths.get("memoDir"));
+		input = List.of("abc", "def");
 	}
 	
 	@Test
-	public void isReleased() {
-	    when(systemUtils.getLocalDateTime()).thenReturn(
-	            LocalDateTime.of(2015, Month.JANUARY, 1, 0, 0, 0),
-	            LocalDateTime.of(2015, Month.DECEMBER, 1, 0, 0, 0),
-	            LocalDateTime.of(2015, Month.DECEMBER, 6, 23, 59, 59),
-	            LocalDateTime.of(2015, Month.DECEMBER, 7, 0, 0, 0),
-	            LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0)
-	    );
-	    assertThat(puzzle.isReleased()).isFalse();
-	    assertThat(puzzle.isReleased()).isFalse();
-	    assertThat(puzzle.isReleased()).isFalse();
-	    assertThat(puzzle.isReleased()).isTrue();
-	    assertThat(puzzle.isReleased()).isTrue();
+	void puzzle() {
+        final Puzzle puzzle = new Puzzle(2015, 7, user, input, "answer1", "answer2");
+        
+        assertThat(puzzle.answer1()).isEqualTo("answer1");
+        assertThat(puzzle.answer2()).isEqualTo("answer2");
+        assertThat(puzzle.day()).isEqualTo(7);
+        assertThat(puzzle.inputData()).isSameAs(input);
+        assertThat(puzzle.user()).isSameAs(user);
+        assertThat(puzzle.year()).isEqualTo(2015);
 	}
-
+	
     @Test
-    @SuppressWarnings("unchecked")
-	public void testGetAnswer1() {
-		when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
-				.thenReturn(Optional.empty(), Optional.of("answer1"));
-		
-	    assertThat(puzzle.getAnswer1()).isEqualTo("");
-	    assertThat(puzzle.getAnswer1()).isEqualTo("answer1");
+	void puzzle_inputFromFile() {
+	    when(systemUtils.getLocalDateTime())
+	        .thenReturn(LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0));
+	    when(systemUtils.readAllLinesIfExists(user.memoDir().resolve("2015_07_input.txt")))
+	        .thenReturn(input);
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07a_answer.txt")))
+	        .thenReturn(Optional.of("answer1"));
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07b_answer.txt")))
+	        .thenReturn(Optional.empty());
 	    
-	    final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
-	    verify(systemUtils, times(2)).readFirstLineIfExists(captor.capture());
-	    assertThat(captor.getValue().toString())
-	            .isEqualTo("memoDir" + FS + "2015_07a_answer.txt");
+	    final Puzzle puzzle = new Puzzle.PuzzleBuilder(systemUtils)
+	            .year(2015).day(7).user(user).build();
+        
+        assertThat(puzzle.answer1()).isEqualTo("answer1");
+        assertThat(puzzle.answer2()).isEqualTo("");
+	    assertThat(puzzle.day()).isEqualTo(7);
+        assertThat(puzzle.inputData()).isEqualTo(input);
+        assertThat(puzzle.user()).isSameAs(user);
+        assertThat(puzzle.year()).isEqualTo(2015);
 	}
-
+	
     @Test
-    @SuppressWarnings("unchecked")
-    public void testGetAnswer2() {
-        when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
-                .thenReturn(Optional.empty(), Optional.of("answer2"));
+	void puzzle_notYetReleased() {
+	    when(systemUtils.getLocalDateTime())
+	        .thenReturn(LocalDateTime.of(2015, Month.JANUARY, 1, 0, 0, 0));
+	    when(systemUtils.readAllLinesIfExists(user.memoDir().resolve("2015_07_input.txt")))
+	        .thenReturn(List.of());
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07a_answer.txt")))
+	        .thenReturn(Optional.of("answer1"));
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07b_answer.txt")))
+	        .thenReturn(Optional.empty());
+	    
+	    final Puzzle puzzle = new Puzzle.PuzzleBuilder(systemUtils)
+	            .year(2015).day(7).user(user).build();
         
-	    assertThat(puzzle.getAnswer2()).isEqualTo("");
-	    assertThat(puzzle.getAnswer2()).isEqualTo("answer2");
-        
-        final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
-        verify(systemUtils, times(2)).readFirstLineIfExists(captor.capture());
-	    assertThat(captor.getValue().toString())
-	            .isEqualTo("memoDir" + FS + "2015_07b_answer.txt");
-    }
-	
-	@Test
-	public void getTitle() {
-		when(systemUtils.readFirstLineIfExists(Mockito.any(Path.class)))
-				.thenReturn(Optional.of("title"));
-		
-		assertThat(puzzle.getTitle()).isEqualTo("title");
-		assertThat(puzzle.getTitle()).isEqualTo("title");
-		final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
-		verify(systemUtils).readFirstLineIfExists(captor.capture());
-		verifyNoMoreInteractions(systemUtils);
-		assertThat(captor.getValue().toString())
-				   .isEqualTo("aocdDir" + FS + "titles" + FS + "2015_07.txt");
+        assertThat(puzzle.answer1()).isEqualTo("answer1");
+        assertThat(puzzle.answer2()).isEqualTo("");
+	    assertThat(puzzle.day()).isEqualTo(7);
+        assertThat(puzzle.inputData()).isEmpty();
+        assertThat(puzzle.user()).isSameAs(user);
+        assertThat(puzzle.year()).isEqualTo(2015);
 	}
 	
-	@Test
-	public void getInputData() {
-		when(systemUtils.readAllLinesIfExists(Mockito.any(Path.class)))
-				.thenReturn(asList("line1", "line2"));
-		
-		final List<String> result = puzzle.getInputData();
-		
-		final ArgumentCaptor<Path> captor = ArgumentCaptor.forClass(Path.class);
-		verify(systemUtils).readAllLinesIfExists(captor.capture());
-		verifyNoMoreInteractions(systemUtils);
-		assertThat(result).containsExactly("line1", "line2");
-		assertThat(captor.getValue().toString())
-				   .isEqualTo("memoDir" + FS + "2015_07_input.txt");
+    @Test
+	void puzzle_inputOnlineForOfflineUser() {
+		user = new User("name", "offline|token", "id", Paths.get("memoDir"));
+	    when(systemUtils.getLocalDateTime())
+	        .thenReturn(LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0));
+	    when(systemUtils.readAllLinesIfExists(user.memoDir().resolve("2015_07_input.txt")))
+	        .thenReturn(List.of());
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07a_answer.txt")))
+	        .thenReturn(Optional.of("answer1"));
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07b_answer.txt")))
+	        .thenReturn(Optional.empty());
+	    
+	    final Puzzle puzzle = new Puzzle.PuzzleBuilder(systemUtils)
+	            .year(2015).day(7).user(user).build();
+        
+        assertThat(puzzle.answer1()).isEqualTo("answer1");
+        assertThat(puzzle.answer2()).isEqualTo("");
+	    assertThat(puzzle.day()).isEqualTo(7);
+        assertThat(puzzle.inputData()).isEmpty();
+        assertThat(puzzle.user()).isSameAs(user);
+        assertThat(puzzle.year()).isEqualTo(2015);
+	}
+	
+    @Test
+	void puzzle_inputOnline() {
+	    when(systemUtils.getLocalDateTime())
+	        .thenReturn(LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0));
+	    when(systemUtils.readAllLinesIfExists(user.memoDir().resolve("2015_07_input.txt")))
+	        .thenReturn(List.of());
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07a_answer.txt")))
+	        .thenReturn(Optional.of("answer1"));
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07b_answer.txt")))
+	        .thenReturn(Optional.empty());
+	    when(systemUtils.getInput("token", 2015, 7)).thenReturn(input);
+	    
+	    final Puzzle puzzle = new Puzzle.PuzzleBuilder(systemUtils)
+	            .year(2015).day(7).user(user).build();
+        
+        assertThat(puzzle.answer1()).isEqualTo("answer1");
+        assertThat(puzzle.answer2()).isEqualTo("");
+	    assertThat(puzzle.day()).isEqualTo(7);
+        assertThat(puzzle.inputData()).isEqualTo(input);
+        assertThat(puzzle.user()).isSameAs(user);
+        assertThat(puzzle.year()).isEqualTo(2015);
+        verify(systemUtils).writeAllLines(user.memoDir().resolve("2015_07_input.txt"), input);
+	}
+	
+    @Test
+	void puzzle_inputNotFoundOnline() {
+	    when(systemUtils.getLocalDateTime())
+	        .thenReturn(LocalDateTime.of(2020, Month.JANUARY, 1, 0, 0, 0));
+	    when(systemUtils.readAllLinesIfExists(user.memoDir().resolve("2015_07_input.txt")))
+	        .thenReturn(List.of());
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07a_answer.txt")))
+	        .thenReturn(Optional.of("answer1"));
+	    when(systemUtils.readFirstLineIfExists(user.memoDir().resolve("2015_07b_answer.txt")))
+	        .thenReturn(Optional.empty());
+	    when(systemUtils.getInput("token", 2015, 7)).thenReturn(List.of());
+	    
+	    final Puzzle puzzle = new Puzzle.PuzzleBuilder(systemUtils)
+	            .year(2015).day(7).user(user).build();
+        
+        assertThat(puzzle.answer1()).isEqualTo("answer1");
+        assertThat(puzzle.answer2()).isEqualTo("");
+	    assertThat(puzzle.day()).isEqualTo(7);
+        assertThat(puzzle.inputData()).isEmpty();
+        assertThat(puzzle.user()).isSameAs(user);
+        assertThat(puzzle.year()).isEqualTo(2015);
 	}
 }

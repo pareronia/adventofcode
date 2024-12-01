@@ -1,6 +1,7 @@
 package com.github.pareronia.aoc;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -9,10 +10,6 @@ import java.util.regex.Pattern;
 import java.util.stream.Collector;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class Utils {
 
@@ -37,25 +34,12 @@ public class Utils {
                 .map(n -> iterator.next());
     }
 	
-	public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
-	    return stream(new Iterator<Enumerated<T>>() {
-	        private final Iterator<T> iterator = stream.iterator();
-	        private int i = 0;
-
-            @Override
-            public boolean hasNext() {
-                return iterator.hasNext();
-            }
-
-            @Override
-            public Enumerated<T> next() {
-                return new Enumerated<>(i++, iterator.next());
-            }
-        });
-	}
-    
     public static <T> T last(final List<T> list) {
-        return Objects.requireNonNull(list).get(list.size() - 1);
+        return Utils.last(list, 1);
+    }
+    
+    public static <T> T last(final List<T> list, final int index) {
+        return Objects.requireNonNull(list).get(list.size() - index);
     }
     
     public static <T> T last(final T[] list) {
@@ -69,6 +53,13 @@ public class Utils {
     public static <T> List<T> concat(final List<T> list1, final T item) {
         final ArrayList<T> ans = new ArrayList<>(list1);
         ans.add(item);
+        return ans;
+    }
+    
+    @SafeVarargs
+    public static <T> List<T> concatAll(final List<T>... lists) {
+        final List<T> ans = new ArrayList<>(lists[0]);
+        Arrays.stream(lists).skip(1).forEach(ans::addAll);
         return ans;
     }
     
@@ -86,13 +77,5 @@ public class Utils {
                 .map(MatchResult::group)
                 .mapToInt(Integer::parseInt)
                 .toArray();
-    }
-    
-    @RequiredArgsConstructor
-    @Getter
-    @ToString
-    public static final class Enumerated<T> {
-        private final int index;
-        private final T value;
     }
 }

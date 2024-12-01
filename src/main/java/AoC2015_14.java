@@ -12,10 +12,7 @@ import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-public class AoC2015_14 extends SolutionBase<List<Reindeer>, Integer, Integer> {
+public class AoC2015_14 extends SolutionBase<List<AoC2015_14.Reindeer>, Integer, Integer> {
     
     private AoC2015_14(final boolean debug) {
         super(debug);
@@ -88,27 +85,21 @@ public class AoC2015_14 extends SolutionBase<List<Reindeer>, Integer, Integer> {
         "Comet can fly 14 km/s for 10 seconds, but then must rest for 127 seconds.\r\n" +
         "Dancer can fly 16 km/s for 11 seconds, but then must rest for 162 seconds."
     );
-}
     
-@RequiredArgsConstructor
-@ToString
-final class Reindeer {
-    private static final String REGEXP
-            = "([A-Za-z]+) can fly ([0-9]+) km/s for ([0-9]+) seconds," +
-                    " but then must rest for ([0-9]+) seconds\\.";
-    private static final Pattern pattern = Pattern.compile(REGEXP);
-    
-    final String name;
-    final int speed;
-    final int go;
-    final int stop;
-    
-    public static Reindeer fromInput(final String input) {
-       final Matcher m = pattern.matcher(input);
-       assertTrue(m.matches(), () -> "No match found");
-       return new Reindeer(m.group(1),
-               Integer.valueOf(m.group(2)),
-               Integer.valueOf(m.group(3)),
-               Integer.valueOf(m.group(4)));
+    record Reindeer(String name, int speed, int go, int stop) {
+        
+        private static final String REGEXP
+                = "([A-Za-z]+) can fly ([0-9]+) km/s for ([0-9]+) seconds," +
+                        " but then must rest for ([0-9]+) seconds\\.";
+        private static final Pattern pattern = Pattern.compile(REGEXP);
+        
+        public static Reindeer fromInput(final String input) {
+           final Matcher m = pattern.matcher(input);
+           assertTrue(m.matches(), () -> "No match found");
+           return new Reindeer(m.group(1),
+                   Integer.parseInt(m.group(2)),
+                   Integer.parseInt(m.group(3)),
+                   Integer.parseInt(m.group(4)));
+        }
     }
 }

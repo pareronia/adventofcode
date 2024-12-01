@@ -2,9 +2,9 @@ import java.util.List;
 import java.util.Set;
 
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2016_18 extends AoCBase {
+public class AoC2016_18 extends SolutionBase<String, Long, Long> {
     
     private static final char SAFE = '.';
     private static final char TRAP = '^';
@@ -15,35 +15,36 @@ public class AoC2016_18 extends AoCBase {
             String.valueOf(new char[] { SAFE, SAFE, TRAP })
     );
 	
-    private final String startingRow;
-	
-	private AoC2016_18(List<String> input, boolean debug) {
+	private AoC2016_18(final boolean debug) {
 		super(debug);
-		assert input.size() == 1;
-		this.startingRow = input.get(0);
 	}
 	
-	public static AoC2016_18 create(List<String> input) {
-		return new AoC2016_18(input, false);
+	public static AoC2016_18 create() {
+		return new AoC2016_18(false);
 	}
 
-	public static AoC2016_18 createDebug(List<String> input) {
-		return new AoC2016_18(input, true);
+	public static AoC2016_18 createDebug() {
+		return new AoC2016_18(true);
 	}
 	
-	private char[] getPrevious(char[] s, Integer i) {
+	private char[] getPrevious(final char[] s, final Integer i) {
 	    final char first = (i - 1 < 0) ? SAFE : s[i - 1];
 	    final char second = s[i];
 	    final char third = (i + 1 == s.length) ? SAFE : s[i + 1];
         return new char[] { first, second, third };
 	}
 	
-	private Long solve(Integer rows) {
-	    final int width = this.startingRow.length();
-	    long safeCount = Utils.asCharacterStream(this.startingRow)
+	@Override
+    protected String parseInput(final List<String> inputs) {
+        return inputs.get(0);
+    }
+
+    private Long solve(final String input, final Integer rows) {
+	    final int width = input.length();
+	    long safeCount = Utils.asCharacterStream(input)
 	            .filter(c -> c == SAFE)
 	            .count();
-	    char[] previousRow = this.startingRow.toCharArray();
+	    char[] previousRow = input.toCharArray();
 	    for (int row = 1; row < rows; row++) {
 	        final char[] newRow = new char[width];
 	        for (int j = 0; j < width; j++) {
@@ -61,24 +62,26 @@ public class AoC2016_18 extends AoCBase {
 	}
 	
 	@Override
-	public Long solvePart1() {
-	    return solve(40);
+	public Long solvePart1(final String input) {
+	    return solve(input, 40);
 	}
 	
 	@Override
-	public Long solvePart2() {
-	    return solve(400_000);
+	public Long solvePart2(final String input) {
+	    return solve(input, 400_000);
 	}
 	
-	public static void main(String[] args) throws Exception {
-		assert AoC2016_18.createDebug(TEST1).solve(3) == 6;
-		assert AoC2016_18.createDebug(TEST2).solve(10) == 38;
+	@Override
+    public void samples() {
+	    final AoC2016_18 test = AoC2016_18.createDebug();
+	    assert test.solve(TEST1, 3) == 6;
+	    assert test.solve(TEST2, 10) == 38;
+    }
 
-		final List<String> input = Aocd.getData(2016, 18);
-		lap("Part 1", () -> AoC2016_18.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_18.create(input).solvePart2());
+    public static void main(final String[] args) throws Exception {
+        AoC2016_18.create().run();
 	}
 	
-	private static final List<String> TEST1 = splitLines("..^^.");
-	private static final List<String> TEST2 = splitLines(".^^.^.^^^^");
+	private static final String TEST1 = "..^^.";
+	private static final String TEST2 = ".^^.^.^^^^";
 }

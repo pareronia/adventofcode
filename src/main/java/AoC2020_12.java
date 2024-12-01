@@ -11,8 +11,6 @@ import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Value;
-
 public class AoC2020_12 extends AoCBase {
 	
 	private final List<NavigationInstruction> instructions;
@@ -84,10 +82,7 @@ public class AoC2020_12 extends AoCBase {
 	    }
 	}
 	
-	@Value
-	private static final class NavigationInstruction {
-	    private final Action action;
-	    private final int value;
+	record NavigationInstruction(Action action, int value) {
 	    
 	    public static NavigationInstruction of(final String action, final String value) {
 	        return new NavigationInstruction(
@@ -122,8 +117,8 @@ public class AoC2020_12 extends AoCBase {
 	    }
 
         private void executeInstruction(final NavigationInstruction instuction) {
-            final Action action = instuction.getAction();
-            final int value = instuction.getValue();
+            final Action action = instuction.action();
+            final int value = instuction.value();
             if (action == Action.RIGHT) {
                 this.nav.turn(Turn.fromDegrees(value));
             } else if (action == Action.LEFT) {

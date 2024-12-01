@@ -5,9 +5,6 @@ import java.util.Iterator;
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Direction;
 
-import lombok.AllArgsConstructor;
-
-@AllArgsConstructor
 final class GridIterator<T> implements Iterator<Cell> {
     
     enum IterDir {
@@ -28,6 +25,16 @@ final class GridIterator<T> implements Iterator<Cell> {
         }
     }
     
+    protected GridIterator(
+            final Grid<T> grid,
+            final Cell next,
+            final IterDir direction
+    ) {
+        this.grid = grid;
+        this.next = next;
+        this.direction = direction;
+    }
+
     private final Grid<T> grid;
     private Cell next;
     private final GridIterator.IterDir direction;

@@ -4,75 +4,81 @@
 #
 
 import re
-from aoc import my_aocd
+import sys
 
-ABBA = r'([a-z])(?!\1)([a-z])\2\1'
-HYPERNET = r'\[([a-z]*)\]'
-ABA = r'([a-z])(?!\1)[a-z]\1'
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
+ABBA = re.compile(r"([a-z])(?!\1)([a-z])\2\1")
+HYPERNET = re.compile(r"\[([a-z]*)\]")
+ABA = re.compile(r"([a-z])(?!\1)[a-z]\1")
 
-def _is_tls(ip: str) -> bool:
-    for b in re.findall(HYPERNET, ip):
-        if re.search(ABBA, b) is not None:
-            return False
-        ip = ip.replace('[' + b + ']', '/')
-    return re.search(ABBA, ip) is not None
-
-
-def _aba2bab(aba: str) -> str:
-    return aba[1] + aba[0] + aba[1]
-
-
-def _is_sls(ip: str) -> bool:
-    bs = re.findall(HYPERNET, ip)
-    for b in bs:
-        ip = ip.replace('[' + b + ']', '/')
-    abas = [m.group()
-            for i in range(len(ip) - 3)
-            for m in re.finditer(ABA, ip[i:])]
-    for aba in abas:
-        bab = _aba2bab(aba)
-        for b in bs:
-            if bab in b:
-                return True
-    return False
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return sum(1 for input_ in inputs if _is_tls(input_))
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return sum(1 for input_ in inputs if _is_sls(input_))
-
-
-TEST1 = '''\
+TEST1 = """\
 abba[mnop]qrst
 abcd[bddb]xyyx
 aaaa[qwer]tyui
 ioxxoj[asdfgh]zxcvbn
 abcox[ooooo]xocba
-'''.splitlines()
-TEST2 = '''\
+"""
+TEST2 = """\
 aba[bab]xyz
 xyx[xyx]xyx
 aaa[kek]eke
 zazbz[bzb]cdb
-'''.splitlines()
+"""
+
+Input = InputData
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return input_data
+
+    def part_1(self, inputs: InputData) -> int:
+        def is_tls(ip: str) -> bool:
+            for b in HYPERNET.findall(ip):
+                if ABBA.search(b) is not None:
+                    return False
+                ip = ip.replace("[" + b + "]", "/")
+            return ABBA.search(ip) is not None
+
+        return sum(is_tls(line) for line in inputs)
+
+    def part_2(self, inputs: InputData) -> int:
+        def is_sls(ip: str) -> bool:
+            bs = HYPERNET.findall(ip)
+            for b in bs:
+                ip = ip.replace("[" + b + "]", "/")
+            return any(
+                any(bab in b for b in bs)
+                for bab in (
+                    m.group()[1] + m.group()[0] + m.group()[1]
+                    for i in range(len(ip) - 3)
+                    for m in ABA.finditer(ip[i:])
+                )
+            )
+
+        return sum(is_sls(line) for line in inputs)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 2),
+            ("part_2", TEST2, 3),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2016, 7)
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 7)
-
-    assert part_1(TEST1) == 2
-    assert part_2(TEST2) == 3
-
-    inputs = my_aocd.get_input(2016, 7, 2000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

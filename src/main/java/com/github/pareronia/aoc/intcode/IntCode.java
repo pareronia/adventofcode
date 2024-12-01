@@ -11,8 +11,10 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.AssertUtils;
+import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 
-public class IntCode {
+public class IntCode implements LoggerEnabled {
     
     private static final int ADD = 1;
     private static final int MUL = 2;
@@ -29,7 +31,7 @@ public class IntCode {
     private static final int IMMEDIATE = 1;
     private static final int RELATIVE = 2;
 
-	private final boolean debug;
+	private final Logger logger;
     
     private int ip;
     private int base;
@@ -39,8 +41,8 @@ public class IntCode {
     private boolean halted;
 
     public IntCode(final List<Long> instructions, final boolean debug) {
-        this.debug = debug;
         this.program = new ArrayList<>(instructions);
+        this.logger = new Logger(debug);
     }
 
     public void run(final List<Long> program) {
@@ -86,7 +88,7 @@ public class IntCode {
         while (true) {
             final Long op = program.get(ip);
             final int opcode = (int) (op % 100);
-            final int[] modes = new int[] {
+            final int[] modes = {
                 -1,
                 (int) ((op / 100) % 10),
                 (int) ((op / 1000) % 10),
@@ -197,14 +199,12 @@ public class IntCode {
 	    return Collections.unmodifiableList(this.program);
 	}
 
-    private void log(final Object obj) {
-		if (!debug) {
-			return;
-		}
-		System.out.println(obj);
-	}
-	
-	public static List<Long> parse(final String input) {
+	@Override
+    public Logger getLogger() {
+        return this.logger;
+    }
+
+    public static List<Long> parse(final String input) {
         return Stream.of(input.split(","))
                 .map(Long::valueOf)
                 .collect(toUnmodifiableList());

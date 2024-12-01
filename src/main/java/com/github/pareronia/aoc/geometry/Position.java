@@ -2,11 +2,6 @@ package com.github.pareronia.aoc.geometry;
 
 import java.util.stream.Stream;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-
-@Value
-@EqualsAndHashCode(callSuper = true)
 public class Position extends Point {
 
     public static final Position ORIGIN = Position.of(0, 0);

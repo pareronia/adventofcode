@@ -2,13 +2,6 @@ package com.github.pareronia.aoc.geometry;
 
 import com.github.pareronia.aoc.AssertUtils;
 
-import lombok.EqualsAndHashCode;
-import lombok.Value;
-import lombok.experimental.NonFinal;
-
-@Value
-@EqualsAndHashCode(callSuper = true)
-@NonFinal
 public class Vector extends Point {
 
     protected Vector(final Integer x, final Integer y) {

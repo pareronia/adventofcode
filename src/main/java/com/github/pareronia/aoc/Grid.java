@@ -8,16 +8,12 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.geometry.Direction;
-
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public interface Grid<T> {
     
@@ -32,6 +28,8 @@ public interface Grid<T> {
     void setValue(final Cell c, final T value);
     
     String getRowAsString(final int row);
+    
+    String getColumnAsString(final int col);
     
     default int size() {
         return this.getHeight() * this.getWidth();
@@ -173,6 +171,22 @@ public interface Grid<T> {
             }
         });
     }
+
+    default Stream<String> getColumnsAsStrings() {
+        return Utils.stream(new Iterator<>() {
+            int i = 0;
+            
+            @Override
+            public boolean hasNext() {
+                return i <= Grid.this.getMaxColIndex();
+            }
+            
+            @Override
+            public String next() {
+                return Grid.this.getColumnAsString(i++);
+            }
+        });
+    }
     
     default List<String> getRowsAsStringList() {
         return this.getRowsAsStrings().collect(toList());
@@ -182,13 +196,18 @@ public interface Grid<T> {
 	    return this.getRowsAsStrings().collect(joining(System.lineSeparator()));
 	}
 
-    @RequiredArgsConstructor(staticName = "at")
-    @Getter
-    @EqualsAndHashCode
-    @ToString
 	public static final class Cell {
 		final int row;
 		final int col;
+		
+        private Cell(final int row, final int col) {
+            this.row = row;
+            this.col = col;
+        }
+
+        public static Cell at(final int row, final int col) {
+            return new Cell(row, col);
+        }
 		
 		public static Cell fromString(final String string) {
 		    final String[] splits = string.split(",");
@@ -201,6 +220,14 @@ public interface Grid<T> {
 		    return Cell.at(
 		            this.row - direction.getY(), this.col + direction.getX());
 		}
+
+        public int getRow() {
+            return row;
+        }
+
+        public int getCol() {
+            return col;
+        }
     
 		public Stream<Cell> allNeighbours() {
 		    return Direction.OCTANTS.stream().map(this::at);
@@ -222,5 +249,32 @@ public interface Grid<T> {
 		        throw new UnsupportedOperationException();
 		    }
 		}
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(col, row);
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Cell other = (Cell) obj;
+            return col == other.col && row == other.row;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Cell [row=").append(row).append(", col=").append(col).append("]");
+            return builder.toString();
+        }
 	}
 }

@@ -13,22 +13,22 @@ impl aoc::Puzzle for AoC${year}_${day2} {
 
     aoc::puzzle_year_day!(${year}, ${day});
 
-    fn parse_input(&self, lines: Vec<String>) -> Vec<String> {
+    fn parse_input(&self, lines: Vec<String>) -> Self::Input {
         lines
     }
 
-    fn part_1(&self, input: &Vec<String>) -> u32 {
+    fn part_1(&self, input: &Self::Input) -> u32 {
         todo!()
     }
 
-    fn part_2(&self, input: &Vec<String>) -> u32 {
+    fn part_2(&self, input: &Self::Input) -> u32 {
         todo!()
     }
 
     fn samples(&self) {
         aoc::puzzle_samples! {
-            self, part_1, TEST, 0,
-            self, part_2, TEST, 0
+            self, part_1, TEST, "TODO",
+            self, part_2, TEST, "TODO"
         };
     }
 }
@@ -36,6 +36,10 @@ impl aoc::Puzzle for AoC${year}_${day2} {
 fn main() {
     AoC${year}_${day2} {}.run(std::env::args());
 }
+
+const TEST: &str = "\
+TODO
+";
 
 #[cfg(test)]
 mod tests {
@@ -46,7 +50,3 @@ mod tests {
         AoC${year}_${day2} {}.samples();
     }
 }
-
-const TEST: &'static str = "\
-TODO
-";

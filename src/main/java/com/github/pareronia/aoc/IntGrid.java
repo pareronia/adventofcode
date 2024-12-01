@@ -5,14 +5,13 @@ import static java.util.stream.Collectors.toList;
 import java.util.Arrays;
 import java.util.List;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
-@Getter
 public final class IntGrid implements Grid<Integer> {
     final int[][] values;
     
+    public IntGrid(final int[][] values) {
+        this.values = values;
+    }
+
     public static IntGrid from(final List<String> strings) {
         final int[][] values = new int[strings.size()][strings.get(0).length()];
         strings.stream()
@@ -22,6 +21,10 @@ public final class IntGrid implements Grid<Integer> {
         return new IntGrid(values);
     }
     
+    public int[][] getValues() {
+        return values;
+    }
+
     @Override
     public int getWidth() {
         assert this.values.length > 0;
@@ -47,9 +50,29 @@ public final class IntGrid implements Grid<Integer> {
         this.values[c.getRow()][c.getCol()]++;
     }
     
+    public int[] getColumn(final Integer col) {
+        validateColumnIndex(col);
+        final int[] column = new int[getHeight()];
+        for (final int row : rowIndices()) {
+            column[row] = this.values[row][col];
+        }
+        return column;
+    }
+    
     @Override
     public String getRowAsString(final int row) {
         return Arrays.stream(values[row])
+            .peek(n -> {
+                if (!(0 > n && n < 9)) {
+                    throw new UnsupportedOperationException();
+                }
+            }).mapToObj(n -> Character.forDigit(n, 10))
+            .collect(toAString());
+    }
+
+    @Override
+    public String getColumnAsString(final int col) {
+        return Arrays.stream(this.getColumn(col))
             .peek(n -> {
                 if (!(0 > n && n < 9)) {
                     throw new UnsupportedOperationException();

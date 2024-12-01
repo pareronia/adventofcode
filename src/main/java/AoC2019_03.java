@@ -11,9 +11,6 @@ import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2019_03 extends AoCBase {
     
     private static final Position ORIGIN = Position.of(0, 0);
@@ -38,8 +35,8 @@ public class AoC2019_03 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final Set<Position> coords1 = new HashSet<>(wire1.getCoordinates());
-        return wire2.getCoordinates().stream()
+        final Set<Position> coords1 = new HashSet<>(wire1.coordinates());
+        return wire2.coordinates().stream()
                 .filter(coords1::contains)
                 .mapToInt(c -> c.manhattanDistance(ORIGIN))
                 .min().getAsInt();
@@ -47,8 +44,8 @@ public class AoC2019_03 extends AoCBase {
 
     @Override
     public Integer solvePart2() {
-        final Set<Position> coords1 = new HashSet<>(wire1.getCoordinates());
-        return wire2.getCoordinates().stream()
+        final Set<Position> coords1 = new HashSet<>(wire1.coordinates());
+        return wire2.coordinates().stream()
                 .filter(coords1::contains)
                 .mapToInt(c -> wire1.steps(c) + wire2.steps(c))
                 .min().getAsInt();
@@ -83,10 +80,7 @@ public class AoC2019_03 extends AoCBase {
             "U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"
     );
     
-    @RequiredArgsConstructor
-    private static final class Wire {
-        @Getter
-        private final List<Position> coordinates;
+    record Wire(List<Position> coordinates) {
         
         public static Wire fromString(final String string) {
             final List<Position> wireCoordinates = new ArrayList<>();
@@ -103,7 +97,7 @@ public class AoC2019_03 extends AoCBase {
         }
        
         public Integer steps(final Position coord) {
-            return this.getCoordinates().indexOf(coord) + 1;
+            return this.coordinates.indexOf(coord) + 1;
         }
 
         private static List<Instruction> toInstructions(final String input) {
@@ -113,10 +107,7 @@ public class AoC2019_03 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Instruction {
-        private final Direction direction;
-        private final int amount;
+    record Instruction(Direction direction, int amount) {
         
         public static Instruction fromString(final String str) {
             final Direction direction = Direction.fromString(str.substring(0, 1));

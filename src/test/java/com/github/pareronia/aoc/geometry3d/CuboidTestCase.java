@@ -11,12 +11,12 @@ public class CuboidTestCase {
     public void test() {
         final Cuboid cuboid = Cuboid.of(0, 2, 0, 2, 0, 2);
         
-        assertThat(cuboid.x1).isEqualTo(0);
-        assertThat(cuboid.y1).isEqualTo(0);
-        assertThat(cuboid.z1).isEqualTo(0);
-        assertThat(cuboid.x2).isEqualTo(2);
-        assertThat(cuboid.y2).isEqualTo(2);
-        assertThat(cuboid.z2).isEqualTo(2);
+        assertThat(cuboid.x1()).isEqualTo(0);
+        assertThat(cuboid.y1()).isEqualTo(0);
+        assertThat(cuboid.z1()).isEqualTo(0);
+        assertThat(cuboid.x2()).isEqualTo(2);
+        assertThat(cuboid.y2()).isEqualTo(2);
+        assertThat(cuboid.z2()).isEqualTo(2);
         assertThat(cuboid.getVolume()).isEqualTo(27L);
     }
     

@@ -31,11 +31,11 @@ public class AoC2022_07 extends AoCBase {
                     path.addLast(name);
                 }
             } else if (!line.startsWith("$")) {
-                final String[] splits = line.split(" ");
+                final var splits = line.split(" ");
                 final int size;
                 if (!splits[0].equals("dir")) {
                     size = Integer.parseInt(splits[0]);
-                    final List<String> list = path.stream().collect(toList());
+                    final var list = path.stream().collect(toList());
                     IntStream.rangeClosed(0, list.size()).forEach(i -> {
                         final String pp = IntStream.range(0, i)
                                 .mapToObj(list::get)
@@ -84,29 +84,29 @@ public class AoC2022_07 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "$ cd /\r\n" +
-        "$ ls\r\n" +
-        "dir a\r\n" +
-        "14848514 b.txt\r\n" +
-        "8504156 c.dat\r\n" +
-        "dir d\r\n" +
-        "$ cd a\r\n" +
-        "$ ls\r\n" +
-        "dir e\r\n" +
-        "29116 f\r\n" +
-        "2557 g\r\n" +
-        "62596 h.lst\r\n" +
-        "$ cd e\r\n" +
-        "$ ls\r\n" +
-        "584 i\r\n" +
-        "$ cd ..\r\n" +
-        "$ cd ..\r\n" +
-        "$ cd d\r\n" +
-        "$ ls\r\n" +
-        "4060174 j\r\n" +
-        "8033020 d.log\r\n" +
-        "5626152 d.ext\r\n" +
-        "7214296 k"
-    );
+    private static final List<String> TEST = splitLines("""
+        $ cd /
+        $ ls
+        dir a
+        14848514 b.txt
+        8504156 c.dat
+        dir d
+        $ cd a
+        $ ls
+        dir e
+        29116 f
+        2557 g
+        62596 h.lst
+        $ cd e
+        $ ls
+        584 i
+        $ cd ..
+        $ cd ..
+        $ cd d
+        $ ls
+        4060174 j
+        8033020 d.log
+        5626152 d.ext
+        7214296 k
+        """);
 }

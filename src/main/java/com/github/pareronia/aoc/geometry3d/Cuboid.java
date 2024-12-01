@@ -4,25 +4,10 @@ import java.util.Optional;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.geometry.Position;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-@RequiredArgsConstructor
-@EqualsAndHashCode
-@ToString
-@Getter
-public class Cuboid {
-    final int x1;
-    final int x2;
-    final int y1;
-    final int y2;
-    final int z1;
-    final int z2;
+public record Cuboid(int x1, int x2, int y1, int y2, int z1, int z2) {
 
     public static Cuboid of(
             final int x1, final int x2,
@@ -58,19 +43,19 @@ public class Cuboid {
             || !overlapZ(cuboid1, cuboid2));
     }
 
-    private static boolean overlapX(final Cuboid cuboid1, final Cuboid cuboid2) {
-        return Range.between(cuboid1.x1, cuboid1.x2)
-            .isOverlappedBy(Range.between(cuboid2.x1, cuboid2.x2));
+    public static boolean overlapX(final Cuboid cuboid1, final Cuboid cuboid2) {
+        return RangeInclusive.between(cuboid1.x1, cuboid1.x2)
+            .isOverlappedBy(RangeInclusive.between(cuboid2.x1, cuboid2.x2));
     }
 
-    private static boolean overlapY(final Cuboid cuboid1, final Cuboid cuboid2) {
-        return Range.between(cuboid1.y1, cuboid1.y2)
-                .isOverlappedBy(Range.between(cuboid2.y1, cuboid2.y2));
+    public static boolean overlapY(final Cuboid cuboid1, final Cuboid cuboid2) {
+        return RangeInclusive.between(cuboid1.y1, cuboid1.y2)
+                .isOverlappedBy(RangeInclusive.between(cuboid2.y1, cuboid2.y2));
     }
 
     private static boolean overlapZ(final Cuboid cuboid1, final Cuboid cuboid2) {
-        return Range.between(cuboid1.z1, cuboid1.z2)
-                .isOverlappedBy(Range.between(cuboid2.z1, cuboid2.z2));
+        return RangeInclusive.between(cuboid1.z1, cuboid1.z2)
+                .isOverlappedBy(RangeInclusive.between(cuboid2.z1, cuboid2.z2));
     }
     
     public static

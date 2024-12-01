@@ -15,11 +15,6 @@ import com.github.pareronia.aoc.geometry3d.Vector3D;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-import lombok.With;
-
 public final class AoC2017_20 extends AoCBase {
 
     private static final int TICKS = 400;
@@ -40,7 +35,7 @@ public final class AoC2017_20 extends AoCBase {
         while (matcher.find()) {
             numbers.add(Integer.valueOf(matcher.group()));
         }
-        return new Particle(number, numbers.toArray(Integer[]::new));
+        return Particle.create(number, numbers.toArray(Integer[]::new));
     }
 
     public static AoC2017_20 create(final List<String> input) {
@@ -60,7 +55,7 @@ public final class AoC2017_20 extends AoCBase {
         return b.stream()
             .sorted(Particle.byDistance())
             .findFirst()
-            .map(Particle::getNumber)
+            .map(Particle::number)
             .orElseThrow();
     }
     
@@ -102,26 +97,28 @@ public final class AoC2017_20 extends AoCBase {
         "p=< 3,0,0>, v=<-1,0,0>, a=<0,0,0>"
     );
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class Particle {
+    record Particle(
+        int number,
+        Position3D position,
+        Position3D velocity,
+        Position3D acceleration
+    ) {
         private static final Position3D ORIGIN = Position3D.of(0, 0, 0);
-
-        @Getter
-        private final int number;
-        @Getter
-        @With
-        private final Position3D position;
-        @With
-        private final Position3D velocity;
-        private final Position3D acceleration;
         
-        public Particle(final int number, final Integer[] numbers) {
-            this.number = number;
+        public static Particle create(final int number, final Integer[] numbers) {
             assert numbers.length == 9;
-            this.position = Position3D.of(numbers[0], numbers[1], numbers[2]);
-            this.velocity = Position3D.of(numbers[3], numbers[4], numbers[5]);
-            this.acceleration = Position3D.of(numbers[6], numbers[7], numbers[8]);
+            final Position3D position = Position3D.of(numbers[0], numbers[1], numbers[2]);
+            final Position3D velocity = Position3D.of(numbers[3], numbers[4], numbers[5]);
+            final Position3D acceleration = Position3D.of(numbers[6], numbers[7], numbers[8]);
+            return new Particle(number, position, velocity, acceleration);
+        }
+        
+        public Particle withPosition(final Position3D position) {
+            return new Particle(this.number, position, this.velocity, this.acceleration);
+        }
+        
+        public Particle withVelocity(final Position3D velocity) {
+            return new Particle(this.number, this.position, velocity, this.acceleration);
         }
         
         public Particle next() {
@@ -141,7 +138,7 @@ public final class AoC2017_20 extends AoCBase {
         public static
         Collector<Particle, ?, Map<Position3D, List<Particle>>>
         groupingByPosition() {
-            return groupingBy(Particle::getPosition, toList());
+            return groupingBy(Particle::position, toList());
         }
     }
 }

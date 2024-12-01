@@ -9,10 +9,6 @@ import java.util.Set;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2021_10 extends AoCBase {
     
     private static final char PAREN_OPEN = '(';
@@ -80,7 +76,7 @@ public class AoC2021_10 extends AoCBase {
     public Long solvePart1() {
         return this.lines.stream()
             .map(this::check)
-            .map(Result::getCorrupt)
+            .map(Result::corrupt)
             .filter(Objects::nonNull)
             .map(CORRUPTION_SCORES::get)
             .mapToLong(Long::longValue)
@@ -91,7 +87,7 @@ public class AoC2021_10 extends AoCBase {
     public Long solvePart2() {
         final long[] scores = this.lines.stream()
             .map(this::check)
-            .map(Result::getIncomplete)
+            .map(Result::incomplete)
             .filter(Objects::nonNull)
             .map(Arrays::asList)
             .map(x -> x.stream()
@@ -128,11 +124,7 @@ public class AoC2021_10 extends AoCBase {
         "<{([{{}}[<[[[<>{}]]]>[]]"
     );
     
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    @Getter
-    private static final class Result {
-        private final Character corrupt;
-        private final Character[] incomplete;
+    record Result(Character corrupt, Character[] incomplete) {
 
         public static Result corrupt(final Character c) {
             return new Result(c, null);

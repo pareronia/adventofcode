@@ -7,90 +7,87 @@ import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import com.github.pareronia.aoc.CharGrid;
+import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.game_of_life.GameOfLife;
 import com.github.pareronia.aoc.game_of_life.InfiniteGrid;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_17 extends AoCBase {
+public class AoC2020_17 extends SolutionBase<CharGrid, Integer, Integer> {
     
     private static final char ON = '#';
     private static final char OFF = '.';
     private static final int GENERATIONS = 6;
     
-    private final List<String> input;
-    
-	private AoC2020_17(final List<String> input, final boolean debug) {
+	private AoC2020_17(final boolean debug) {
 		super(debug);
-		this.input = input;
 	}
     
-    public static AoC2020_17 create(final List<String> input) {
-        return new AoC2020_17(input, false);
+    public static AoC2020_17 create() {
+        return new AoC2020_17(false);
     }
 
-    public static AoC2020_17 createDebug(final List<String> input) {
-        return new AoC2020_17(input, true);
+    public static AoC2020_17 createDebug() {
+        return new AoC2020_17(true);
+    }
+    
+    @Override
+    protected CharGrid parseInput(final List<String> inputs) {
+        return CharGrid.from(inputs);
+    }
+
+    @Override
+    public Integer solvePart1(final CharGrid grid) {
+        return solve(grid, this::create3DCell);
+    }
+
+    @Override
+    public Integer solvePart2(final CharGrid grid) {
+        return solve(grid, this::create4DCell);
     }
 	
-	private List<Integer> create3DCell(final int row, final int col) {
-	    return List.of(0, row, col);
+	private List<Integer> create3DCell(final Cell cell) {
+	    return List.of(0, cell.getRow(), cell.getCol());
 	}
 
-	private List<Integer> create4DCell(final int row, final int col) {
-	    return List.of(0, 0, row, col);
+	private List<Integer> create4DCell(final Cell cell) {
+	    return List.of(0, 0, cell.getRow(), cell.getCol());
 	}
 	
-	@SuppressWarnings("unchecked")
-    private GameOfLife<List<Integer>> parse(
-	        final BiFunction<Integer, Integer, List<Integer>> cellFactory
-	) {
-	    final CharGrid grid = new CharGrid(this.input);
-	    final Set<List<Integer>> on = grid.getAllEqualTo(ON)
-	        .map(cell -> cellFactory.apply(cell.getRow(), cell.getCol()))
-	        .collect(toSet());
-	    return new GameOfLife<>(new InfiniteGrid(), GameOfLife.classicRules, on);
-	}
-	
+    @SuppressWarnings("unchecked")
 	private int solve(
-	        final BiFunction<Integer, Integer, List<Integer>> cellFactory
+	        final CharGrid grid,
+	        final Function<Cell, List<Integer>> cellFactory
 	) {
-        GameOfLife<List<Integer>> gol = parse(cellFactory);
+	    final Set<List<Integer>> on = grid.getAllEqualTo(ON)
+	            .map(cell -> cellFactory.apply(cell))
+	            .collect(toSet());
+        GameOfLife<List<Integer>> gol = new GameOfLife<>(
+                        new InfiniteGrid(), GameOfLife.classicRules, on);
+
         for (int i = 0; i < GENERATIONS; i++) {
             gol = gol.nextGeneration();
         }
-        return gol.getAlive().size();
-	}
-	
-    @Override
-	public Integer solvePart1() {
-        return solve(this::create3DCell);
+        return gol.alive().size();
 	}
 
-	@Override
-	public Integer solvePart2() {
-	    return solve(this::create4DCell);
-	}
-
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "112"),
+	    @Sample(method = "part2", input = TEST, expected = "848"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert createDebug(TEST).solvePart1() == 112;
-		assert createDebug(TEST).solvePart2() == 848;
-		
-        final Puzzle puzzle = puzzle(AoC2020_17.class);
-		final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", create(input)::solvePart1),
-           () -> lap("Part 2", create(input)::solvePart2)
-	    );
+		AoC2020_17.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			".#.\r\n" +
-			"..#\r\n" +
-			"###"
-	);
+	private static final String TEST = """
+	        .#.\r
+	        ..#\r
+	        ###
+	        """;
 	
 	@SuppressWarnings("unused")
     private static final class Printer {

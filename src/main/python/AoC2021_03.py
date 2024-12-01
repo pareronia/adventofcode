@@ -3,54 +3,15 @@
 # Advent of Code 2021 Day 3
 #
 
+from __future__ import annotations
+
+import sys
+from typing import Callable
 from typing import NamedTuple
-from aoc import my_aocd
 
-
-class BitCount(NamedTuple):
-    ones: int
-    zeroes: int
-
-    def most_common(self) -> str:
-        return '1' if self.ones >= self.zeroes else '0'
-
-    def least_common(self) -> str:
-        return '1' if self.ones < self.zeroes else '0'
-
-
-def _ans(value1: str, value2: str) -> int:
-    return int(value1, 2) * int(value2, 2)
-
-
-def _bit_counts(strings: list[str], pos: int) -> BitCount:
-    zeroes = sum(s[pos] == '0' for s in strings)
-    return BitCount(len(strings) - zeroes, zeroes)
-
-
-def part_1(inputs: tuple[str]) -> int:
-    gamma = ""
-    epsilon = ""
-    for i in range(len(inputs[0])):
-        bit_count = _bit_counts(inputs, i)
-        gamma += bit_count.most_common()
-        epsilon += bit_count.least_common()
-    return _ans(gamma, epsilon)
-
-
-def _reduce(strings: list[str], keep) -> str:
-    pos = 0
-    while len(strings) > 1:
-        to_keep = keep(_bit_counts(strings, pos))
-        strings = [s for s in strings if s[pos] == to_keep]
-        pos += 1
-    return strings[0]
-
-
-def part_2(inputs: tuple[str]) -> int:
-    o2 = _reduce(list(inputs), lambda x: x.most_common())
-    co2 = _reduce(list(inputs), lambda x: x.least_common())
-    return _ans(o2, co2)
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 TEST = """\
 00100
@@ -65,19 +26,77 @@ TEST = """\
 11001
 00010
 01010
-""".splitlines()
+"""
+
+
+class BitCount(NamedTuple):
+    ones: int
+    zeroes: int
+
+    @classmethod
+    def at_pos(cls, strings: list[str], pos: int) -> BitCount:
+        zeroes = sum(s[pos] == "0" for s in strings)
+        return BitCount(len(strings) - zeroes, zeroes)
+
+    def most_common(self) -> str:
+        return "1" if self.ones >= self.zeroes else "0"
+
+    def least_common(self) -> str:
+        return "1" if self.ones < self.zeroes else "0"
+
+
+Input = list[str]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return list(input_data)
+
+    def ans(self, value1: str, value2: str) -> int:
+        return int(value1, 2) * int(value2, 2)
+
+    def part_1(self, inputs: Input) -> Output1:
+        gamma = ""
+        epsilon = ""
+        for i in range(len(inputs[0])):
+            bit_count = BitCount.at_pos(inputs, i)
+            gamma += bit_count.most_common()
+            epsilon += bit_count.least_common()
+        return self.ans(gamma, epsilon)
+
+    def reduce(
+        self, strings: list[str], keep: Callable[[BitCount], str]
+    ) -> str:
+        pos = 0
+        while len(strings) > 1:
+            to_keep = keep(BitCount.at_pos(strings, pos))
+            strings = [s for s in strings if s[pos] == to_keep]
+            pos += 1
+        return strings[0]
+
+    def part_2(self, inputs: Input) -> Output2:
+        o2 = self.reduce(inputs, lambda x: x.most_common())
+        co2 = self.reduce(inputs, lambda x: x.least_common())
+        return self.ans(o2, co2)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 198),
+            ("part_2", TEST, 230),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2021, 3)
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 3)
-
-    assert part_1(TEST) == 198
-    assert part_2(TEST) == 230
-
-    inputs = my_aocd.get_input(2021, 3, 1000)
-    print(f"Part 1: {part_1(inputs)}")
-    print(f"Part 2: {part_2(inputs)}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -8,8 +8,6 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-
 public final class AoC2017_21 extends AoCBase {
     
     private static final CharGrid START = CharGrid.from(List.of(".#.", "..#", "###"));
@@ -38,8 +36,8 @@ public final class AoC2017_21 extends AoCBase {
     
     private CharGrid enhance(final CharGrid grid) {
         return this.rules.stream()
-            .filter(r -> r.getFrom().contains(grid))
-            .map(Rule::getTo)
+            .filter(r -> r.from().contains(grid))
+            .map(Rule::to)
             .findFirst().orElseThrow();
     }
     
@@ -83,14 +81,10 @@ public final class AoC2017_21 extends AoCBase {
         ".#./..#/### => #..#/..../..../#..#"
     );
     
-    @Getter
-    private static final class Rule {
-        private final List<CharGrid> from;
-        private final CharGrid to;
+    record Rule(List<CharGrid> from, CharGrid to) {
         
         public Rule(final CharGrid from, final CharGrid to) {
-            this.from = Utils.stream(from.getPermutations()).collect(toList());
-            this.to = to;
+            this(Utils.stream(from.getPermutations()).collect(toList()), to);
         }
     }
 }

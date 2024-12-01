@@ -2,12 +2,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.github.pareronia.aoc.CharGrid;
+import com.github.pareronia.aoc.Grid.Cell;
 
 public class NessieFinderTestCase {
 	
@@ -24,15 +24,15 @@ public class NessieFinderTestCase {
 	
 	@Test
 	public void findNessies() {
-		final Map<Integer, Integer> result = AoC2020_20.NessieFinder.findNessies(grid);
+		final List<Cell> result = AoC2020_20.NessieFinder.findNessies(grid);
 		
 		assertThat(result).hasSize(1);
-		assertThat(result).containsEntry(1, 2);
+		assertThat(result).contains(Cell.at(1, 2));
 	}
 	
 	@Test
 	public void markNessies() {
-		final CharGrid result = AoC2020_20.NessieFinder.markNessies(Map.of(1, 2), grid);
+		final CharGrid result = AoC2020_20.NessieFinder.markNessies(List.of(Cell.at(1, 2)), grid);
 		
 		final List<String> expected = new ArrayList<>();
 		expected.add("_~_~___~_~~~___~_~~_\u2592~__");

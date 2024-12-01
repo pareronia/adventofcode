@@ -3,49 +3,64 @@
 # Advent of Code 2015 Day 2
 #
 
-from aoc import my_aocd
+import sys
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+
+Present = tuple[int, int, int]
+Input = list[Present]
+Output1 = int
+Output2 = int
 
 
-def _calculate_required_area(present: tuple[int, int, int]) -> int:
-    l, w, h = present
-    sides = (2 * l * w, 2 * w * h, 2 * h * l)
-    return sum(sides) + min(sides) // 2
+TEST1 = "2x3x4"
+TEST2 = "1x1x10"
 
 
-def _calculate_required_length(present: tuple[int, int, int]) -> int:
-    l, w, h = present
-    circumferences = (2 * (l + w), 2 * (w + h), 2 * (h + l))
-    return min(circumferences) + l * w * h
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        def parse_present(line: str) -> Present:
+            lg, w, h = map(int, line.split("x"))
+            return (lg, w, h)
+
+        return [parse_present(line) for line in input_data]
+
+    def part_1(self, presents: Input) -> Output1:
+        def calculate_required_area(present: Present) -> int:
+            lg, w, h = present
+            sides = (2 * lg * w, 2 * w * h, 2 * h * lg)
+            return sum(sides) + min(sides) // 2
+
+        return sum(calculate_required_area(present) for present in presents)
+
+    def part_2(self, presents: Input) -> Output2:
+        def calculate_required_length(present: Present) -> int:
+            lg, w, h = present
+            circumferences = (2 * (lg + w), 2 * (w + h), 2 * (h + lg))
+            return min(circumferences) + lg * w * h
+
+        return sum(calculate_required_length(present) for present in presents)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 58),
+            ("part_1", TEST2, 43),
+            ("part_2", TEST1, 34),
+            ("part_2", TEST2, 14),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def part_1(inputs: tuple[str]) -> int:
-    return sum(_calculate_required_area((map(int, line.split('x'))))
-               for line in inputs)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return sum(_calculate_required_length((map(int, line.split('x'))))
-               for line in inputs)
-
-
-TEST1 = "2x3x4".splitlines()
-TEST2 = "1x1x10".splitlines()
+solution = Solution(2015, 2)
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 2)
-
-    assert part_1(TEST1) == 58
-    assert part_1(TEST2) == 43
-    assert part_2(TEST1) == 34
-    assert part_2(TEST2) == 14
-
-    inputs = my_aocd.get_input(2015, 2, 1000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

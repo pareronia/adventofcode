@@ -1,128 +1,96 @@
-import static com.github.pareronia.aoc.IntegerSequence.Range.between;
-import static java.util.stream.Collectors.summingLong;
-import static java.util.stream.Collectors.toList;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.StringOps.splitLines;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.LongSummaryStatistics;
-import java.util.Set;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2020_09 extends AoCBase {
+public class AoC2020_09 extends SolutionBase<List<Long>, Long, Long> {
 	
-	private final List<Long> numbers;
-	
-	private AoC2020_09(final List<String> input, final boolean debug) {
+	private AoC2020_09(final boolean debug) {
 		super(debug);
-		this.numbers = input.stream().map(Long::valueOf).collect(toList());
 	}
 	
-	public static AoC2020_09 create(final List<String> input) {
-		return new AoC2020_09(input, false);
+	public static AoC2020_09 create() {
+		return new AoC2020_09(false);
 	}
 
-	public static AoC2020_09 createDebug(final List<String> input) {
-		return new AoC2020_09(input, true);
-	}
-	
-	private boolean containsTwoSummands(final List<Long> numbers, final Long sum) {
-		final Set<Long> seen = new HashSet<>();
-		for (final Long n1 : numbers) {
-			seen.add(n1);
-			final Long n2 = sum - n1;
-			if (seen.contains(n2)) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	private Long findInvalidNumber(final Integer windowSize) {
-	    for (final int i : between(windowSize, this.numbers.size())) {
-			final Long number = this.numbers.get(i);
-			final List<Long> searchWindow = this.numbers.subList(i - windowSize, i);
-			if (!containsTwoSummands(searchWindow, number)) {
-				return number;
-			}
-		}
-		throw new RuntimeException("Unsolvable");
+	public static AoC2020_09 createDebug() {
+		return new AoC2020_09(true);
 	}
 	
 	@Override
-	public Long solvePart1() {
-		return findInvalidNumber(25);
+    protected List<Long> parseInput(final List<String> inputs) {
+        return inputs.stream().map(Long::parseLong).toList();
+    }
+
+    private Long findInvalidNumber(final List<Long> numbers, final int windowSize) {
+	    return IntStream.range(windowSize, numbers.size())
+            .filter(i -> numbers.subList(i - windowSize, i).stream()
+                    .noneMatch(n -> numbers.subList(i - windowSize, i)
+                                .contains(numbers.get(i) - n)))
+            .mapToObj(numbers::get)
+            .findFirst().orElseThrow();
 	}
 	
-	private List<List<Long>> collectAllSublistsBeforeTargetWithMinimumSize2(final Integer targetPos) {
-		final List<Long> window = this.numbers.subList(0, targetPos);
-		final ArrayList<List<Long>> sublists = new ArrayList<>();
-		for (int i = 0; i <= window.size(); i++) {
-			for (int j = i + 1; j <= window.size(); j++) {
-				if (j - i < 2) {
-					continue;
-				}
-				sublists.add(window.subList(i, j));
-			}
-		}
-		return sublists;
+	@Override
+	public Long solvePart1(final List<Long> numbers) {
+		return findInvalidNumber(numbers, 25);
 	}
 	
-	private Long findWeakness(final Integer windowSize) {
-		final long target = findInvalidNumber(windowSize);
-		final List<List<Long>> sublists
-				= collectAllSublistsBeforeTargetWithMinimumSize2(this.numbers.indexOf(target));
-		final List<List<Long>> sublistsWithSumEqualToTarget = sublists.stream()
-			.filter(sl -> sl.stream().collect(summingLong(Long::longValue)) == target)
-			.collect(toList());
-		if (sublistsWithSumEqualToTarget.size() != 1) {
-			throw new RuntimeException("Unsolvable");
-		}
-		final List<Long> subListWithSumEqualToTarget = sublistsWithSumEqualToTarget.get(0);
-		final LongSummaryStatistics stats = subListWithSumEqualToTarget.stream()
-		        .mapToLong(Long::valueOf)
-		        .summaryStatistics();
-		return stats.getMin() + stats.getMax();
+	private long findWeakness(final List<Long> numbers, final int windowSize) {
+		final long target = findInvalidNumber(numbers, windowSize);
+		final int targetPos = numbers.indexOf(target);
+		final Stream<List<Long>> sublists = range(targetPos + 1).intStream().boxed()
+		    .flatMap(i -> IntStream.range(i + 1, targetPos + 1)
+                        .filter(j -> j - i >= 2)
+                        .mapToObj(j -> numbers.subList(i, j)));
+		return sublists
+		    .filter(s -> s.stream().mapToLong(Long::longValue).sum() == target)
+		    .mapToLong(s ->
+		        s.stream().mapToLong(Long::longValue).min().getAsLong()
+		        + s.stream().mapToLong(Long::longValue).max().getAsLong())
+		    .findFirst().getAsLong();
 	}
 
 	@Override
-	public Long solvePart2() {
-		return findWeakness(25);
+	public Long solvePart2(final List<Long> numbers) {
+		return findWeakness(numbers, 25);
 	}
 
-	public static void main(final String[] args) throws Exception {
-		assert AoC2020_09.createDebug(TEST).findInvalidNumber(5) == 127;
-		assert AoC2020_09.createDebug(TEST).findWeakness(5) == 62;
+	@Override
+    public void samples() {
+	    final AoC2020_09 test = AoC2020_09.createDebug();
+	    assert test.findInvalidNumber(test.parseInput(splitLines(TEST)), 5) == 127;
+	    assert test.findWeakness(test.parseInput(splitLines(TEST)), 5) == 62;
+    }
 
-		final Puzzle puzzle = Puzzle.create(2020, 9);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2020_09.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2020_09.create(input)::solvePart2)
-		);
+    public static void main(final String[] args) throws Exception {
+        AoC2020_09.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"35\r\n" +
-			"20\r\n" +
-			"15\r\n" +
-			"25\r\n" +
-			"47\r\n" +
-			"40\r\n" +
-			"62\r\n" +
-			"55\r\n" +
-			"65\r\n" +
-			"95\r\n" +
-			"102\r\n" +
-			"117\r\n" +
-			"150\r\n" +
-			"182\r\n" +
-			"127\r\n" +
-			"219\r\n" +
-			"299\r\n" +
-			"277\r\n" +
-			"309\r\n" +
-			"576"
-	);
+	private static final String TEST = """
+	        35
+	        20
+	        15
+	        25
+	        47
+	        40
+	        62
+	        55
+	        65
+	        95
+	        102
+	        117
+	        150
+	        182
+	        127
+	        219
+	        299
+	        277
+	        309
+	        576
+	        """;
 }

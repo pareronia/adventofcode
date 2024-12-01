@@ -36,16 +36,16 @@ public class VirtualMachine {
     }
     
     private void set(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> program.setRegisterValue(register, v));
         program.moveIntructionPointer(1);
     }
 
     private void add(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -57,8 +57,8 @@ public class VirtualMachine {
     }
     
     private void sub(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -70,8 +70,8 @@ public class VirtualMachine {
     }
     
     private void mul(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -83,8 +83,8 @@ public class VirtualMachine {
     }
 
     private void div(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             assert v != 0;
@@ -97,8 +97,8 @@ public class VirtualMachine {
     }
 
     private void mod(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             assert v > 0;
@@ -111,8 +111,8 @@ public class VirtualMachine {
     }
 
     private void eql(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
         final Optional<Long> value = getValue(program, op2);
         value.ifPresent(v -> {
             final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
@@ -124,7 +124,7 @@ public class VirtualMachine {
     }
     
     private void jmp(final Program program, final Instruction instruction, final Integer ip) {
-        final Integer count = (Integer) instruction.getOperands().get(0);
+        final Integer count = (Integer) instruction.operands().get(0);
         program.moveIntructionPointer(count);
     }
     
@@ -139,9 +139,9 @@ public class VirtualMachine {
     private void jump(final Program program, final Instruction instruction,
             final Integer ip, final Predicate<Long> condition
     ) {
-        final String op1 = (String) instruction.getOperands().get(0);
+        final String op1 = (String) instruction.operands().get(0);
         final Optional<Long> test = getValue(program, op1);
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String op2 = (String) instruction.operands().get(1);
         final Long count;
         if (op2.startsWith("*")) {
             count = program.getRegisters().get(op2.substring(1));
@@ -155,9 +155,9 @@ public class VirtualMachine {
     }
     
     private void tgl(final Program program, final Instruction instruction, final Integer ip) {
-        final String register = (String) instruction.getOperands().get(0);
+        final String register = (String) instruction.operands().get(0);
         Optional.ofNullable(program.getRegisters().get(register))
-                .map(v -> v.intValue())
+                .map(Long::intValue)
                 .filter(v -> ip + v < program.getInstructions().size()
                                 && ip + v >= 0)
                 .ifPresent(v -> {
@@ -170,24 +170,24 @@ public class VirtualMachine {
     }
     
     private Instruction toggleInstruction(final Instruction instruction) {
-        if (instruction.getOpcode() == Opcode.ADD
-                && instruction.getOperands().get(1).equals(1L)) {
-            final String register = (String) instruction.getOperands().get(0);
+        if (instruction.opcode() == Opcode.ADD
+                && instruction.operands().get(1).equals(1L)) {
+            final String register = (String) instruction.operands().get(0);
             return Instruction.ADD(register, -1L);
-        } else if (instruction.getOpcode() == Opcode.ADD
-                && instruction.getOperands().get(1).equals(-1L)
-                || instruction.getOpcode() == Opcode.TGL) {
-            final String register = (String) instruction.getOperands().get(0);
+        } else if (instruction.opcode() == Opcode.ADD
+                && instruction.operands().get(1).equals(-1L)
+                || instruction.opcode() == Opcode.TGL) {
+            final String register = (String) instruction.operands().get(0);
             return Instruction.ADD(register, 1L);
-        } else if (instruction.getOpcode() == Opcode.JN0) {
-            final String op1 = (String) instruction.getOperands().get(0);
-            final String op2 = (String) instruction.getOperands().get(1);
+        } else if (instruction.opcode() == Opcode.JN0) {
+            final String op1 = (String) instruction.operands().get(0);
+            final String op2 = (String) instruction.operands().get(1);
             return Instruction.SET(
                     op2.startsWith("*") ? op2.substring(1) : op2,
                     op1);
-        } else if (instruction.getOpcode() == Opcode.SET) {
-            final String op1 = (String) instruction.getOperands().get(0);
-            final String op2 = (String) instruction.getOperands().get(1);
+        } else if (instruction.opcode() == Opcode.SET) {
+            final String op1 = (String) instruction.operands().get(0);
+            final String op2 = (String) instruction.operands().get(1);
             return Instruction.JN0(
                     op2,
                     StringUtils.isNumeric(op1) ? op1 : "*" + op1);
@@ -196,7 +196,7 @@ public class VirtualMachine {
     }
     
     private void out(final Program program, final Instruction instruction, final Integer ip) {
-        final String op1 = (String) instruction.getOperands().get(0);
+        final String op1 = (String) instruction.operands().get(0);
         final Optional<Long> value = getValue(program, op1);
         if (program.getOutputConsumer() != null) {
             value.ifPresent(v -> program.getOutputConsumer().accept(v));
@@ -205,10 +205,10 @@ public class VirtualMachine {
     }
     
     private void on0(final Program program, final Instruction instruction, final Integer ip) {
-        final String op1 = (String) instruction.getOperands().get(0);
+        final String op1 = (String) instruction.operands().get(0);
         final Optional<Long> test = getValue(program, op1);
         final Optional<Long> value;
-        final String op2 = (String) instruction.getOperands().get(1);
+        final String op2 = (String) instruction.operands().get(1);
         if (op2.startsWith("*")) {
             value = Optional.ofNullable(program.getRegisters().get(op2.substring(1)));
         } else {
@@ -223,7 +223,7 @@ public class VirtualMachine {
     }
     
     private void inp(final Program program, final Instruction instruction, final Integer ip ) {
-        final String op1 = (String) instruction.getOperands().get(0);
+        final String op1 = (String) instruction.operands().get(0);
         assert program.getInputSupplier() != null;
         final Long value = program.getInputSupplier().get();
         program.getRegisters().put(op1, value);
@@ -252,7 +252,7 @@ public class VirtualMachine {
         final Integer instructionPointer = program.getInstructionPointer();
         final Instruction instruction
                 = program.getInstructions().get(instructionPointer);
-        this.instructionSet.get(instruction.getOpcode())
+        this.instructionSet.get(instruction.opcode())
                 .execute(program, instruction, instructionPointer);
         program.incrementCycles();
     }

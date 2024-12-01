@@ -10,136 +10,64 @@ Coordinate system:
 """
 
 from __future__ import annotations
-import aocd
-import re
-from functools import lru_cache
-from dataclasses import dataclass
-from typing import Iterator
-from aoc import my_aocd
-from aoc.common import log
-from aoc.geometry import Position
-from aoc.navigation import Heading, Waypoint, NavigationWithWaypoint
 
+import re
+import sys
+from collections import Counter
+from typing import Iterable
+from typing import NamedTuple
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+from aoc.game_of_life import GameOfLife
+
+
+class Direction(NamedTuple):
+    q: int
+    r: int
+
+
+DIRS = {
+    "ne": Direction(1, -1),
+    "nw": Direction(0, -1),
+    "se": Direction(0, 1),
+    "sw": Direction(-1, 1),
+    "e": Direction(1, 0),
+    "w": Direction(-1, 0),
+}
 Tile = tuple[int, int]
 
-E = "e"
-SE = "se"
-SW = "sw"
-W = "w"
-NW = "nw"
-NE = "ne"
 
-
-@dataclass(frozen=True)
-class NavigationInstruction:
-    heading: Heading
-    value: int
-
-
-@dataclass(frozen=True)
-class Floor:
+class Floor(NamedTuple):
     tiles: set[Tile]
 
-    def flip(self, tile: Tile) -> None:
-        if tile in self.tiles:
-            self.tiles.remove(tile)
-        else:
-            self.tiles.add(tile)
-
-
-def _parse(inputs: tuple[str, ...]) -> list[list[NavigationInstruction]]:
-    navs = list[list[NavigationInstruction]]()
-    for input_ in inputs:
-        nav = list[NavigationInstruction]()
-        m = re.findall(r"(n?(e|w)|s?(e|w))", input_)
-        for _ in m:
-            heading = _[0]
-            if heading == E:
-                nav.append(NavigationInstruction(Heading.EAST, 1))
-            elif heading == SE:
-                nav.append(NavigationInstruction(Heading.SOUTH, 1))
-                nav.append(NavigationInstruction(Heading.EAST, 1))
-            elif heading == W:
-                nav.append(NavigationInstruction(Heading.WEST, 1))
-            elif heading == SW:
-                nav.append(NavigationInstruction(Heading.SOUTH, 1))
-            elif heading == NW:
-                nav.append(NavigationInstruction(Heading.NORTH, 1))
-                nav.append(NavigationInstruction(Heading.WEST, 1))
-            elif heading == NE:
-                nav.append(NavigationInstruction(Heading.NORTH, 1))
+    @classmethod
+    def from_input(self, input: list[str]) -> Floor:
+        p = re.compile(r"(n?(e|w)|s?(e|w))")
+        tiles = set[Tile]()
+        for line in input:
+            tile = (0, 0)
+            for m in p.finditer(line):
+                d = DIRS[m.group(0)]
+                tile = (tile[0] + d.q, tile[1] + d.r)
+            if tile in tiles:
+                tiles.remove(tile)
             else:
-                raise ValueError("invalid input")
-        navs.append(nav)
-    return navs
+                tiles.add(tile)
+        return Floor(tiles)
 
 
-def _navigate_with_waypoint(
-    navigation: NavigationWithWaypoint, nav: NavigationInstruction
-) -> None:
-    navigation.update_waypoint(nav.heading, nav.value)
+class HexGrid(GameOfLife.Universe[Tile]):
+    def neighbour_count(self, alive: Iterable[Tile]) -> dict[Tile, int]:
+        return Counter(
+            (t[0] + d.q, t[1] + d.r) for d in DIRS.values() for t in alive
+        )
 
 
-def _build_floor(navs: list[list[NavigationInstruction]]) -> Floor:
-    floor = Floor(set())
-    for nav in navs:
-        navigation = NavigationWithWaypoint(Position(0, 0), Waypoint(0, 0))
-        for n in nav:
-            _navigate_with_waypoint(navigation, n)
-        floor.flip((navigation.waypoint.x, navigation.waypoint.y))
-    return floor
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    navs = _parse(inputs)
-    floor = _build_floor(navs)
-    return len(floor.tiles)
-
-
-@lru_cache(maxsize=11000)
-def _get_neighbours(x: int, y: int) -> list[Tile]:
-    return [
-        (x + dx, y + dy)
-        for dx, dy in [(-1, 1), (0, 1), (-1, 0), (1, 0), (0, -1), (1, -1)]
-    ]
-
-
-def _run_cycle(floor: Floor) -> Floor:
-    def to_check() -> Iterator[Tile]:
-        for tile in floor.tiles:
-            # check the positions of all existing black tiles
-            yield tile
-            # also check all their neighbour positions (a position can only
-            #  become black if it is adjacent to at least 1 black tile)
-            for n in _get_neighbours(*tile):
-                yield n
-
-    new_tiles = set()
-    # for each position:
-    for p in to_check():
-        # does it have black neighbour? yes: if that neighbour
-        #  is an existing black tile; no: if it isn't
-        bn = 0
-        for n in _get_neighbours(*p):
-            if n in floor.tiles:
-                bn += 1
-        # apply rules
-        if p in floor.tiles and bn in {1, 2}:
-            new_tiles.add(p)
-        if p not in floor.tiles and bn == 2:
-            new_tiles.add(p)
-    return Floor(new_tiles)
-
-
-def part_2(inputs: tuple[str, ...]) -> int:
-    navs = _parse(inputs)
-    floor = _build_floor(navs)
-    log(len(floor.tiles))
-    for _ in range(100):
-        floor = _run_cycle(floor)
-        log(len(floor.tiles))
-    log(_get_neighbours.cache_info())
-    return len(floor.tiles)
+class Rules(GameOfLife.Rules[Tile]):
+    def alive(self, tile: Tile, count: int, alive: Iterable[Tile]) -> bool:
+        return count == 2 or (count == 1 and tile in alive)
 
 
 TEST = """\
@@ -163,22 +91,42 @@ nenewswnwewswnenesenwnesewesw
 eneswnwswnwsenenwnwnwwseeswneewsenese
 neswnwewnwnwseenwseesewsenwsweewe
 wseweeenwnesenwwwswnew
-""".splitlines()
+"""
+
+
+Input = Floor
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Floor.from_input(list(input_data))
+
+    def part_1(self, floor: Floor) -> int:
+        return len(floor.tiles)
+
+    def part_2(self, floor: Floor) -> int:
+        gol = GameOfLife(floor.tiles, HexGrid(), Rules())
+        for _ in range(100):
+            gol.next_generation()
+        return sum(1 for _ in gol.alive)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 10),
+            ("part_2", TEST, 2208),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2020, 24)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2020, 24)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 10  # type:ignore[arg-type]
-    assert part_2(TEST) == 2208  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 316)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

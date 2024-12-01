@@ -2,9 +2,6 @@ package com.github.pareronia.aoc.geometry3d;
 
 import java.util.stream.Stream;
 
-import lombok.EqualsAndHashCode;
-
-@EqualsAndHashCode(callSuper = true)
 public class Position3D extends Point3D {
 
     public Position3D(final int x, final int y, final int z) {

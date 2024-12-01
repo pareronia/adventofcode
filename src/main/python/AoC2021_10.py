@@ -4,22 +4,25 @@
 #
 
 from __future__ import annotations
-from typing import NamedTuple
+
+import sys
 from collections import deque
 from functools import reduce
-from aoc import my_aocd
+from typing import NamedTuple
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 from aoc.common import log
-import aocd
 
-
-PAREN_OPEN = '('
-PAREN_CLOSE = ')'
-SQUARE_OPEN = '['
-SQUARE_CLOSE = ']'
-CURLY_OPEN = '{'
-CURLY_CLOSE = '}'
-ANGLE_OPEN = '<'
-ANGLE_CLOSE = '>'
+PAREN_OPEN = "("
+PAREN_CLOSE = ")"
+SQUARE_OPEN = "["
+SQUARE_CLOSE = "]"
+CURLY_OPEN = "{"
+CURLY_CLOSE = "}"
+ANGLE_OPEN = "<"
+ANGLE_CLOSE = ">"
 OPEN = (PAREN_OPEN, SQUARE_OPEN, CURLY_OPEN, ANGLE_OPEN)
 MAP = {
     PAREN_OPEN: PAREN_CLOSE,
@@ -44,50 +47,6 @@ INCOMPLETE_SCORES = {
     CURLY_OPEN: 3,
     ANGLE_OPEN: 4,
 }
-
-
-class Result(NamedTuple):
-    corrupt: str
-    incomplete: list[str]
-
-    @classmethod
-    def corrupt(cls, c: str) -> Result:
-        return Result(c, None)
-
-    @classmethod
-    def incomplete(cls, q: list[str]) -> Result:
-        return Result(None, q)
-
-
-def _check(line: str) -> Result:
-    stack = deque[str]()
-    for c in list(line):
-        if c in OPEN:
-            stack.appendleft(c)
-        else:
-            if MAP[c] != stack.popleft():
-                return Result(c, None)
-    return Result(None, list(stack))
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return sum(CORRUPTION_SCORES[result.corrupt]
-               for result in filter(lambda x: x.corrupt is not None,
-                                    (_check(line) for line in inputs)))
-
-
-def part_2(inputs: tuple[str]) -> int:
-    scores = sorted(
-        reduce(lambda a, b: 5 * a + b,
-               (INCOMPLETE_SCORES[x] for x in result.incomplete))
-        for result in filter(lambda x: x.incomplete is not None,
-                             (_check(line) for line in inputs))
-    )
-    log(scores)
-    assert len(scores) % 2 == 1
-    return scores[len(scores) // 2]
-
-
 TEST = """\
 [({(<(())[]>[[{[]{<()<>>
 [(()[<>])]({[<{<<[]>>(
@@ -99,23 +58,75 @@ TEST = """\
 [<(<(<(<{}))><([]([]()
 <{([([[(<>()){}]>(<<{{
 <{([{{}}[<[[[<>{}]]]>[]]
-""".splitlines()
+"""
+
+
+class Result(NamedTuple):
+    corrupt: str | None
+    incomplete: list[str] | None
+
+    @classmethod
+    def for_corrupt(cls, c: str) -> Result:
+        return Result(c, None)
+
+    @classmethod
+    def for_incomplete(cls, q: list[str]) -> Result:
+        return Result(None, q)
+
+
+Input = InputData
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return input_data
+
+    def check(self, line: str) -> Result:
+        stack = deque[str]()
+        for c in line:
+            if c in OPEN:
+                stack.appendleft(c)
+            elif MAP[c] != stack.popleft():
+                return Result.for_corrupt(c)
+        return Result.for_incomplete(list(stack))
+
+    def part_1(self, inputs: Input) -> int:
+        return sum(
+            CORRUPTION_SCORES[corrupt]
+            for corrupt in (self.check(line).corrupt for line in inputs)
+            if corrupt is not None
+        )
+
+    def part_2(self, inputs: Input) -> int:
+        scores = sorted(
+            reduce(
+                lambda a, b: 5 * a + b,
+                (INCOMPLETE_SCORES[i] for i in incomplete),
+            )
+            for incomplete in (self.check(line).incomplete for line in inputs)
+            if incomplete is not None
+        )
+        log(scores)
+        return scores[len(scores) // 2]
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 26_397),
+            ("part_2", TEST, 288_957),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2021, 10)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2021, 10)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 26_397
-    assert part_2(TEST) == 288_957
-
-    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 94)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

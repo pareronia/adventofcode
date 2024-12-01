@@ -10,11 +10,7 @@ import java.util.TreeSet;
 
 import com.github.pareronia.aocd.Puzzle.FailDecider.Status;
 import com.github.pareronia.aocd.Runner.Request;
-import com.github.pareronia.aocd.Runner.Response;
 import com.github.pareronia.aocd.Runner.Response.Part;
-
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 
 public class MultipleDaysRunner {
     
@@ -31,42 +27,65 @@ public class MultipleDaysRunner {
     private final SystemUtils systemUtils = new SystemUtils();
 	
 	public void run(final Set<Day> days, final Listener listener) throws Exception {
+	    this.run(days, Set.of(User.getDefaultUser()), listener);
+	}
+	
+	public void run(final Set<Day> days, final Set<User> users, final Listener listener) {
 	    for (final Day day : new TreeSet<>(days)) {
-            final Puzzle puzzle = Aocd.puzzle(day.year, day.day);
-	        final List<String> input = new ArrayList<>();
-	        input.add(String.valueOf(puzzle.getYear()));
-	        input.add(String.valueOf(puzzle.getDay()));
-	        input.addAll(puzzle.getInputData());
-			final String[] args = input.toArray(new String[input.size()]);
-			final Request request = Request.create(systemUtils.getLocalDate(), args);
-			final Response response = Runner.create(systemUtils).run(request);
-			final String result1 = Optional.ofNullable(response.getPart1())
-			        .map(Part::getAnswer).orElse(null);
-			listener.result(puzzle, 1, puzzle.getAnswer1(), result1);
-			if (day.day == 25) {
-			    continue;
-			}
-			final String result2 = Optional.ofNullable(response.getPart2())
-			        .map(Part::getAnswer).orElse(null);
-            listener.result(puzzle, 2, puzzle.getAnswer2(), result2);
+	        for (final User user : users) {
+	            final var puzzle = Puzzle.builder()
+	                    .year(day.year).day(day.day).user(user)
+	                    .build();
+	            try {
+                    this.run(puzzle, listener);
+                } catch (final Exception e) {
+                    System.err.println("%d/%d/%s: FAIL (%s)".formatted(
+                            day.year, day.day, user.name(),
+                            Optional.ofNullable(e.getCause())
+                                .map(Throwable::getMessage)
+                                .orElse(e.getMessage())));
+                }
+            }
         }
+	}
+	
+	private void run(final Puzzle puzzle, final Listener listener) throws Exception {
+	    final List<String> input = new ArrayList<>();
+	    input.add(String.valueOf(puzzle.year()));
+	    input.add(String.valueOf(puzzle.day()));
+	    final List<String> inputData = puzzle.inputData();
+	    if (inputData.isEmpty()) {
+	        return;
+	    }
+        input.addAll(inputData);
+	    final var args = input.toArray(new String[input.size()]);
+	    final var request = Request.create(systemUtils.getLocalDate(), args);
+	    final var response = Runner.create(systemUtils).run(request, false);
+	    final String result1 = Optional.ofNullable(response.getPart1())
+	            .map(Part::getAnswer).orElse(null);
+	    listener.result(puzzle, 1, puzzle.answer1(), result1);
+	    if (puzzle.day() == 25) {
+	        return;
+	    }
+	    final String result2 = Optional.ofNullable(response.getPart2())
+	            .map(Part::getAnswer).orElse(null);
+	    listener.result(puzzle, 2, puzzle.answer2(), result2);
 	}
 	
 	public static void main(final String[] _args) throws Exception {
 	   new MultipleDaysRunner().run(DAYS, new Listener() {});
 	}
 
-	@RequiredArgsConstructor(staticName = "at")
-	@Getter
-	public static final class Day implements Comparable<Day> {
-	    private final int year;
-	    private final int day;
+	public static final record Day(int year, int day) implements Comparable<Day> {
+	    
+	    public static Day at(final int year, final int day) {
+	        return new Day(year, day);
+	    }
 	    
         @Override
         public int compareTo(final Day other) {
-        return comparing(Day::getYear)
-                .thenComparing(comparing(Day::getDay))
-                .compare(this, other);
+            return comparing(Day::year).thenComparing(comparing(Day::day))
+                    .compare(this, other);
         }
     }
 	
@@ -77,19 +96,22 @@ public class MultipleDaysRunner {
 	            final String expected,
 	            final String actual
 	    ) {
-	        final Puzzle.FailDecider failDecider = new Puzzle.FailDecider();
+	        final var failDecider = new Puzzle.FailDecider();
 	        final String message;
 	        final Status status = failDecider.fail(expected, actual);
+            final int day = puzzle.day();
+            final int year = puzzle.year();
+            final String name = puzzle.user().name();
             if (status == Puzzle.FailDecider.Status.FAIL) {
 	            message = String.format(
-	                "%d/%02d/%d: FAIL - expected '%s', got '%s'",
-	                puzzle.getYear(), puzzle.getDay(), part, expected, actual);
+	                "%d/%02d/%d/%-10s: FAIL - expected '%s', got '%s'",
+	                year, day, part, name, expected, actual);
             } else if (status == Puzzle.FailDecider.Status.UNKNOWN) {
 	            message = String.format(
-	                "%d/%02d/%d: UNKNOWN", puzzle.getYear(), puzzle.getDay(), part);
+	                "%d/%02d/%d/%-10s: UNKNOWN", year, day, part, name);
 	        } else {
 	            message = String.format(
-	                "%d/%02d/%d: OK", puzzle.getYear(), puzzle.getDay(), part);
+	                "%d/%02d/%d/%-10s: OK - %s", year, day, part, name, actual);
 	        }
 	        System.out.println(message);
 	    }

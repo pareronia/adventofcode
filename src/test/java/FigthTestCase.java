@@ -6,9 +6,19 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.github.pareronia.aoc.solution.Logger;
+
 public class FigthTestCase {
+    
+    private Logger logger;
+    
+    @BeforeEach
+    public void setUp() {
+        logger = new Logger(!System.getProperties().containsKey("NDEBUG"));
+    }
 
 	@Test
 	public void testSingle1() {
@@ -21,7 +31,7 @@ public class FigthTestCase {
 		final AoC2015_22.Game.Player player = new AoC2015_22.Game.Player(10, 250, 0, 0, 0, 0);
 		final AoC2015_22.Game.Fight fight = new AoC2015_22.Game.Fight(
 		        spells, turnStorage, spellSelector, player, boss, false,
-		        !System.getProperties().containsKey("NDEBUG"));
+		        logger);
 
 		final long result = fight.run();
 		
@@ -40,7 +50,7 @@ public class FigthTestCase {
 		final AoC2015_22.Game.Player player = new AoC2015_22.Game.Player(10, 250, 0, 0, 0, 0);
 		final AoC2015_22.Game.Fight fight = new AoC2015_22.Game.Fight(
 		        spells, turnStorage, spellSelector, player, boss, false,
-		        !System.getProperties().containsKey("NDEBUG"));
+		        logger);
 		
 		final long result = fight.run();
 		
@@ -60,7 +70,7 @@ public class FigthTestCase {
 		final AoC2015_22.Game.Player player = new AoC2015_22.Game.Player(10, 250, 0, 0, 0, 0);
 		final AoC2015_22.Game.Fight fight = new AoC2015_22.Game.Fight(
 		        spells, turnStorage, spellSelector, player, boss, false,
-		        !System.getProperties().containsKey("NDEBUG"));
+		        logger);
 
 		final long result = fight.run();
 		

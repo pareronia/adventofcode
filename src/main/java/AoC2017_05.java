@@ -1,33 +1,40 @@
-import static java.util.stream.Collectors.toList;
-
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2017_05 extends AoCBase {
+public final class AoC2017_05 extends SolutionBase<int[], Integer, Integer> {
 
-    private final transient List<Integer> input;
-
-    private AoC2017_05(final List<String> inputs, final boolean debug) {
+    private AoC2017_05(final boolean debug) {
         super(debug);
-        this.input = inputs.stream().map(Integer::valueOf).collect(toList());
     }
 
-    public static AoC2017_05 create(final List<String> input) {
-        return new AoC2017_05(input, false);
+    public static AoC2017_05 create() {
+        return new AoC2017_05(false);
     }
 
-    public static AoC2017_05 createDebug(final List<String> input) {
-        return new AoC2017_05(input, true);
+    public static AoC2017_05 createDebug() {
+        return new AoC2017_05(true);
     }
-    
-    private Integer countJumps(final Function<Integer, Integer> jumpCalculator) {
+ 
+    @Override
+    protected int[] parseInput(final List<String> inputs) {
+        return inputs.stream().mapToInt(Integer::parseInt).toArray();
+    }
+
+    private int countJumps(
+            final int[] input,
+            final IntUnaryOperator jumpCalculator
+    ) {
+        final int[] offsets = Arrays.copyOf(input, input.length);
         int cnt = 0;
         int i = 0;
-        while (i < this.input.size()) {
-            final int jump = this.input.get(i);
-            this.input.set(i, jumpCalculator.apply(jump));
+        while (i < offsets.length) {
+            final int jump = offsets[i];
+            offsets[i] = jumpCalculator.applyAsInt(jump);
             i += jump;
             cnt++;
         }
@@ -35,29 +42,28 @@ public final class AoC2017_05 extends AoCBase {
     }
     
     @Override
-    public Integer solvePart1() {
-        return countJumps(jump -> jump + 1);
+    public Integer solvePart1(final int[] input) {
+        return countJumps(input, jump -> jump + 1);
     }
     
     @Override
-    public Integer solvePart2() {
-        return countJumps(jump -> jump >= 3 ? jump - 1 : jump + 1);
+    public Integer solvePart2(final int[] input) {
+        return countJumps(input, jump -> jump >= 3 ? jump - 1 : jump + 1);
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "5"),
+        @Sample(method = "part2", input = TEST, expected = "10"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_05.createDebug(TEST).solvePart1() == 5;
-        assert AoC2017_05.createDebug(TEST).solvePart2() == 10;
-
-        final List<String> input = Aocd.getData(2017, 5);
-        lap("Part 1", () -> AoC2017_05.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_05.create(input).solvePart2());
+        AoC2017_05.create().run();
     }
     
-    private static final List<String> TEST = splitLines(
-            "0\n" +
-            "3\n" +
-            "0\n" +
-            "1\n" +
-            "-3"
-    );
+    private static final String TEST = """
+            0
+            3
+            0
+            1
+            -3
+            """;
 }

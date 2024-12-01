@@ -1,40 +1,41 @@
 import static java.util.Collections.nCopies;
-import static java.util.stream.Collectors.summingLong;
-import static java.util.stream.Collectors.toList;
 
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2021_06 extends AoCBase {
+public class AoC2021_06 extends SolutionBase<List<Integer>, Long, Long> {
     
-    private final List<Integer> initial;
-    
-    private AoC2021_06(final List<String> input, final boolean debug) {
+    private AoC2021_06(final boolean debug) {
         super(debug);
-        assert input.size() == 1;
-        this.initial = Arrays.stream(input.get(0).split(","))
+    }
+
+    public static final AoC2021_06 create() {
+        return new AoC2021_06(false);
+    }
+
+    public static final AoC2021_06 createDebug() {
+        return new AoC2021_06(true);
+    }
+
+    @Override
+    protected List<Integer> parseInput(final List<String> inputs) {
+        return Arrays.stream(inputs.get(0).split(","))
                 .map(Integer::valueOf)
-                .collect(toList());
+                .toList();
     }
 
-    public static final AoC2021_06 create(final List<String> input) {
-        return new AoC2021_06(input, false);
-    }
-
-    public static final AoC2021_06 createDebug(final List<String> input) {
-        return new AoC2021_06(input, true);
-    }
-    
     private long sumValues(final List<Long> list) {
-        return list.stream().collect(summingLong(Long::valueOf));
+        return list.stream().mapToLong(Long::longValue).sum();
     }
 
-    private long solve(final int days) {
+    private long solve(final List<Integer> initial, final int days) {
        final LinkedList<Long> fishies = new LinkedList<>(nCopies(9, 0L));
-        for (final Integer i : this.initial) {
+        for (final Integer i : initial) {
             fishies.set(i, fishies.get(i) + 1);
         }
         log(fishies, 0);
@@ -52,25 +53,22 @@ public class AoC2021_06 extends AoCBase {
     }
     
     @Override
-    public Long solvePart1() {
-        return solve(80);
+    public Long solvePart1(final List<Integer> initial) {
+        return solve(initial, 80);
     }
 
     @Override
-    public Long solvePart2() {
-        return solve(256);
+    public Long solvePart2(final List<Integer> initial) {
+        return solve(initial, 256);
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "5934", debug = false),
+        @Sample(method = "part2", input = TEST, expected = "26984457539", debug = false),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2021_06.create(TEST).solvePart1() == 5_934;
-        assert AoC2021_06.create(TEST).solvePart2() == 26_984_457_539L;
-
-        final List<String> input = Aocd.getData(2021, 6);
-        lap("Part 1", () -> AoC2021_06.create(input).solvePart1());
-        lap("Part 2", () -> AoC2021_06.create(input).solvePart2());
+        AoC2021_06.create().run();
     }
 
-    private static final List<String> TEST = splitLines(
-        "3,4,3,1,2"
-    );
+    private static final String TEST = "3,4,3,1,2";
 }

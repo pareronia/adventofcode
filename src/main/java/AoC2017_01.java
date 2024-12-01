@@ -1,61 +1,60 @@
-import static java.util.stream.Collectors.summingInt;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 
 import java.util.List;
-import java.util.stream.Stream;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2017_01 extends AoCBase {
+public final class AoC2017_01 extends SolutionBase<String, Integer, Integer> {
 
-    private final transient String input;
-    
-    private AoC2017_01(final List<String> inputs, final boolean debug) {
+    private AoC2017_01(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = inputs.get(0);
     }
 
-    public static AoC2017_01 create(final List<String> input) {
-        return new AoC2017_01(input, false);
+    public static AoC2017_01 create() {
+        return new AoC2017_01(false);
     }
 
-    public static AoC2017_01 createDebug(final List<String> input) {
-        return new AoC2017_01(input, true);
+    public static AoC2017_01 createDebug() {
+        return new AoC2017_01(true);
     }
 
-    private Integer sumSameCharsAt(final int distance) {
-        final String test = this.input + this.input.substring(0, distance);
-        return Stream.iterate(0, i -> i < this.input.length(), i -> i + 1)
+    private int sumSameCharsAt(final String input, final int distance) {
+        final String test = input + input.substring(0, distance);
+        return range(input.length()).intStream()
                 .filter(i -> test.charAt(i) == test.charAt(i + distance))
-                .map(test::charAt)
-                .map(c -> Character.digit(c, 10))
-                .collect(summingInt(Integer::valueOf));
+                .map(i -> Character.digit(test.charAt(i), 10))
+                .sum();
     }
-    
+ 
     @Override
-    public Integer solvePart1() {
-        return sumSameCharsAt(1);
-    }
-    
-    @Override
-    public Integer solvePart2() {
-        assert this.input.length() % 2 == 0;
-        return sumSameCharsAt(this.input.length() / 2);
+    protected String parseInput(final List<String> inputs) {
+        return inputs.get(0);
     }
 
+    @Override
+    public Integer solvePart1(final String input) {
+        return sumSameCharsAt(input, 1);
+    }
+    
+    @Override
+    public Integer solvePart2(final String input) {
+        return sumSameCharsAt(input, input.length() / 2);
+    }
+
+    @Samples({
+        @Sample(method = "part1", input = "1122", expected = "3"),
+        @Sample(method = "part1", input = "1111", expected = "4"),
+        @Sample(method = "part1", input = "1234", expected = "0"),
+        @Sample(method = "part1", input = "91212129", expected = "9"),
+        @Sample(method = "part2", input = "1212", expected = "6"),
+        @Sample(method = "part2", input = "1221", expected = "0"),
+        @Sample(method = "part2", input = "123425", expected = "4"),
+        @Sample(method = "part2", input = "123123", expected = "12"),
+        @Sample(method = "part2", input = "12131415", expected = "4"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_01.createDebug(splitLines("1122")).solvePart1() == 3;
-        assert AoC2017_01.createDebug(splitLines("1111")).solvePart1() == 4;
-        assert AoC2017_01.createDebug(splitLines("1234")).solvePart1() == 0;
-        assert AoC2017_01.createDebug(splitLines("91212129")).solvePart1() == 9;
-        assert AoC2017_01.createDebug(splitLines("1212")).solvePart2() == 6;
-        assert AoC2017_01.createDebug(splitLines("1221")).solvePart2() == 0;
-        assert AoC2017_01.createDebug(splitLines("123425")).solvePart2() == 4;
-        assert AoC2017_01.createDebug(splitLines("123123")).solvePart2() == 12;
-        assert AoC2017_01.createDebug(splitLines("12131415")).solvePart2() == 4;
-
-        final List<String> input = Aocd.getData(2017, 1);
-        lap("Part 1", () -> AoC2017_01.create(input).solvePart1());
-        lap("Part 2", () -> AoC2017_01.create(input).solvePart2());
+        AoC2017_01.create().run();
     }
 }

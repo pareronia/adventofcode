@@ -1,5 +1,8 @@
 package com.github.pareronia.aoc.game_of_life;
 
+import static java.util.stream.Collectors.counting;
+import static java.util.stream.Collectors.groupingBy;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -17,13 +20,9 @@ public final class InfiniteGrid implements Type<List<Integer>> {
     
     @Override
     public Map<List<Integer>, Long> getNeighbourCounts(final Set<List<Integer>> alive) {
-        final Map<List<Integer>, Long> neighbourCounts = new HashMap<>();
-        for (final List<Integer> cell : alive) {
-            for (final List<Integer> n : neighbours(cell)) {
-                neighbourCounts.merge(n, 1L, Long::sum);
-            }
-        }
-        return neighbourCounts;
+        return alive.stream()
+            .flatMap(cell -> neighbours(cell).stream())
+            .collect(groupingBy(cell -> cell, counting()));
     }
 
     private Set<List<Integer>> neighbours(final List<Integer> cell) {

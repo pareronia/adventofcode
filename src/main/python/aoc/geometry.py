@@ -1,5 +1,7 @@
 from __future__ import annotations
-from enum import Enum, unique
+
+from enum import Enum
+from enum import unique
 from typing import NamedTuple
 
 
@@ -84,6 +86,13 @@ class Turn(Enum):
                 return v
         raise ValueError
 
+    @classmethod
+    def from_directions(cls, dir1: Direction, dir2: Direction) -> Turn:
+        for v in Turn:
+            if dir1.turn(v) == dir2:
+                return v
+        raise ValueError
+
 
 @unique
 class Direction(Enum):
@@ -138,6 +147,10 @@ class Direction(Enum):
         }
 
     @classmethod
+    def capital_arrows(cls) -> set[str]:
+        return {d.arrow for d in Direction.capitals() if d.arrow is not None}
+
+    @classmethod
     def from_str(cls, s: str) -> Direction:
         for v in Direction:
             if (
@@ -162,6 +175,14 @@ class Direction(Enum):
     @property
     def y(self) -> int:
         return self.vector.y
+
+    @property
+    def is_horizontal(self) -> bool:
+        return self == Direction.LEFT or self == Direction.RIGHT
+
+    @property
+    def is_vertical(self) -> bool:
+        return self == Direction.UP or self == Direction.DOWN
 
     def turn(self, turn: Turn) -> Direction:
         if self == Direction.UP:
@@ -220,3 +241,28 @@ class Draw:
                 ]
             )
         )
+
+
+class Line(NamedTuple):
+    position: Position
+    vector: Vector
+
+    @classmethod
+    def of(cls, position: Position, vector: Vector) -> Line:
+        return Line(position, vector)
+
+    def intersection(self, other: Line) -> tuple[float, float] | None:
+        x1, y1 = self.position.x, self.position.y
+        x2, y2 = x1 + 100 * self.vector.x, y1 + 100 * self.vector.y
+        x3, y3 = other.position.x, other.position.y
+        x4, y4 = x3 + 100 * other.vector.x, y3 + 100 * other.vector.y
+        d = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+        if d == 0:
+            return None
+        x = (
+            (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)
+        ) / d
+        y = (
+            (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)
+        ) / d
+        return (x, y)

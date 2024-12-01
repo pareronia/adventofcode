@@ -6,14 +6,12 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Callable, NamedTuple
+from typing import Callable
+from typing import NamedTuple
 
 import aocd
-import numpy as np
-import numpy.typing as npt
-
 from aoc import my_aocd
-from aoc.geometry import Position
+from aoc.grid import Cell
 
 
 class Action(Enum):
@@ -24,8 +22,8 @@ class Action(Enum):
 
 class Instruction(NamedTuple):
     action: Action
-    start: Position
-    end: Position
+    start: Cell
+    end: Cell
 
     @classmethod
     def from_input(cls, input_: str) -> Instruction:
@@ -42,20 +40,20 @@ class Instruction(NamedTuple):
         else:
             raise ValueError("Invalid input")
         start_splits = action_and_start_splits[1].split(",")
-        start = Position.of(int(start_splits[0]), int(start_splits[1]))
+        start = Cell(int(start_splits[0]), int(start_splits[1]))
         end_splits = splits[1].split(",")
-        end = Position.of(int(end_splits[0]), int(end_splits[1]))
+        end = Cell(int(end_splits[0]), int(end_splits[1]))
         return Instruction(action, start, end)
 
 
 class Grid:
     def __init__(
         self,
-        turn_on: Callable[[npt.NDArray[np.int_], Position, Position], None],
-        turn_off: Callable[[npt.NDArray[np.int_], Position, Position], None],
-        toggle: Callable[[npt.NDArray[np.int_], Position, Position], None],
+        turn_on: Callable[[list[list[int]], Cell, Cell], None],
+        turn_off: Callable[[list[list[int]], Cell, Cell], None],
+        toggle: Callable[[list[list[int]], Cell, Cell], None],
     ):
-        self.lights = np.zeros((1000, 1000), np.byte)
+        self.lights = [[0 for _ in range(1000)] for _ in range(1000)]
         self.turn_on = turn_on
         self.turn_off = turn_off
         self.toggle = toggle
@@ -65,14 +63,20 @@ class Grid:
             action = (
                 self.turn_on
                 if instruction.action == Action.TURN_ON
-                else self.turn_off
-                if instruction.action == Action.TURN_OFF
-                else self.toggle
+                else (
+                    self.turn_off
+                    if instruction.action == Action.TURN_OFF
+                    else self.toggle
+                )
             )
             action(self.lights, instruction.start, instruction.end)
 
     def get_total_light_value(self) -> int:
-        return int(np.sum(self.lights))
+        return sum(
+            self.lights[r][c]
+            for r in range(len(self.lights))
+            for c in range(len(self.lights[0]))
+        )
 
 
 def _parse(inputs: tuple[str, ...]) -> list[Instruction]:
@@ -80,24 +84,20 @@ def _parse(inputs: tuple[str, ...]) -> list[Instruction]:
 
 
 def part_1(inputs: tuple[str, ...]) -> int:
-    def turn_on(
-        lights: npt.NDArray[np.int_], start: Position, end: Position
-    ) -> None:
-        lights[start.x : end.x + 1, start.y : end.y + 1] = 1  # noqa E203
+    def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                lights[r][c] = 1
 
-    def turn_off(
-        lights: npt.NDArray[np.int_], start: Position, end: Position
-    ) -> None:
-        lights[start.x : end.x + 1, start.y : end.y + 1] = 0  # noqa E203
+    def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                lights[r][c] = 0
 
-    def toggle(
-        lights: npt.NDArray[np.int_], start: Position, end: Position
-    ) -> None:
-        lights[
-            start.x : end.x + 1, start.y : end.y + 1  # noqa E203
-        ] = np.logical_not(
-            lights[start.x : end.x + 1, start.y : end.y + 1]  # noqa E203
-        )
+    def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                lights[r][c] = 0 if lights[r][c] == 1 else 1
 
     lights = Grid(
         lambda lights, start, end: turn_on(lights, start, end),
@@ -109,21 +109,20 @@ def part_1(inputs: tuple[str, ...]) -> int:
 
 
 def part_2(inputs: tuple[str, ...]) -> int:
-    def turn_on(
-        lights: npt.NDArray[np.int_], start: Position, end: Position
-    ) -> None:
-        lights[start.x : end.x + 1, start.y : end.y + 1] += 1  # noqa E203
+    def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                lights[r][c] += 1
 
-    def turn_off(
-        lights: npt.NDArray[np.int_], start: Position, end: Position
-    ) -> None:
-        lights[start.x : end.x + 1, start.y : end.y + 1] -= 1  # noqa E203
-        lights[lights < 0] = 0
+    def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                lights[r][c] = max(lights[r][c] - 1, 0)
 
-    def toggle(
-        lights: npt.NDArray[np.int_], start: Position, end: Position
-    ) -> None:
-        lights[start.x : end.x + 1, start.y : end.y + 1] += 2  # noqa E203
+    def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                lights[r][c] += 2
 
     lights = Grid(
         lambda lights, start, end: turn_on(lights, start, end),

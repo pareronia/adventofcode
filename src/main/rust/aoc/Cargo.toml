@@ -7,3 +7,4 @@ edition = "2021"
 aocd = { path = "../aocd" }
 regex = "1.9"
 lazy_static = "1.4"
+itertools = "0.11"

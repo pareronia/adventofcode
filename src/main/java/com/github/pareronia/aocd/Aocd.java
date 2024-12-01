@@ -30,19 +30,18 @@ public class Aocd {
 	
 	public static final ZoneId AOC_TZ = ZoneId.of("America/New_York");
 	
+	@Deprecated
 	public static List<String> getData(final Integer year, final Integer day) {
-	    final List<String> inputData = puzzle(year, day).getInputData();
-	    if (inputData.isEmpty()) {
-	        System.err.println("!! INPUT DATA MISSING !!");
-	    }
-	    return inputData;
-	}
-	
-	public static Puzzle puzzle(final Integer year, final Integer day) {
-		return Puzzle.create(year, day);
+	    return Puzzle.builder()
+	            .year(year).day(day).user(User.getDefaultUser())
+	            .build()
+	            .inputData();
 	}
 
-	public static Puzzle puzzle(final Integer year, final Integer day, final String name) {
-	    return Puzzle.create(year, day, name);
+	@Deprecated
+	public static Puzzle puzzle(final Integer year, final Integer day) {
+		return Puzzle.builder()
+		        .year(year).day(day).user(User.getDefaultUser())
+		        .build();
 	}
 }

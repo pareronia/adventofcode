@@ -1,4 +1,5 @@
 import static com.github.pareronia.aoc.AssertUtils.unreachable;
+import static com.github.pareronia.aoc.IterTools.enumerate;
 import static java.util.stream.Collectors.toList;
 
 import java.util.List;
@@ -12,7 +13,7 @@ import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
 public final class AoC2015_01
-        extends SolutionBase<List<Direction>, Integer, Integer> {
+        extends SolutionBase<List<AoC2015_01.Direction>, Integer, Integer> {
     
     private AoC2015_01(final boolean debug) {
         super(debug);
@@ -50,9 +51,9 @@ public final class AoC2015_01
                 return sum != -1;
             }
         };
-        return Utils.enumerate(input.stream())
-            .dropWhile(e -> dropCondition.test(e.getValue()))
-            .map(e -> e.getIndex() + 1)
+        return enumerate(input.stream())
+            .dropWhile(e -> dropCondition.test(e.value()))
+            .map(e -> e.index() + 1)
             .findFirst().orElseThrow();
     }
     
@@ -86,37 +87,34 @@ public final class AoC2015_01
     private static final String TEST8 = ")())())";
     private static final String TEST9 = ")";
     private static final String TEST10 = "()())";
-}
     
-enum Direction {
+    enum Direction {
 
-    UP(1), DOWN(-1);
-    
-    private static final char UP_CHAR = '(';
-    private static final char DOWN_CHAR = ')';
-    
-    private int value;
-    
-    Direction(final int value) {
-        this.value = value;
-    }
-    
-    public static Direction fromChar(final Character ch) {
-        switch (ch) {
-        case UP_CHAR:
-            return Direction.UP;
-        case DOWN_CHAR:
-            return Direction.DOWN;
-        default:
-            throw unreachable();
+        UP(1), DOWN(-1);
+        
+        private static final char UP_CHAR = '(';
+        private static final char DOWN_CHAR = ')';
+        
+        private final int value;
+        
+        Direction(final int value) {
+            this.value = value;
         }
-    }
-    
-    public int addTo(final int lhs) {
-        return lhs + this.value;
-    }
-    
-    public static Collector<Direction, ?, Integer> summingInt() {
-        return Collectors.summingInt(dir -> dir.value);
+        
+        public static Direction fromChar(final Character ch) {
+            return switch (ch) {
+                case UP_CHAR -> Direction.UP;
+                case DOWN_CHAR -> Direction.DOWN;
+                default -> throw unreachable();
+            };
+        }
+        
+        public int addTo(final int lhs) {
+            return lhs + this.value;
+        }
+        
+        public static Collector<Direction, ?, Integer> summingInt() {
+            return Collectors.summingInt(dir -> dir.value);
+        }
     }
 }

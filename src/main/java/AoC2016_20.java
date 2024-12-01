@@ -4,7 +4,7 @@ import static java.util.stream.Collectors.toList;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.pareronia.aoc.Range;
+import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -12,13 +12,13 @@ public class AoC2016_20 extends AoCBase {
     
     private static final long TOTAL_IPS = 4294967296L;
     
-    private final List<Range<Long>> ranges;
+    private final List<RangeInclusive<Long>> ranges;
 	
 	private AoC2016_20(final List<String> input, final boolean debug) {
 		super(debug);
 		this.ranges = input.stream()
 		        .map(s -> s.split("-"))
-		        .map(sp -> Range.between(Long.valueOf(sp[0]), Long.valueOf(sp[1])))
+		        .map(sp -> RangeInclusive.between(Long.valueOf(sp[0]), Long.valueOf(sp[1])))
 		        .collect(toList());
 	}
 	
@@ -30,25 +30,25 @@ public class AoC2016_20 extends AoCBase {
 		return new AoC2016_20(input, true);
 	}
 	
-    private List<Range<Long>> combineRanges() {
-        final List<Range<Long>> combines = new ArrayList<>();
-        this.ranges.sort(comparing(Range::getMinimum)); // why doesn't this work without sorting?
+    private List<RangeInclusive<Long>> combineRanges() {
+        final List<RangeInclusive<Long>> combines = new ArrayList<>();
+        this.ranges.sort(comparing(RangeInclusive::getMinimum)); // why doesn't this work without sorting?
 	    combines.add(this.ranges.get(0));
 	    for (int i = 1; i < ranges.size(); i++) {
-            final Range<Long> r = ranges.get(i);
+            final RangeInclusive<Long> r = ranges.get(i);
             boolean combined = false;
             for (int j = 0; j < combines.size(); j++) {
-                final Range<Long> combine = combines.get(j);
+                final RangeInclusive<Long> combine = combines.get(j);
                 if (combine.isOverlappedBy(r)) {
                     final long min = Math.min(combine.getMinimum(), r.getMinimum());
                     final long max = Math.max(combine.getMaximum(), r.getMaximum());
-                    combines.set(j, Range.between(min, max));
+                    combines.set(j, RangeInclusive.between(min, max));
                     combined = true;
                 } else if (r.getMaximum() + 1 == combine.getMinimum()) {
-                    combines.set(j, Range.between(r.getMinimum(), combine.getMaximum()));
+                    combines.set(j, RangeInclusive.between(r.getMinimum(), combine.getMaximum()));
                     combined = true;
                 } else if (combine.getMaximum() + 1 == r.getMinimum()) {
-                    combines.set(j, Range.between(combine.getMinimum(), r.getMaximum()));
+                    combines.set(j, RangeInclusive.between(combine.getMinimum(), r.getMaximum()));
                     combined = true;
                 }
             }
@@ -62,7 +62,7 @@ public class AoC2016_20 extends AoCBase {
 	@Override
 	public Long solvePart1() {
 	    return combineRanges().stream()
-	            .sorted(comparing(Range::getMinimum))
+	            .sorted(comparing(RangeInclusive::getMinimum))
 	            .findFirst()
 	            .map(c -> c.getMaximum() + 1)
 	            .orElseThrow();

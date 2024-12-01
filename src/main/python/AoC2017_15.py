@@ -2,76 +2,111 @@
 #
 # Advent of Code 2017 Day 15
 #
-from aoc import my_aocd
-import aocd
-from aoc.common import log
 
+from __future__ import annotations
+
+import sys
+from typing import Callable
+from typing import NamedTuple
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 FACTOR_A = 16807
 FACTOR_B = 48271
 MOD = 2147483647
 
-
-def _parse(inputs: tuple[str]) -> tuple[int]:
-    assert len(inputs) == 2
-    return (int(inputs[i].split()[-1]) for i in (0, 1))
-
-
-def _next(prev: int, factor: int, condition) -> int:
-    val = prev
-    while True:
-        val = (val * factor) % MOD
-        if condition(val):
-            return val
-
-
-def _solve(reps: int, start_a: int, start_b: int,
-           condition_a, condition_b) -> int:
-    cnt = 0
-    prev_a = start_a
-    prev_b = start_b
-    for i in range(reps):
-        prev_a = _next(prev_a, FACTOR_A, condition_a)
-        prev_b = _next(prev_b, FACTOR_B, condition_b)
-        if i < 5:
-            log(f"{i}: {prev_a} | {prev_b}")
-        if (prev_a & 0xffff) == (prev_b & 0xffff):
-            cnt += 1
-    return cnt
-
-
-def part_1(inputs: tuple[str]) -> int:
-    start_a, start_b = _parse(inputs)
-    return _solve(40_000_000, start_a, start_b,
-                  lambda x: True, lambda x: True)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    start_a, start_b = _parse(inputs)
-    return _solve(5_000_000, start_a, start_b,
-                  lambda x: x % 4 == 0, lambda x: x % 8 == 0)
-
-
 TEST = """\
 Generator A starts with 65
 Generator B starts with 8921
-""".splitlines()
+"""
+
+
+class Generator:
+    def __init__(
+        self, seed: int, factor: int, condition: Callable[[int], bool]
+    ) -> None:
+        self.prev = seed
+        self.factor = factor
+        self.condition = condition
+
+    def __iter__(self) -> Generator:
+        return self
+
+    def __next__(self) -> int:
+        val = self.prev
+        while True:
+            val = (val * self.factor) % MOD
+            if self.condition(val):
+                self.prev = val
+                return val
+
+
+class Generators(NamedTuple):
+    a: int
+    b: int
+
+    @classmethod
+    def from_input(cls, input: list[str]) -> Generators:
+        return Generators(*(int(input[i].split()[-1]) for i in (0, 1)))
+
+    def generator_a(self, condition: Callable[[int], bool]) -> Generator:
+        return Generator(self.a, FACTOR_A, condition)
+
+    def generator_b(self, condition: Callable[[int], bool]) -> Generator:
+        return Generator(self.b, FACTOR_B, condition)
+
+
+Input = Generators
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Generators.from_input(list(input_data))
+
+    def solve(
+        self,
+        generators: Generators,
+        reps: int,
+        condition_a: Callable[[int], bool],
+        condition_b: Callable[[int], bool],
+    ) -> int:
+        generator_a = generators.generator_a(condition_a)
+        generator_b = generators.generator_b(condition_b)
+        return sum(
+            next(generator_a) & 0xFFFF == next(generator_b) & 0xFFFF
+            for _ in range(reps)
+        )
+
+    def part_1(self, generators: Generators) -> int:
+        return self.solve(
+            generators, 40_000_000, lambda x: True, lambda x: True
+        )
+
+    def part_2(self, generators: Generators) -> int:
+        return self.solve(
+            generators, 5_000_000, lambda x: x % 4 == 0, lambda x: x % 8 == 0
+        )
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 588),
+            ("part_2", TEST, 309),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2017, 15)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2017, 15)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 588
-    assert part_2(TEST) == 309
-
-    inputs = my_aocd.get_input(2017, 15, 2)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

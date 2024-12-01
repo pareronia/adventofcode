@@ -10,11 +10,6 @@ import java.util.Map.Entry;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_14 extends AoCBase {
     
     private final char[] template;
@@ -56,8 +51,8 @@ public class AoC2021_14 extends AoCBase {
                 final Character elem = rules.get(pair);
                 final Long count = e.getValue();
                 elemCounters.merge(elem, count, Long::sum);
-                pairCounters2.merge(new CharacterPair(pair.getLeft(), elem), count, Long::sum);
-                pairCounters2.merge(new CharacterPair(elem, pair.getRight()), count, Long::sum);
+                pairCounters2.merge(new CharacterPair(pair.left(), elem), count, Long::sum);
+                pairCounters2.merge(new CharacterPair(elem, pair.right()), count, Long::sum);
             }
             pairCounters = pairCounters2;
         }
@@ -109,13 +104,7 @@ public class AoC2021_14 extends AoCBase {
         "CN -> C"
     );
     
-    @RequiredArgsConstructor
-    @Getter
-    @EqualsAndHashCode
-    @ToString
-    private static final class CharacterPair {
-        private final Character left;
-        private final Character right;
+    record CharacterPair(Character left, Character right) {
         
         public static CharacterPair from(final String string) {
             return new CharacterPair(string.charAt(0), string.charAt(1));

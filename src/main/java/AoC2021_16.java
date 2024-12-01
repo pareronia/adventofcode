@@ -8,27 +8,50 @@ import java.util.List;
 import java.util.stream.LongStream;
 
 import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
-
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 
 public class AoC2021_16 extends AoCBase {
     
     private static final class BITS {
 
-        @RequiredArgsConstructor
-        @Getter
-        @ToString
-        @Builder
-        public static final class Packet {
-            private final Integer version;
-            private final Integer typeId;
-            private final Long value;
-            private final List<Packet> subPackets;
+        record Packet(
+            Integer version,
+            Integer typeId,
+            Long value,
+            List<Packet> subPackets
+        ) {
+            public static PacketBuilder builder() {
+                return new PacketBuilder();
+            }
+            
+            public static final class PacketBuilder {
+                private Integer version;
+                private Integer typeId;
+                private Long value;
+                private List<Packet> subPackets;
+                
+                public PacketBuilder version(final Integer version) {
+                    this.version = version;
+                    return this;
+                }
+
+                public PacketBuilder typeId(final Integer typeId) {
+                    this.typeId = typeId;
+                    return this;
+                }
+
+                public PacketBuilder subPackets(final List<Packet> subPackets) {
+                    this.subPackets = subPackets;
+                    return this;
+                }
+
+                public Packet build() {
+                    return new Packet(version, typeId, value, subPackets);
+                }
+            }
         }
         
         public interface BITSEventHandler {
@@ -53,15 +76,16 @@ public class AoC2021_16 extends AoCBase {
             }
         }
         
-        @RequiredArgsConstructor
-        public static class LoggingBITSHandler implements BITSEventHandler {
-            private final boolean debug;
+        public static class LoggingBITSHandler implements BITSEventHandler, LoggerEnabled {
+            private final Logger logger;
 
-            protected void log(final Object obj) {
-                if (!debug) {
-                    return;
-                }
-                System.out.println(obj);
+            public LoggingBITSHandler(final Logger logger) {
+                this.logger = logger;
+            }
+
+            @Override
+            public Logger getLogger() {
+                return this.logger;
             }
 
             @Override
@@ -94,8 +118,8 @@ public class AoC2021_16 extends AoCBase {
             private final Deque<Packet.PacketBuilder> builderStack = new ArrayDeque<>();
             private final Deque<Packet> packetStack = new ArrayDeque<>();
             
-            public DOMBITSHandler(final boolean debug) {
-                super(debug);
+            public DOMBITSHandler(final Logger logger) {
+                super(logger);
             }
 
             @Override
@@ -153,9 +177,16 @@ public class AoC2021_16 extends AoCBase {
             }
         }
         
-        @RequiredArgsConstructor(staticName = "createParser")
         public static final class Parser {
             private final BITSEventHandler handler;
+            
+            private Parser(final BITSEventHandler handler) {
+                this.handler = handler;
+            }
+
+            public static Parser createParser(final BITSEventHandler handler) {
+                return new Parser(handler);
+            }
         
             public void parseHex(final String hexString) {
                 parseBin(StringOps.hexToBin(hexString));
@@ -259,8 +290,8 @@ public class AoC2021_16 extends AoCBase {
     private static final class VersionSumBITSHandler extends AoC2021_16.BITS.LoggingBITSHandler {
         private int versionSum = 0;
 
-        public VersionSumBITSHandler(final boolean debug) {
-            super(debug);
+        public VersionSumBITSHandler(final Logger logger) {
+            super(logger);
         }
 
         public int getVersionSum() {
@@ -276,32 +307,32 @@ public class AoC2021_16 extends AoCBase {
     
     private static final class ValueBITSCalcHandler extends AoC2021_16.BITS.DOMBITSHandler {
 
-        public ValueBITSCalcHandler(final boolean debug) {
-            super(debug);
+        public ValueBITSCalcHandler(final Logger logger) {
+            super(logger);
         }
         
         private long calcValue(final AoC2021_16.BITS.Packet packet) {
-            final List<Long> values = packet.getSubPackets().stream()
+            final List<Long> values = packet.subPackets().stream()
                 .map(p -> {
-                    if (p.getValue() != null) {
-                        return p.getValue();
+                    if (p.value() != null) {
+                        return p.value();
                     }
                     return calcValue(p);
                 })
                 .collect(toList());
             final LongStream longs = values.stream().mapToLong(Long::longValue);
-            if (packet.getTypeId() == 0) {
+            if (packet.typeId() == 0) {
                 return longs.sum();
-            } else if (packet.getTypeId() == 1) {
+            } else if (packet.typeId() == 1) {
                 return longs.reduce(1L, (a, b) -> a * b);
-            } else if (packet.getTypeId() == 2) {
+            } else if (packet.typeId() == 2) {
                 return longs.min().orElseThrow();
-            } else if (packet.getTypeId() == 3) {
+            } else if (packet.typeId() == 3) {
                 return longs.max().orElseThrow();
-            } else if (packet.getTypeId() == 5) {
+            } else if (packet.typeId() == 5) {
                 assert values.size() == 2;
                 return values.get(0) > values.get(1) ? 1L : 0L;
-            } else if (packet.getTypeId() == 6) {
+            } else if (packet.typeId() == 6) {
                 assert values.size() == 2;
                 return values.get(0) < values.get(1) ? 1L : 0L;
             } else {
@@ -317,14 +348,14 @@ public class AoC2021_16 extends AoCBase {
     
     @Override
     public Integer solvePart1() {
-        final VersionSumBITSHandler handler = new VersionSumBITSHandler(this.debug);
+        final VersionSumBITSHandler handler = new VersionSumBITSHandler(this.logger);
         BITS.Parser.createParser(handler).parseHex(this.hexData);
         return handler.getVersionSum();
     }
     
     @Override
     public Long solvePart2() {
-        final ValueBITSCalcHandler handler = new ValueBITSCalcHandler(this.debug);
+        final ValueBITSCalcHandler handler = new ValueBITSCalcHandler(this.logger);
         BITS.Parser.createParser(handler).parseHex(this.hexData);
         log(handler.getPacket());
         return handler.getValue();

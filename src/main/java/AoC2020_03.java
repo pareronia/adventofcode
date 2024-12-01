@@ -10,9 +10,6 @@ import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2020_03 extends AoCBase {
 	
 	private final Slope slope;
@@ -40,8 +37,8 @@ public class AoC2020_03 extends AoCBase {
 	private List<Cell> path(final Steps steps) {
 		final List<Cell> path = new ArrayList<>();
 		for (int row = 0, col = 0;
-				row < slope.getHeight();
-				row += steps.getDown(), col = (col + steps.getRight()) % slope.getWidth()) {
+				row < slope.height();
+				row += steps.down(), col = (col + steps.right()) % slope.width()) {
 			path.add(Cell.at(row, col));
 		}
 		return path;
@@ -98,19 +95,9 @@ public class AoC2020_03 extends AoCBase {
 			".#..#...#.#"
 	);
 	
-	@RequiredArgsConstructor
-	@Getter
-	private static final class Slope {
-		private final Set<Cell> trees;
-		private final Integer width;
-		private final Integer height;
-	}
+	record Slope(Set<Cell> trees, int width, int height) { }
 	
-	@RequiredArgsConstructor
-	@Getter
-	private static final class Steps {
-		private final Integer down;
-		private final Integer right;
+	record Steps(int down, int right) {
 		
 		public static Steps of(final Integer down, final Integer right) {
 			return new Steps(down, right);

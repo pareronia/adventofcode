@@ -5,16 +5,8 @@ import java.util.function.Predicate;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Turn;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-@ToString(callSuper = true, onlyExplicitlyIncluded = true)
 public class NavigationWithHeading extends Navigation {
     
-    @ToString.Include
-    @Getter
-    @Setter
     private Heading heading;
 
     public NavigationWithHeading(final Position position, final Heading heading) {
@@ -37,18 +29,33 @@ public class NavigationWithHeading extends Navigation {
         return this;
     }
 
+    public Heading getHeading() {
+        return heading;
+    }
+
+    public void setHeading(final Heading heading) {
+        this.heading = heading;
+    }
+
     public NavigationWithHeading turn(final Turn turn) {
         this.heading = this.heading.turn(turn);
         return this;
     }
     
     public NavigationWithHeading forward(final Integer amount) {
-        translate(this.heading.getVector(), amount);
+        translate(this.heading.vector(), amount);
         return this;
     }
     
     public NavigationWithHeading drift(final Heading heading, final Integer amount) {
-        translate(heading.getVector(), amount);
+        translate(heading.vector(), amount);
         return this;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder builder = new StringBuilder();
+        builder.append("NavigationWithHeading [heading=").append(heading).append("]");
+        return builder.toString();
     }
 }

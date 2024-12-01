@@ -1,98 +1,88 @@
-import static com.github.pareronia.aoc.StringUtils.countMatches;
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.summingInt;
-import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.github.pareronia.aoc.Counter;
+import com.github.pareronia.aoc.Counter.Entry;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.Value;
-
-public class AoC2016_04 extends AoCBase {
+public class AoC2016_04
+        extends SolutionBase<List<AoC2016_04.Room>, Integer, Integer> {
     
     private static final Pattern REGEXP = Pattern.compile("([-a-z]+)-([0-9]+)\\[([a-z]{5})\\]$");
     private static final Pattern MATCH = Pattern.compile("[a-z]{9}-[a-z]{6}-[a-z]{7}$");
     
-    private final List<Room> rooms;
-
-	private AoC2016_04(final List<String> inputs, final boolean debug) {
+	private AoC2016_04(final boolean debug) {
 		super(debug);
-		this.rooms = inputs.stream()
-		        .map(REGEXP::matcher)
-		        .filter(Matcher::matches)
-		        .map(m -> new Room(m.group(1), Integer.valueOf(m.group(2)), m.group(3)))
-		        .collect(toList());
-		log(rooms);
 	}
 	
-	public static final AoC2016_04 create(final List<String> input) {
-		return new AoC2016_04(input, false);
+	public static final AoC2016_04 create() {
+		return new AoC2016_04(false);
 	}
 
-	public static final AoC2016_04 createDebug(final List<String> input) {
-		return new AoC2016_04(input, true);
+	public static final AoC2016_04 createDebug() {
+		return new AoC2016_04(true);
 	}
-	
+
 	@Override
-	public Integer solvePart1() {
-		return this.rooms.stream()
+    protected List<Room> parseInput(final List<String> inputs) {
+        return inputs.stream().map(Room::fromInput).toList();
+    }
+
+    @Override
+	public Integer solvePart1(final List<Room> rooms) {
+		return rooms.stream()
 		        .filter(Room::isReal)
-		        .collect(summingInt(Room::getSectorId));
+		        .mapToInt(Room::sectorId)
+		        .sum();
 	}
 
 	@Override
-	public Integer solvePart2() {
-	    final List<Integer> matches = this.rooms.stream()
-	            .filter(r -> MATCH.matcher(r.getName()).matches())
+	public Integer solvePart2(final List<Room> rooms) {
+	    return rooms.stream()
+	            .filter(r -> MATCH.matcher(r.name()).matches())
 	            .filter(r -> r.decrypt().equals("northpole object storage"))
-	            .map(Room::getSectorId)
-	            .collect(toList());
-	    assert matches.size() == 1;
-		return matches.get(0);
+	            .map(Room::sectorId)
+	            .findFirst().orElseThrow();
 	}
 
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "1514")
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2016_04.createDebug(TEST).solvePart1() == 1514;
-		
-		final Puzzle puzzle = Puzzle.create(2016, 4);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2016_04.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2016_04.create(input)::solvePart2)
-		);
+	    AoC2016_04.create().run();
 	}
 
-	private static final List<String> TEST = splitLines(
-			"aaaaa-bbb-z-y-x-123[abxyz]\r\n" +
-			"a-b-c-d-e-f-g-h-987[abcde]\r\n" +
-			"not-a-real-room-404[oarel]\r\n" +
-			"totally-real-room-200[decoy]"
-	);
+	private static final String TEST = """
+	        aaaaa-bbb-z-y-x-123[abxyz]
+	        a-b-c-d-e-f-g-h-987[abcde]
+	        not-a-real-room-404[oarel]
+	        totally-real-room-200[decoy]
+	        """;
 	
-	@Value
-	private static final class Room {
-	    private final String name;
-	    private final Integer sectorId;
-	    private final String checkum;
+	record Room(String name, int sectorId, String checkum) {
+	    
+	    public static Room fromInput(final String line) {
+	        final Matcher m = REGEXP.matcher(line);
+            assertTrue(m.matches(), () -> "Expected match");
+            return new Room(m.group(1), Integer.parseInt(m.group(2)), m.group(3));
+	    }
 	    
 	    public boolean isReal() {
-	        return Utils.asCharacterStream(this.name.replace("-", ""))
-                .collect(toSet()).stream()
-                .collect(toMap(c -> c,
-                               c -> Integer.valueOf(countMatches(this.name, c))))
-                .entrySet().stream()
-	            .sorted(comparing(e -> e.getValue() * -100 + e.getKey().charValue()))
-	            .map(Entry::getKey)
+	        return new Counter<>(
+	                Utils.asCharacterStream(this.name.replace("-", "")))
+	            .mostCommon().stream()
+	            .sorted(comparing(e -> e.count() * -100 + e.value().charValue()))
 	            .limit(5)
+	            .map(Entry::value)
 	            .collect(toAString())
 	            .equals(this.checkum);
 	    }

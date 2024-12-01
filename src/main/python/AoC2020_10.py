@@ -2,41 +2,14 @@
 #
 # Advent of Code 2020 Day 10
 #
-from collections import defaultdict, Counter
-from aoc import my_aocd
-from aoc.common import log
 
+import sys
+from collections import Counter
+from collections import defaultdict
 
-def _parse(inputs: tuple[str]) -> tuple[int]:
-    sorted_ = [int(_) for _ in inputs]
-    sorted_.append(0)
-    sorted_.append(max(sorted_) + 3)
-    sorted_.sort()
-    return tuple(sorted_)
-
-
-def part_1(inputs: tuple[str]) -> int:
-    inputs = _parse(inputs)
-    log(inputs)
-    cnt = Counter((inputs[i] - inputs[i-1]
-                   for i in range(1, len(inputs))))
-    return cnt[1] * cnt[3]
-
-
-def part_2(inputs: tuple[str]) -> int:
-    inputs = _parse(inputs)
-    log(inputs)
-    seen = defaultdict(lambda: 0)
-    seen[0] = 1
-    for i in inputs[1:]:
-        for j in (inputs[k]
-                  for k in range(inputs.index(i) - 1, -1, -1)
-                  if i - inputs[k] <= 3):
-            seen[i] += seen[j]
-        log(seen)
-    log(seen[inputs[-1]])
-    return seen[inputs[-1]]
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
 TEST1 = """\
 16
@@ -50,7 +23,7 @@ TEST1 = """\
 6
 12
 4
-""".splitlines()
+"""
 TEST2 = """\
 28
 33
@@ -83,23 +56,53 @@ TEST2 = """\
 34
 10
 3
-""".splitlines()
+"""
+
+Input = list[int]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        numbers = [0] + sorted(int(_) for _ in input_data)
+        numbers.append(numbers[-1] + 3)
+        return numbers
+
+    def part_1(self, numbers: Input) -> int:
+        cnt = Counter(
+            numbers[i] - numbers[i - 1] for i in range(1, len(numbers))
+        )
+        return cnt[1] * cnt[3]
+
+    def part_2(self, numbers: Input) -> int:
+        seen = defaultdict(lambda: 0)
+        seen[0] = 1
+        for i, n in enumerate(numbers[1:]):
+            for j in (
+                numbers[k] for k in range(i, -1, -1) if n - numbers[k] <= 3
+            ):
+                seen[n] += seen[j]
+        return seen[numbers[-1]]
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 35),
+            ("part_1", TEST2, 220),
+            ("part_2", TEST1, 8),
+            ("part_2", TEST2, 19208),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2020, 10)
 
 
 def main() -> None:
-    my_aocd.print_header(2020, 10)
-
-    assert part_1(TEST1) == 35
-    assert part_1(TEST2) == 220
-    assert part_2(TEST1) == 8
-    assert part_2(TEST2) == 19208
-
-    inputs = my_aocd.get_input(2020, 10, 101)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

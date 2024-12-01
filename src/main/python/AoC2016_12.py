@@ -3,83 +3,26 @@
 # Advent of Code 2016 Day 12
 #
 
-import aocd
-from aoc import my_aocd
-from aoc.vm import Program, VirtualMachine
+import sys
+
 from aoc.assembunny import Assembunny
-from aoc.math import Fibonacci
+from aoc.assembunny import AssembunnyInstruction
+from aoc.common import InputData
+from aoc.common import SolutionBase
 from aoc.common import log
+from aoc.math import Fibonacci
+from aoc.vm import Program
+from aoc.vm import VirtualMachine
 
-
-# from u/blockingthesky @reddit
-def _solve_reddit(inp: tuple[str], init_c: int) -> int:
-    reg = {'a': 0, 'b': 0, 'c': init_c, 'd': 0}
-    ind = 0
-    while ind < len(inp):
-        ins = inp[ind].split(' ')
-        if ins[0] == 'cpy':
-            if ins[1][0] in 'abcd':
-                reg[ins[2]] = reg[ins[1]]
-            else:
-                j = int(ins[1])
-                reg[ins[2]] = j
-        elif ins[0] == 'inc':
-            reg[ins[1]] += 1
-        elif ins[0] == 'dec':
-            reg[ins[1]] -= 1
-        if ins[0] == 'jnz':
-            if ins[1] in 'abcd':
-                if reg[ins[1]] != 0:
-                    ind += int(ins[2])
-                else:
-                    ind += 1
-            else:
-                if int(ins[1]) != 0:
-                    ind += int(ins[2])
-                else:
-                    ind += 1
-        else:
-            ind += 1
-    return reg['a']
-
-
-def _solve_vm(inputs: tuple[str], init_c: int) -> int:
-    inss = Assembunny.parse(inputs)
-    program = Program(Assembunny.translate(inss))
-    program.set_register_value("c", init_c)
-    VirtualMachine().run_program(program)
-    log(program.registers["a"])
-    return int(program.registers["a"])
-
-
-def _solve(inputs: tuple[str, ...], init_c: int) -> int:
-    values = list(map(lambda i: int(i),
-                      filter(lambda i: i.isnumeric(),
-                             map(lambda i: i.operands[0],
-                                 filter(lambda i: i.operation == "cpy",
-                                        Assembunny.parse(inputs))))))
-    n = values[0] + values[1] + values[2]
-    n += 0 if init_c == 0 else 7
-    return Fibonacci.binet(n) + values[4] * values[5]
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    return _solve(inputs, 0)
-
-
-def part_2(inputs: tuple[str, ...]) -> int:
-    return _solve(inputs, 1)
-
-
-TEST1 = '''\
+TEST1 = """\
 cpy 41 a
 inc a
 inc a
 dec a
 jnz a 2
 dec a
-'''.splitlines()
-TEST2 = '''\
+"""
+TEST2 = """\
 cpy 1 a
 cpy 1 b
 cpy 26 d
@@ -103,26 +46,92 @@ dec d
 jnz d -2
 dec c
 jnz c -5
-'''.splitlines()
+"""
+
+
+# from u/blockingthesky @reddit
+def _solve_reddit(inp: list[str], init_c: int) -> int:
+    reg = {"a": 0, "b": 0, "c": init_c, "d": 0}
+    ind = 0
+    while ind < len(inp):
+        ins = inp[ind].split(" ")
+        if ins[0] == "cpy":
+            if ins[1][0] in "abcd":
+                reg[ins[2]] = reg[ins[1]]
+            else:
+                j = int(ins[1])
+                reg[ins[2]] = j
+        elif ins[0] == "inc":
+            reg[ins[1]] += 1
+        elif ins[0] == "dec":
+            reg[ins[1]] -= 1
+        if ins[0] == "jnz":
+            if ins[1] in "abcd":
+                if reg[ins[1]] != 0:
+                    ind += int(ins[2])
+                else:
+                    ind += 1
+            else:
+                if int(ins[1]) != 0:
+                    ind += int(ins[2])
+                else:
+                    ind += 1
+        else:
+            ind += 1
+    return reg["a"]
+
+
+def _solve_vm(instructions: list[AssembunnyInstruction], init_c: int) -> int:
+    program = Program(Assembunny.translate(instructions))
+    program.set_register_value("c", init_c)
+    VirtualMachine().run_program(program)
+    log(program.registers["a"])
+    return int(program.registers["a"])
+
+
+Input = list[AssembunnyInstruction]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Assembunny.parse(tuple(input_data))
+
+    def solve(
+        self, instructions: list[AssembunnyInstruction], init_c: int
+    ) -> int:
+        values = [
+            int(i)
+            for i in [
+                i.operands[0] for i in instructions if i.operation == "cpy"
+            ]
+            if i.isnumeric()
+        ]
+        n = values[0] + values[1] + values[2]
+        n += 0 if init_c == 0 else 7
+        return Fibonacci.binet(n) + values[4] * values[5]
+
+    def part_1(self, instructions: list[AssembunnyInstruction]) -> int:
+        return self.solve(instructions, 0)
+
+    def part_2(self, instructions: list[AssembunnyInstruction]) -> int:
+        return self.solve(instructions, 1)
+
+    def samples(self) -> None:
+        assert self.solve(self.parse_input(TEST2.splitlines()), 0) == 318_003
+        assert self.solve(self.parse_input(TEST2.splitlines()), 1) == 9_227_657
+        assert _solve_reddit(TEST1.splitlines(), 0) == 42
+        assert _solve_reddit(TEST2.splitlines(), 0) == 318_003
+        assert _solve_reddit(TEST2.splitlines(), 1) == 9_227_657
+
+
+solution = Solution(2016, 12)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2016, 12)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert _solve(TEST2, 0) == 318_003  # type:ignore[arg-type]
-    assert _solve(TEST2, 1) == 9_227_657  # type:ignore[arg-type]
-    assert _solve_reddit(TEST1, 0) == 42  # type:ignore[arg-type]
-    assert _solve_reddit(TEST2, 0) == 318_003  # type:ignore[arg-type]
-    assert _solve_reddit(TEST2, 1) == 9_227_657  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 23)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

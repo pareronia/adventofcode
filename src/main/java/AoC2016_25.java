@@ -1,49 +1,37 @@
-import static java.util.stream.Collectors.toList;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.assembunny.Assembunny;
 import com.github.pareronia.aoc.assembunny.Assembunny.AssembunnyInstruction;
+import com.github.pareronia.aoc.solution.SolutionBase;
+import com.github.pareronia.aoc.vm.Instruction;
 import com.github.pareronia.aoc.vm.Program;
 import com.github.pareronia.aoc.vm.VirtualMachine;
 import com.github.pareronia.aoc.vm.VirtualMachine.InfiniteLoopException;
-import com.github.pareronia.aocd.Puzzle;
 
-public final class AoC2016_25 extends AoCBase {
+public final class AoC2016_25
+        extends SolutionBase<List<AssembunnyInstruction>, Integer, String> {
     
-    private final transient List<AssembunnyInstruction> instructions;
-    
-    private AoC2016_25(final List<String> inputs, final boolean debug) {
+    private AoC2016_25(final boolean debug) {
         super(debug);
-        log(inputs);
-        this.instructions = Assembunny.parse(inputs);
     }
     
-    public static AoC2016_25 create(final List<String> input) {
-        return new AoC2016_25(input, false);
+    public static AoC2016_25 create() {
+        return new AoC2016_25(false);
     }
     
-    public static AoC2016_25 createDebug(final List<String> input) {
-        return new AoC2016_25(input, true);
+    public static AoC2016_25 createDebug() {
+        return new AoC2016_25(true);
     }
     
-    private Integer solveCheat() {
-        final List<Integer> values = this.instructions.stream()
-                .filter(i -> "cpy".equals(i.getOperator()))
-                .map(i -> i.getOperands().get(0))
-                .filter(StringUtils::isNumeric)
-                .map(Integer::valueOf)
-                .collect(toList());
-        return 2730 - values.get(0) * 182;
-    }
-    
-    private List<Long> runProgram(final Integer initA) {
+    private List<Long> runProgram(
+            final List<Instruction> vmInstructions,
+            final Integer initA
+    ) {
         final List<Long> output = new ArrayList<>();
         final Program program = new Program(
-                Assembunny.translate(this.instructions),
+                vmInstructions,
                 6_000,
                 output::add);
         program.setRegisterValue("a", initA.longValue());
@@ -56,11 +44,13 @@ public final class AoC2016_25 extends AoCBase {
         return output;
     }
     
-    private Integer solveVM() {
-        int n = 0;
+    private Integer solveVM(final List<AssembunnyInstruction> instructions) {
+        final List<Instruction> vmInstructions
+                = Assembunny.translate(instructions);
+        int n = 150;
         while(true) {
             log(n);
-            final List<Long> output = runProgram(n);
+            final List<Long> output = runProgram(vmInstructions, n);
             if (Stream.iterate(0, i -> i < output.size(), i -> i + 1)
                         .allMatch(i -> i % 2 == output.get(i))) {
                 return n;
@@ -70,56 +60,21 @@ public final class AoC2016_25 extends AoCBase {
     }
     
     @Override
-    public Integer solvePart1() {
-        return solveVM();
+    protected List<AssembunnyInstruction> parseInput(final List<String> inputs) {
+        return Assembunny.parse(inputs);
+    }
+
+    @Override
+    public Integer solvePart1(final List<AssembunnyInstruction> instructions) {
+        return solveVM(instructions);
     }
     
     @Override
-    public Integer solvePart2() {
-        return 0;
+    public String solvePart2(final List<AssembunnyInstruction> instructions) {
+        return "🎄";
     }
     
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_25.createDebug(TEST).solveCheat() == 182;
-
-		final Puzzle puzzle = Puzzle.create(2016, 25);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2016_25.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2016_25.create(input)::solvePart2)
-		);
+        AoC2016_25.create().run();
     }
-
-    private static final List<String> TEST = splitLines(
-            "cpy a d\n" +
-            "cpy 14 c\n" +
-            "cpy 182 b\n" +
-            "inc d\n" +
-            "dec b\n" +
-            "jnz b -2\n" +
-            "dec c\n" +
-            "jnz c -5\n" +
-            "cpy d a\n" +
-            "jnz 0 0\n" +
-            "cpy a b\n" +
-            "cpy 0 a\n" +
-            "cpy 2 c\n" +
-            "jnz b 2\n" +
-            "jnz 1 6\n" +
-            "dec b\n" +
-            "dec c\n" +
-            "jnz c -4\n" +
-            "inc a\n" +
-            "jnz 1 -7\n" +
-            "cpy 2 b\n" +
-            "jnz c 2\n" +
-            "jnz 1 4\n" +
-            "dec b\n" +
-            "dec c\n" +
-            "jnz 1 -4\n" +
-            "jnz 0 0\n" +
-            "out b\n" +
-            "jnz a -19\n" +
-            "jnz 1 -21"
-    );
 }

@@ -1,170 +1,116 @@
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
+import static com.github.pareronia.aoc.AssertUtils.unreachable;
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.StringOps.toBlocks;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Function;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.StringUtils;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-public class AoC2021_04 extends AoCBase {
+public class AoC2021_04 extends SolutionBase<List<String>, Integer, Integer> {
     
-    private final List<Integer> draws;
-    private final List<Board> boards;
-    
-	private AoC2021_04(final List<String> input, final boolean debug) {
+	private AoC2021_04(final boolean debug) {
 		super(debug);
-		final List<List<String>> blocks = toBlocks(input);
-		this.draws = Arrays.stream(blocks.get(0).get(0).split(","))
-		        .map(Integer::valueOf)
-		        .collect(toList());
-		log(this.draws);
-		this.boards = blocks.subList(1, blocks.size()).stream()
-		        .map(Board::new)
-		        .collect(toList());
 	}
 	
-	public static final AoC2021_04 create(final List<String> input) {
-		return new AoC2021_04(input, false);
+	public static final AoC2021_04 create() {
+		return new AoC2021_04(false);
 	}
 
-	public static final AoC2021_04 createDebug(final List<String> input) {
-		return new AoC2021_04(input, true);
-	}
-	
-	private void play(final Function<Bingo, Boolean> stop) {
-	    for (final Integer draw : this.draws) {
-	        this.boards.forEach(b -> b.mark(draw));
-	        final List<Board> winners = this.boards.stream()
-	                .filter(b -> !b.isComplete())
-	                .filter(Board::win)
-	                .collect(toList());
-	        for (final Board winner : winners) {
-                printGrid(winner.getNumbers());
-                log("");
-                winner.complete();
-                if (stop.apply(new Bingo(draw, winner))) {
-                    return;
-                }
-            }
-	    }
-	}
-	
-	private int solve(final int stopCount) {
-	    final List<Bingo> bingoes = new ArrayList<>();
-        play(bingo -> {
-            bingoes.add(bingo);
-            return bingoes.size() == stopCount;
-        });
-        final Bingo lastBingo = bingoes.get(bingoes.size() - 1);
-        return lastBingo.getDraw() * lastBingo.getBoard().value();
+	public static final AoC2021_04 createDebug() {
+		return new AoC2021_04(true);
 	}
 	
 	@Override
-    public Integer solvePart1() {
-	    return solve(1);
+    protected List<String> parseInput(final List<String> inputs) {
+        return inputs;
+    }
+
+    private int solve(final BingoGame game, final int stopCount) {
+	    final List<BingoGame.Bingo> bingoes = game.play(stopCount);
+        final BingoGame.Bingo lastBingo = Utils.last(bingoes);
+        return lastBingo.draw() * lastBingo.board().value();
 	}
 	
 	@Override
-	public Integer solvePart2() {
-	    return solve(this.boards.size());
+    public Integer solvePart1(final List<String> input) {
+	    final BingoGame game = BingoGame.fromInput(input);
+	    return solve(game, 1);
 	}
 	
+	@Override
+	public Integer solvePart2(final List<String> input) {
+	    final BingoGame game = BingoGame.fromInput(input);
+	    return solve(game, game.boards.size());
+	}
+	
+	@Samples({
+	    @Sample(method = "part1", input = TEST, expected = "4512"),
+	    @Sample(method = "part2", input = TEST, expected = "1924"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2021_04.create(TEST).solvePart1() == 4512;
-		assert AoC2021_04.create(TEST).solvePart2() == 1924;
-		
-		final Puzzle puzzle = Puzzle.create(2021, 4);
-		final List<String> input = puzzle.getInputData();
-		puzzle.check(
-		    () -> lap("Part 1", AoC2021_04.create(input)::solvePart1),
-		    () -> lap("Part 2", AoC2021_04.create(input)::solvePart2)
-		);
+	    AoC2021_04.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-	        "7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1\r\n" +
-	        "\r\n" +
-	        "22 13 17 11  0\r\n" +
-	        " 8  2 23  4 24\r\n" +
-	        "21  9 14 16  7\r\n" +
-	        " 6 10  3 18  5\r\n" +
-	        " 1 12 20 15 19\r\n" +
-	        "\r\n" +
-	        " 3 15  0  2 22\r\n" +
-	        " 9 18 13 17  5\r\n" +
-	        "19  8  7 25 23\r\n" +
-	        "20 11 10 24  4\r\n" +
-	        "14 21 16 12  6\r\n" +
-	        "\r\n" +
-	        "14 21 17 24  4\r\n" +
-	        "10 16 15  9 19\r\n" +
-	        "18  8 23 26 20\r\n" +
-	        "22 11 13  6  5\r\n" +
-	        " 2  0 12  3  7"
-    );
+	private static final String TEST = """
+	        7,4,9,5,11,17,23,2,0,14,21,24,10,16,13,6,15,25,12,22,18,20,8,19,3,26,1
+	        
+	        22 13 17 11  0
+	        8  2 23  4 24
+	        21  9 14 16  7
+	        6 10  3 18  5
+	        1 12 20 15 19
+	        
+	        3 15  0  2 22
+	        9 18 13 17  5
+	        19  8  7 25 23
+	        20 11 10 24  4
+	        14 21 16 12  6
+	        
+	        14 21 17 24  4
+	        10 16 15  9 19
+	        18  8 23 26 20
+	        22 11 13  6  5
+	        2  0 12  3  7
+	        """;
 	
-    private void printGrid(final int[][] grid) {
-        Arrays.stream(grid).forEach(r ->
-                log(Arrays.stream(r)
-                        .mapToObj(Integer::valueOf)
-                        .map(String::valueOf)
-                        .collect(joining(" "))));
-    }
-    
-    @RequiredArgsConstructor
-    @Getter
-    private static final class Bingo {
-        private final int draw;
-        private final Board board;
-    }
-
-    @Getter
 	private static class Board {
         private static final int MARKED = -1;
         
 	    private final int[][] numbers;
 	    private boolean complete = false;
 	    
-	    public Board(final List<String> numbers) {
-	        final int[][] cells = new int[numbers.size()][numbers.get(0).length()];
-	        for (int i = 0; i < numbers.size(); i++) {
-	            cells[i] = Arrays.stream(numbers.get(i).split("\\s+"))
-	                    .filter(StringUtils::isNotBlank)
-	                    .mapToInt(Integer::parseInt)
-	                    .toArray();
-	        }
-	        this.numbers = cells;
+	    public boolean isComplete() {
+            return complete;
+        }
+
+        public Board(final List<String> numbers) {
+            this.numbers = range(numbers.size()).intStream()
+                .mapToObj(i -> Arrays.stream(numbers.get(i).split("\\s+"))
+                        .filter(StringUtils::isNotBlank)
+                        .mapToInt(Integer::parseInt)
+                        .toArray())
+                .toArray(int[][]::new);
 	    }
 	    
 	    public void mark(final int number) {
-	        for (int row = 0; row < getHeight(); row++) {
-	            final int[] cs = numbers[row];
-	            for (int col = 0; col < getWidth(); col++) {
-	                if (cs[col] == number) {
-	                    cs[col] = MARKED;
-	                }
-	            }
-	        }
+	        range(getHeight()).intStream().forEach(r ->
+                range(getWidth()).intStream()
+                    .filter(c -> this.numbers[r][c] == number)
+                    .forEach(c -> this.numbers[r][c] = MARKED));
 	    }
 	    
 	    public boolean win() {
-	        for (int row = 0; row < getHeight(); row++) {
-	            if (allMarked(this.numbers[row])) {
-	                return true;
-	            }
-	        }
-	        for (int col = 0; col < getWidth(); col++) {
-	            if (allMarked(getColumn(col))) {
-	                return true;
-	            }
-	        }
-	        return false;
+	        return Stream.concat(
+	                range(getHeight()).intStream().mapToObj(row -> numbers[row]),
+	                range(getWidth()).intStream().mapToObj(this::getColumn))
+	            .anyMatch(rc -> Arrays.stream(rc).allMatch(n -> n == MARKED));
 	    }
 	    
 	    public void complete() {
@@ -172,28 +118,16 @@ public class AoC2021_04 extends AoCBase {
 	    }
 	    
 	    public int value() {
-	        int value = 0;
-	        for (int row = 0; row < getHeight(); row++) {
-	            final int[] cs = numbers[row];
-	            for (int col = 0; col < getWidth(); col++) {
-	                if (cs[col] != MARKED) {
-	                    value += cs[col];
-	                }
-	            }
-	        }
-	        return value;
-	    }
-	    
-	    private boolean allMarked(final int[] rc) {
-	        return Arrays.stream(rc).allMatch(n -> n == MARKED);
+	        return range(getHeight()).intStream().flatMap(r ->
+	                range(getWidth()).intStream().map(c -> numbers[r][c]))
+	            .filter(v -> v != MARKED)
+	            .sum();
 	    }
 	    
 	    private int[] getColumn(final int col) {
-	        final int[] column = new int[getHeight()];
-	        for (int row = 0; row < getHeight(); row++) {
-	            column[row] = this.numbers[row][col];
-	        }
-	        return column;
+	        return range(getHeight()).intStream()
+	            .map(row -> this.numbers[row][col])
+	            .toArray();
 	    }
 	    
 	    private int getWidth() {
@@ -203,5 +137,41 @@ public class AoC2021_04 extends AoCBase {
 	    private int getHeight() {
 	        return this.numbers.length;
 	    }
+	}
+	
+	record BingoGame(List<Integer> draws, List<Board> boards) {
+
+	    record Bingo(int draw, Board board) {}
+	    
+	    public static BingoGame fromInput(final List<String> input) {
+            final List<List<String>> blocks = toBlocks(input);
+            final List<Integer> draws = Arrays.stream(blocks.get(0).get(0).split(","))
+                    .map(Integer::valueOf)
+                    .toList();
+            final List<Board> boards = blocks.subList(1, blocks.size()).stream()
+                    .map(Board::new)
+                    .toList();
+            return new BingoGame(draws, boards);
+	    }
+	    
+	    public List<Bingo> play(final int stopCount) {
+            final List<Bingo> bingoes = new ArrayList<>();
+            for (final Integer draw : draws) {
+                boards.forEach(b -> b.mark(draw));
+                final List<Board> winners = boards.stream()
+                        .filter(b -> !b.isComplete())
+                        .filter(Board::win)
+                        .toList();
+                for (final Board winner : winners) {
+                    winner.complete();
+                    final Bingo bingo = new Bingo(draw, winner);
+                    bingoes.add(bingo);
+                    if (bingoes.size() == stopCount) {
+                        return bingoes;
+                    }
+                }
+            }
+            throw unreachable();
+        }
 	}
 }

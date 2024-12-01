@@ -3,41 +3,57 @@
 # Advent of Code 2021 Day 7
 #
 
-from aoc import my_aocd
+import sys
+from typing import Callable
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+
+Input = list[int]
+Output1 = int
+Output2 = int
 
 
-def _solve(inputs: tuple[str], calc) -> int:
-    assert len(inputs) == 1
-    positions = [int(_) for _ in inputs[0].split(',')]
-    return min(sum(calc(a, b) for b in positions)
-               for a in range(min(positions), max(positions) + 1))
+TEST = "16,1,2,0,4,2,7,1,2,14"
 
 
-def part_1(inputs: tuple[str]) -> int:
-    return _solve(inputs, lambda a, b: abs(a - b))
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [int(_) for _ in list(input_data)[0].split(",")]
+
+    def solve(
+        self, positions: list[int], calc: Callable[[int, int], int]
+    ) -> int:
+        return min(
+            sum(calc(a, b) for b in positions)
+            for a in range(min(positions), max(positions) + 1)
+        )
+
+    def part_1(self, positions: Input) -> Output1:
+        return self.solve(positions, lambda a, b: abs(a - b))
+
+    def part_2(self, positions: Input) -> Output2:
+        return self.solve(
+            positions, lambda a, b: abs(a - b) * (abs(a - b) + 1) // 2
+        )
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 37),
+            ("part_2", TEST, 168),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return _solve(inputs, lambda a, b: abs(a - b) * (abs(a - b) + 1) // 2)
-
-
-TEST = """\
-16,1,2,0,4,2,7,1,2,14
-""".splitlines()
+solution = Solution(2021, 7)
 
 
 def main() -> None:
-    my_aocd.print_header(2021, 7)
-
-    assert part_1(TEST) == 37
-    assert part_2(TEST) == 168
-
-    inputs = my_aocd.get_input(2021, 7, 1)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

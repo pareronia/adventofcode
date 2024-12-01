@@ -1,52 +1,49 @@
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
-public class AoC2020_23 extends AoCBase {
+public class AoC2020_23 extends SolutionBase<List<Integer>, Long, Long> {
 	
-	private final List<Integer> labels;
-	
-	private AoC2020_23(final List<String> input, final boolean debug) {
+	private AoC2020_23(final boolean debug) {
 		super(debug);
-		assert input.size() == 1;
-		this.labels = Utils.asCharacterStream(input.get(0))
-				.map(c -> new String(new char[] { c.charValue() }))
-				.map(Integer::valueOf)
-				.collect(toList());
 	}
 	
-	public static final AoC2020_23 create(final List<String> input) {
-		return new AoC2020_23(input, false);
+	public static final AoC2020_23 create() {
+		return new AoC2020_23(false);
 	}
 
-	public static final AoC2020_23 createDebug(final List<String> input) {
-		return new AoC2020_23(input, true);
+	public static final AoC2020_23 createDebug() {
+		return new AoC2020_23(true);
 	}
 	
-	private Map<Integer, Cup> prepareCups() {
+	@Override
+    protected List<Integer> parseInput(final List<String> inputs) {
+		final Integer[] digits
+		        = StringOps.getDigits(inputs.get(0), inputs.get(0).length());
+        return Arrays.stream(digits).toList();
+    }
+
+    private Map<Integer, Cup> prepareCups(final List<Integer> labels) {
 		final Map<Integer, Cup> cups = new HashMap<>();
-		final Integer first = this.labels.get(0);
-		final Integer last = this.labels.get(this.labels.size() - 1);
+		final Integer first = labels.get(0);
+		final Integer last = labels.get(labels.size() - 1);
 		final Cup tail = new Cup(last, (Cup) null);
 		Cup prev = tail;
 		Cup cup;
-		for (int i = this.labels.size() - 2; i > 0; i--) {
-			final Integer label = this.labels.get(i);
+		for (int i = labels.size() - 2; i > 0; i--) {
+			final Integer label = labels.get(i);
 			cup = new Cup(label, prev);
 			cups.put(label, cup);
 			prev = cup;
@@ -58,12 +55,18 @@ public class AoC2020_23 extends AoCBase {
 		return cups;
 	}
 	
-	private Cup doMove(final Map<Integer, Cup> cups, final Cup current, final Integer size, final Integer min, final Integer max) {
+    private Cup doMove(
+            final Map<Integer, Cup> cups,
+            final Cup current,
+            final Integer size,
+            final Integer min,
+            final Integer max) {
 		final Cup p1 = current.getNext();
 		final Cup p2 = p1.getNext();
 		final Cup p3 = p2.getNext();
 		current.setNext(p3.getNext());
-		final List<Integer> pickup = asList(p1.getLabel(), p2.getLabel(), p3.getLabel());
+		final List<Integer> pickup
+		        = List.of(p1.getLabel(), p2.getLabel(), p3.getLabel());
 		Integer d = current.getLabel() - 1;
 		if (d < min) {
 			d = max;
@@ -81,14 +84,14 @@ public class AoC2020_23 extends AoCBase {
 	}
 	
 	@Override
-	public Long solvePart1() {
-		final Map<Integer, Cup> cups = prepareCups();
-		final int size = this.labels.size();
+	public Long solvePart1(final List<Integer> labels) {
+		final Map<Integer, Cup> cups = prepareCups(labels);
+		final int size = labels.size();
 		final IntSummaryStatistics stats
-		    = this.labels.stream().mapToInt(Integer::valueOf).summaryStatistics();
+		    = labels.stream().mapToInt(Integer::valueOf).summaryStatistics();
 		final Integer min = stats.getMin();
 		final Integer max = stats.getMax();
-		Cup current = cups.get(this.labels.get(0));
+		Cup current = cups.get(labels.get(0));
 		for (int i = 0; i < 100; i++) {
 			current = doMove(cups, current, size, min, max);
 		}
@@ -102,15 +105,16 @@ public class AoC2020_23 extends AoCBase {
 	}
 	
 	@Override
-	public Long solvePart2() {
+	public Long solvePart2(final List<Integer> labels) {
 		final IntSummaryStatistics stats
-		    = this.labels.stream().mapToInt(Integer::valueOf).summaryStatistics();
+		    = labels.stream().mapToInt(Integer::valueOf).summaryStatistics();
 		final Integer min = stats.getMin();
 		final Integer max = stats.getMax();
-		Stream.iterate(max + 1, i -> i + 1).limit(1_000_000 - this.labels.size())
-			.collect(toCollection(() -> this.labels));
-		final Map<Integer, Cup> cups = prepareCups();
-		Cup current = cups.get(this.labels.get(0));
+		final List<Integer> newLabels = new ArrayList<>(labels);
+		Stream.iterate(max + 1, i -> i + 1).limit(1_000_000 - labels.size())
+			.collect(toCollection(() -> newLabels));
+		final Map<Integer, Cup> cups = prepareCups(newLabels);
+		Cup current = cups.get(newLabels.get(0));
 		for (int i = 0; i < 10_000_000; i++) {
 			current = doMove(cups, current, 1_000_000, min, 1_000_000);
 		}
@@ -120,27 +124,63 @@ public class AoC2020_23 extends AoCBase {
 		return star1 * star2;
 	}
 	
+	@Samples({
+        @Sample(method = "part1", input = TEST, expected = "67384529"),
+        @Sample(method = "part2", input = TEST, expected = "149245887792"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert AoC2020_23.createDebug(TEST).solvePart1() == 67384529;
-		assert AoC2020_23.createDebug(TEST).solvePart2() == 149245887792L;
-		
-		final List<String> input = Aocd.getData(2020, 23);
-		lap("Part 1", () -> AoC2020_23.create(input).solvePart1());
-		lap("Part 2", () -> AoC2020_23.create(input).solvePart2());
+	    AoC2020_23.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"389125467"
-	);
+	private static final String TEST = "389125467";
 	
 	
-	@AllArgsConstructor
-	@Getter
-	@Setter
-	@EqualsAndHashCode
-	@ToString
 	private static final class Cup {
 		private final Integer label;
-		@ToString.Exclude private Cup next;
+		private Cup next;
+
+        public Cup(final Integer label, final Cup next) {
+            this.label = label;
+            this.next = next;
+        }
+
+        public Integer getLabel() {
+            return label;
+        }
+
+        public Cup getNext() {
+            return next;
+        }
+
+        public void setNext(final Cup next) {
+            this.next = next;
+        }
+        
+		@Override
+        public String toString() {
+            final StringBuilder builder = new StringBuilder();
+            builder.append("Cup [label=").append(label).append("]");
+            return builder.toString();
+        }
+
+        @Override
+        public boolean equals(final Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final Cup other = (Cup) obj;
+            return Objects.equals(label, other.label) && Objects.equals(next, other.next);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(label, next);
+        }
 	}
 }

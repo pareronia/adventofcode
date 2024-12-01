@@ -13,10 +13,6 @@ import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public final class AoC2017_24 extends AoCBase {
     
     private final Set<Component> components;
@@ -44,7 +40,7 @@ public final class AoC2017_24 extends AoCBase {
     private Set<Bridge> getBridges() {
         final Function<Bridge, Stream<Bridge>> adjacent
             = bridge -> this.components.stream()
-                .filter(c -> c.hasPort(bridge.getLast()))
+                .filter(c -> c.hasPort(bridge.last()))
                 .filter(c -> !bridge.contains(c))
                 .map(c -> bridge.extend(c));
         return BFS.floodFill(new Bridge(Set.of(), 0, 0), adjacent);
@@ -54,7 +50,7 @@ public final class AoC2017_24 extends AoCBase {
     public Integer solvePart1() {
         return getBridges().stream()
             .peek(this::log)
-            .mapToInt(Bridge::getStrength)
+            .mapToInt(Bridge::strength)
             .max().getAsInt();
     }
 
@@ -64,7 +60,7 @@ public final class AoC2017_24 extends AoCBase {
             .sorted(Bridge.byLength().reversed()
                         .thenComparing(Bridge.byStrength().reversed()))
             .findFirst()
-            .map(Bridge::getStrength).orElseThrow();
+            .map(Bridge::strength).orElseThrow();
     }
 
     public static void main(final String[] args) throws Exception {
@@ -90,11 +86,7 @@ public final class AoC2017_24 extends AoCBase {
         "9/10"
     );
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class Component {
-        private final Integer leftPort;
-        private final Integer rightPort;
+    record Component(int leftPort, int rightPort) {
         
         public boolean hasPort(final int port) {
             return leftPort == port || rightPort == port;
@@ -106,23 +98,7 @@ public final class AoC2017_24 extends AoCBase {
         }
     }
     
-    @EqualsAndHashCode()
-    private static final class Bridge {
-        private final Set<Component> components;
-        @Getter
-        private final int strength;
-        @Getter
-        private final Integer last;
-        
-        private Bridge(
-            final Set<Component> components,
-            final int strength,
-            final Integer last
-         ) {
-            this.components = components;
-            this.strength = strength;
-            this.last = last;
-        }
+    record Bridge(Set<Component> components, int strength, int last) {
         
         public Bridge extend(final Component component) {
             final Set<Component> newComponents = new HashSet<>(this.components);
@@ -144,7 +120,7 @@ public final class AoC2017_24 extends AoCBase {
         }
 
         public static Comparator<Bridge> byStrength() {
-            return (b1, b2) -> Integer.compare(b1.strength, b2.strength);
+            return Comparator.comparing(b1 -> b1.strength);
         }
         
         @Override

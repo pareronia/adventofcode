@@ -11,11 +11,9 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2019_16 extends AoCBase {
     
-    private static final int[] ELEMENTS = new int[] { 0, 1, 0, -1 };
+    private static final int[] ELEMENTS = { 0, 1, 0, -1 };
     private static final int PHASES = 100;
     
     private final List<Integer> numbers;
@@ -106,11 +104,14 @@ public class AoC2019_16 extends AoCBase {
     private static final List<String> TEST6 = splitLines(
             "03081770884921959731165446850517");
 
-    @RequiredArgsConstructor
     private static final class Pattern implements Iterator<Integer> {
         private final int repeat;
         private int i = 0;
         private int j = 0;
+
+        protected Pattern(final int repeat) {
+            this.repeat = repeat;
+        }
 
         @Override
         public boolean hasNext() {

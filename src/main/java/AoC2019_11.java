@@ -17,8 +17,6 @@ import com.github.pareronia.aoc.navigation.NavigationWithHeading;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.RequiredArgsConstructor;
-
 public class AoC2019_11 extends AoCBase {
     
     private static final long BLACK = 0;
@@ -88,9 +86,5 @@ public class AoC2019_11 extends AoCBase {
         );
     }
     
-    @RequiredArgsConstructor
-    private static final class PaintJob {
-        private final Set<Position> visited;
-        private final Set<Position> white;
-    }
+    record PaintJob(Set<Position> visited, Set<Position> white) { }
 }

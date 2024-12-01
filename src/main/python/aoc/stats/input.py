@@ -1,12 +1,18 @@
 import html
+import logging
 import re
 from datetime import timedelta
 
+from tqdm import tqdm
+
 from . import LeaderBoard
 from . import Stats
+from . import Summary
 from .aocd import get_leaderboard_page
 from .aocd import get_stats_page
 from .aocd import get_user_stats
+
+log = logging.getLogger("aoc.stats")
 
 
 def get_stats(year: int) -> dict[int, Stats]:
@@ -15,17 +21,24 @@ def get_stats(year: int) -> dict[int, Stats]:
     lines = re.findall(r'<a.*<span class="stats-both">.*</span>.*</a>', r.text)
     for line in lines:
         m = re.search(r'<a href="/[0-9]{4}/day/([0-9]+)">', line)
+        if m is None:
+            raise ValueError
         day = int(m.group(1))
         m = re.search(r'<span class="stats-both">([ 0-9]+)</span>', line)
+        if m is None:
+            raise ValueError
         both = int(m.group(1))
         m = re.search(r'<span class="stats-firstonly">([ 0-9]+)</span>', line)
+        if m is None:
+            raise ValueError
         first_only = int(m.group(1))
         stats[day] = Stats(both, first_only)
     return stats
 
 
 def _get_aocd_leaderboard(year: int) -> dict[int, LeaderBoard]:
-    def as_str(t: timedelta) -> str:
+    def as_str(t: timedelta | int) -> str:
+        assert type(t) is timedelta
         if t.days > 0:
             return ">24h"
         else:
@@ -36,14 +49,18 @@ def _get_aocd_leaderboard(year: int) -> dict[int, LeaderBoard]:
                 str(_).rjust(2, "0") for _ in [hours, minutes, seconds]
             )
 
+    def as_int(n: timedelta | int) -> int:
+        assert type(n) is int
+        return int(n)
+
     return {
         k[1]: LeaderBoard(
             time_first=as_str(v["a"]["time"]),
-            rank_first=v["a"]["rank"],
-            score_first=v["a"]["score"],
+            rank_first=as_int(v["a"]["rank"]),
+            score_first=as_int(v["a"]["score"]),
             time_both=as_str(v["b"]["time"]) if "b" in v else None,
-            rank_both=v["b"]["rank"] if "b" in v else None,
-            score_both=v["b"]["score"] if "b" in v else None,
+            rank_both=as_int(v["b"]["rank"]) if "b" in v else None,
+            score_both=as_int(v["b"]["score"]) if "b" in v else None,
         )
         for k, v in get_user_stats(year).items()
     }
@@ -92,3 +109,90 @@ def get_leaderboard(year: int) -> dict[int, LeaderBoard]:
         return _get_aocd_leaderboard(year)
     except AttributeError:
         return _scrape_leaderboard(year)
+
+
+def get_summary() -> Summary:
+    def time_first(stats: LeaderBoard) -> int:
+        t = stats.time_first
+        assert type(t) is str
+        if t == ">24h":
+            return 24 * 3600
+        h, m, s = map(int, t.split(":"))
+        return h * 3600 + m * 60 + s
+
+    def time_both(stats: LeaderBoard) -> int:
+        t = stats.time_both
+        assert type(t) is str
+        if t == ">24h":
+            return 24 * 3600
+        h, m, s = map(int, t.split(":"))
+        return h * 3600 + m * 60 + s
+
+    def rank_first(stats: LeaderBoard) -> int:
+        assert stats.rank_first is not None
+        return stats.rank_first
+
+    def rank_both(stats: LeaderBoard) -> int:
+        assert stats.rank_both is not None
+        return stats.rank_both
+
+    leaderboards = {
+        year: get_leaderboard(year) for year in tqdm([2020, 2021, 2022, 2023])
+    }
+    for year, leaderboard in leaderboards.items():
+        for day, stats in leaderboard.items():
+            log.debug((year, day, stats))
+    best_time_first = min(
+        (
+            (year, day, stats)
+            for year, leaderboard in leaderboards.items()
+            for day, stats in leaderboard.items()
+        ),
+        key=lambda x: time_first(x[2]),
+    )
+    best_time_both = min(
+        (
+            (year, day, stats)
+            for year, leaderboard in leaderboards.items()
+            for day, stats in leaderboard.items()
+        ),
+        key=lambda x: time_both(x[2]),
+    )
+    best_rank_first = min(
+        (
+            (year, day, stats)
+            for year, leaderboard in leaderboards.items()
+            for day, stats in leaderboard.items()
+        ),
+        key=lambda x: rank_first(x[2]),
+    )
+    best_rank_both = min(
+        (
+            (year, day, stats)
+            for year, leaderboard in leaderboards.items()
+            for day, stats in leaderboard.items()
+        ),
+        key=lambda x: rank_both(x[2]),
+    )
+    return Summary(
+        (
+            best_time_first[0],
+            best_time_first[1],
+            time_first(best_time_first[2]),
+        ),
+        (
+            best_rank_first[0],
+            best_rank_first[1],
+            rank_first(best_rank_first[2]),
+        ),
+        (
+            best_time_both[0],
+            best_time_both[1],
+            time_first(best_time_both[2]),
+        ),
+        (
+            best_rank_both[0],
+            best_rank_both[1],
+            rank_both(best_rank_both[2]),
+        ),
+    )

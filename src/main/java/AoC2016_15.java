@@ -7,8 +7,6 @@ import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Value;
-
 public class AoC2016_15 extends AoCBase {
 	
 	private static final Pattern REGEX = Pattern.compile("[0-9]+");
@@ -79,11 +77,7 @@ public class AoC2016_15 extends AoCBase {
 	        "Disc #3 has 3 positions; at time=0, it is at position 2."
 	);
 	
-	@Value
-	private static final class Disc {
-	    private final Integer period;
-	    private final Integer offset;
-	    private final Integer delay;
+	record Disc(int period, int offset, int delay) {
 	    
 	    public boolean alignedAt(final Integer time) {
 	        return (time + this.delay) % this.period == this.offset;

@@ -10,9 +10,6 @@ import java.util.stream.Stream;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 public class AoC2021_18 extends AoCBase {
     
     private final List<String> inputs;
@@ -94,8 +91,7 @@ public class AoC2021_18 extends AoCBase {
         }
         
         private static boolean doSplit(final Number number) {
-            if (number instanceof Regular) {
-                final Regular regular = (Regular) number;
+            if (number instanceof final Regular regular) {
                 final int value = regular.value;
                 if (value >= 10) {
                     final Pair pair = Pair.create(new Regular(value / 2), new Regular(value - value / 2));
@@ -242,30 +238,47 @@ public class AoC2021_18 extends AoCBase {
         protected Number parent = null;
     }
     
-    @AllArgsConstructor
-    @Getter
     static final class Regular extends Number {
         private int value = -1;
         
+        public Regular(final int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
         @Override
         public String toString() {
             return String.valueOf(this.value);
         }
     }
     
-    @AllArgsConstructor
-    @Getter
     static final class Pair extends Number {
         private Number left = null;
         private Number right = null;
         
+        public Pair(final Number left, final Number right) {
+            this.left = left;
+            this.right = right;
+        }
+
         public static Pair create(final Number left, final Number right) {
             final Pair pair = new Pair(left, right);
             left.parent = pair;
             right.parent = pair;
             return pair;
         }
-        
+
+        public Number getLeft() {
+            return left;
+        }
+
+        public Number getRight() {
+            return right;
+        }
+
         public Regular leftAdjacent() {
             final Pair parent = getParent();
             if (parent == null) {

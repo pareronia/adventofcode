@@ -6,26 +6,22 @@ import java.util.List;
 import java.util.Set;
 
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-public class AoC2020_18 extends AoCBase {
+public class AoC2020_18 extends SolutionBase<List<String>, Long, Long> {
     
-    private final List<String> input;
-    
-	private AoC2020_18(final List<String> input, final boolean debug) {
+	private AoC2020_18(final boolean debug) {
 		super(debug);
-		this.input = input;
 	}
     
-    public static AoC2020_18 create(final List<String> input) {
-        return new AoC2020_18(input, false);
+    public static AoC2020_18 create() {
+        return new AoC2020_18(false);
     }
 
-    public static AoC2020_18 createDebug(final List<String> input) {
-        return new AoC2020_18(input, true);
+    public static AoC2020_18 createDebug() {
+        return new AoC2020_18(true);
     }
     
     private List<Character> tokenize(final String string) {
@@ -81,49 +77,47 @@ public class AoC2020_18 extends AoCBase {
     }
 	
     @Override
-	public Long solvePart1() {
-        return this.input.stream()
+    protected List<String> parseInput(final List<String> inputs) {
+        return inputs;
+    }
+
+    @Override
+	public Long solvePart1(final List<String> input) {
+        return input.stream()
                 .map(this::tokenize)
                 .map(this::evaluate)
-                .mapToLong(ResultAndPosition::getResult)
+                .mapToLong(ResultAndPosition::result)
                 .sum();
 	}
 
 	@Override
-	public Long solvePart2() {
-	    return this.input.stream()
+	public Long solvePart2(final List<String> input) {
+	    return input.stream()
 	            .map(this::fixForAdditionPreference)
 	            .map(this::tokenize)
 	            .map(this::evaluate)
-	            .mapToLong(ResultAndPosition::getResult)
+	            .mapToLong(ResultAndPosition::result)
 	            .sum();
 	}
 
+	@Samples({
+	    // 71 + 51 + 26 + 437 + 12240 + 13632
+	    @Sample(method = "part1", input = TEST, expected = "26457"),
+	    // 231 + 51 + 46 + 1445 + 669060 + 23340
+	    @Sample(method = "part2", input = TEST, expected = "694173"),
+	})
 	public static void main(final String[] args) throws Exception {
-		assert createDebug(TEST).solvePart1() == 71 + 51 + 26 + 437 + 12240 + 13632;
-		assert createDebug(TEST).solvePart2() == 231 + 51 + 46 + 1445 + 669060 + 23340;
-		
-        final Puzzle puzzle = puzzle(AoC2020_18.class);
-		final List<String> input = puzzle.getInputData();
-        puzzle.check(
-           () -> lap("Part 1", create(input)::solvePart1),
-           () -> lap("Part 2", create(input)::solvePart2)
-	    );
+		AoC2020_18.create().run();
 	}
 	
-	private static final List<String> TEST = splitLines(
-			"1 + 2 * 3 + 4 * 5 + 6\r\n"                          +
-			"1 + (2 * 3) + (4 * (5 + 6))\r\n"                    +
-			"2 * 3 + (4 * 5)\r\n"                                +
-			"5 + (8 * 3 + 9 + 3 * 4 * 3)\r\n"                    +
-			"5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))\r\n"      +
-			"((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2"
-	);
+	private static final String TEST = """
+	        1 + 2 * 3 + 4 * 5 + 6
+			1 + (2 * 3) + (4 * (5 + 6))
+			2 * 3 + (4 * 5)
+			5 + (8 * 3 + 9 + 3 * 4 * 3)
+			5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))
+			((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2
+			""";
 	
-	@RequiredArgsConstructor
-    private static final class ResultAndPosition {
-	    @Getter
-        private final long result;
-        private final int position;
-	}
+    record ResultAndPosition(long result, int position) {}
 }

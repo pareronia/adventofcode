@@ -75,7 +75,7 @@ impl aoc::Puzzle for AoC2022_25 {
         let mut ans = String::from("");
         while total > 0 {
             let encode = DigitAndCarry::from_i64(total % 5);
-            ans.push_str(&encode.digit.to_string());
+            ans.push(encode.digit);
             total = total / 5 + encode.carry;
         }
         ans.chars().rev().collect::<String>()

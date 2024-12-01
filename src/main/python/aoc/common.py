@@ -16,6 +16,7 @@ from typing import cast
 import aocd
 from aoc import my_aocd
 from prettyprinter import cpprint
+from termcolor import colored
 
 
 def clog(c: Callable[[], object]) -> None:
@@ -106,10 +107,14 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
             return self.duration / 1_000_000
 
         def __repr__(self) -> str:
-            return (
-                f"Part {self.part}:"
-                f" {self.answer}, took {self.duration_as_ms:.3f} ms"
-            )
+            answer = colored(self.answer, "white", attrs=["bold"])
+            if self.duration_as_ms <= 1_000:
+                duration = f"{self.duration_as_ms:.3f}"
+            elif self.duration_as_ms <= 5_000:
+                duration = colored(f"{self.duration_as_ms:.0f}", "yellow")
+            else:
+                duration = colored(f"{self.duration_as_ms:.0f}", "red")
+            return f"Part {self.part}: {answer}, took {duration} ms"
 
         def to_json(self) -> str:
             return (
@@ -159,6 +164,7 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
                 exec_part = execute_part(part, lambda: self.part_2(input))
             print(exec_part.to_json())
         else:
+            aocd.utils.blocker(until=(self.year, self.day))
             puzzle = aocd.models.Puzzle(self.year, self.day)
             my_aocd.print_header(puzzle.year, puzzle.day)
             if __debug__:

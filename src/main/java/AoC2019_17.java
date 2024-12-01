@@ -1,55 +1,59 @@
+import static com.github.pareronia.aoc.AssertUtils.assertTrue;
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
+import static com.github.pareronia.aoc.StringOps.splitLines;
+import static com.github.pareronia.aoc.Utils.concatAll;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Predicate;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.ListUtils;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.intcode.IntCode;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
-import com.github.pareronia.aocd.SystemUtils;
-import com.github.pareronia.aocd.User;
+import com.github.pareronia.aoc.solution.Logger;
+import com.github.pareronia.aoc.solution.LoggerEnabled;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
-public class AoC2019_17 extends AoCBase {
+public class AoC2019_17 extends SolutionBase<List<Long>, Integer, Integer> {
     
     private static final char SCAFFOLD = '#';
     private static final char NEWLINE = '\n';
     
-    private final List<Long> program;
-    
-    private AoC2019_17(final List<String> input, final boolean debug) {
+    private AoC2019_17(final boolean debug) {
         super(debug);
-        assert input.size() == 1;
-        this.program = IntCode.parse(input.get(0));
     }
 
-    public static AoC2019_17 create(final List<String> input) {
-        return new AoC2019_17(input, false);
+    public static AoC2019_17 create() {
+        return new AoC2019_17(false);
     }
 
-    public static AoC2019_17 createDebug(final List<String> input) {
-        return new AoC2019_17(input, true);
+    public static AoC2019_17 createDebug() {
+        return new AoC2019_17(true);
+    }
+
+    @Override
+    protected List<Long> parseInput(final List<String> inputs) {
+        return IntCode.parse(inputs.get(0));
     }
     
     @Override
-    public Integer solvePart1() {
+    public Integer solvePart1(final List<Long> program) {
         final CharGrid grid = new GridBuilder().build(
-            new IntCodeComputer(this.program, this.debug).runCamera());
+            new IntCodeComputer(program, this.debug).runCamera());
         log(grid);
         return grid.getAllEqualTo(SCAFFOLD)
             .filter(cell -> grid.getCapitalNeighbours(cell)
@@ -58,63 +62,44 @@ public class AoC2019_17 extends AoCBase {
             .sum();
     }
 
-    private List<Command> findPath(final CharGrid grid) {
-        final PathFinder pathFinder = new PathFinder(grid);
-        final List<Cell> path = pathFinder.findPath();
-        log("Path: " + path);
-        final List<Move> moves = pathFinder.toMoves(path);
-        log("Moves: " + moves);
-        final List<List<Command>> commands = pathFinder.toCommands(moves);
-        log("Commands: " + commands);
-        final List<Command> compressed = pathFinder.compressCommands(commands);
-        log("Compressed: " + compressed.stream().map(Command::toString).collect(joining(",")));
-        return compressed;
-    }
-    
     @Override
-    public Integer solvePart2() {
-        final IntCodeComputer computer = new IntCodeComputer(this.program, this.debug);
+    public Integer solvePart2(final List<Long> program) {
+        final IntCodeComputer computer = new IntCodeComputer(program, this.debug);
         final CharGrid grid = new GridBuilder().build(computer.runCamera());
-        findPath(grid);
-        final SystemUtils systemUtils = new SystemUtils();
-        final List<String> input = systemUtils.readAllLines(
-            User.getDefaultUser().getMemoDir().resolve("2019_17_input_extra.txt"));
+        final List<String> input = new PathFinder(grid, this.logger).createAsciiInput(5, 3);
         return computer.runRobot(input).getLast().intValue();
     }
 
+    @Override
+    protected void samples() {
+        assert new PathFinder(CharGrid.from(splitLines(TEST)), new Logger(true))
+            .createAsciiInput(3, 2)
+            .equals(List.of("A,B,C,B,A,C", "R,8,R,8", "R,4,R,4,R,8", "L,6,L,2", "n"));
+    }
+
     public static void main(final String[] args) throws Exception {
-        assert AoC2019_17.createDebug(List.of("1")).findPath(CharGrid.from(TEST))
-            .stream().map(Command::toString).collect(joining(","))
-            .equals("R,8,R,8,R,4,R,4,R,8,L,6,L,2,R,4,R,4,R,8,R,8,R,8,L,6,L,2");
-        
-        final Puzzle puzzle = Aocd.puzzle(2019, 17);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2019_17.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2019_17.create(inputData)::solvePart2)
-        );
+        AoC2019_17.create().run();
     }
     
-    private static final List<String> TEST = splitLines(
-            "#######...#####\r\n" +
-            "#.....#...#...#\r\n" +
-            "#.....#...#...#\r\n" +
-            "......#...#...#\r\n" +
-            "......#...###.#\r\n" +
-            "......#.....#.#\r\n" +
-            "^########...#.#\r\n" +
-            "......#.#...#.#\r\n" +
-            "......#########\r\n" +
-            "........#...#..\r\n" +
-            "....#########..\r\n" +
-            "....#...#......\r\n" +
-            "....#...#......\r\n" +
-            "....#...#......\r\n" +
-            "....#####......"
-    );
+    private static final String TEST = """
+            #######...#####
+            #.....#...#...#
+            #.....#...#...#
+            ......#...#...#
+            ......#...###.#
+            ......#.....#.#
+            ^########...#.#
+            ......#.#...#.#
+            ......#########
+            ........#...#..
+            ....#########..
+            ....#...#......
+            ....#...#......
+            ....#...#......
+            ....#####......
+            """;
     
-    @RequiredArgsConstructor
-    private final class GridBuilder {
+    private static final class GridBuilder {
 
         public CharGrid build(final Deque<Long> output) {
             return CharGrid.from(asStrings(output));
@@ -136,36 +121,31 @@ public class AoC2019_17 extends AoCBase {
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class Move {
-        private final Cell from;
-        private final Cell to;
-        private final Direction direction;
-        
-        @Override
-        public String toString() {
-            return String.format("%s -> %s : %s", this.from, this.to, this.direction);
-        }
-    }
-    
-    @RequiredArgsConstructor
-    private static final class Command {
-        private final char letter;
-        private final int count;
+    record Command(char letter, int count) {
         
         @Override
         public String toString() {
             if (this.count == 1) {
                 return String.valueOf(this.letter);
             } else {
-                return String.format("%s,%d", this.letter, this.count);
+                return String.format("%s(%d)", this.letter, this.count);
             }
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class PathFinder {
+    private static final class PathFinder implements LoggerEnabled {
         private final CharGrid grid;
+        private final Logger logger;
+        
+        public PathFinder(final CharGrid grid, final Logger logger) {
+            this.grid = grid;
+            this.logger = logger;
+        }
+
+        @Override
+        public Logger getLogger() {
+            return this.logger;
+        }
 
         public List<Cell> findPath() {
             final Cell robot = grid.findAllMatching(Direction.CAPITAL_ARROWS::contains)
@@ -182,27 +162,16 @@ public class AoC2019_17 extends AoCBase {
             return path.stream().collect(toList());
         }
         
-        public List<Move> toMoves(final List<Cell> path) {
-            final Cell start = path.get(0);
-            final List<Move> moves = new ArrayList<>();
-            moves.add(new Move(start, start, Direction.fromChar(grid.getValue(start))));
-            range(path.size() - 1).forEach(i -> {
-                final Direction move = path.get(i).to(path.get(i + 1));
-                moves.add(new Move(path.get(i), path.get(i + 1), move));
-            });
-            return moves;
-        }
-        
-        public List<List<Command>> toCommands(final List<Move> moves) {
+        public List<Command> toCommands(final List<Direction> moves) {
             final List<List<Command>> commands = new ArrayList<>();
             final Deque<Command> curr = new ArrayDeque<>();
             range(moves.size() - 1).forEach(i -> {
                 final Command last = curr.peekLast();
-                if (moves.get(i).direction == moves.get(i + 1).direction){
+                if (moves.get(i) == moves.get(i + 1)){
                     curr.addLast(new Command(last.letter, 1));
                 } else {
                     final Turn turn = Turn.fromDirections(
-                            moves.get(i).direction, moves.get(i + 1).direction);
+                            moves.get(i), moves.get(i + 1));
                     if (last != null) {
                         commands.add(curr.stream().collect(toList()));
                         curr.clear();
@@ -211,16 +180,70 @@ public class AoC2019_17 extends AoCBase {
                 }
             });
             commands.add(curr.stream().collect(toList()));
-            return commands;
+            return commands.stream()
+                    .map(lst -> new Command(lst.get(0).letter, lst.size()))
+                    .toList();
         }
         
-        public List<Command> compressCommands(final List<List<Command>> commands) {
-            final List<Command> compressed = new ArrayList<>();
-            for (final List<Command> list : commands) {
-                assert list.stream().map(c -> c.letter).distinct().count() == 1;
-                compressed.add(new Command(list.get(0).letter, list.size()));
+        public List<String> createAsciiInput(
+                final int maxSize, final int minRepeats
+        ) {
+            final List<Cell> path = this.findPath();
+            log("Path: " + path);
+            final List<Direction> moves = concatAll(
+                List.of(Direction.fromChar(grid.getValue(path.get(0)))),
+                range(path.size() - 1).intStream()
+                    .mapToObj(i1 -> path.get(i1).to(path.get(i1 + 1)))
+                    .toList());
+            log("Moves: " + moves);
+            final List<Command> commands = this.toCommands(moves);
+            log("Commands: " + commands);
+            List<Command> lst = new ArrayList<>(commands);
+            final Map<String, List<Command>> map = new HashMap<>();
+            for (final String x : List.of("A", "B", "C")) {
+                for (int i = maxSize; i >= 2; i--) {
+                    if (i > lst.size()) {
+                        continue;
+                    }
+                    final List<Integer> idxs = ListUtils.indexesOfSubList(
+                                                    lst, lst.subList(0, i));
+                    if (idxs.size() < minRepeats) {
+                        continue;
+                    } else {
+                        map.put(x, new ArrayList<>(lst.subList(0, i)));
+                        lst = ListUtils.subtractAll(lst, lst.subList(0, i));
+                        break;
+                    }
+                }
             }
-            return compressed;
+            log(map);
+            assertTrue(map.size() == 3, () -> "could not find functions");
+            final List<String> main = new ArrayList<>();
+            lst = new ArrayList<>(commands);
+            int cnt = 0;
+            while (!lst.isEmpty()) {
+                assertTrue(cnt < 100, () -> "infinite loop");
+                for (final Entry<String, List<Command>> func : map.entrySet()) {
+                    if (Collections.indexOfSubList(lst, func.getValue()) == 0) {
+                        main.add(func.getKey());
+                        lst = lst.subList(func.getValue().size(), lst.size());
+                        log(lst);
+                        break;
+                    }
+                }
+                cnt++;
+            }
+            log(main);
+            final List<String> input = new ArrayList<>();
+            input.add(main.stream().collect(joining(",")));
+            List.of("A", "B", "C").stream()
+                .map(x -> map.get(x).stream()
+                        .map(c -> "%s,%d".formatted(c.letter, c.count))
+                        .collect(joining(",")))
+                .forEach(input::add);
+            input.add("n");
+            log(input);
+            return input;
         }
         
         private static final class DFS {
@@ -280,20 +303,11 @@ public class AoC2019_17 extends AoCBase {
                 return false;
             }
             
-            @RequiredArgsConstructor
-            @EqualsAndHashCode
-            @ToString
-            private static final class State {
-                private final Cell prev;
-                private final Cell curr;
-            }
+            record State(Cell prev, Cell curr) {}
         }
     }
     
-    @RequiredArgsConstructor
-    private static final class IntCodeComputer {
-        private final List<Long> program;
-        private final boolean debug;
+    record IntCodeComputer(List<Long> program, boolean debug) {
         
         public Deque<Long> runCamera() {
             final IntCode intCode = new IntCode(this.program, this.debug);
@@ -304,9 +318,9 @@ public class AoC2019_17 extends AoCBase {
         }
         
         public Deque<Long> runRobot(final List<String> commands) {
-            final List<Long> newProgram = new ArrayList<>();
-            newProgram.add(2L);
-            newProgram.addAll(this.program.subList(1, this.program.size()));
+            final List<Long> newProgram = concatAll(
+                    List.of(2L),
+                    this.program.subList(1, this.program.size()));
             final IntCode intCode = new IntCode(newProgram, this.debug);
             final Deque<Long> input = new ArrayDeque<>();
             final Deque<Long> output = new ArrayDeque<>();

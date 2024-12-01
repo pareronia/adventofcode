@@ -13,15 +13,17 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Json;
 import com.github.pareronia.aoc.solution.SolutionBase;
+import com.github.pareronia.aoc.solution.Timed;
 import com.github.pareronia.aocd.RunServer.RequestHandler;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor
 class Runner {
 
-	public static void main(final String[] args) throws Exception {
+	protected Runner(final SystemUtils systemUtils, final ClassFactory classFactory) {
+        this.systemUtils = systemUtils;
+        this.classFactory = classFactory;
+    }
+
+    public static void main(final String[] args) throws Exception {
 	    final SystemUtils systemUtils = new SystemUtils();
 	    final Request request = Request.create(systemUtils.getLocalDate(), args);
 		final Response result = Runner.create(systemUtils).run(request);
@@ -38,7 +40,7 @@ class Runner {
 
 	static Runner create(final SystemUtils systemUtils) {
 		return new Runner(systemUtils,
-						  className -> Class.forName(className));
+						  Class::forName);
 	}
 	
 	static Runner create(final SystemUtils systemUtils,
@@ -50,6 +52,10 @@ class Runner {
 	private final ClassFactory classFactory;
 	
 	Response run(final Request request) throws Exception {
+	    return run(request, true);
+	}
+	
+	Response run(final Request request, final boolean warmup) throws Exception {
 		final Class<?> klass;
 		try {
 			final String className = "AoC" + request.year.toString()
@@ -59,15 +65,23 @@ class Runner {
 			return Response.EMPTY;
 		}
 		if (SolutionBase.class.isAssignableFrom(klass)) {
-		    warmUpSolutionPart(1, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpSolutionPart(1, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result1 = runSolutionPart(1, klass, List.copyOf(request.inputs));
-		    warmUpSolutionPart(2, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpSolutionPart(2, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result2 = runSolutionPart(2, klass, List.copyOf(request.inputs));
 		    return Response.create(result1, result2);
 		} else {
-		    warmUpPart(1, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpPart(1, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result1 = runPart(1, klass, List.copyOf(request.inputs));
-		    warmUpPart(2, klass, List.copyOf(request.inputs));
+		    if (warmup) {
+		        warmUpPart(2, klass, List.copyOf(request.inputs));
+		    }
 		    final Result result2 = runPart(2, klass, List.copyOf(request.inputs));
 		    return Response.create(result1, result2);
 		}
@@ -99,10 +113,9 @@ class Runner {
     {
         final Object puzzle = createPuzzle(klass, input);
         final Method method = klass.getDeclaredMethod("solvePart" + part);
-		final long start = systemUtils.getSystemNanoTime();
-		final Object answer = method.invoke(puzzle);
-		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
-		return new Result(answer, duration);
+        final Timed<Object> timed = Timed.timed(
+                () -> method.invoke(puzzle), systemUtils::getSystemNanoTime);
+		return new Result(timed.result(), timed.duration());
     }
     
     private Result runSolutionPart(
@@ -113,10 +126,9 @@ class Runner {
     {
         final Object puzzle = createPuzzle(klass);
         final Method method = SolutionBase.class.getDeclaredMethod("part" + part, List.class);
-		final long start = systemUtils.getSystemNanoTime();
-		final Object answer = method.invoke(puzzle, input);
-		final Duration duration = Duration.ofNanos(systemUtils.getSystemNanoTime() - start);
-		return new Result(answer, duration);
+        final Timed<Object> timed = Timed.timed(
+                () -> method.invoke(puzzle, input), systemUtils::getSystemNanoTime);
+		return new Result(timed.result(), timed.duration());
     }
 
     private Object createPuzzle(final Class<?> klass, final List<String> input) throws Exception {
@@ -131,15 +143,23 @@ class Runner {
 		        .invoke(null);
     }
 	
-	@RequiredArgsConstructor
 	private static final class Result {
-	    private final Object answer;
+	    protected Result(final Object answer, final Duration duration) {
+            this.answer = answer;
+            this.duration = duration;
+        }
+        private final Object answer;
 	    private final Duration duration;
 	}
 	
-	@RequiredArgsConstructor
 	static final class Request {
-		private final Integer year;
+		protected Request(final Integer year, final Integer day, final List<String> inputs) {
+            this.year = year;
+            this.day = day;
+            this.inputs = inputs;
+        }
+
+        private final Integer year;
 		private final Integer day;
 		private final List<String> inputs;
 		
@@ -163,19 +183,30 @@ class Runner {
 		}
 	}
 	
-	@RequiredArgsConstructor
-	@Getter
 	static final class Response {
 		public static final Response EMPTY = new Response(null, null);
 		
 		private final Part part1;
 		private final Part part2;
 		
-		protected static Response create(
+		protected Response(final Part part1, final Part part2) {
+            this.part1 = part1;
+            this.part2 = part2;
+        }
+
+        protected static Response create(
 		        final Result result1, final Result result2) {
 		    return new Response(
 		        new Part(result1.answer.toString(), result1.duration.toNanos()),
 		        new Part(result2.answer.toString(), result2.duration.toNanos()));
+        }
+
+        public Part getPart1() {
+            return part1;
+        }
+
+        public Part getPart2() {
+            return part2;
         }
 
         @Override
@@ -183,11 +214,22 @@ class Runner {
             return Json.toJson(this);
 		}
         
-        @RequiredArgsConstructor
-        @Getter
         public static final class Part {
             private final String answer;
             private final Long duration;
+            
+            protected Part(final String answer, final Long duration) {
+                this.answer = answer;
+                this.duration = duration;
+            }
+
+            public String getAnswer() {
+                return answer;
+            }
+
+            public Long getDuration() {
+                return duration;
+            }
         }
 	}
 	

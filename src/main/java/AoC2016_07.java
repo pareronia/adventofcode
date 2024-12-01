@@ -1,37 +1,40 @@
 import static com.github.pareronia.aoc.Utils.toAString;
-import static java.util.stream.Collectors.toList;
 
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aocd.Aocd;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2016_07 extends AoCBase {
+public class AoC2016_07 extends SolutionBase<List<String>, Integer, Integer> {
 
     private static final Pattern ABBA = Pattern.compile("([a-z])(?!\\1)([a-z])\\2\\1");
     private static final Pattern HYPERNET = Pattern.compile("\\[([a-z]*)\\]");
     private static final Pattern ABA = Pattern.compile("([a-z])(?!\\1)[a-z]\\1");
 
-	private final List<String> inputs;
-	
-	private AoC2016_07(List<String> inputs, boolean debug) {
+	private AoC2016_07(final boolean debug) {
 		super(debug);
-		this.inputs = inputs;
 	}
 	
-	public static final AoC2016_07 create(List<String> input) {
-		return new AoC2016_07(input, false);
+	public static final AoC2016_07 create() {
+		return new AoC2016_07(false);
 	}
 
-	public static final AoC2016_07 createDebug(List<String> input) {
-		return new AoC2016_07(input, true);
+	public static final AoC2016_07 createDebug() {
+		return new AoC2016_07(true);
 	}
 	
-	private boolean isTLS(String ip) {
+	@Override
+    protected List<String> parseInput(final List<String> inputs) {
+        return inputs;
+    }
+
+    private boolean isTLS(final String ip) {
 	    final List<String> mhs = HYPERNET.matcher(ip).results()
 	            .map(m -> m.group(1))
-	            .collect(toList());
+	            .toList();
 	    String temp = ip;
 	    for (final String mh : mhs) {
 	        if (ABBA.matcher(mh).find()) {
@@ -42,16 +45,16 @@ public class AoC2016_07 extends AoCBase {
 	    return ABBA.matcher(temp).find();
 	}
 	
-	private String aba2bab(String string) {
+	private String aba2bab(final String string) {
 	    assert string.length() == 3;
 	    return Stream.of(string.charAt(1), string.charAt(0), string.charAt(1))
 	            .collect(toAString());
 	}
 	
-	private boolean isSLS(String ip) {
+	private boolean isSLS(final String ip) {
 	    final List<String> mhs = HYPERNET.matcher(ip).results()
 	            .map(m -> m.group(1))
-	            .collect(toList());
+	            .toList();
 	    String temp = ip;
 	    for (final String mh : mhs) {
 	        temp = temp.replace("[" + mh + "]", "/");
@@ -66,39 +69,34 @@ public class AoC2016_07 extends AoCBase {
 	}
 	
 	@Override
-	public Integer solvePart1() {
-		return (int) this.inputs.stream()
-		        .filter(this::isTLS)
-		        .count();
+	public Integer solvePart1(final List<String> inputs) {
+		return (int) inputs.stream().filter(this::isTLS).count();
 	}
 
 	@Override
-	public Integer solvePart2() {
-		return (int) this.inputs.stream()
-		        .filter(this::isSLS)
-		        .count();
+	public Integer solvePart2(final List<String> inputs) {
+		return (int) inputs.stream().filter(this::isSLS).count();
 	}
 
-	public static void main(String[] args) throws Exception {
-		assert AoC2016_07.createDebug(TEST1).solvePart1() == 2;
-		assert AoC2016_07.createDebug(TEST2).solvePart2() == 3;
-		
-		final List<String> input = Aocd.getData(2016, 7);
-		lap("Part 1", () -> AoC2016_07.create(input).solvePart1());
-		lap("Part 2", () -> AoC2016_07.create(input).solvePart2());
+	@Samples({
+	    @Sample(method = "part1", input = TEST1, expected = "2"),
+	    @Sample(method = "part2", input = TEST2, expected = "3"),
+	})
+	public static void main(final String[] args) throws Exception {
+	    AoC2016_07.create().run();
 	}
 
-	private static final List<String> TEST1 = splitLines(
-	        "abba[mnop]qrst\r\n" +
-	        "abcd[bddb]xyyx\r\n" +
-	        "aaaa[qwer]tyui\r\n" +
-	        "ioxxoj[asdfgh]zxcvbn\r\n" +
-	        "abcox[ooooo]xocba"
-	);
-	private static final List<String> TEST2 = splitLines(
-	        "aba[bab]xyz\r\n" +
-	        "xyx[xyx]xyx\r\n" +
-	        "aaa[kek]eke\r\n" +
-	        "zazbz[bzb]cdb"
-	);
+	private static final String TEST1 = """
+	        abba[mnop]qrst\r
+	        abcd[bddb]xyyx\r
+	        aaaa[qwer]tyui\r
+	        ioxxoj[asdfgh]zxcvbn\r
+	        abcox[ooooo]xocba
+	        """;
+	private static final String TEST2 = """
+	        aba[bab]xyz\r
+	        xyx[xyx]xyx\r
+	        aaa[kek]eke\r
+	        zazbz[bzb]cdb
+	        """;
 }

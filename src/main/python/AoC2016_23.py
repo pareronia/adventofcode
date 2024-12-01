@@ -1,45 +1,20 @@
 #! /usr/bin/env python3
 #
-# Advent of Code 2015 Day 23
+# Advent of Code 2016 Day 23
 #
 
 import math
-import aocd
-from aoc import my_aocd
-from aoc.vm import Program, VirtualMachine
+import sys
+
 from aoc.assembunny import Assembunny
+from aoc.assembunny import AssembunnyInstruction
+from aoc.common import InputData
+from aoc.common import SolutionBase
 from aoc.common import log
+from aoc.vm import Program
+from aoc.vm import VirtualMachine
 
-
-def _solve_vm(inputs: tuple[str, ...], init_a: int) -> int:
-    inss = Assembunny.parse(inputs)
-    program = Program(Assembunny.translate(inss))
-    log(program.instructions)
-    program.set_register_value("a", init_a)
-    VirtualMachine().run_program(program)
-    log(program.registers["a"])
-    return int(program.registers["a"])
-
-
-def _solve(inputs: tuple[str, ...], init_a: int) -> int:
-    ops = {"cpy", "jnz"}
-    values = list(map(lambda i: int(i),
-                      filter(lambda i: i.isnumeric(),
-                             map(lambda i: i.operands[0],
-                                 filter(lambda i: i.operation in ops,
-                                        Assembunny.parse(inputs))))))
-    return values[2] * values[3] + math.factorial(init_a)
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    return _solve(inputs, 7)
-
-
-def part_2(inputs: tuple[str, ...]) -> int:
-    return _solve(inputs, 12)
-
-
-TEST1 = '''\
+TEST1 = """\
 cpy 2 a
 tgl a
 tgl a
@@ -47,8 +22,8 @@ tgl a
 cpy 1 a
 dec a
 dec a
-'''.splitlines()
-TEST2 = '''\
+"""
+TEST2 = """\
 cpy a b
 dec b
 cpy a d
@@ -75,24 +50,61 @@ inc d
 jnz d -2
 inc c
 jnz c -5
-'''.splitlines()
+"""
+
+
+def _solve_vm(instructions: list[AssembunnyInstruction], init_a: int) -> int:
+    program = Program(Assembunny.translate(instructions))
+    log(program.instructions)
+    program.set_register_value("a", init_a)
+    VirtualMachine().run_program(program)
+    log(program.registers["a"])
+    return int(program.registers["a"])
+
+
+Input = list[AssembunnyInstruction]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Assembunny.parse(tuple(input_data))
+
+    def solve(
+        self, instructions: list[AssembunnyInstruction], init_a: int
+    ) -> int:
+        values = [
+            int(i)
+            for i in [
+                i.operands[0]
+                for i in instructions
+                if i.operation in {"cpy", "jnz"}
+            ]
+            if i.isnumeric()
+        ]
+        return values[2] * values[3] + math.factorial(init_a)
+
+    def part_1(self, instructions: list[AssembunnyInstruction]) -> int:
+        return self.solve(instructions, 7)
+
+    def part_2(self, instructions: list[AssembunnyInstruction]) -> int:
+        return self.solve(instructions, 12)
+
+    def samples(self) -> None:
+        assert self.solve(self.parse_input(TEST2.splitlines()), 7) == 11_610
+        assert (
+            self.solve(self.parse_input(TEST2.splitlines()), 12) == 479_008_170
+        )
+        assert _solve_vm(self.parse_input(TEST1.splitlines()), 7) == 3
+
+
+solution = Solution(2016, 23)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2016, 23)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert _solve(TEST2, 7) == 11_610  # type:ignore[arg-type]
-    assert _solve(TEST2, 12) == 479_008_170  # type:ignore[arg-type]
-    assert _solve_vm(TEST1, 7) == 3  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 26)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

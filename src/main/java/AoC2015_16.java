@@ -3,6 +3,7 @@ import static java.util.stream.Collectors.toMap;
 
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -10,12 +11,7 @@ import java.util.stream.Stream;
 import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
-public class AoC2015_16 extends SolutionBase<List<AuntSue>, Integer, Integer> {
+public class AoC2015_16 extends SolutionBase<List<AoC2015_16.AuntSue>, Integer, Integer> {
     
     private static final int[] VALUES = new int[] {
             /* Thing.CHILDREN */ 3,
@@ -93,49 +89,78 @@ public class AoC2015_16 extends SolutionBase<List<AuntSue>, Integer, Integer> {
             }
         }
     }
-}
 
-enum Thing {
-    CHILDREN("children"),
-    CATS("cats"),
-    SAMOYEDS("samoyeds"),
-    POMERANIANS("pomeranians"),
-    AKITAS("akitas"),
-    VIZSLAS("vizslas"),
-    GOLDFISH("goldfish"),
-    TREES("trees"),
-    CARS("cars"),
-    PERFUMES("perfumes");
-    
-    private final String value;
-    
-    Thing(final String value) {
-        this.value = value;
+    enum Thing {
+        CHILDREN("children"),
+        CATS("cats"),
+        SAMOYEDS("samoyeds"),
+        POMERANIANS("pomeranians"),
+        AKITAS("akitas"),
+        VIZSLAS("vizslas"),
+        GOLDFISH("goldfish"),
+        TREES("trees"),
+        CARS("cars"),
+        PERFUMES("perfumes");
+        
+        private final String value;
+        
+        Thing(final String value) {
+            this.value = value;
+        }
+        
+        public static final Thing fromString(final String string) {
+            return Stream.of(values())
+                    .filter(v -> v.value.equals(string))
+                    .findFirst().orElseThrow();
+        }
     }
-    
-    public static final Thing fromString(final String string) {
-        return Stream.of(values())
-                .filter(v -> v.value.equals(string))
-                .findFirst().orElseThrow();
-    }
-}
 
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
-@Getter
-final class AuntSue {
-    @EqualsAndHashCode.Include
-    private final int nbr;
-    private final Integer[] things;
-    
-    public static AuntSue fromInput(final String s) {
-        final String[] splits = s.replaceAll("[,:]", "").split(" ");
-        final Integer[] things = new Integer[Thing.values().length];
-        Range.range(2, splits.length, 2).intStream()
-            .forEach(i -> {
-               final int idx = Thing.fromString(splits[i]).ordinal();
-               things[idx] = Integer.valueOf(splits[i + 1]);
-            });
-        return new AuntSue(Integer.parseInt(splits[1]), things);
+    static final class AuntSue {
+        private final int nbr;
+        private final Integer[] things;
+        
+        protected AuntSue(int nbr, Integer[] things) {
+            this.nbr = nbr;
+            this.things = things;
+        }
+        
+        public static AuntSue fromInput(final String s) {
+            final String[] splits = s.replaceAll("[,:]", "").split(" ");
+            final Integer[] things = new Integer[Thing.values().length];
+            Range.range(2, splits.length, 2).intStream()
+                .forEach(i -> {
+                   final int idx = Thing.fromString(splits[i]).ordinal();
+                   things[idx] = Integer.valueOf(splits[i + 1]);
+                });
+            return new AuntSue(Integer.parseInt(splits[1]), things);
+        }
+        
+        public int getNbr() {
+            return nbr;
+        }
+        
+        public Integer[] getThings() {
+            return things;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            AuntSue other = (AuntSue) obj;
+            return nbr == other.nbr;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(nbr);
+        }
     }
 }

@@ -27,11 +27,11 @@ public class AoC2022_20 extends AoCBase {
     }
     
     private long solve(final int rounds, final long factor) {
-        final List<Long> nums = this.numbers.stream()
+        final var nums = this.numbers.stream()
                 .map(num -> factor * num)
                 .collect(toList());
         final int size = nums.size();
-        final List<Integer> idxs = range(size).intStream().boxed().collect(toList());
+        final var idxs = range(size).intStream().boxed().collect(toList());
         range(rounds).forEach(round -> {
             Stream.iterate(0, i -> i < size, i -> i + 1).forEach(i -> {
                 final int idx = idxs.indexOf(i);
@@ -68,13 +68,13 @@ public class AoC2022_20 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "1\r\n" +
-        "2\r\n" +
-        "-3\r\n" +
-        "3\r\n" +
-        "-2\r\n" +
-        "0\r\n" +
-        "4"
-    );
+    private static final List<String> TEST = splitLines("""
+        1
+        2
+        -3
+        3
+        -2
+        0
+        4
+        """);
 }

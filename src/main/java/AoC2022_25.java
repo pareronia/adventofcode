@@ -5,9 +5,6 @@ import java.util.stream.IntStream;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-
 public class AoC2022_25 extends AoCBase {
     
     private static final Map<Character, Integer> DECODE = Map.of(
@@ -49,8 +46,8 @@ public class AoC2022_25 extends AoCBase {
         final StringBuilder ans = new StringBuilder();
         while (total > 0) {
             final DigitAndCarry pair = ENCODE.get(total % 5);
-            ans.append(pair.getDigit());
-            total = total / 5 + pair.getCarry();
+            ans.append(pair.digit());
+            total = total / 5 + pair.carry();
         }
         return ans.reverse().toString();
     }
@@ -75,29 +72,24 @@ public class AoC2022_25 extends AoCBase {
         );
     }
 
-    private static final List<String> TEST = splitLines(
-        "1=-0-2\r\n" +
-        "12111\r\n" +
-        "2=0=\r\n" +
-        "21\r\n" +
-        "2=01\r\n" +
-        "111\r\n" +
-        "20012\r\n" +
-        "112\r\n" +
-        "1=-1=\r\n" +
-        "1-12\r\n" +
-        "12\r\n" +
-        "1=\r\n" +
-        "122"
-    );
+    private static final List<String> TEST = splitLines("""
+        1=-0-2
+        12111
+        2=0=
+        21
+        2=01
+        111
+        20012
+        112
+        1=-1=
+        1-12
+        12
+        1=
+        122
+        """);
     private static final List<String> TEST1 = List.of("1=11-2");
     private static final List<String> TEST2 = List.of("1-0---0");
     private static final List<String> TEST3 = List.of("1121-1110-1=0");
     
-    @RequiredArgsConstructor
-    @Getter
-    private static final class DigitAndCarry {
-        private final String digit;
-        private final int carry;
-    }
+    private static final record DigitAndCarry(String digit, int carry) { }
 }

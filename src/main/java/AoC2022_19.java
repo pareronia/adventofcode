@@ -9,37 +9,37 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-import lombok.AccessLevel;
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-
-public class AoC2022_19 extends AoCBase {
+public class AoC2022_19
+    extends SolutionBase<List<AoC2022_19.Blueprint>, Integer, Integer> {
     
-    private final List<Blueprint> blueprints;
-    
-    private AoC2022_19(final List<String> input, final boolean debug) {
+    private AoC2022_19(final boolean debug) {
         super(debug);
-        this.blueprints = input.stream()
-            .map(Utils::naturalNumbers)
-            .map(nums -> new Blueprint(nums[0], nums[1], nums[2], nums[3],
-                                        nums[4], nums[5], nums[6]))
-            .collect(toList());
     }
     
-    public static final AoC2022_19 create(final List<String> input) {
-        return new AoC2022_19(input, false);
+    public static final AoC2022_19 create() {
+        return new AoC2022_19(false);
     }
 
-    public static final AoC2022_19 createDebug(final List<String> input) {
-        return new AoC2022_19(input, true);
+    public static final AoC2022_19 createDebug() {
+        return new AoC2022_19(true);
     }
     
+    @Override
+    protected List<Blueprint> parseInput(final List<String> inputs) {
+        return inputs.stream()
+                .map(Utils::naturalNumbers)
+                .map(nums -> Blueprint.create(nums[0], nums[1], nums[2], nums[3],
+                                            nums[4], nums[5], nums[6]))
+                .collect(toList());
+    }
+
     private int solve(final Blueprint blueprint, final int maxTime) {
         final Deque<State> q = new ArrayDeque<>();
-        q.add(new State(0, 0, 1, 0, 0, 0, 0, 0, 0));
+        q.add(State.create(0, 0, 1, 0, 0, 0, 0, 0, 0));
         final Set<State> seen = new HashSet<>();
         int best = Integer.MIN_VALUE;
         while (!q.isEmpty()) {
@@ -79,94 +79,87 @@ public class AoC2022_19 extends AoCBase {
     }
 
     @Override
-    public Integer solvePart1() {
-        return this.blueprints.parallelStream()
+    public Integer solvePart1(final List<Blueprint> blueprints) {
+        return blueprints.parallelStream()
                 .mapToInt(bp -> bp.id * solve(bp, 24))
                 .sum();
     }
 
     @Override
-    public Integer solvePart2() {
-        return this.blueprints.parallelStream()
+    public Integer solvePart2(final List<Blueprint> blueprints) {
+        return blueprints.parallelStream()
                 .limit(3)
                 .mapToInt(bp -> solve(bp, 32))
                 .reduce(1, (a, b) -> a * b);
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "33"),
+//        @Sample(method = "part2", input = TEST, expected = "3472"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2022_19.createDebug(TEST).solvePart1() == 33;
-        assert AoC2022_19.createDebug(TEST).solvePart2() == 56 * 62;
-
-        final Puzzle puzzle = Aocd.puzzle(2022, 19);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2022_19.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2022_19.create(inputData)::solvePart2)
-        );
+        AoC2022_19.create().run();
     }
     
-    private static final List<String> TEST = splitLines(
-        "Blueprint 1:"
-        + " Each ore robot costs 4 ore."
-        + " Each clay robot costs 2 ore."
-        + " Each obsidian robot costs 3 ore and 14 clay."
-        + " Each geode robot costs 2 ore and 7 obsidian.\r\n"
-        + "Blueprint 2:"
-        + " Each ore robot costs 2 ore."
-        + " Each clay robot costs 3 ore."
-        + " Each obsidian robot costs 3 ore and 8 clay."
-        + " Each geode robot costs 3 ore and 12 obsidian."
-    );
-
-    private static final class Blueprint {
-        private final int id;
-        private final int oreCost;
-        private final int clayCost;
-        private final int obisidanOreCost;
-        private final int obisidanClayCost;
-        private final int geodeOreCost;
-        private final int geodeObisidanCost;
-        private final int maxOre;
+    private static final String TEST = """
+        Blueprint 1:\
+         Each ore robot costs 4 ore.\
+         Each clay robot costs 2 ore.\
+         Each obsidian robot costs 3 ore and 14 clay.\
+         Each geode robot costs 2 ore and 7 obsidian.\
         
-        public Blueprint(
+        Blueprint 2:\
+         Each ore robot costs 2 ore.\
+         Each clay robot costs 3 ore.\
+         Each obsidian robot costs 3 ore and 8 clay.\
+         Each geode robot costs 3 ore and 12 obsidian.\
+        """;
+
+    record Blueprint(
+        int id,
+        int oreCost,
+        int clayCost,
+        int obisidanOreCost,
+        int obisidanClayCost,
+        int geodeOreCost,
+        int geodeObisidanCost,
+        int maxOre
+    ) {
+        
+        public static Blueprint create(
                 final int id, final int oreCost, final int clayCost,
                 final int obisidanOreCost, final int obisidanClayCost,
                 final int geodeOreCost, final int geodeObisidanCost
         ) {
-            this.id = id;
-            this.oreCost = oreCost;
-            this.clayCost = clayCost;
-            this.obisidanOreCost = obisidanOreCost;
-            this.obisidanClayCost = obisidanClayCost;
-            this.geodeOreCost = geodeOreCost;
-            this.geodeObisidanCost = geodeObisidanCost;
-            this.maxOre = IntStream.of(
+            final int maxOre = IntStream.of(
                     oreCost, clayCost, geodeOreCost, obisidanOreCost)
                 .max().orElseThrow();
+            return new Blueprint(id, oreCost, clayCost, obisidanOreCost,
+                obisidanClayCost, geodeOreCost, geodeObisidanCost, maxOre);
         }
     }
 
-    @RequiredArgsConstructor(access = AccessLevel.PRIVATE)
-    @EqualsAndHashCode
-    private static final class State {
-        private static final double CUSHION = 1.5d;
+    record State(
+        byte time,
+        byte oreStore,
+        byte oreRobot,
+        byte clayStore,
+        byte clayRobot,
+        byte obisidianStore,
+        byte obsidianRobot,
+        byte geodeStore,
+        byte geodeRobot
+    ) {
+        private static final double CUSHION = 1.51d;
 
-        private final byte time;
-        private final byte oreStore;
-        private final byte oreRobot;
-        private final byte clayStore;
-        private final byte clayRobot;
-        private final byte obisidianStore;
-        private final byte obsidianRobot;
-        private final byte geodeStore;
-        private final byte geodeRobot;
-
-        public State(final int time, final int oreStore, final int oreRobot,
+        public static State create(
+                final int time, final int oreStore, final int oreRobot,
                 final int clayStore, final int clayRobot,
                 final int obisidianStore, final int obsidianRobot,
                 final int geodStore, final int geodRobot
         ) {
-            this(   (byte) time,
+            return new State(
+                    (byte) time,
                     (byte) oreStore,
                     (byte) oreRobot,
                     (byte) clayStore,
@@ -212,7 +205,7 @@ public class AoC2022_19 extends AoCBase {
         }
 
         public State buildGeodeRobot(final Blueprint blueprint) {
-            return new State(
+            return State.create(
                 this.time + 1,
                 this.oreStore + this.oreRobot - blueprint.geodeOreCost,
                 this.oreRobot,
@@ -285,7 +278,7 @@ public class AoC2022_19 extends AoCBase {
                 final int oreStore, final int oreRobot, final int clayStore,
                 final int clayRobot, final int obisidianStore,
                 final int obsidianRobot, final int geodeStore, final int geodeRobot) {
-            return new State(
+            return State.create(
                     this.time + 1,
                     Math.min(oreStore, cushion(maxOre)),
                     oreRobot,

@@ -1,3 +1,6 @@
+use core::fmt;
+use core::fmt::Display;
+use std::collections::HashSet;
 use std::str::FromStr;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -18,14 +21,60 @@ impl XY {
     pub fn y(&self) -> i32 {
         self.y
     }
+
+    pub fn manhattan_distance(&self, other: &XY) -> u32 {
+        ((self.x - other.x).abs() + (self.y - other.y).abs()) as u32
+    }
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Direction {
     Up,
     Right,
     Down,
     Left,
+}
+
+impl Direction {
+    pub fn capital() -> HashSet<Direction> {
+        vec![
+            Direction::Up,
+            Direction::Right,
+            Direction::Down,
+            Direction::Left,
+        ]
+        .into_iter()
+        .collect()
+    }
+
+    pub fn is_horizontal(&self) -> bool {
+        *self == Direction::Right || *self == Direction::Left
+    }
+
+    pub fn turn(&self, turn: Turn) -> Direction {
+        match self {
+            Direction::Up => match turn {
+                Turn::Around => Direction::Down,
+                Turn::Left => Direction::Left,
+                Turn::Right => Direction::Right,
+            },
+            Direction::Right => match turn {
+                Turn::Around => Direction::Left,
+                Turn::Left => Direction::Up,
+                Turn::Right => Direction::Down,
+            },
+            Direction::Down => match turn {
+                Turn::Around => Direction::Up,
+                Turn::Left => Direction::Right,
+                Turn::Right => Direction::Left,
+            },
+            Direction::Left => match turn {
+                Turn::Around => Direction::Right,
+                Turn::Left => Direction::Down,
+                Turn::Right => Direction::Up,
+            },
+        }
+    }
 }
 
 impl FromStr for Direction {
@@ -40,6 +89,18 @@ impl FromStr for Direction {
             _ => panic!("Invalid Direction '{}'", s),
         }
     }
+}
+
+impl Display for Direction {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
+    }
+}
+
+pub enum Turn {
+    Around,
+    Left,
+    Right,
 }
 
 impl TryFrom<Direction> for XY {

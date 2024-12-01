@@ -2,73 +2,11 @@
 #
 # Advent of Code 2020 Day 9
 #
-from aoc import my_aocd
-from aoc.common import log
 
+import sys
 
-def _parse(inputs: tuple[str]) -> tuple[int]:
-    return tuple([int(_) for _ in inputs])
-
-
-def find_two_summands(numbers: list[int], sum_: int):
-    for n1 in numbers:
-        n2 = sum_ - n1
-        if n2 in numbers:
-            return (n1, n2)
-    return None
-
-
-def _do_part_1(inputs: tuple[str], window_size: int) -> int:
-    inputs = _parse(inputs)
-    log(inputs)
-    _range = range(window_size, len(inputs))
-    for i in _range:
-        n = inputs[i]
-        search_window = inputs[i-window_size:i]
-        log(search_window)
-        if find_two_summands(search_window, sum_=n) is None:
-            return n
-    raise ValueError("Unsolvable")
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return _do_part_1(inputs, window_size=25)
-
-
-def _sublists(inputs: tuple[int], min_size: int) -> [[int]]:
-    sublists = [[]]
-    for i in range(len(inputs) + 1):
-        for j in range(i + 1, len(inputs) + 1):
-            if j-i < min_size:
-                continue
-            sli = inputs[i:j]
-            sublists.append(sli)
-    return sublists
-
-
-def _collect_all_sublists_before_target_with_minimum_size_2(
-        inputs: tuple[int], target: int) -> [[]]:
-    return _sublists(inputs[:target], min_size=2)
-
-
-def _do_part_2(inputs: tuple[str], window_size: int) -> int:
-    inputs = _parse(inputs)
-    log(inputs)
-    target = _do_part_1(inputs, window_size)
-    target_pos = inputs.index(target)
-    log(target_pos)
-    sublists = _collect_all_sublists_before_target_with_minimum_size_2(
-        inputs, target_pos)
-    ss = [s for s in sublists if sum(s) == target]
-    log(f"Found: {ss}")
-    if len(ss) == 1:
-        return min(ss[0])+max(ss[0])
-    raise ValueError("Unsolvable")
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return _do_part_2(inputs, window_size=25)
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
 
 TEST = """\
 35
@@ -91,21 +29,57 @@ TEST = """\
 277
 309
 576
-""".splitlines()
+"""
+
+Input = list[int]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [int(_) for _ in input_data]
+
+    def solve_1(self, numbers: list[int], window_size: int) -> int:
+        return next(
+            i
+            for i in range(window_size, len(numbers))
+            if not any(
+                numbers[i] - n in numbers[i - window_size : i]  # noqa E203
+                for n in numbers[i - window_size : i]  # noqa E203
+            )
+        )
+
+    def part_1(self, numbers: list[int]) -> int:
+        invalid_idx = self.solve_1(numbers, window_size=25)
+        return numbers[invalid_idx]
+
+    def solve_2(self, numbers: list[int], window_size: int) -> int:
+        invalid_idx = self.solve_1(numbers, window_size)
+        sublists = (
+            numbers[i:j]
+            for i in range(invalid_idx + 1)
+            for j in range(i + 1, invalid_idx + 1)
+            if j - i >= 2
+        )
+        return next(
+            min(s) + max(s) for s in sublists if sum(s) == numbers[invalid_idx]
+        )
+
+    def part_2(self, numbers: list[int]) -> int:
+        return self.solve_2(numbers, window_size=25)
+
+    def samples(self) -> None:
+        assert self.solve_1(self.parse_input(TEST.splitlines()), 5) == 14
+        assert self.solve_2(self.parse_input(TEST.splitlines()), 5) == 62
+
+
+solution = Solution(2020, 9)
 
 
 def main() -> None:
-    my_aocd.print_header(2020, 9)
-
-    assert _do_part_1(TEST, 5) == 127
-    assert _do_part_2(TEST, 5) == 62
-
-    inputs = my_aocd.get_input(2020, 9, 1000)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

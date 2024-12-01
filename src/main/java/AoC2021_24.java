@@ -19,10 +19,6 @@ import com.github.pareronia.aoc.vm.VirtualMachine;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
-import lombok.EqualsAndHashCode;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
-
 public class AoC2021_24 extends AoCBase {
     
     private static final int DIGITS = 14;
@@ -171,13 +167,7 @@ public class AoC2021_24 extends AoCBase {
     
     private final Map<Integer, Program> programCache = new HashMap<>();
     
-    @RequiredArgsConstructor
-    @EqualsAndHashCode
-    private static final class ProgramParams {
-        private final long w;
-        private final long z;
-        private final int digit;
-    }
+    record ProgramParams(long w, long z, int digit) {}
     
     private long execProgram(final ProgramParams params) {
         final Program program = createProgram(params.digit);
@@ -327,10 +317,5 @@ public class AoC2021_24 extends AoCBase {
         "add z y"
     );
     
-    @RequiredArgsConstructor
-    @ToString
-    private static final class MonadInstruction {
-        private final String operator;
-        private final List<String> operands;
-    }
+    record MonadInstruction(String operator, List<String> operands) {}
 }
