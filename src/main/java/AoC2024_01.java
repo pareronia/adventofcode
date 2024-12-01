@@ -1,12 +1,11 @@
 import static com.github.pareronia.aoc.IterTools.zip;
+import static com.github.pareronia.aoc.ListUtils.sorted;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import com.github.pareronia.aoc.Counter;
+import com.github.pareronia.aoc.ListUtils;
 import com.github.pareronia.aoc.StringOps;
-import com.github.pareronia.aoc.StringOps.StringSplit;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
@@ -29,21 +28,19 @@ public final class AoC2024_01
     
     @Override
     protected Lists parseInput(final List<String> inputs) {
-        final List<Integer> left = new ArrayList<>();
-        final List<Integer> right = new ArrayList<>();
-        for (final String line : inputs) {
-            final StringSplit splits = StringOps.splitOnce(line, "\s+");
-            left.add(Integer.parseInt(splits.left()));
-            right.add(Integer.parseInt(splits.right()));
-        }
-        return new Lists(left, right);
+        final List<List<Integer>> lists = inputs.stream()
+                .map(line -> StringOps.splitOnce(line, "\s+"))
+                .map(splits -> List.of(
+                        Integer.valueOf(splits.left()),
+                        Integer.valueOf(splits.right())))
+                .toList();
+        final List<List<Integer>> transpose = ListUtils.transpose(lists);
+        return new Lists(transpose.get(0), transpose.get(1));
     }
     
     @Override
     public Integer solvePart1(final Lists lists) {
-        Collections.sort(lists.left);
-        Collections.sort(lists.right);
-        return Utils.stream(zip(lists.left, lists.right).iterator())
+        return Utils.stream(zip(sorted(lists.left), sorted(lists.right)).iterator())
                 .mapToInt(z -> Math.abs(z.first() - z.second()))
                 .sum();
     }

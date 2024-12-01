@@ -7,6 +7,11 @@ import java.util.Objects;
 
 public class ListUtils {
 
+    public static <T extends Comparable<T>> List<T> sorted(final List<T> list) {
+        Collections.sort(list);
+        return list;
+    }
+
     public static <T> List<T> reversed(final List<T> list) {
         final List<T> ans = new ArrayList<>(Objects.requireNonNull(list));
         Collections.reverse(ans);
@@ -44,6 +49,25 @@ public class ListUtils {
             i += subList.size();
         }
         ans.addAll(list.subList(i, list.size()));
+        return ans;
+    }
+    
+    public static <T> List<List<T>> transpose(final List<List<T>> lists) {
+        AssertUtils.assertTrue(
+                lists.stream().noneMatch(List::isEmpty),
+                () -> "Expect lists to be not empty");
+        AssertUtils.assertTrue(
+                lists.stream().map(List::size).distinct().count() == 1,
+                () -> "Expect lists to be same size");
+        final List<List<T>> ans = new ArrayList<>();
+        for (int i = 0; i < lists.get(0).size(); i++) {
+            ans.add(new ArrayList<>());
+        }
+        for (int i = 0; i < lists.get(0).size(); i++) {
+            for (int j = 0; j < lists.size(); j++) {
+                ans.get(i).add(lists.get(j).get(i));
+            }
+        }
         return ans;
     }
 }

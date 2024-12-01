@@ -1,6 +1,7 @@
 package com.github.pareronia.aoc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.util.List;
 
@@ -40,5 +41,21 @@ class ListUtilsTestCase {
         assertThat(ListUtils.subtractAll(
                 List.of(1, 2, 3), List.of(1, 2, 3)))
             .isEqualTo(List.of());
+    }
+    
+    @Test
+    void transpose() {
+        assertThatThrownBy(() -> ListUtils.transpose(
+                List.of(List.of(), List.of())))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> ListUtils.transpose(
+                List.of(List.of(1, 2, 3), List.of(4, 5))))
+            .isInstanceOf(IllegalArgumentException.class);
+        assertThat(ListUtils.transpose(List.of(
+                List.of(1, 2, 3), List.of(4, 5, 6))))
+            .isEqualTo(List.of(List.of(1, 4), List.of(2, 5), List.of(3, 6)));
+        assertThat(ListUtils.transpose(List.of(
+                List.of("a", "b"), List.of("c", "d"))))
+            .isEqualTo(List.of(List.of("a", "c"), List.of("b", "d")));
     }
 }
