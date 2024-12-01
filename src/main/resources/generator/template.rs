@@ -13,15 +13,15 @@ impl aoc::Puzzle for AoC${year}_${day2} {
 
     aoc::puzzle_year_day!(${year}, ${day});
 
-    fn parse_input(&self, lines: Vec<String>) -> Vec<String> {
+    fn parse_input(&self, lines: Vec<String>) -> Self::Input {
         lines
     }
 
-    fn part_1(&self, input: &Vec<String>) -> u32 {
+    fn part_1(&self, input: &Self::Input) -> u32 {
         todo!()
     }
 
-    fn part_2(&self, input: &Vec<String>) -> u32 {
+    fn part_2(&self, input: &Self::Input) -> u32 {
         todo!()
     }
 
