@@ -18,7 +18,7 @@ jobs:
         with:
           userid: ${{ secrets.AOC_USER_ID }}     # your user id, see setup on how to obtain
           session: ${{ secrets.AOC_SESSION }}    # secret containing session code, see setup on how to obtain
-          year: 2023
+          year: 2024
           
 #         Optional inputs:
 #         
