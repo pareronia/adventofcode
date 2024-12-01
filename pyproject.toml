@@ -38,3 +38,7 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = "junitparser.*"
 ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "termcolor.*"
+ignore_missing_imports = true
