@@ -10,7 +10,7 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 
-Input = tuple[list[int], list[int]]
+Input = tuple[tuple[int, ...], tuple[int, ...]]
 Output1 = int
 Output2 = int
 
@@ -27,16 +27,13 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        left, right = [], []
-        nums = [_ for line in input_data for _ in line.split()]
-        for i in range(0, len(nums), 2):
-            left.append(int(nums[i]))
-            right.append(int(nums[i + 1]))
-        return left, right
+        return tuple(
+            _ for _ in zip(*[map(int, line.split()) for line in input_data])
+        )
 
     def part_1(self, lists: Input) -> Output1:
-        left, right = map(sorted, lists)
-        return sum(abs(left[i] - right[i]) for i in range(len(left)))
+        left, right = lists
+        return sum(abs(n1 - n2) for n1, n2 in zip(sorted(left), sorted(right)))
 
     def part_2(self, lists: Input) -> Output2:
         left, right = lists
