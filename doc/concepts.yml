@@ -77,3 +77,10 @@ concepts:
                     tags:
                         - set operations
                         - ascii
+        - 2024:
+            day:
+              - 1:
+                  tags:
+                    - difference
+                    - transpose
+                    - counter
