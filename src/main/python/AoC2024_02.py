@@ -9,7 +9,7 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 
-Input = InputData
+Input = list[list[int]]
 Output1 = int
 Output2 = int
 
@@ -26,47 +26,25 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return [list(map(int, line.split())) for line in input_data]
 
-    def safe(self, nums: list[int]) -> bool:
-        if nums[0] == nums[-1]:
-            return False
-        if nums[0] < nums[-1]:
-            for i in range(len(nums) - 1):
-                diff = nums[i + 1] - nums[i]
-                if diff < 1 or diff > 3:
-                    break
-            else:
-                return True
-        if nums[0] > nums[-1]:
-            for i in range(len(nums) - 1):
-                diff = nums[i] - nums[i + 1]
-                if diff < 1 or diff > 3:
-                    break
-            else:
-                return True
-        return False
+    def safe(self, levels: list[int]) -> bool:
+        diffs = [levels[i + 1] - levels[i] for i in range(len(levels) - 1)]
+        return all(1 <= diff <= 3 for diff in diffs) or all(
+            -1 >= diff >= -3 for diff in diffs
+        )
 
-    def part_1(self, input: Input) -> Output1:
-        ans = 0
-        for line in input:
-            nums = list(map(int, line.split()))
-            if self.safe(nums):
-                ans += 1
-        return ans
+    def part_1(self, reports: Input) -> Output1:
+        return sum(self.safe(report) for report in reports)
 
-    def part_2(self, input: Input) -> Output2:
-        ans = 0
-        for line in input:
-            nums = list(map(int, line.split()))
-            if self.safe(nums):
-                ans += 1
-            else:
-                for i in range(len(nums)):
-                    if self.safe(nums[:i] + nums[i + 1 :]):  # noqa E203
-                        ans += 1
-                        break
-        return ans
+    def part_2(self, reports: Input) -> Output2:
+        return sum(
+            any(
+                self.safe(report[:i] + report[i + 1 :])  # noqa E203
+                for i in range(len(report))
+            )
+            for report in reports
+        )
 
     @aoc_samples(
         (
