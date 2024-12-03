@@ -17,11 +17,11 @@ impl aoc::Puzzle for AoC${year}_${day2} {
         lines
     }
 
-    fn part_1(&self, input: &Self::Input) -> u32 {
+    fn part_1(&self, input: &Self::Input) -> Self::Output1 {
         todo!()
     }
 
-    fn part_2(&self, input: &Self::Input) -> u32 {
+    fn part_2(&self, input: &Self::Input) -> Self::Output2 {
         todo!()
     }
 
