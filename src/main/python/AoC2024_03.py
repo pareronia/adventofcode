@@ -10,7 +10,7 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 
-Input = InputData
+Input = str
 Output1 = int
 Output2 = int
 
@@ -25,29 +25,28 @@ xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return "\n".join(line for line in input_data)
+
+    def solve(self, input: str, use_conditionals: bool) -> int:
+        enabled = True
+        ans = 0
+        for do, _, a, b in re.findall(
+            r"(do(n't)?)\(\)|mul\((\d{1,3}),(\d{1,3})\)", input
+        ):
+            if do == "do":
+                enabled = True
+            elif do == "don't":
+                enabled = False
+            else:
+                if not use_conditionals or enabled:
+                    ans += int(a) * int(b)
+        return ans
 
     def part_1(self, input: Input) -> Output1:
-        ans = 0
-        for line in input:
-            for m in re.finditer(r"mul\((\d+),(\d+)\)", line):
-                ans += int(m.group(1)) * int(m.group(2))
-        return ans
+        return self.solve(input, use_conditionals=False)
 
     def part_2(self, input: Input) -> Output2:
-        do = True
-        ans = 0
-        for m in re.finditer(
-            r"(do(n't)?)\(\)|mul\((\d+),(\d+)\)",
-            "\n".join(line for line in input),
-        ):
-            if m.group(1) == "do":
-                do = True
-            if m.group(1) == "don't":
-                do = False
-            if do and m.group(3) is not None and m.group(4) is not None:
-                ans += int(m.group(3)) * int(m.group(4))
-        return ans
+        return self.solve(input, use_conditionals=True)
 
     @aoc_samples(
         (

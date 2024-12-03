@@ -10,7 +10,7 @@
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | python3 | [✓](src/main/python/AoC2024_01.py) | [✓](src/main/python/AoC2024_02.py) | [✓](src/main/python/AoC2024_03.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2024_01.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) | [✓](src/main/rust/AoC2024_03/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2024@ -->
 
 ## 2023
