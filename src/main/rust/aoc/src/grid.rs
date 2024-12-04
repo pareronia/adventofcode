@@ -88,9 +88,13 @@ pub struct CellRange {
 pub enum Direction {
     Forward,
     North,
+    NorthEast,
     East,
+    SouthEast,
     South,
+    SouthWest,
     West,
+    NorthWest,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -125,9 +129,25 @@ impl Iterator for GridIterator {
                     };
                     self.next
                 }
+                Direction::NorthEast => {
+                    self.next = match val.row > 0 && val.col < self.width - 1 {
+                        true => Some(Cell::at(val.row - 1, val.col + 1)),
+                        false => None,
+                    };
+                    self.next
+                }
                 Direction::East => {
                     self.next = match val.col < self.width - 1 {
                         true => Some(Cell::at(val.row, val.col + 1)),
+                        false => None,
+                    };
+                    self.next
+                }
+                Direction::SouthEast => {
+                    self.next = match val.row < self.height - 1
+                        && val.col < self.width - 1
+                    {
+                        true => Some(Cell::at(val.row + 1, val.col + 1)),
                         false => None,
                     };
                     self.next
@@ -139,9 +159,23 @@ impl Iterator for GridIterator {
                     };
                     self.next
                 }
+                Direction::SouthWest => {
+                    self.next = match val.row < self.height - 1 && val.col > 0 {
+                        true => Some(Cell::at(val.row + 1, val.col - 1)),
+                        false => None,
+                    };
+                    self.next
+                }
                 Direction::West => {
                     self.next = match val.col > 0 {
                         true => Some(Cell::at(val.row, val.col - 1)),
+                        false => None,
+                    };
+                    self.next
+                }
+                Direction::NorthWest => {
+                    self.next = match val.row > 0 && val.col > 0 {
+                        true => Some(Cell::at(val.row - 1, val.col - 1)),
                         false => None,
                     };
                     self.next
@@ -249,11 +283,45 @@ pub trait Grid {
         }
     }
 
+    fn cells_direction(
+        &self,
+        cell: &Cell,
+        direction: crate::geometry::Direction,
+    ) -> GridIterator {
+        match direction {
+            crate::geometry::Direction::Up => self.cells_north(cell),
+            crate::geometry::Direction::RightAndUp => {
+                self.cells_north_east(cell)
+            }
+            crate::geometry::Direction::Right => self.cells_east(cell),
+            crate::geometry::Direction::RightAndDown => {
+                self.cells_south_east(cell)
+            }
+            crate::geometry::Direction::Down => self.cells_south(cell),
+            crate::geometry::Direction::LeftAndDown => {
+                self.cells_south_west(cell)
+            }
+            crate::geometry::Direction::Left => self.cells_west(cell),
+            crate::geometry::Direction::LeftAndUp => {
+                self.cells_north_west(cell)
+            }
+        }
+    }
+
     fn cells_north(&self, cell: &Cell) -> GridIterator {
         GridIterator {
             width: self.width(),
             height: self.height(),
             direction: Direction::North,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
+    fn cells_north_east(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::NorthEast,
             next: Some(Cell::at(cell.row, cell.col)),
         }
     }
@@ -267,6 +335,15 @@ pub trait Grid {
         }
     }
 
+    fn cells_south_east(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::SouthEast,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
     fn cells_south(&self, cell: &Cell) -> GridIterator {
         GridIterator {
             width: self.width(),
@@ -276,11 +353,29 @@ pub trait Grid {
         }
     }
 
+    fn cells_south_west(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::SouthWest,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
     fn cells_west(&self, cell: &Cell) -> GridIterator {
         GridIterator {
             width: self.width(),
             height: self.height(),
             direction: Direction::West,
+            next: Some(Cell::at(cell.row, cell.col)),
+        }
+    }
+
+    fn cells_north_west(&self, cell: &Cell) -> GridIterator {
+        GridIterator {
+            width: self.width(),
+            height: self.height(),
+            direction: Direction::NorthWest,
             next: Some(Cell::at(cell.row, cell.col)),
         }
     }
