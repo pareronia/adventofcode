@@ -153,6 +153,13 @@ class Grid(ABC, Generic[T]):
             for c in range(self.get_width())
         )
 
+    def get_cells_without_border(self) -> Iterator[Cell]:
+        return (
+            Cell(r, c)
+            for r in range(1, self.get_height() - 1)
+            for c in range(1, self.get_width() - 1)
+        )
+
     def get_cells_dir(self, cell: Cell, dir: Direction) -> Iterator[Cell]:
         if dir == Direction.UP:
             iter_dir = IterDir.UP

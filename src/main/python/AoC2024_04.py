@@ -8,7 +8,6 @@ import sys
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 from aoc.geometry import Direction
 from aoc.grid import CharGrid
 
@@ -36,38 +35,31 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return CharGrid.from_strings(list(input_data))
 
     def part_1(self, grid: Input) -> Output1:
-        ans = 0
-        for cell in grid.get_all_equal_to("X"):
-            for d in Direction.octants():
-                w = "X" + "".join(
-                    grid.get_value(n) for n in grid.get_cells_dir(cell, d)
-                )
-                if w[:4] == "XMAS":
-                    ans += 1
-        return ans
+        return sum(
+            all(
+                (n := next(it, None)) is not None and grid.get_value(n) == v
+                for v in ["M", "A", "S"]
+            )
+            for it in (
+                grid.get_cells_dir(cell, d)
+                for cell in grid.get_all_equal_to("X")
+                for d in Direction.octants()
+            )
+        )
 
     def part_2(self, grid: Input) -> Output2:
-        ans = 0
-        for cell in grid.get_all_equal_to("A"):
-            if (
-                cell.row == 0
-                or cell.row == grid.get_max_row_index()
-                or cell.col == 0
-                or cell.col == grid.get_max_col_index()
-            ):
-                continue
-            w = ""
-            for d in [
-                Direction.LEFT_AND_UP,
-                Direction.RIGHT_AND_DOWN,
-                Direction.RIGHT_AND_UP,
-                Direction.LEFT_AND_DOWN,
-            ]:
-                w += grid.get_value(cell.at(d))
-            log(w)
-            if w in {"MSMS", "SMSM", "MSSM", "SMMS"}:
-                ans += 1
-        return ans
+        dirs = [
+            Direction.LEFT_AND_UP,
+            Direction.RIGHT_AND_DOWN,
+            Direction.RIGHT_AND_UP,
+            Direction.LEFT_AND_DOWN,
+        ]
+        matches = {"MSMS", "SMSM", "MSSM", "SMMS"}
+        return sum(
+            grid.get_value(cell) == "A"
+            and "".join(grid.get_value(cell.at(d)) for d in dirs) in matches
+            for cell in grid.get_cells_without_border()
+        )
 
     @aoc_samples(
         (

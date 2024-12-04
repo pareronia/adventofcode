@@ -21,14 +21,7 @@ def capital_directions(grid: IntGrid, cell: Cell) -> list[Iterator[Cell]]:
 
 
 def ignoring_borders(grid: IntGrid) -> Iterator[Cell]:
-    return (
-        c
-        for c in grid.get_cells()
-        if 1 <= c.row
-        and c.row < grid.get_max_row_index()
-        and 1 <= c.col
-        and c.col < grid.get_max_col_index()
-    )
+    return grid.get_cells_without_border()
 
 
 def visible_from_outside(grid: IntGrid, cell: Cell) -> bool:
