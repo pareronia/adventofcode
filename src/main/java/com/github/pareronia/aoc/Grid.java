@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.geometry.Direction;
@@ -106,6 +107,30 @@ public interface Grid<T> {
     default Stream<Cell> getCells() {
         return Utils.stream(
             new GridIterator<>(this, ORIGIN, GridIterator.IterDir.FORWARD));
+    }
+
+    default Stream<Cell> getCellsWithoutBorder() {
+        final Builder<Cell> builder = Stream.builder();
+        for (int r = 1; r < this.getHeight() - 1; r++) {
+            for (int c = 1; c < this.getWidth() - 1; c++) {
+                builder.add(new Cell(r, c));
+            }
+        }
+        return builder.build();
+    }
+
+    default Stream<Cell> getCells(final Cell cell, final Direction dir) {
+        return switch (dir) {
+            case UP: yield getCellsN(cell);
+            case RIGHT_AND_UP: yield getCellsNE(cell);
+            case RIGHT: yield getCellsE(cell);
+            case RIGHT_AND_DOWN: yield getCellsSE(cell);
+            case DOWN: yield getCellsS(cell);
+            case LEFT_AND_DOWN: yield getCellsSW(cell);
+            case LEFT: yield getCellsW(cell);
+            case LEFT_AND_UP: yield getCellsNW(cell);
+            default: throw new IllegalArgumentException();
+        };
     }
 
     default Stream<Cell> getCellsN(final Cell cell) {
