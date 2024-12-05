@@ -2,15 +2,15 @@
 
 ## 2024
 
-![](https://img.shields.io/badge/stars%20⭐-8-yellow)
-![](https://img.shields.io/badge/days%20completed-4-red)
+![](https://img.shields.io/badge/stars%20⭐-10-yellow)
+![](https://img.shields.io/badge/days%20completed-5-red)
 
 <!-- @BEGIN:ImplementationsTable:2024@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | python3 | [✓](src/main/python/AoC2024_01.py) | [✓](src/main/python/AoC2024_02.py) | [✓](src/main/python/AoC2024_03.py) | [✓](src/main/python/AoC2024_04.py) | [✓](src/main/python/AoC2024_05.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2024_01.java) | [✓](src/main/java/AoC2024_02.java) | [✓](src/main/java/AoC2024_03.java) | [✓](src/main/java/AoC2024_04.java) | [✓](src/main/java/AoC2024_05.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) | [✓](src/main/rust/AoC2024_03/src/main.rs) | [✓](src/main/rust/AoC2024_04/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) | [✓](src/main/rust/AoC2024_03/src/main.rs) | [✓](src/main/rust/AoC2024_04/src/main.rs) | [✓](src/main/rust/AoC2024_05/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2024@ -->
 
 ## 2023
