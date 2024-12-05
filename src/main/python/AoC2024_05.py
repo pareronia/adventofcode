@@ -5,6 +5,9 @@
 
 import sys
 from collections import defaultdict
+from enum import Enum
+from enum import auto
+from enum import unique
 from functools import cmp_to_key
 
 from aoc import my_aocd
@@ -12,7 +15,7 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 
-Input = InputData
+Input = tuple[dict[int, list[int]], list[list[int]]]
 Output1 = int
 Output2 = int
 
@@ -49,55 +52,46 @@ TEST = """\
 """
 
 
+@unique
+class Mode(Enum):
+    USE_CORRECT = auto()
+    USE_INCORRECT = auto()
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        blocks = my_aocd.to_blocks(input_data)
+        order = defaultdict[int, list[int]](list)
+        for line in blocks[0]:
+            a, b = map(int, line.split("|"))
+            order[a].append(b)
+        updates = [list(map(int, line.split(","))) for line in blocks[1]]
+        return order, updates
+
+    def solve(self, input: Input, mode: Mode) -> int:
+        order, updates = input
+
+        def cmp(a: int, b: int) -> int:
+            return -1 if b in order[a] else 1
+
+        ans = 0
+        for update in updates:
+            correct = update[:]
+            correct.sort(key=cmp_to_key(cmp))
+            match mode:
+                case Mode.USE_CORRECT:
+                    if update == correct:
+                        ans += correct[len(correct) // 2]
+                case Mode.USE_INCORRECT:
+                    if update != correct:
+                        ans += correct[len(correct) // 2]
+        return ans
 
     def part_1(self, input: Input) -> Output1:
-        blocks = my_aocd.to_blocks(input)
-        order = defaultdict[int, list[int]](list)
-        for line in blocks[0]:
-            a, b = map(int, line.split("|"))
-            order[a].append(b)
-        ans = 0
-        for line in blocks[1]:
-            nums = list(map(int, line.split(",")))
-            for i in range(1, len(nums)):
-                a = nums[i - 1]
-                b = nums[i]
-                if b not in order[a]:
-                    break
-            else:
-                ans += nums[len(nums) // 2]
-        return ans
+        return self.solve(input, Mode.USE_CORRECT)
 
     def part_2(self, input: Input) -> Output2:
-        blocks = my_aocd.to_blocks(input)
-        order = defaultdict[int, list[int]](list)
-        for line in blocks[0]:
-            a, b = map(int, line.split("|"))
-            order[a].append(b)
-        ans = 0
-        wrong = list[list[int]]()
-        for line in blocks[1]:
-            nums = list(map(int, line.split(",")))
-            for i in range(1, len(nums)):
-                a = nums[i - 1]
-                b = nums[i]
-                if b not in order[a]:
-                    wrong.append(nums)
-                    break
-
-        def f(a: int, b: int) -> int:
-            if b in order[a]:
-                return 1
-            else:
-                return -1
-
-        for w in wrong:
-            w.sort(key=cmp_to_key(f))
-            ans += w[len(w) // 2]
-        return ans
+        return self.solve(input, Mode.USE_INCORRECT)
 
     @aoc_samples(
         (
