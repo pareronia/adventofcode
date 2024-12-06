@@ -16,16 +16,16 @@ impl aoc::Puzzle for AoC2024_01 {
     aoc::puzzle_year_day!(2024, 1);
 
     fn parse_input(&self, lines: Vec<String>) -> Self::Input {
-        let nums = lines
+        lines
             .iter()
-            .map(|line| line.split_once("   ").unwrap())
-            .map(|(left, right)| {
-                (left.parse::<u32>().unwrap(), right.parse::<u32>().unwrap())
+            .map(|line| {
+                let mut split = line.split_whitespace();
+                (
+                    split.next().map(|s| s.parse::<u32>().unwrap()).unwrap(),
+                    split.next().map(|s| s.parse::<u32>().unwrap()).unwrap(),
+                )
             })
-            .collect::<Vec<(u32, u32)>>();
-        let left = nums.iter().map(|(left, _)| left.clone()).collect();
-        let right = nums.iter().map(|(_, right)| right.clone()).collect();
-        return (left, right);
+            .unzip()
     }
 
     fn part_1(&self, input: &Self::Input) -> u32 {

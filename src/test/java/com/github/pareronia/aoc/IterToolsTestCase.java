@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.pareronia.aoc.IterTools.WindowPair;
 import com.github.pareronia.aoc.IterTools.ZippedPair;
 
 public class IterToolsTestCase {
@@ -78,4 +79,14 @@ public class IterToolsTestCase {
             assertThat(ccycle.next()).isEqualTo('c');
         }
    }
+    
+    @Test
+    public void windows() {
+        final Iterator<WindowPair<Integer>> windows
+                = IterTools.windows(List.of(1, 2, 3, 4));
+        assertThat(windows.next()).isEqualTo(new WindowPair<>(1, 2));
+        assertThat(windows.next()).isEqualTo(new WindowPair<>(2, 3));
+        assertThat(windows.next()).isEqualTo(new WindowPair<>(3, 4));
+        assertThat(windows.hasNext()).isFalse();
+    }
 }

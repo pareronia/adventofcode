@@ -155,6 +155,25 @@ public class IterTools {
         return cycle(iterable.iterator());
     }
     
+    public static <T> Iterator<WindowPair<T>> windows(final List<T> list) {
+        return new Iterator<>() {
+            int i = 0;
+            
+            @Override
+            public boolean hasNext() {
+                return i < list.size() - 1;
+            }
+
+            @Override
+            public WindowPair<T> next() {
+                final WindowPair<T> next
+                        = new WindowPair<>(list.get(i), list.get(i + 1));
+                i++;
+                return next;
+            }
+        };
+    }
+    
     private static final class Heap {
         
         public static void accept(final int[] a, final Consumer<int[]> consumer) {
@@ -192,6 +211,8 @@ public class IterTools {
     }
     
     public record ZippedPair<T>(T first, T second) {}
+    
+    public record WindowPair<T>(T first, T second) {}
     
     public record Enumerated<T>(int index, T value) {}
 }

@@ -30,9 +30,13 @@ impl XY {
 #[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
 pub enum Direction {
     Up,
+    RightAndUp,
     Right,
+    RightAndDown,
     Down,
+    LeftAndDown,
     Left,
+    LeftAndUp,
 }
 
 impl Direction {
@@ -42,6 +46,21 @@ impl Direction {
             Direction::Right,
             Direction::Down,
             Direction::Left,
+        ]
+        .into_iter()
+        .collect()
+    }
+
+    pub fn octants() -> HashSet<Direction> {
+        vec![
+            Direction::Up,
+            Direction::RightAndUp,
+            Direction::Right,
+            Direction::RightAndDown,
+            Direction::Down,
+            Direction::LeftAndDown,
+            Direction::Left,
+            Direction::LeftAndUp,
         ]
         .into_iter()
         .collect()
@@ -73,6 +92,7 @@ impl Direction {
                 Turn::Left => Direction::Down,
                 Turn::Right => Direction::Up,
             },
+            _ => panic!("Invalid Direction for turn: {}", self),
         }
     }
 }
@@ -109,9 +129,13 @@ impl TryFrom<Direction> for XY {
     fn try_from(value: Direction) -> Result<Self, Self::Error> {
         match value {
             Direction::Up => Ok(XY::of(0, 1)),
+            Direction::RightAndUp => Ok(XY::of(1, 1)),
             Direction::Right => Ok(XY::of(1, 0)),
+            Direction::RightAndDown => Ok(XY::of(1, -1)),
             Direction::Down => Ok(XY::of(0, -1)),
+            Direction::LeftAndDown => Ok(XY::of(-1, -1)),
             Direction::Left => Ok(XY::of(-1, 0)),
+            Direction::LeftAndUp => Ok(XY::of(-1, 1)),
         }
     }
 }

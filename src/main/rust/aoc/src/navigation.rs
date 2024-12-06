@@ -26,6 +26,7 @@ impl From<Direction> for Heading {
             Direction::Right => Heading::East,
             Direction::Down => Heading::South,
             Direction::Left => Heading::West,
+            _ => panic!("Direction not supported: {}", direction),
         }
     }
 }
