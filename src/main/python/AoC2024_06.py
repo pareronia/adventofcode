@@ -9,14 +9,13 @@ from collections import defaultdict
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.geometry import Direction
-from aoc.geometry import Turn
-from aoc.grid import Cell
-from aoc.grid import CharGrid
 
-Input = InputData
+Cell = tuple[int, int]
+Input = tuple[int, int, set[Cell], Cell]
 Output1 = int
 Output2 = int
+
+DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
 
 
 TEST = """\
@@ -35,52 +34,51 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        lines = list(input_data)
+        obs = set[Cell]()
+        h, w = len(lines), len(lines[0])
+        for r in range(h):
+            for c in range(w):
+                if lines[r][c] == "^":
+                    start = (r, c)
+                elif lines[r][c] == "#":
+                    obs.add((r, c))
+        return h, w, obs, start
 
-    def part_1(self, input: Input) -> Output1:
-        grid = CharGrid.from_strings(list(input))
-        pos = next(grid.get_all_equal_to("^"))
-        seen = {pos}
-        d = Direction.UP
+    def route(
+        self, h: int, w: int, obs: set[Cell], pos: Cell
+    ) -> tuple[bool, set[Cell]]:
+        d, dir = 0, DIRS[0]
+        seen = defaultdict[Cell, set[tuple[int, int]]](set)
+        seen[pos].add(dir)
         while True:
-            nxt = pos.at(d)
-            if not grid.is_in_bounds(nxt):
-                break
-            if grid.get_value(nxt) == "#":
-                d = d.turn(Turn.RIGHT)
+            nxt = (pos[0] - dir[1], pos[1] + dir[0])
+            if not (0 <= nxt[0] < h and 0 <= nxt[1] < w):
+                return False, {_ for _ in seen.keys()}
+            if nxt in obs:
+                d = (d + 1) % len(DIRS)
+                dir = DIRS[d]
             else:
                 pos = nxt
-            seen.add(pos)
+            if dir in seen[pos]:
+                return True, set()
+            seen[pos].add(dir)
+
+    def part_1(self, input: Input) -> Output1:
+        h, w, obs, start = input
+        _, seen = self.route(h, w, obs, start)
         return len(seen)
 
     def part_2(self, input: Input) -> Output2:
-        grid = CharGrid.from_strings(list(input))
-
-        def route(pos: Cell, d: Direction) -> tuple[bool, set[Cell]]:
-            seen = defaultdict[Cell, set[Direction]](set)
-            seen[pos].add(d)
-            while True:
-                nxt = pos.at(d)
-                if not grid.is_in_bounds(nxt):
-                    return False, {_ for _ in seen.keys()}
-                if grid.get_value(nxt) == "#":
-                    d = d.turn(Turn.RIGHT)
-                else:
-                    pos = nxt
-                if d in seen[pos]:
-                    return True, {_ for _ in seen.keys()}
-                seen[pos].add(d)
-
-        pos = next(grid.get_all_equal_to("^"))
-        d = Direction.UP
-        _, cells = route(pos, d)
+        h, w, obs, start = input
+        _, cells = self.route(h, w, obs, start)
         ans = 0
         for cell in cells:
-            grid.set_value(cell, "#")
-            loop, seen = route(pos, d)
+            obs.add(cell)
+            loop, _ = self.route(h, w, obs, start)
             if loop:
                 ans += 1
-            grid.set_value(cell, ".")
+            obs.remove(cell)
         return ans
 
     @aoc_samples(
