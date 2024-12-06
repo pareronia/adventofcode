@@ -84,3 +84,21 @@ concepts:
                     - difference
                     - transpose
                     - counter
+              - 2:
+                  tags:
+                    - increasing/decreasing
+              - 3:
+                  tags:
+                    - regex
+              - 4:
+                  tags:
+                    - grid
+                    - char grid search
+              - 5:
+                  tags:
+                    - sort
+                    - custom sort
+              - 6:
+                  tags:
+                    - grid
+                    - grid navigation
