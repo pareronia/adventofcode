@@ -1,0 +1,8 @@
+[package]
+name = "AoC2024_06"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aoc = { path = "../aoc" }
+indexmap = "2.7"
