@@ -44,31 +44,32 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def solve(self, input: Input, ops: int) -> int:
-        def is_true(sol: int, terms: list[int], ops: int) -> bool:
-            if terms[0] > sol:
-                return False
+        def can_obtain(sol: int, terms: list[int], ops: int) -> bool:
             if len(terms) == 1:
                 return sol == terms[0]
-            if ADD & ops and is_true(
-                sol, [terms[0] + terms[1]] + terms[2:], ops
+            if (
+                ops & MULTIPLY
+                and sol % terms[-1] == 0
+                and can_obtain(sol // terms[-1], terms[:-1], ops)
             ):
                 return True
-            if MULTIPLY & ops and is_true(
-                sol, [terms[0] * terms[1]] + terms[2:], ops
+            if (
+                ops & ADD
+                and sol > terms[-1]
+                and can_obtain(sol - terms[-1], terms[:-1], ops)
             ):
                 return True
-            if CONCATENATE & ops:
-                term = terms[0]
-                tmp = terms[1]
-                while tmp > 0:
-                    tmp //= 10
-                    term *= 10
-                term = term + terms[1]
-                if is_true(sol, [term] + terms[2:], ops):
+            if ops & CONCATENATE:
+                s_sol, s_last = str(sol), str(terms[-1])
+                if (
+                    len(s_sol) > len(s_last)
+                    and s_sol.endswith(s_last)
+                    and can_obtain(int(s_sol[: -len(s_last)]), terms[:-1], ops)
+                ):
                     return True
             return False
 
-        return sum(sol for sol, terms in input if is_true(sol, terms, ops))
+        return sum(sol for sol, terms in input if can_obtain(sol, terms, ops))
 
     def part_1(self, input: Input) -> Output1:
         return self.solve(input, ADD | MULTIPLY)
