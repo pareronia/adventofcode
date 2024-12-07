@@ -10,7 +10,6 @@ import sys
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = InputData
 Output1 = int
@@ -54,33 +53,34 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
     def part_2(self, input: Input) -> Output2:
         class Term:
-            def __init__(self, val: str):
+            def __init__(self, val: int):
                 self.val = val
 
-            def __add__(self, other: Term) -> str:
-                return str(int(self.val) + int(other.val))
-
-            def __mul__(self, other: Term) -> str:
-                return str(int(self.val) * int(other.val))
-
-            def __or__(self, other: Term) -> str:
+            def __add__(self, other: Term) -> int:
                 return self.val + other.val
+
+            def __mul__(self, other: Term) -> int:
+                return self.val * other.val
+
+            def __or__(self, other: Term) -> int:
+                return self.val * int(10 ** len(str(other.val))) + other.val
 
         ans = 0
         for line in input:
             sol, right = line.split(": ")
-            terms = right.split()
+            terms = list(map(int, right.split()))
             eqs = [terms[0]]
             for i in range(1, len(terms)):
                 neqs = []
                 for eq in eqs:
+                    if eq > int(sol):
+                        continue
                     neqs.append(Term(eq) + Term(terms[i]))
                     neqs.append(Term(eq) * Term(terms[i]))
                     neqs.append(Term(eq) | Term(terms[i]))
                 eqs = neqs
             for eq in eqs:
-                if eq == sol:
-                    log((eq, sol))
+                if eq == int(sol):
                     ans += int(sol)
                     break
         return ans
