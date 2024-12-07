@@ -11,9 +11,13 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 
-Input = InputData
+Input = list[tuple[int, list[int]]]
 Output1 = int
 Output2 = int
+
+ADD = 1
+MULTIPLY = 2
+CONCATENATE = 4
 
 
 TEST = """\
@@ -31,59 +35,46 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        ans = []
+        for line in input_data:
+            left, right = line.split(": ")
+            sol = int(left)
+            terms = list(map(int, right.split()))
+            ans.append((sol, terms))
+        return ans
+
+    def solve(self, input: Input, ops: int) -> int:
+        def is_true(sol: int, terms: list[int], ops: int) -> bool:
+            if terms[0] > sol:
+                return False
+            if len(terms) == 1:
+                return sol == terms[0]
+            if ADD & ops and is_true(
+                sol, [terms[0] + terms[1]] + terms[2:], ops
+            ):
+                return True
+            if MULTIPLY & ops and is_true(
+                sol, [terms[0] * terms[1]] + terms[2:], ops
+            ):
+                return True
+            if CONCATENATE & ops:
+                term = terms[0]
+                tmp = terms[1]
+                while tmp > 0:
+                    tmp //= 10
+                    term *= 10
+                term = term + terms[1]
+                if is_true(sol, [term] + terms[2:], ops):
+                    return True
+            return False
+
+        return sum(sol for sol, terms in input if is_true(sol, terms, ops))
 
     def part_1(self, input: Input) -> Output1:
-        ans = 0
-        for line in input:
-            sol, right = line.split(": ")
-            terms = list(right.split())
-            eqs = [terms[0]]
-            for i in range(1, len(terms)):
-                neqs = []
-                for eq in eqs:
-                    neqs.append("(" + eq + " + " + terms[i] + ")")
-                    neqs.append("(" + eq + " * " + terms[i] + ")")
-                eqs = neqs
-            for eq in eqs:
-                if eval(eq) == int(sol):  # nosec
-                    ans += int(sol)
-                    break
-        return ans
+        return self.solve(input, ADD | MULTIPLY)
 
     def part_2(self, input: Input) -> Output2:
-        class Term:
-            def __init__(self, val: int):
-                self.val = val
-
-            def __add__(self, other: Term) -> int:
-                return self.val + other.val
-
-            def __mul__(self, other: Term) -> int:
-                return self.val * other.val
-
-            def __or__(self, other: Term) -> int:
-                return self.val * int(10 ** len(str(other.val))) + other.val
-
-        ans = 0
-        for line in input:
-            sol, right = line.split(": ")
-            terms = list(map(int, right.split()))
-            eqs = [terms[0]]
-            for i in range(1, len(terms)):
-                neqs = []
-                for eq in eqs:
-                    if eq > int(sol):
-                        continue
-                    neqs.append(Term(eq) + Term(terms[i]))
-                    neqs.append(Term(eq) * Term(terms[i]))
-                    neqs.append(Term(eq) | Term(terms[i]))
-                eqs = neqs
-            for eq in eqs:
-                if eq == int(sol):
-                    ans += int(sol)
-                    break
-        return ans
+        return self.solve(input, ADD | MULTIPLY | CONCATENATE)
 
     @aoc_samples(
         (
