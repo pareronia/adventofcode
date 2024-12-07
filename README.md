@@ -10,7 +10,7 @@
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | python3 | [✓](src/main/python/AoC2024_01.py) | [✓](src/main/python/AoC2024_02.py) | [✓](src/main/python/AoC2024_03.py) | [✓](src/main/python/AoC2024_04.py) | [✓](src/main/python/AoC2024_05.py) | [✓](src/main/python/AoC2024_06.py) | [✓](src/main/python/AoC2024_07.py) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2024_01.java) | [✓](src/main/java/AoC2024_02.java) | [✓](src/main/java/AoC2024_03.java) | [✓](src/main/java/AoC2024_04.java) | [✓](src/main/java/AoC2024_05.java) | [✓](src/main/java/AoC2024_06.java) | [✓](src/main/java/AoC2024_07.java) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-| rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) | [✓](src/main/rust/AoC2024_03/src/main.rs) | [✓](src/main/rust/AoC2024_04/src/main.rs) | [✓](src/main/rust/AoC2024_05/src/main.rs) | [✓](src/main/rust/AoC2024_06/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) | [✓](src/main/rust/AoC2024_03/src/main.rs) | [✓](src/main/rust/AoC2024_04/src/main.rs) | [✓](src/main/rust/AoC2024_05/src/main.rs) | [✓](src/main/rust/AoC2024_06/src/main.rs) | [✓](src/main/rust/AoC2024_07/src/main.rs) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2024@ -->
 
 ## 2023
