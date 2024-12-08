@@ -10,6 +10,7 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.github.pareronia.aoc.IterTools.ProductPair;
 import com.github.pareronia.aoc.IterTools.WindowPair;
 import com.github.pareronia.aoc.IterTools.ZippedPair;
 
@@ -19,14 +20,27 @@ public class IterToolsTestCase {
     public void product() {
         assertThat(
             IterTools.product(List.of(0, 1), Set.of(0, 1)))
-            .containsExactlyInAnyOrder(List.of(0, 0), List.of(0, 1), List.of(1, 0), List.of(1, 1));
+            .containsExactlyInAnyOrder(
+                    ProductPair.of(0, 0),
+                    ProductPair.of(0, 1),
+                    ProductPair.of(1, 0),
+                    ProductPair.of(1, 1));
         assertThat(
             IterTools.product(List.of("A", "B"), List.of("A", "B")))
-            .containsExactlyInAnyOrder(List.of("A", "A"), List.of("A", "B"), List.of("B", "A"), List.of("B", "B"));
+            .containsExactlyInAnyOrder(
+                    ProductPair.of("A", "A"),
+                    ProductPair.of("A", "B"),
+                    ProductPair.of("B", "A"),
+                    ProductPair.of("B", "B"));
         assertThat(
             IterTools.product(range(3), range(2)))
             .containsExactlyInAnyOrder(
-                    List.of(0, 0), List.of(0, 1), List.of(1, 0), List.of(1, 1), List.of(2, 0), List.of(2, 1));
+                    ProductPair.of(0, 0),
+                    ProductPair.of(0, 1),
+                    ProductPair.of(1, 0),
+                    ProductPair.of(1, 1),
+                    ProductPair.of(2, 0),
+                    ProductPair.of(2, 1));
     }
     
     @Test

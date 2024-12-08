@@ -12,6 +12,7 @@ import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.StringOps.StringSplit;
 import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
 public class AoC2016_08 extends SolutionBase<List<String>, Integer, String> {
@@ -49,10 +50,10 @@ public class AoC2016_08 extends SolutionBase<List<String>, Integer, String> {
             if (input.startsWith("rect ")) {
                 final StringSplit coords = splitOnce(
                         input.substring("rect ".length()), "x");
-                final Set<Cell> cells = IterTools.product(
+                final Set<Cell> cells = Utils.stream(IterTools.productIterator(
                         range(Integer.parseInt(coords.right())),
-                        range(Integer.parseInt(coords.left()))).stream()
-                    .map(lst -> Cell.at(lst.get(0), lst.get(1)))
+                        range(Integer.parseInt(coords.left()))))
+                    .map(lst -> Cell.at(lst.first(), lst.second()))
                     .collect(toSet());
                 grid = grid.update(cells, ON);
             } else if (input.startsWith("rotate row ")) {

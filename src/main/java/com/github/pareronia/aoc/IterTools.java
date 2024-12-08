@@ -4,44 +4,14 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
 public class IterTools {
-
-    @SafeVarargs
-    public static <T> Set<List<T>> product(final Iterator<T>... iterators) {
-        Set<List<T>> ans = new HashSet<>(Set.of(List.of()));
-        for (final Iterator<T> range : iterators) {
-            final Set<List<T>> set = new HashSet<>();
-            for (final T i : (Iterable<T>) () -> range) {
-                for (final List<T> tmp : ans) {
-                    final List<T> lst = new ArrayList<>();
-                    lst.addAll(tmp);
-                    lst.add(i);
-                    set.add(lst);
-                }
-            }
-            ans = set;
-        }
-        return ans;
-    }
-
-    @SafeVarargs
-    @SuppressWarnings("unchecked")
-    public static <T> Set<List<T>> product(final Iterable<T>... iterables) {
-        final Iterator<T>[] iterators = new Iterator[iterables.length];
-        for (int i = 0; i < iterables.length; i++) {
-            iterators[i] = iterables[i].iterator();
-        }
-        return IterTools.product(iterators);
-    }
     
     // TODO potentially huge storage cost -> make iterative version
     public static <T> Stream<List<T>> permutations(final Iterable<T> iterable) {
@@ -173,6 +143,23 @@ public class IterTools {
             }
         };
     }
+
+    public static <T, U> Iterable<ProductPair<T, U>> product(
+            final Iterable<T> first,
+            final Iterable<U> second
+    ) {
+        return () -> productIterator(first, second);
+    }
+
+    public static <T, U> Iterator<ProductPair<T, U>> productIterator(
+            final Iterable<T> first,
+            final Iterable<U> second
+    ) {
+        return Utils.stream(first.iterator())
+                .flatMap(a -> Utils.stream(second.iterator())
+                        .map(b -> new ProductPair<>(a, b)))
+                .iterator();
+    }
     
     private static final class Heap {
         
@@ -213,6 +200,12 @@ public class IterTools {
     public record ZippedPair<T>(T first, T second) {}
     
     public record WindowPair<T>(T first, T second) {}
+
+    public record ProductPair<T, U>(T first, U second) {
+        public static <T, U> ProductPair<T, U> of(final T first, final U second) {
+            return new ProductPair<>(first, second);
+        }
+    }
     
     public record Enumerated<T>(int index, T value) {}
 }
