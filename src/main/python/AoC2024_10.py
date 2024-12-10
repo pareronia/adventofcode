@@ -8,11 +8,10 @@ import sys
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.graph import flood_fill
-from aoc.grid import IntGrid
 from aoc.grid import Cell
+from aoc.grid import IntGrid
 
-Input = InputData
+Input = IntGrid
 Output1 = int
 Output2 = int
 
@@ -31,43 +30,32 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return IntGrid.from_strings(list(input_data))
 
-    def part_1(self, input: Input) -> Output1:
-        grid = IntGrid.from_strings(list(input))
-        starts = [cell for cell in grid.get_all_equal_to(0)]
-        ans = 0
-        for s in starts:
-            path = flood_fill(
-                s,
-                lambda cell: (
-                    n
-                    for n in grid.get_capital_neighbours(cell)
-                    if grid.get_value(n) == grid.get_value(cell) + 1
-                ),
-            )
-            ans += sum(1 for cell in path if grid.get_value(cell) == 9)
-        return ans
+    def get_trails(self, grid: IntGrid) -> list[list[Cell]]:
+        trails = list[list[Cell]]()
 
-    def part_2(self, input: Input) -> Output2:
-        grid = IntGrid.from_strings(list(input))
-        starts = [cell for cell in grid.get_all_equal_to(0)]
-        paths = set[frozenset[Cell]]()
-
-        def dfs(path: frozenset[Cell], start: Cell) -> None:
-            if len(path) == 10 and path not in paths:
-                paths.add(path)
+        def dfs(trail: list[Cell]) -> None:
+            if len(trail) == 10:
+                trails.append(trail)
                 return
-            val = grid.get_value(start)
-            for n in grid.get_capital_neighbours(start):
-                if grid.get_value(n) == val + 1:
-                    new_path = {_ for _ in path}
-                    new_path.add(n)
-                    dfs(frozenset(new_path), n)
+            nxt = grid.get_value(trail[-1]) + 1
+            for n in grid.get_capital_neighbours(trail[-1]):
+                if grid.get_value(n) == nxt:
+                    dfs(trail + [n])
 
-        for s in starts:
-            dfs(frozenset({s}), s)
-        return len(paths)
+        list(map(lambda s: dfs([s]), grid.get_all_equal_to(0)))
+        return trails
+
+    def part_1(self, grid: Input) -> Output1:
+        trails = self.get_trails(grid)
+        return sum(
+            len({trail[9] for trail in trails if trail[0] == zero})
+            for zero in {trail[0] for trail in trails}
+        )
+
+    def part_2(self, grid: Input) -> Output2:
+        return len(self.get_trails(grid))
 
     @aoc_samples(
         (
