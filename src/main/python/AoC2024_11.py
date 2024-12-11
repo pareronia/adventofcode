@@ -4,16 +4,13 @@
 #
 
 import sys
-from collections import defaultdict
-from collections import deque
+from functools import cache
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
-from tqdm import tqdm
 
-Input = InputData
+Input = list[int]
 Output1 = int
 Output2 = int
 
@@ -25,61 +22,30 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return list(map(int, list(input_data)[0].split()))
 
-    def part_1(self, input: Input) -> Output1:
-        stones = list(input)[0].split()
-        for _ in range(25):
-            new_stones = list[str]()
-            for s in stones:
-                if s == "0":
-                    new_stones.append("1")
-                elif not len(s) % 2:
-                    new_stones.append(s[: len(s) // 2])
-                    new_stones.append(str(int(s[len(s) // 2 :])))
-                else:
-                    new_stones.append(str(int(s) * 2024))
-            stones = new_stones
-        return len(stones)
-
-    def part_2(self, input: Input) -> Output2:
-        stones = list(input)[0].split()
-        # stones = ["0"]
-        # seen = dict[tuple[int, int], int]()
-        seen = defaultdict[tuple[int, int], int](int)
-        target = 25
-        ans = 0
-        q = deque((int(s), 0) for s in stones)
-        while q:
-            s, i = q.pop()
-            if i == target:
-                continue
-            nxt = []
+    def solve(self, stones: list[int], blinks: int) -> int:
+        @cache
+        def count(s: int, cnt: int) -> int:
+            if cnt == 0:
+                return 1
             if s == 0:
-                seen[(s, i)] += seen[(s, i - 1)]
-                nxt.append((1, i + 1))
-            elif not len(str(s)) % 2:
-                ss = str(s)
-                ss1, ss2 = ss[: len(ss) // 2], ss[len(ss) // 2 :]
-                seen[(s, i)] += (
-                    seen[(int(ss1), i - 1)] + seen[(int(ss2), i - 1)] + 2
-                )
+                return count(1, cnt - 1)
+            ss = str(s)
+            size = len(ss)
+            if size % 2 == 0:
+                s1 = int(ss[: size // 2])
+                s2 = int(ss[size // 2 :])  # noqa E203
+                return count(s1, cnt - 1) + count(s2, cnt - 1)
+            return count(s * 2024, cnt - 1)
 
-                nxt.append((int(ss1), i + 1))
-                nxt.append((int(ss2), i + 1))
-            else:
-                seen[(s, i)] += seen[(s * 2024, i - 1)]
-                nxt.append((s * 2024, i + 1))
-            for n in nxt:
-                # if n in seen:
-                #     log("seen: {n}")
-                #     ans += seen[n]
-                # else:
-                q.append(n)
-        log(seen)
-        for x in stones:
-            ans += seen[(int(x), target - 1)]
-        return ans
+        return sum(count(int(s), blinks) for s in stones)
+
+    def part_1(self, stones: Input) -> Output1:
+        return self.solve(stones, blinks=25)
+
+    def part_2(self, stones: Input) -> Output2:
+        return self.solve(stones, blinks=75)
 
     @aoc_samples((("part_1", TEST, 55312),))
     def samples(self) -> None:
