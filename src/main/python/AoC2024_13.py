@@ -3,17 +3,15 @@
 # Advent of Code 2024 Day 13
 #
 
+from __future__ import annotations
+
 import sys
+from typing import NamedTuple
 
 from aoc import my_aocd
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-
-Input = list[tuple[tuple[int, int], tuple[int, int], tuple[int, int]]]
-Output1 = int
-Output2 = int
-
 
 TEST = """\
 Button A: X+94, Y+34
@@ -34,67 +32,58 @@ Prize: X=18641, Y=10279
 """
 
 
+class Machine(NamedTuple):
+    ax: int
+    bx: int
+    ay: int
+    by: int
+    px: int
+    py: int
+
+    @classmethod
+    def from_input(cls, block: list[str]) -> Machine:
+        a, b = ((int(block[i][12:14]), int(block[i][18:20])) for i in range(2))
+        sp = block[2].split(", ")
+        px, py = int(sp[0].split("=")[1]), int(sp[1][2:])
+        return Machine(a[0], b[0], a[1], b[1], px, py)
+
+
+Input = list[Machine]
+Output1 = int
+Output2 = int
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        machines = []
-        for block in my_aocd.to_blocks(input_data):
-            a = (int(block[0][12:14]), int(block[0][18:20]))
-            b = (int(block[1][12:14]), int(block[1][18:20]))
-            sp = block[2].split(", ")
-            px = int(sp[0].split("=")[1])
-            py = int(sp[1][2:])
-            machines.append((a, b, (px, py)))
-        return machines
+        return [
+            Machine.from_input(block)
+            for block in my_aocd.to_blocks(input_data)
+        ]
 
-    def guess(
-        self, ax: int, bx: int, ay: int, by: int, px: int, py: int
-    ) -> int | None:
-        # best = sys.maxsize
-        div = bx * ay - ax * by
-        ans_a = (py * bx - px * by) / div
-        ans_b = (px * ay - py * ax) / div
-        if int(ans_a) == ans_a:
-            return int(ans_a) * 3 + int(ans_b)
-        # for ans_a in range(100, 0, -1):
-        #     for ans_b in range(1, 101):
-        #         if (
-        #             ans_a * ax + ans_b * bx == px
-        #             and ans_a * ay + ans_b * by == py
-        #         ):
-        #             best = min(best, ans_a * 3 + ans_b)
-        # if best < sys.maxsize:
-        #     return best
-        else:
-            return None
+    def solve(self, machines: list[Machine], offset: int = 0) -> int:
+        def calc_tokens(machine: Machine, offset: int) -> int | None:
+            px, py = machine.px + offset, machine.py + offset
+            div = machine.bx * machine.ay - machine.ax * machine.by
+            ans_a = (py * machine.bx - px * machine.by) / div
+            ans_b = (px * machine.ay - py * machine.ax) / div
+            if int(ans_a) == ans_a and int(ans_b) == ans_b:
+                return int(ans_a) * 3 + int(ans_b)
+            else:
+                return None
+
+        return sum(
+            tokens
+            for tokens in (calc_tokens(m, offset) for m in machines)
+            if tokens is not None
+        )
 
     def part_1(self, machines: Input) -> Output1:
-        ans = 0
-        for a, b, p in machines:
-            ax, ay = a
-            bx, by = b
-            px, py = p
-            g = self.guess(ax, bx, ay, by, px, py)
-            if g is not None:
-                ans += g
-        return ans
+        return self.solve(machines)
 
     def part_2(self, machines: Input) -> Output2:
-        MOD = 10_000_000_000_000
-        ans = 0
-        for a, b, p in machines:
-            ax, ay = a
-            bx, by = b
-            px, py = p
-            g = self.guess(ax, bx, ay, by, MOD + px, MOD + py)
-            if g is not None:
-                ans += g
-        return ans
+        return self.solve(machines, offset=10_000_000_000_000)
 
-    @aoc_samples(
-        (
-            ("part_1", TEST, 480),
-        )
-    )
+    @aoc_samples((("part_1", TEST, 480),))
     def samples(self) -> None:
         pass
 
