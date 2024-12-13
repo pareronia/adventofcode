@@ -8,12 +8,12 @@ import sys
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
-Input = InputData
+Input = list[int]
 Output1 = int
 Output2 = int
 
+TRIANGLE = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36]
 
 TEST = """\
 2333133121414131402
@@ -21,113 +21,81 @@ TEST = """\
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
-    def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+    """https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day09.rs"""  # noqa E501
 
-    def part_1(self, input: Input) -> Output1:
-        line = next(iter(input))
-        blocks = []
-        cnt = 0
-        for ch in line:
-            v = int(ch)
-            for _ in range(v):
-                blocks.append(-1 if cnt % 2 else cnt // 2)
-            cnt += 1
-        # log("".join("." if b == -1 else str(b) for b in blocks))
-        new = []
-        for i in range(len(blocks)):
-            if i == len(blocks):
-                break
-            b = blocks[i]
-            if b != -1:
-                new.append(b)
-            else:
-                while (x := blocks.pop()) == -1:
-                    continue
-                new.append(x)
-        # log("".join("." if b == -1 else str(b) for b in new))
+    def parse_input(self, input_data: InputData) -> Input:
+        return list(map(int, list(input_data)[0]))
+
+    def update(
+        self, ans: int, block: int, idx: int, size: int
+    ) -> tuple[int, int]:
+        id = idx // 2
+        extra = block * size + TRIANGLE[size]
+        return (ans + id * extra, block + size)
+
+    def part_1(self, disk: Input) -> Output1:
+        left = 0
+        right = len(disk) - 2 + len(disk) % 2
+        need = disk[right]
+        block = 0
         ans = 0
-        for i, n in enumerate(new):
-            ans += i * n
+        while left < right:
+            ans, block = self.update(ans, block, left, disk[left])
+            available = disk[left + 1]
+            left += 2
+            while available > 0:
+                if need == 0:
+                    if left == right:
+                        break
+                    right -= 2
+                    need = disk[right]
+                size = min(need, available)
+                ans, block = self.update(ans, block, right, size)
+                available -= size
+                need -= size
+        ans, _ = self.update(ans, block, right, need)
         return ans
 
-    def part_2(self, input: Input) -> Output2:
-        line = next(iter(input))
-        blocks = []
-        cnt = 0
-        for ch in line:
-            v = int(ch)
-            blocks.append((-1 if cnt % 2 else cnt // 2, v))
-            cnt += 1
-        log(blocks)
-        log(
-            "".join(
-                "." * cnt if val == -1 else str(val) * cnt
-                for val, cnt in blocks
-            )
-        )
-        x = 0
-        # while x <= 10:
-        while x <= 20000:
-            x += 1
-            new = list[tuple[int, int]]()
-            for j in range(1, len(blocks) - 1):
-                valj, cntj = blocks[-j]
-                if valj == -1:
-                    continue
-                for i in range(len(blocks) - j):
-                    val, cnt = blocks[i]
-                    if val != -1:
-                        continue
-                    if cntj > cnt:
-                        continue
-                    else:
-                        break
-                else:
-                    continue
-                break
-            else:
-                log("stop")
-                self.log(blocks)
-                ans = 0
-                # breakpoint()
-                x = 0
-                for i, n in enumerate(blocks):
-                    val, cnt = n
-                    if val != -1:
-                        for j in range(x, x + cnt):
-                            ans += j * val
-                    x += cnt
-                return ans
-            for ii in range(len(blocks)):
-                if ii == len(blocks):
-                    break
-                if ii != i:
-                    new.append(blocks[ii])
-                    continue
-                blocks[-j] = (-1, cntj)
-                new.append((valj, cntj))
-                if cntj < cnt:
-                    new.append((-1, cnt - cntj))
-            if new == blocks:
-                break
-            blocks = new
-            self.log(blocks)
-        raise RuntimeError()
-        # ans = 0
-        # for i, n in enumerate(new):
-        #     val, cnt = n
-        #     for j in range(i, i + cnt):
-        #         ans += j * val
-        # return ans
-
-    def log(self, blocks: list[tuple[int, int]]) -> None:
-        log(
-            "".join(
-                "." * cnt if val == -1 else str(val) * cnt
-                for val, cnt in blocks
-            )
-        )
+    def part_2(self, disk: Input) -> Output2:
+        block = 0
+        ans = 0
+        free: list[list[int]] = list()
+        for i in range(10):
+            free.append(list())
+        for idx, size in enumerate(disk):
+            if idx % 2 and size > 0:
+                free[size].append(block)
+            block += size
+        for i in range(10):
+            free[i].append(block)
+            free[i].reverse()
+        for idx, size in reversed(list(enumerate(disk))):
+            block -= size
+            if idx % 2:
+                continue
+            nxt_block = block
+            nxt_idx = sys.maxsize
+            for i in range(size, len(free)):
+                first = free[i][-1]
+                if first < nxt_block:
+                    nxt_block = first
+                    nxt_idx = i
+            if len(free):
+                if free[-1][-1] > block:
+                    free.pop()
+            id = idx // 2
+            extra = nxt_block * size + TRIANGLE[size]
+            ans += id * extra
+            if nxt_idx != sys.maxsize:
+                free[nxt_idx].pop()
+                to = nxt_idx - size
+                if to > 0:
+                    i = len(free[to])
+                    val = nxt_block + size
+                    while free[to][i - 1] < val:
+                        i -= 1
+                    free[to].insert(i, val)
+        return ans
 
     @aoc_samples(
         (
