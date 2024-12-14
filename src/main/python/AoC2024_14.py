@@ -5,19 +5,17 @@
 
 import math
 import sys
-from typing import Iterator
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
-from aoc.common import log
-from aoc.geometry import Position
-from aoc.geometry import Vector
-from aoc.graph import flood_fill
 
+Position = tuple[int, int]
+Vector = tuple[int, int]
 Input = list[tuple[Position, Vector]]
 Output1 = int
 Output2 = int
 
+W, H = 101, 103
 
 TEST = """\
 p=0,4 v=3,-3
@@ -40,86 +38,71 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         robots = list[tuple[Position, Vector]]()
         for line in input_data:
             p, v = line.split()
-            pos = Position(*map(int, p.split("=")[1].split(",")))
-            vec = Vector(*map(int, v.split("=")[1].split(",")))
-            robots.append((pos, vec))
+            px, py = map(int, p.split("=")[1].split(","))
+            vx, vy = map(int, v.split("=")[1].split(","))
+            robots.append(((px, py), (vx, vy)))
         return robots
+
+    def move(
+        self,
+        robots: list[tuple[Position, Vector]],
+        w: int,
+        h: int,
+        rounds: int,
+    ) -> tuple[list[Position], int]:
+        tmp_robots = [
+            (pos[0] + rounds * vec[0], pos[1] + rounds * vec[1])
+            for pos, vec in robots
+        ]
+        new_robots = []
+        q1, q2, q3, q4 = 0, 0, 0, 0
+        for pos in tmp_robots:
+            px, py = pos[0] % w, pos[1] % h
+            new_robots.append((px, py))
+            if 0 <= px < w // 2:
+                if 0 <= py < h // 2:
+                    q1 += 1
+                elif h // 2 + 1 <= py < h:
+                    q2 += 1
+            elif w // 2 + 1 <= px < w:
+                if 0 <= py < h // 2:
+                    q3 += 1
+                elif h // 2 + 1 <= py < h:
+                    q4 += 1
+        return new_robots, math.prod((q1, q2, q3, q4))
 
     def solve_1(
         self, robots: list[tuple[Position, Vector]], w: int, h: int
     ) -> int:
-        for _ in range(100):
-            new_robots = []
-            for pos, vec in robots:
-                new_pos = pos.translate(vec)
-                new_pos = Position(new_pos.x % w, new_pos.y % h)
-                new_robots.append((new_pos, vec))
-            robots = new_robots
-        q1, q2, q3, q4 = 0, 0, 0, 0
-        for pos, _ in robots:
-            if 0 <= pos.x < w // 2:
-                if 0 <= pos.y < h // 2:
-                    q1 += 1
-                elif h // 2 + 1 <= pos.y < h:
-                    q2 += 1
-            elif w // 2 + 1 <= pos.x < w:
-                if 0 <= pos.y < h // 2:
-                    q3 += 1
-                elif h // 2 + 1 <= pos.y < h:
-                    q4 += 1
-        return math.prod((q1, q2, q3, q4))
+        _, safety_factor = self.move(robots, w, h, 100)
+        return safety_factor
 
     def part_1(self, robots: Input) -> Output1:
-        return self.solve_1(robots, 101, 103)
+        return self.solve_1(robots, W, H)
 
     def part_2(self, robots: Input) -> Output2:
-        def print_robots(robots: set[tuple[int, int]]) -> None:
+        def print_robots(
+            robots: list[tuple[Position, Vector]], w: int, h: int, round: int
+        ) -> None:
             if not __debug__:
                 return
-            lines = []
-            for y in range(h):
-                line = []
-                for x in range(w):
-                    line.append("*" if (x, y) in robots else ".")
-                lines.append("".join(line))
-            for ln in lines:
-                print(ln)
+            new_robots, _ = self.move(robots, w, h, round)
+            lines = [
+                "".join("*" if (x, y) in new_robots else "." for x in range(w))
+                for y in range(h)
+            ]
+            for line in lines:
+                print(line)
 
-        def find_ccs(robots: set[tuple[int, int]]) -> list[int]:
-            def adjacent(
-                r: tuple[int, int], R: set[tuple[int, int]]
-            ) -> Iterator[tuple[int, int]]:
-                for dx, dy in ((0, 1), (0, -1), (1, 0), (-1, 0)):
-                    nx, ny = r[0] + dx, r[1] + dy
-                    if (nx, ny) in R:
-                        yield (nx, ny)
-
-            ans = list[int]()
-            while len(robots):
-                cc = flood_fill(
-                    next(iter(robots)), lambda r: adjacent(r, robots)
-                )
-                ans.append(len(cc))
-                robots -= cc
-            return ans
-
-        w, h = 101, 103
-        round = 1
-        while True:
-            new_robots = []
-            for pos, vec in robots:
-                new_pos = pos.translate(vec)
-                new_pos = Position(new_pos.x % w, new_pos.y % h)
-                new_robots.append((new_pos, vec))
-                robots = new_robots
-            log(f"{round=}")
-            R = set((r.x, r.y) for r, _ in robots)
-            ccs = find_ccs(set(R))
-            if any(cc for cc in ccs if cc >= 100):
-                print_robots(R)
-                break
+        ans, best, round = 0, sys.maxsize, 1
+        while round <= W * H:
+            _, safety_factor = self.move(robots, W, H, round)
+            if safety_factor < best:
+                best = safety_factor
+                ans = round
             round += 1
-        return round
+        print_robots(robots, W, H, ans)
+        return ans
 
     def samples(self) -> None:
         assert self.solve_1(self.parse_input(TEST.splitlines()), 11, 7) == 12
