@@ -456,6 +456,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "AoC2024_14"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+]
+
+[[package]]
 name = "aho-corasick"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
