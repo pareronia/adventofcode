@@ -143,6 +143,14 @@ class Grid(ABC, Generic[T]):
     def get_row_as_string(self, row: int) -> str:
         pass
 
+    @abstractmethod
+    def get_col(self, col: int) -> list[T]:
+        pass
+
+    @abstractmethod
+    def replace_col(self, col: int, val: list[T]) -> None:
+        pass
+
     def size(self) -> int:
         return self.get_height() * self.get_width()
 
@@ -264,6 +272,12 @@ class IntGrid(Grid[int]):
     def get_row_as_string(self, row: int) -> str:
         return "".join(str(_) for _ in self.values[row])
 
+    def get_col(self, col: int) -> list[int]:
+        raise NotImplementedError
+
+    def replace_col(self, col: int, val: list[int]) -> None:
+        raise NotImplementedError
+
 
 @dataclass(frozen=True)
 class CharGrid(Grid[str]):
@@ -294,6 +308,14 @@ class CharGrid(Grid[str]):
 
     def get_row_as_string(self, row: int) -> str:
         return "".join(self.values[row])
+
+    def get_col(self, col: int) -> list[str]:
+        return [self.values[row][col] for row in range(self.get_height())]
+
+    def replace_col(self, col: int, val: list[str]) -> None:
+        assert len(val) == self.get_height()
+        for row in range(self.get_height()):
+            self.values[row][col] = val[row]
 
     def get_col_as_string(self, col: int) -> str:
         return "".join(
