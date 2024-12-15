@@ -54,13 +54,6 @@ public class CharGrid implements Grid<Character>, Cloneable {
         }
 	}
 	
-	public CharGrid copy() {
-	    final char[][] chars = Stream.of(this.cells)
-	        .map(row -> Arrays.copyOf(row, row.length))
-	        .toArray(char[][]::new);
-	    return new CharGrid(chars);
-	}
-
     public CharGrid addRow(final String string ) {
 	    assertTrue(string.length() == getWidth(), () -> "Invalid row length.");
 	    final List<String> list = new ArrayList<>(getRowsAsStringList());

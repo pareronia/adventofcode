@@ -43,12 +43,11 @@ public final class AoC2024_15
     @Override
     protected Input parseInput(final List<String> inputs) {
         final List<List<String>> blocks = StringOps.toBlocks(inputs);
-        final Grid grid = new Grid(CharGrid.from(blocks.get(0)));
         final List<Direction> dirs = Utils.asCharacterStream(
                         blocks.get(1).stream().collect(joining()))
                 .map(Direction::fromChar)
                 .toList();
-        return new Input(grid, dirs);
+        return new Input(new GridSupplier(blocks.get(0)), dirs);
     }
 
     private int solve(
@@ -192,7 +191,7 @@ public final class AoC2024_15
         List<Cell> getToMove(CharGrid grid, Cell robot, Direction dir);
     }
     
-    record Grid(CharGrid gridIn) {
+    record GridSupplier(List<String> gridIn) {
         private static final Map<Character, char[]> SCALE_UP = Map.of(
                 FLOOR, new char[] { FLOOR, FLOOR },
                 WALL, new char[] { WALL, WALL },
@@ -201,17 +200,18 @@ public final class AoC2024_15
         );
 
         public CharGrid getGrid() {
-            return this.gridIn.copy();
+            return CharGrid.from(this.gridIn);
         }
         
         public CharGrid getWideGrid() {
-            final char[][] chars = new char[this.gridIn.getHeight()][];
-            for (final int r : range(this.gridIn.getHeight())) {
-                final char[] row = new char[2 * this.gridIn.getWidth()];
-                for(final int c : range(this.gridIn.getWidth())) {
-                    final char ch = this.gridIn.getValue(Cell.at(r, c));
-                    row[2 * c] = SCALE_UP.get(ch)[0];
-                    row[2 * c + 1] = SCALE_UP.get(ch)[1];
+            final char[][] chars = new char[this.gridIn.size()][];
+            for (final int r : range(this.gridIn.size())) {
+                final String line = this.gridIn.get(r);
+                final char[] row = new char[2 * line.length()];
+                for(final int c : range(line.length())) {
+                    final char[] s = SCALE_UP.get(line.charAt(c));
+                    row[2 * c] = s[0];
+                    row[2 * c + 1] = s[1];
                 }
                 chars[r] = row;
             }
@@ -219,5 +219,5 @@ public final class AoC2024_15
         }
     }
     
-    record Input(Grid grid, List<Direction> dirs) {}
+    record Input(GridSupplier grid, List<Direction> dirs) {}
 }
