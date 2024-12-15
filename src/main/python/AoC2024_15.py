@@ -8,10 +8,10 @@ import sys
 from aoc import my_aocd
 from aoc.common import InputData
 from aoc.common import SolutionBase
-from aoc.common import aoc_samples, log
+from aoc.common import aoc_samples
 from aoc.geometry import Direction
-from aoc.grid import CharGrid
 from aoc.grid import Cell
+from aoc.grid import CharGrid
 
 Input = tuple[CharGrid, list[Direction]]
 Output1 = int
@@ -56,10 +56,6 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
-    def print_grid(self, grid: CharGrid) -> None:
-        for line in grid.get_rows_as_strings():
-            log(line)
-
     def parse_input(self, input_data: InputData) -> Input:
         blocks = my_aocd.to_blocks(input_data)
         grid = CharGrid.from_strings(blocks[0])
@@ -67,6 +63,13 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         for line in blocks[1]:
             dirs.extend([Direction.from_str(ch) for ch in line])
         return grid, dirs
+
+    def get_gps(self, grid: CharGrid) -> int:
+        return sum(
+            cell.row * 100 + cell.col
+            for cell in grid.get_cells()
+            if grid.get_value(cell) in {"O", "["}
+        )
 
     def part_1(self, input: Input) -> Output1:
         def move(line: list[str], r: int) -> list[str]:
@@ -101,15 +104,18 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             return "".join(a)
 
         assert to_str(move(to_array("#..@#"), 3)) == "#..@#"
-        assert to_str(move(to_array("#....@.O....#"), 5)) == "#.....@O....#"  # noqa E501
-        assert to_str(move(to_array("#.....@O....#"), 6)) == "#......@O...#"  # noqa E501
+        assert (
+            to_str(move(to_array("#....@.O....#"), 5)) == "#.....@O....#"
+        )  # noqa E501
+        assert (
+            to_str(move(to_array("#.....@O....#"), 6)) == "#......@O...#"
+        )  # noqa E501
         assert to_str(move(to_array("#..@O#"), 3)) == "#..@O#"  # noqa E501
         assert to_str(move(to_array("#.@O.O.#"), 2)) == "#..@OO.#"  # noqa E501
         assert to_str(move(to_array("#.#@O..#"), 3)) == "#.#.@O.#"  # noqa E501
         assert to_str(move(to_array("#.@O#..#"), 2)) == "#.@O#..#"  # noqa E501
         grid, dirs = input
-        # self.print_grid(grid)
-        # log(dirs)
+        grid = CharGrid.from_strings(["".join(row) for row in grid.values])
         robot = next(grid.get_all_equal_to("@"))
         for dir in dirs:
             match dir:
@@ -137,20 +143,69 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     tmp.reverse()
                     grid.replace_col(robot.col, tmp)
                     robot = Cell(tmp.index("@"), robot.col)
-            # self.print_grid(grid)
-        ans = 0
-        for cell in grid.get_all_equal_to("O"):
-            ans += cell.row * 100 + cell.col
-        return ans
+        return self.get_gps(grid)
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        grid_in, dirs = input
+        grid = []
+        for row in grid_in.get_rows_as_strings():
+            line = list[str]()
+            for ch in row:
+                match ch:
+                    case "#":
+                        line.extend(["#", "#"])
+                    case "O":
+                        line.extend(["[", "]"])
+                    case ".":
+                        line.extend([".", "."])
+                    case "@":
+                        line.extend(["@", "."])
+            grid.append(line)
+        for r in range(len(grid)):
+            for c in range(len(grid[r])):
+                if grid[r][c] == "@":
+                    robot = Cell(r, c)
+                    break
+            else:
+                continue
+            break
+        for dir in dirs:
+            to_move = [robot]
+            for cell in to_move:
+                nxt = cell.at(dir)
+                if nxt in to_move:
+                    continue
+                match grid[nxt.row][nxt.col]:
+                    case "#":
+                        to_move = []
+                        break
+                    case "[":
+                        to_move.append(nxt)
+                        to_move.append(nxt.at(Direction.RIGHT))
+                    case "]":
+                        to_move.append(nxt)
+                        to_move.append(nxt.at(Direction.LEFT))
+            if len(to_move) == 0:
+                continue
+            to_move.pop(0)
+            vals = [list(row) for row in grid]
+            grid[robot.row][robot.col] = "."
+            nxt_robot = robot.at(dir)
+            grid[nxt_robot.row][nxt_robot.col] = "@"
+            robot = nxt_robot
+            for cell in to_move:
+                grid[cell.row][cell.col] = "."
+            for cell in to_move:
+                nxt = cell.at(dir)
+                grid[nxt.row][nxt.col] = vals[cell.row][cell.col]
+        tmp = CharGrid.from_strings(["".join(row) for row in grid])
+        return self.get_gps(tmp)
 
     @aoc_samples(
         (
             ("part_1", TEST1, 2028),
             ("part_1", TEST2, 10092),
-            # ("part_2", TEST1, "TODO"),
+            ("part_2", TEST2, 9021),
         )
     )
     def samples(self) -> None:
