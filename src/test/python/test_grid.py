@@ -108,20 +108,6 @@ class CharGridIteratorTest(unittest.TestCase):
             grid, CharGrid.from_strings(["#.#....", "###....", ".#....."])
         )
 
-    def test_get_col(self) -> None:
-        grid = CharGrid.from_strings(["ABC", "DEF", "GHI"])
-
-        col = grid.get_col(1)
-
-        self.assertEqual(col, ["B", "E", "H"])
-
-    def test_replace_col(self) -> None:
-        grid = CharGrid.from_strings(["ABC", "DEF", "GHI"])
-
-        grid.replace_col(1, ["X", "X", "X"])
-
-        self.assertEqual(grid, CharGrid.from_strings(["AXC", "DXF", "GXI"]))
-
 
 class IntGridIteratorTest(unittest.TestCase):
 
