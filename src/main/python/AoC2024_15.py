@@ -5,6 +5,7 @@
 
 import sys
 from typing import Callable
+from typing import NamedTuple
 
 from aoc import my_aocd
 from aoc.common import InputData
@@ -12,12 +13,7 @@ from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 from aoc.geometry import Direction
 from aoc.grid import Cell
-
-Grid = list[list[str]]
-Input = tuple[Grid, list[Direction]]
-Output1 = int
-Output2 = int
-
+from aoc.grid import CharGrid
 
 TEST1 = """\
 ########
@@ -56,85 +52,94 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
 """
 
 
+class GridSupplier(NamedTuple):
+    grid_in: list[str]
+
+    def get_grid(self) -> CharGrid:
+        return CharGrid.from_strings(self.grid_in)
+
+    def get_wide_grid(self) -> CharGrid:
+        grid = [
+            "".join(Solution.SCALE_UP[ch] for ch in line)
+            for line in self.grid_in
+        ]
+        return CharGrid.from_strings(grid)
+
+
+Input = tuple[GridSupplier, list[Direction]]
+Output1 = int
+Output2 = int
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     FLOOR, WALL, ROBOT = ".", "#", "@"
     BOX, BIG_BOX_LEFT, BIG_BOX_RIGHT = "O", "[", "]"
     SCALE_UP = {
-        WALL: [WALL, WALL],
-        BOX: [BIG_BOX_LEFT, BIG_BOX_RIGHT],
-        FLOOR: [FLOOR, FLOOR],
-        ROBOT: [ROBOT, FLOOR],
+        WALL: WALL + WALL,
+        BOX: BIG_BOX_LEFT + BIG_BOX_RIGHT,
+        FLOOR: FLOOR + FLOOR,
+        ROBOT: ROBOT + FLOOR,
     }
 
     def parse_input(self, input_data: InputData) -> Input:
         blocks = my_aocd.to_blocks(input_data)
-        grid = [list(line) for line in blocks[0]]
         dirs = [Direction.from_str(ch) for ch in "".join(blocks[1])]
-        return grid, dirs
+        return GridSupplier(blocks[0]), dirs
 
     def solve(
         self,
-        grid: Grid,
-        robot: Cell,
+        grid: CharGrid,
         dirs: list[Direction],
-        get_to_move: Callable[[Grid, Cell, Direction], list[Cell]],
+        get_to_move: Callable[[CharGrid, Cell, Direction], list[Cell]],
     ) -> int:
+        robot = next(grid.get_all_equal_to(Solution.ROBOT))
         for dir in dirs:
             to_move = get_to_move(grid, robot, dir)
             if len(to_move) == 0:
                 continue
-            to_move.pop(0)
-            vals = [list(row) for row in grid]
-            grid[robot.row][robot.col] = Solution.FLOOR
-            nxt_robot = robot.at(dir)
-            grid[nxt_robot.row][nxt_robot.col] = Solution.ROBOT
-            robot = nxt_robot
+            vals = {tm: grid.get_value(tm) for tm in to_move}
+            robot = robot.at(dir)
             for cell in to_move:
-                grid[cell.row][cell.col] = Solution.FLOOR
+                grid.set_value(cell, Solution.FLOOR)
             for cell in to_move:
-                nxt = cell.at(dir)
-                grid[nxt.row][nxt.col] = vals[cell.row][cell.col]
+                grid.set_value(cell.at(dir), vals[cell])
         return sum(
-            r * 100 + c
-            for r in range(len(grid))
-            for c in range(len(grid[r]))
-            if grid[r][c] in {Solution.BOX, Solution.BIG_BOX_LEFT}
+            cell.row * 100 + cell.col
+            for cell in grid.find_all_matching(
+                lambda cell: grid.get_value(cell)
+                in {Solution.BOX, Solution.BIG_BOX_LEFT}
+            )
         )
 
     def part_1(self, input: Input) -> Output1:
-        def get_to_move(grid: Grid, robot: Cell, dir: Direction) -> list[Cell]:
+        def get_to_move(
+            grid: CharGrid, robot: Cell, dir: Direction
+        ) -> list[Cell]:
             to_move = [robot]
             for cell in to_move:
                 nxt = cell.at(dir)
                 if nxt in to_move:
                     continue
-                match grid[nxt.row][nxt.col]:
+                match grid.get_value(nxt):
                     case Solution.WALL:
                         return []
                     case Solution.BOX:
                         to_move.append(nxt)
             return to_move
 
-        grid_in, dirs = input
-        grid = [list(row) for row in grid_in]
-        for r in range(len(grid)):
-            for c in range(len(grid[r])):
-                if grid[r][c] == Solution.ROBOT:
-                    robot = Cell(r, c)
-                    break
-            else:
-                continue
-            break
-        return self.solve(grid, robot, dirs, get_to_move)
+        grid, dirs = input
+        return self.solve(grid.get_grid(), dirs, get_to_move)
 
     def part_2(self, input: Input) -> Output2:
-        def get_to_move(grid: Grid, robot: Cell, dir: Direction) -> list[Cell]:
+        def get_to_move(
+            grid: CharGrid, robot: Cell, dir: Direction
+        ) -> list[Cell]:
             to_move = [robot]
             for cell in to_move:
                 nxt = cell.at(dir)
                 if nxt in to_move:
                     continue
-                match grid[nxt.row][nxt.col]:
+                match grid.get_value(nxt):
                     case Solution.WALL:
                         return []
                     case Solution.BIG_BOX_LEFT:
@@ -145,16 +150,8 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                         to_move.append(nxt.at(Direction.LEFT))
             return to_move
 
-        grid_in, dirs = input
-        grid = []
-        for r, row in enumerate(grid_in):
-            line = []
-            for c, ch in enumerate(row):
-                if ch == Solution.ROBOT:
-                    robot = Cell(r, 2 * c)
-                line.extend(Solution.SCALE_UP[ch])
-            grid.append(line)
-        return self.solve(grid, robot, dirs, get_to_move)
+        grid, dirs = input
+        return self.solve(grid.get_wide_grid(), dirs, get_to_move)
 
     @aoc_samples(
         (
