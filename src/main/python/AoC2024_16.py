@@ -9,7 +9,6 @@ import itertools
 import sys
 from collections import defaultdict
 from queue import PriorityQueue
-from typing import Callable
 from typing import Iterator
 from typing import NamedTuple
 from typing import Self
@@ -18,17 +17,34 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 from aoc.geometry import Direction
-from aoc.geometry import Turn
 from aoc.grid import Cell
 from aoc.grid import CharGrid
 
 Input = CharGrid
 Output1 = int
 Output2 = int
-State = tuple[Cell, str]
+State = tuple[int, int, int]
 
-DIRS = {"U", "R", "D", "L"}
-START_DIR = "R"
+IDX_TO_DIR = {
+    0: Direction.UP,
+    1: Direction.RIGHT,
+    2: Direction.DOWN,
+    3: Direction.LEFT,
+}
+DIR_TO_IDX = {
+    Direction.UP: 0,
+    Direction.RIGHT: 1,
+    Direction.DOWN: 2,
+    Direction.LEFT: 3,
+}
+TURNS = {
+    Direction.UP: {Direction.LEFT, Direction.RIGHT},
+    Direction.RIGHT: {Direction.UP, Direction.DOWN},
+    Direction.DOWN: {Direction.LEFT, Direction.RIGHT},
+    Direction.LEFT: {Direction.UP, Direction.DOWN},
+}
+START_DIR = Direction.RIGHT
+FORWARD, BACKWARD = 1, -1
 
 
 TEST1 = """\
@@ -85,37 +101,16 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     end = cell
             return cls(grid, start, end)
 
-        def get_turns(self, direction: Direction) -> Iterator[str]:
-            for turn in (Turn.LEFT, Turn.RIGHT):
-                new_letter = direction.turn(turn).letter
-                assert new_letter is not None
-                yield new_letter
+        def adjacent(self, state: State, mode: int) -> Iterator[State]:
+            r, c, dir = state
+            direction = IDX_TO_DIR[dir]
+            for d in TURNS[direction]:
+                yield (r, c, DIR_TO_IDX[d])
+            nr, nc = r - mode * direction.y, c + mode * direction.x
+            if self.grid.values[nr][nc] != "#":
+                yield (nr, nc, dir)
 
-        def adjacent_forward(self, state: State) -> Iterator[State]:
-            cell, letter = state
-            direction = Direction.from_str(letter)
-            for d in self.get_turns(direction):
-                yield (cell, d)
-            nxt = cell.at(direction)
-            if self.grid.get_value(nxt) != "#":
-                yield (nxt, letter)
-
-        def adjacent_backward(self, state: State) -> Iterator[State]:
-            cell, letter = state
-            direction = Direction.from_str(letter)
-            for d in self.get_turns(direction):
-                yield (cell, d)
-            nxt = cell.at(direction.turn(Turn.AROUND))
-            if self.grid.get_value(nxt) != "#":
-                yield (nxt, letter)
-
-        def dijkstra(
-            self,
-            starts: set[State],
-            is_end: Callable[[State], bool],
-            adjacent: Callable[[State], Iterator[State]],
-            get_distance: Callable[[State, State], int],
-        ) -> dict[State, int]:
+        def dijkstra(self, starts: set[State], mode: int) -> dict[State, int]:
             q: PriorityQueue[tuple[int, State]] = PriorityQueue()
             for s in starts:
                 q.put((0, s))
@@ -125,27 +120,30 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             while not q.empty():
                 dist, node = q.get()
                 curr_dist = dists[node]
-                for n in adjacent(node):
-                    new_dist = curr_dist + get_distance(node, n)
+                for n in self.adjacent(node, mode):
+                    new_dist = curr_dist + (1 if node[2] == n[2] else 1000)
                     if new_dist < dists[n]:
                         dists[n] = new_dist
                         q.put((new_dist, n))
             return dists
 
-        def forward_distances(self) -> dict[State, int]:
-            return self.dijkstra(
-                {(self.start, START_DIR)},
-                lambda node: node[0] == self.end,
-                self.adjacent_forward,
-                lambda curr, nxt: 1 if curr[1] == nxt[1] else 1000,
+        def forward_distances(self) -> tuple[dict[State, int], int]:
+            starts = {(self.start.row, self.start.col, DIR_TO_IDX[START_DIR])}
+            distances = self.dijkstra(starts, FORWARD)
+            best = next(
+                v
+                for k, v in distances.items()
+                if (k[0], k[1]) == (self.end.row, self.end.col)
             )
+            return distances, best
 
         def backward_distances(self) -> dict[State, int]:
+            starts = itertools.product(
+                [self.end],
+                (DIR_TO_IDX[dir] for dir in Direction.capitals()),
+            )
             return self.dijkstra(
-                {_ for _ in itertools.product([self.end], DIRS)},
-                lambda node: node[0] == self.start,
-                self.adjacent_backward,
-                lambda curr, nxt: 1 if curr[1] == nxt[1] else 1000,
+                set((s[0].row, s[0].col, s[1]) for s in starts), BACKWARD
             )
 
     def parse_input(self, input_data: InputData) -> Input:
@@ -153,22 +151,23 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
     def part_1(self, grid: Input) -> Output1:
         maze = Solution.ReindeerMaze.from_grid(grid)
-        distances = maze.forward_distances()
-        return next(v for k, v in distances.items() if k[0] == maze.end)
+        _, best = maze.forward_distances()
+        return best
 
     def part_2(self, grid: Input) -> Output2:
         maze = Solution.ReindeerMaze.from_grid(grid)
-        forw_dists = maze.forward_distances()
-        best = next(v for k, v in forw_dists.items() if k[0] == maze.end)
-        backw_dists = maze.backward_distances()
+        forward_distances, best = maze.forward_distances()
+        backward_distances = maze.backward_distances()
         all_tile_states = itertools.product(
             grid.find_all_matching(lambda cell: grid.get_value(cell) != "#"),
-            DIRS,
+            (DIR_TO_IDX[dir] for dir in Direction.capitals()),
         )
         best_tiles = {
             cell
             for cell, dir in all_tile_states
-            if forw_dists[(cell, dir)] + backw_dists[(cell, dir)] == best
+            if forward_distances[(cell.row, cell.col, dir)]
+            + backward_distances[(cell.row, cell.col, dir)]
+            == best
         }
         return len(best_tiles)
 
