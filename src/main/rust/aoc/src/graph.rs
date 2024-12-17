@@ -107,6 +107,11 @@ pub struct Result<T> {
     paths: HashMap<T, T>,
 }
 
+pub struct AllResults<T> {
+    start: T,
+    predecessors: HashMap<T, Vec<T>>,
+}
+
 impl<T> Result<T>
 where
     T: Eq + Copy + Hash,
@@ -139,6 +144,25 @@ where
                 Some(path)
             }
         }
+    }
+}
+
+impl<T> AllResults<T>
+where
+    T: Eq + Copy + Hash,
+{
+    pub fn get_paths(&self, t: T) -> Vec<Vec<T>> {
+        if t == self.start {
+            return vec![vec![self.start]];
+        }
+        let mut paths = vec![];
+        for predecessor in self.predecessors.get(&t).unwrap_or(&Vec::new()) {
+            for mut path in self.get_paths(*predecessor) {
+                path.push(t);
+                paths.push(path);
+            }
+        }
+        paths
     }
 }
 
@@ -187,11 +211,61 @@ where
         }
     }
 
+    pub fn all(
+        start: T,
+        is_end: impl Fn(T) -> bool,
+        adjacent: impl Fn(T) -> Vec<T>,
+        cost: impl Fn(T, T) -> usize,
+    ) -> AllResults<T> {
+        let mut q: BinaryHeap<State<T>> = BinaryHeap::new();
+        q.push(State {
+            node: start,
+            distance: 0,
+        });
+        let mut distances: HashMap<T, usize> = HashMap::new();
+        distances.insert(start, 0);
+        let mut predecessors: HashMap<T, Vec<T>> = HashMap::new();
+        while let Some(state) = q.pop() {
+            if is_end(state.node) {
+                break;
+            }
+            let total = *distances.get(&state.node).unwrap_or(&usize::MAX);
+            if state.distance > total {
+                continue;
+            }
+            adjacent(state.node).iter().for_each(|n| {
+                let risk = total + cost(state.node, *n);
+                let dist_n = *distances.get(n).unwrap_or(&usize::MAX);
+                match risk.cmp(&dist_n) {
+                    Ordering::Less => {
+                        distances.insert(*n, risk);
+                        predecessors.entry(*n).insert_entry(vec![state.node]);
+                        q.push(State {
+                            node: *n,
+                            distance: risk,
+                        });
+                    }
+                    Ordering::Equal => {
+                        predecessors
+                            .entry(*n)
+                            .and_modify(|e| e.push(state.node))
+                            .or_insert(vec![state.node]);
+                    }
+                    _ => (),
+                }
+            });
+        }
+        AllResults {
+            start,
+            predecessors,
+        }
+    }
+
     pub fn distance(
         start: T,
         is_end: impl Fn(T) -> bool,
         adjacent: impl Fn(T) -> Vec<T>,
-        cost: impl Fn(T) -> usize,
+        cost: impl Fn(T, T) -> usize,
     ) -> usize {
         let mut q: BinaryHeap<State<T>> = BinaryHeap::new();
         q.push(State {
@@ -209,7 +283,7 @@ where
                 continue;
             }
             adjacent(state.node).iter().for_each(|n| {
-                let risk = total + cost(*n);
+                let risk = total + cost(state.node, *n);
                 if risk < *distances.get(n).unwrap_or(&usize::MAX) {
                     distances.insert(*n, risk);
                     q.push(State {

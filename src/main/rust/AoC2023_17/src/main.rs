@@ -55,7 +55,7 @@ impl AoC2023_17 {
             },
             |r#move| r#move.cell == end,
             adjacent,
-            |r#move| r#move.cost,
+            |_, r#move| r#move.cost,
         ) as u32
     }
 }
