@@ -64,10 +64,6 @@ class Instruction:
         return Instruction("DIV", (register, value))
 
     @classmethod
-    def MOD(cls, register: str, value: str) -> Instruction:
-        return Instruction("MOD", (register, value))
-
-    @classmethod
     def MEM(cls, address: int, value: object) -> Instruction:
         return Instruction("MEM", (address, value))
 
@@ -76,8 +72,12 @@ class Instruction:
         return Instruction("OUT", (operand,))
 
     @classmethod
-    def LSH(cls, operand: str, value: str) -> Instruction:
-        return Instruction("LSH", (operand, value))
+    def RSH(cls, operand: str, value: str) -> Instruction:
+        return Instruction("RSH", (operand, value))
+
+    @classmethod
+    def AND(cls, register: str, value: str) -> Instruction:
+        return Instruction("AND", (register, value))
 
     @classmethod
     def XOR(cls, operand: str, value: str) -> Instruction:
@@ -195,10 +195,10 @@ class VirtualMachine:
             "SUB": self._sub,
             "MUL": self._mul,
             "DIV": self._div,
-            "MOD": self._mod,
             "MEM": self._mem,
             "OUT": self._out,
-            "LSH": self._lsh,
+            "RSH": self._rsh,
+            "AND": self._and,
             "XOR": self._xor,
         }
         self._debug = debug
@@ -395,23 +395,6 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         self.log(program.registers)
 
-    def _mod(
-        self, program: Program, instruction: Instruction, ip: int
-    ) -> None:
-        if instruction.operands is None:
-            raise RuntimeError
-        self.log(instruction.opcode + str(instruction.operands))
-        (register, value) = instruction.operands
-        value = self._value(program, value)
-        new_value = (
-            0
-            if register not in program.registers
-            else program.registers[register] % value
-        )
-        program.set_register_value(register, new_value)
-        program.move_instruction_pointer(1)
-        self.log(program.registers)
-
     def _mul(
         self, program: Program, instruction: Instruction, ip: str
     ) -> None:
@@ -429,7 +412,7 @@ class VirtualMachine:
         program.move_instruction_pointer(1)
         self.log(program.registers)
 
-    def _lsh(
+    def _rsh(
         self, program: Program, instruction: Instruction, ip: str
     ) -> None:
         if instruction.operands is None:
@@ -437,14 +420,28 @@ class VirtualMachine:
         self.log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         value = self._value(program, value)
-        if value == -1:
-            new_value = 1
-        else:
-            new_value = (
-                value
-                if register not in program.registers
-                else program.registers[register] << value
-            )
+        new_value = (
+            value
+            if register not in program.registers
+            else program.registers[register] >> value
+        )
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        self.log(program.registers)
+
+    def _and(
+        self, program: Program, instruction: Instruction, ip: str
+    ) -> None:
+        if instruction.operands is None:
+            raise RuntimeError
+        self.log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        value = self._value(program, value)
+        new_value = (
+            value
+            if register not in program.registers
+            else program.registers[register] & value
+        )
         program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
         self.log(program.registers)
@@ -489,7 +486,7 @@ class VirtualMachine:
         else:
             operand = int(operand)
         if operand is not None and program.output_consumer is not None:
-            program.output_consumer(operand)
+            program.output_consumer(str(operand))
         program.move_instruction_pointer(1)
 
     def _value(self, program: Program, op: str) -> int | str:

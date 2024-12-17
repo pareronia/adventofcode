@@ -14,7 +14,7 @@ from aoc.vm import Instruction
 from aoc.vm import Program
 from aoc.vm import VirtualMachine
 
-Input = InputData
+Input = tuple[int, int, int, list[int]]
 Output1 = str
 Output2 = int
 
@@ -37,9 +37,12 @@ Program: 0,3,5,4,3,0
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        lines = list(input_data)
+        a, b, c = map(int, (lines[i][12:] for i in range(3)))
+        ops = list(map(int, lines[4][9:].split(",")))
+        return a, b, c, ops
 
-    def run_program(self, lines: list[str]) -> list[str]:
+    def create_instructions(self, ops: list[int]) -> list[Instruction]:
         def combo(operand: int) -> str:
             match operand:
                 case 0 | 1 | 2 | 3:
@@ -51,30 +54,21 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
         ins = []
         ip_map = dict[int, int]()
-        ins.append(Instruction.SET("A", lines[0][12:]))
-        ins.append(Instruction.SET("B", lines[1][12:]))
-        ins.append(Instruction.SET("C", lines[2][12:]))
-        ip = 3
-        ops = list(map(int, lines[4][9:].split(",")))
+        ip = 0
         for i in range(0, len(ops), 2):
             ip_map[i] = ip
             opcode, operand = ops[i], ops[i + 1]
             match opcode:
                 case 0:
-                    ins.append(Instruction.SET("X", "2"))
-                    ins.append(Instruction.SET("Y", combo(operand)))
-                    ins.append(Instruction.ADD("Y", -1))
-                    ins.append(Instruction.LSH("X", "*Y"))
-                    ins.append(Instruction.DIV("A", "*X"))
-                    ip += 5
+                    ins.append(Instruction.RSH("A", combo(operand)))
+                    ip += 1
                 case 1:
                     ins.append(Instruction.XOR("B", str(operand)))
                     ip += 1
                 case 2:
-                    ins.append(Instruction.SET("X", str(combo(operand))))
-                    ins.append(Instruction.MOD("X", "8"))
-                    ins.append(Instruction.SET("B", "*X"))
-                    ip += 3
+                    ins.append(Instruction.SET("B", str(combo(operand))))
+                    ins.append(Instruction.AND("B", "7"))
+                    ip += 2
                 case 3:
                     ins.append(
                         Instruction.JN0("*A", "!" + str(ip_map[operand]))
@@ -85,61 +79,55 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     ip += 1
                 case 5:
                     ins.append(Instruction.SET("X", str(combo(operand))))
-                    ins.append(Instruction.MOD("X", "8"))
+                    ins.append(Instruction.AND("X", "7"))
                     ins.append(Instruction.OUT("*X"))
                     ip += 3
                 case 6:
-                    ins.append(Instruction.SET("X", "2"))
-                    ins.append(Instruction.SET("Y", combo(operand)))
-                    ins.append(Instruction.ADD("Y", -1))
-                    ins.append(Instruction.LSH("X", "*Y"))
-                    ins.append(Instruction.SET("B", "*A"))
-                    ins.append(Instruction.DIV("B", "*X"))
-                    ip += 6
+                    ins.append(Instruction.SET("C", "*B"))
+                    ins.append(Instruction.RSH("C", combo(operand)))
+                    ip += 2
                 case 7:
-                    ins.append(Instruction.SET("X", "2"))
-                    ins.append(Instruction.SET("Y", combo(operand)))
-                    ins.append(Instruction.ADD("Y", -1))
-                    ins.append(Instruction.LSH("X", "*Y"))
                     ins.append(Instruction.SET("C", "*A"))
-                    ins.append(Instruction.DIV("C", "*X"))
-                    ip += 6
+                    ins.append(Instruction.RSH("C", combo(operand)))
+                    ip += 2
+                case _:
+                    raise ValueError
+        return ins
+
+    def run_program(
+        self, ins: list[Instruction], a: int, b: int, c: int
+    ) -> list[str]:
         output = []
         program = Program(ins, output_consumer=lambda s: output.append(s))
-        vm = VirtualMachine()
-        vm.run_program(program)
+        program.registers["A"] = int(a)
+        program.registers["B"] = int(b)
+        program.registers["C"] = int(c)
+        VirtualMachine().run_program(program)
         return output
 
     def part_1(self, input: Input) -> Output1:
-        lines = list(input)
-        output = self.run_program(lines)
-        return ",".join(map(str, output))
+        a, b, c, ops = input
+        ins = self.create_instructions(ops)
+        return ",".join(self.run_program(ins, a, b, c))
 
     def part_2(self, input: Input) -> Output2:
-        lines = list(input)
-
-        def run_with(a: str) -> list[str]:
-            lines[0] = "Register A: " + a
-            return self.run_program(lines)
-
-        wanted = lines[4][9:].replace(",", "")
+        _, b, c, ops = input
+        ins = self.create_instructions(ops)
+        wanted = list(str(_) for _ in ops)
         log(f"{wanted=}")
-        seen = set(["0"])
-        q = deque(["0"])
+        seen = set([0])
+        q = deque([0])
         while q:
-            a = q.popleft()
-            if "".join(str(_) for _ in run_with(a)) == wanted:
-                return int(a)
-            na = int(a) * 8
+            cand_a = q.popleft() * 8
             for i in range(8):
-                test = str(na + i)
-                res = "".join(str(_) for _ in run_with(test))
-                size = len(res)
-                if res == wanted[-size:]:
-                    if test not in seen:
-                        seen.add(test)
-                        log(test)
-                        q.append(test)
+                na = cand_a + i
+                res = self.run_program(ins, na, b, c)
+                if res == wanted:
+                    return na
+                if res == wanted[-len(res) :] and na not in seen:  # noqa E203
+                    seen.add(na)
+                    log(na)
+                    q.append(na)
         raise RuntimeError("unsolvable")
 
     @aoc_samples(
