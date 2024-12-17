@@ -4,6 +4,7 @@
 #
 
 import sys
+from collections import deque
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -18,12 +19,19 @@ Output1 = str
 Output2 = int
 
 
-TEST = """\
+TEST1 = """\
 Register A: 729
 Register B: 0
 Register C: 0
 
 Program: 0,1,5,4,3,0
+"""
+TEST2 = """\
+Register A: 2024
+Register B: 0
+Register C: 0
+
+Program: 0,3,5,4,3,0
 """
 
 
@@ -31,7 +39,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def part_1(self, input: Input) -> Output1:
+    def run_program(self, lines: list[str]) -> list[str]:
         def combo(operand: int) -> str:
             match operand:
                 case 0 | 1 | 2 | 3:
@@ -41,7 +49,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 case _:
                     raise ValueError
 
-        lines = list(input)
         ins = []
         ip_map = dict[int, int]()
         ins.append(Instruction.SET("A", lines[0][12:]))
@@ -52,7 +59,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         for i in range(0, len(ops), 2):
             ip_map[i] = ip
             opcode, operand = ops[i], ops[i + 1]
-            log((opcode, operand))
             match opcode:
                 case 0:
                     ins.append(Instruction.SET("X", "2"))
@@ -102,17 +108,44 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         program = Program(ins, output_consumer=lambda s: output.append(s))
         vm = VirtualMachine()
         vm.run_program(program)
-        log(f"{program.registers=}")
-        log(f"{output=}")
+        return output
+
+    def part_1(self, input: Input) -> Output1:
+        lines = list(input)
+        output = self.run_program(lines)
         return ",".join(map(str, output))
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        lines = list(input)
+
+        def run_with(a: str) -> list[str]:
+            lines[0] = "Register A: " + a
+            return self.run_program(lines)
+
+        wanted = lines[4][9:].replace(",", "")
+        log(f"{wanted=}")
+        seen = set(["0"])
+        q = deque(["0"])
+        while q:
+            a = q.popleft()
+            if "".join(str(_) for _ in run_with(a)) == wanted:
+                return int(a)
+            na = int(a) * 8
+            for i in range(8):
+                test = str(na + i)
+                res = "".join(str(_) for _ in run_with(test))
+                size = len(res)
+                if res == wanted[-size:]:
+                    if test not in seen:
+                        seen.add(test)
+                        log(test)
+                        q.append(test)
+        raise RuntimeError("unsolvable")
 
     @aoc_samples(
         (
-            ("part_1", TEST, "4,6,3,5,6,3,5,2,1,0"),
-            # ("part_2", TEST, "TODO"),
+            ("part_1", TEST1, "4,6,3,5,6,3,5,2,1,0"),
+            ("part_2", TEST2, 117440),
         )
     )
     def samples(self) -> None:
