@@ -7,7 +7,7 @@ from aoc.vm import VirtualMachine, Program, Instruction
 
 class TestVM(unittest.TestCase):
 
-    def test(self):
+    def test(self) -> None:
         output = []
         vm = VirtualMachine()
         prog = Program([
@@ -26,7 +26,7 @@ class TestVM(unittest.TestCase):
             Instruction.JI1("B", 2),
             Instruction.JIE("B", 20),
             Instruction.NOP(),
-            Instruction.DIV("A", 2),
+            Instruction.DIV("A", "2"),
             Instruction.OUT("7"),
             Instruction.MUL("A", "3"),
             Instruction.SET("C", "*B"),
@@ -52,7 +52,7 @@ class TestVM(unittest.TestCase):
         self.assertEqual(prog.instruction_pointer, 26)
         self.assertEqual(output, [13, 7])
 
-    def test_error_on_infinite_loop(self):
+    def test_error_on_infinite_loop(self) -> None:
         vm = VirtualMachine()
         prog = Program([
             Instruction.NOP(),
@@ -64,7 +64,7 @@ class TestVM(unittest.TestCase):
                           prog)
         self.assertEqual(prog.instruction_pointer, 0)
 
-    def test_invalidInstruction(self):
+    def test_invalidInstruction(self) -> None:
         vm = VirtualMachine()
         prog = Program([
             Instruction("XXX", ()),
