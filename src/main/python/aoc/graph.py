@@ -1,9 +1,12 @@
 #! /usr/bin/env python3
 
-from collections import defaultdict, deque
+import sys
+from collections import defaultdict
+from collections import deque
 from collections.abc import Iterator
 from queue import PriorityQueue
 from typing import Callable
+from typing import NamedTuple
 from typing import TypeVar
 
 T = TypeVar("T")
@@ -84,3 +87,76 @@ def flood_fill(
             seen.add(n)
             q.append(n)
     return seen
+
+
+class AllResults[T](NamedTuple):
+    start: T
+    prececessors: dict[T, list[T]]
+
+    def get_paths(self, t: T) -> list[list[T]]:
+        if t == self.start:
+            return [[self.start]]
+        paths = list[list[T]]()
+        for predecessor in self.prececessors.get(t, list()):
+            for path in self.get_paths(predecessor):
+                paths.append(path + [t])
+        return paths
+
+
+class Dijkstra:
+    @classmethod
+    def distance(
+        cls,
+        start: T,
+        is_end: Callable[[T], bool],
+        adjacent: Callable[[T], Iterator[T]],
+        get_cost: Callable[[T, T], int],
+    ) -> int:
+        q = PriorityQueue[tuple[int, T]]()
+        q.put((0, start))
+        distances = defaultdict[T, int](lambda: sys.maxsize)
+        distances[start] = 0
+        while not q.empty():
+            distance, node = q.get()
+            if is_end(node):
+                return distance
+            total = distances[node]
+            if distance > total:
+                continue
+            for n in adjacent(node):
+                new_distance = total + get_cost(node, n)
+                if new_distance < distances[n]:
+                    distances[n] = new_distance
+                    q.put((new_distance, n))
+        raise RuntimeError("unreachable")
+
+    @classmethod
+    def all(
+        cls,
+        start: T,
+        is_end: Callable[[T], bool],
+        adjacent: Callable[[T], Iterator[T]],
+        get_cost: Callable[[T, T], int],
+    ) -> AllResults[T]:
+        q = PriorityQueue[tuple[int, T]]()
+        q.put((0, start))
+        distances = defaultdict[T, int](lambda: sys.maxsize)
+        distances[start] = 0
+        predecessors = dict[T, list[T]]()
+        while not q.empty():
+            distance, node = q.get()
+            if is_end(node):
+                break
+            total = distances[node]
+            if distance > total:
+                continue
+            for n in adjacent(node):
+                new_distance = total + get_cost(node, n)
+                dist_n = distances[n]
+                if new_distance < dist_n:
+                    distances[n] = new_distance
+                    predecessors[n] = [node]
+                    q.put((new_distance, n))
+                elif new_distance == dist_n:
+                    predecessors.setdefault(n, []).append(node)
+        return AllResults(start, predecessors)
