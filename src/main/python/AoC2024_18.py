@@ -4,17 +4,21 @@
 #
 
 import sys
+from typing import Iterator
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
-from aoc.common import log
-from aoc.graph import bfs, flood_fill
+from aoc.graph import bfs
+from aoc.graph import flood_fill
 from aoc.grid import Cell
 
 Input = list[Cell]
 Output1 = int
 Output2 = str
 
+SIZE = 71
+TIME = 1024
+START = Cell(0, 0)
 
 TEST = """\
 5,4
@@ -47,55 +51,59 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        cells = list[Cell]()
-        for line in input_data:
-            c, r = line.split(",")
-            cells.append(Cell(int(r), int(c)))
-        return cells
+        return [
+            Cell(int(r), int(c))
+            for c, r in (line.split(",") for line in input_data)
+        ]
 
-    def solve_1(self, cells: Input, size: int, time: int) -> int:
+    def adjacent(
+        self, cell: Cell, size: int, occupied: set[Cell]
+    ) -> Iterator[Cell]:
+        return (
+            n
+            for n in cell.get_capital_neighbours()
+            if 0 <= n.row < size and 0 <= n.col < size and n not in occupied
+        )
+
+    def solve_1(self, cells: Input, size: int = SIZE, time: int = TIME) -> int:
+        end = Cell(size - 1, size - 1)
+        occupied = set(cells[:time])
         distance, _ = bfs(
-            Cell(0, 0),
-            lambda cell: cell == Cell(size - 1, size - 1),
-            lambda cell: (
-                n
-                for n in cell.get_capital_neighbours()
-                if 0 <= n.row < size
-                and 0 <= n.col < size
-                and n not in cells[:time]
-            ),
+            START,
+            lambda cell: cell == end,
+            lambda cell: self.adjacent(cell, size, occupied),
         )
         return distance
 
-    def part_1(self, cells: Input) -> Output1:
-        return self.solve_1(cells, 71, 1024)
-
-    def solve_2(self, cells: Input, size: int) -> str:
+    def solve_2(self, cells: Input, size: int = SIZE, time: int = TIME) -> str:
         end = Cell(size - 1, size - 1)
-        for time in range(264, len(cells)):
-            log(time)
+
+        def free(time: int) -> set[Cell]:
             occupied = set(cells[:time])
-            open = flood_fill(
-                Cell(0, 0),
-                lambda cell: (
-                    n
-                    for n in cell.get_capital_neighbours()
-                    if 0 <= n.row < size
-                    and 0 <= n.col < size
-                    and n not in occupied
-                ),
+            return flood_fill(
+                START,
+                lambda cell: self.adjacent(cell, size, occupied),
             )
-            if end not in open:
-                log(cells[time - 1])
-                return f"{cells[time - 1].col},{cells[time - 1].row}"
-        raise RuntimeError("unsolvable")
+
+        lo, hi = time, len(cells)
+        while lo < hi:
+            mid = (lo + hi) // 2
+            if end in free(mid):
+                lo = mid + 1
+            else:
+                hi = mid
+        return f"{cells[lo - 1].col},{cells[lo - 1].row}"
+
+    def part_1(self, cells: Input) -> Output1:
+        return self.solve_1(cells)
 
     def part_2(self, cells: Input) -> Output2:
-        return self.solve_2(cells, 71)
+        return self.solve_2(cells)
 
     def samples(self) -> None:
-        assert self.solve_1(self.parse_input(TEST.splitlines()), 7, 12) == 22
-        # assert self.solve_2(self.parse_input(TEST.splitlines()), 7) == "6,1"
+        input = self.parse_input(TEST.splitlines())
+        assert self.solve_1(input, 7, 12) == 22
+        assert self.solve_2(input, 7, 12) == "6,1"
 
 
 solution = Solution(2024, 18)
