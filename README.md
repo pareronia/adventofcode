@@ -2,13 +2,13 @@
 
 ## 2024
 
-![](https://img.shields.io/badge/stars%20⭐-36-yellow)
-![](https://img.shields.io/badge/days%20completed-18-red)
+![](https://img.shields.io/badge/stars%20⭐-38-yellow)
+![](https://img.shields.io/badge/days%20completed-19-red)
 
 <!-- @BEGIN:ImplementationsTable:2024@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| python3 | [✓](src/main/python/AoC2024_01.py) | [✓](src/main/python/AoC2024_02.py) | [✓](src/main/python/AoC2024_03.py) | [✓](src/main/python/AoC2024_04.py) | [✓](src/main/python/AoC2024_05.py) | [✓](src/main/python/AoC2024_06.py) | [✓](src/main/python/AoC2024_07.py) | [✓](src/main/python/AoC2024_08.py) | [✓](src/main/python/AoC2024_09.py) | [✓](src/main/python/AoC2024_10.py) | [✓](src/main/python/AoC2024_11.py) | [✓](src/main/python/AoC2024_12.py) | [✓](src/main/python/AoC2024_13.py) | [✓](src/main/python/AoC2024_14.py) | [✓](src/main/python/AoC2024_15.py) | [✓](src/main/python/AoC2024_16.py) | [✓](src/main/python/AoC2024_17.py) | [✓](src/main/python/AoC2024_18.py) |  |  |  |  |  |  |  |
+| python3 | [✓](src/main/python/AoC2024_01.py) | [✓](src/main/python/AoC2024_02.py) | [✓](src/main/python/AoC2024_03.py) | [✓](src/main/python/AoC2024_04.py) | [✓](src/main/python/AoC2024_05.py) | [✓](src/main/python/AoC2024_06.py) | [✓](src/main/python/AoC2024_07.py) | [✓](src/main/python/AoC2024_08.py) | [✓](src/main/python/AoC2024_09.py) | [✓](src/main/python/AoC2024_10.py) | [✓](src/main/python/AoC2024_11.py) | [✓](src/main/python/AoC2024_12.py) | [✓](src/main/python/AoC2024_13.py) | [✓](src/main/python/AoC2024_14.py) | [✓](src/main/python/AoC2024_15.py) | [✓](src/main/python/AoC2024_16.py) | [✓](src/main/python/AoC2024_17.py) | [✓](src/main/python/AoC2024_18.py) | [✓](src/main/python/AoC2024_19.py) |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2024_01.java) | [✓](src/main/java/AoC2024_02.java) | [✓](src/main/java/AoC2024_03.java) | [✓](src/main/java/AoC2024_04.java) | [✓](src/main/java/AoC2024_05.java) | [✓](src/main/java/AoC2024_06.java) | [✓](src/main/java/AoC2024_07.java) | [✓](src/main/java/AoC2024_08.java) |  | [✓](src/main/java/AoC2024_10.java) | [✓](src/main/java/AoC2024_11.java) | [✓](src/main/java/AoC2024_12.java) |  | [✓](src/main/java/AoC2024_14.java) | [✓](src/main/java/AoC2024_15.java) |  |  |  |  |  |  |  |  |  |  |
 | rust | [✓](src/main/rust/AoC2024_01/src/main.rs) | [✓](src/main/rust/AoC2024_02/src/main.rs) | [✓](src/main/rust/AoC2024_03/src/main.rs) | [✓](src/main/rust/AoC2024_04/src/main.rs) | [✓](src/main/rust/AoC2024_05/src/main.rs) | [✓](src/main/rust/AoC2024_06/src/main.rs) | [✓](src/main/rust/AoC2024_07/src/main.rs) | [✓](src/main/rust/AoC2024_08/src/main.rs) |  | [✓](src/main/rust/AoC2024_10/src/main.rs) | [✓](src/main/rust/AoC2024_11/src/main.rs) |  | [✓](src/main/rust/AoC2024_13/src/main.rs) | [✓](src/main/rust/AoC2024_14/src/main.rs) | [✓](src/main/rust/AoC2024_15/src/main.rs) | [✓](src/main/rust/AoC2024_16/src/main.rs) | [✓](src/main/rust/AoC2024_17/src/main.rs) | [✓](src/main/rust/AoC2024_18/src/main.rs) |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2024@ -->

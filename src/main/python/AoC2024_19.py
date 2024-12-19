@@ -4,13 +4,13 @@
 #
 
 import sys
+from functools import cache
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
-Input = tuple[set[str], list[str]]
+Input = tuple[tuple[str, ...], list[str]]
 Output1 = int
 Output2 = int
 
@@ -32,55 +32,25 @@ bbrgwb
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         lines = list(input_data)
-        return set(lines[0].split(", ")), lines[2:]
+        return tuple(lines[0].split(", ")), lines[2:]
+
+    @cache
+    def count(self, design: str, towels: tuple[str]) -> int:
+        if len(design) == 0:
+            return 1
+        return sum(
+            self.count(design[len(towel) :], towels)  # noqa E203
+            for towel in towels
+            if design.startswith(towel)
+        )
 
     def part_1(self, input: Input) -> Output1:
         towels, designs = input
-        possible = set[str](towels)
-
-        def find(w: str, pos: int) -> bool:
-            if pos == len(w):
-                return True
-            pp = [p for p in possible if w[pos:].startswith(p)]
-            for ppp in pp:
-                possible.add(w[:pos + len(ppp)])
-            return any(find(w, pos + len(ppp)) for ppp in pp)
-
-        ans = 0
-        for design in designs:
-            if find(design, 0):
-                ans += 1
-        return ans
+        return sum(self.count(design, towels) > 0 for design in designs)
 
     def part_2(self, input: Input) -> Output2:
         towels, designs = input
-        possible = set[str](towels)
-
-        def find(w: str, pos: tuple[int], poss: set[tuple[str, ...]]) -> None:
-            if sum(pos) == len(w):
-                ii = 0
-                lst = list[str]()
-                for i in range(1, len(pos)):
-                    lst.append(w[ii:ii+pos[i]])
-                    ii += pos[i]
-                if all(_ in towels for _ in lst):
-                    poss.add(tuple(_ for _ in lst))
-                return
-            pp = [p for p in possible if w[sum(pos):].startswith(p)]
-            for ppp in pp:
-                possible.add(w[:sum(pos) + len(ppp)])
-                tmp = list(pos[:]) + [len(ppp)]
-                new_pos = tuple(_ for _ in tmp)
-                find(w, new_pos, poss)
-
-        ans = 0
-        for design in designs:
-            log(f"{design=}")
-            poss = set[tuple[str, ...]]()
-            find(design, (0, ), poss)
-            log(f"{design=}: {len(poss)}: {poss}")
-            ans += len(poss)
-        return ans
+        return sum(self.count(design, towels) for design in designs)
 
     @aoc_samples(
         (
