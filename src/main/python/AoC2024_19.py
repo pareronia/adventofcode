@@ -8,6 +8,7 @@ import sys
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
+from aoc.common import log
 
 Input = tuple[set[str], list[str]]
 Output1 = int
@@ -52,12 +53,39 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        towels, designs = input
+        possible = set[str](towels)
+
+        def find(w: str, pos: tuple[int], poss: set[tuple[str, ...]]) -> None:
+            if sum(pos) == len(w):
+                ii = 0
+                lst = list[str]()
+                for i in range(1, len(pos)):
+                    lst.append(w[ii:ii+pos[i]])
+                    ii += pos[i]
+                if all(_ in towels for _ in lst):
+                    poss.add(tuple(_ for _ in lst))
+                return
+            pp = [p for p in possible if w[sum(pos):].startswith(p)]
+            for ppp in pp:
+                possible.add(w[:sum(pos) + len(ppp)])
+                tmp = list(pos[:]) + [len(ppp)]
+                new_pos = tuple(_ for _ in tmp)
+                find(w, new_pos, poss)
+
+        ans = 0
+        for design in designs:
+            log(f"{design=}")
+            poss = set[tuple[str, ...]]()
+            find(design, (0, ), poss)
+            log(f"{design=}: {len(poss)}: {poss}")
+            ans += len(poss)
+        return ans
 
     @aoc_samples(
         (
             ("part_1", TEST, 6),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, 16),
         )
     )
     def samples(self) -> None:
