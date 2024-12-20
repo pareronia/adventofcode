@@ -71,6 +71,30 @@ def bfs(
     raise RuntimeError("unsolvable")
 
 
+def bfs_full(
+    start: T,
+    is_end: Callable[[T], bool],
+    adjacent: Callable[[T], Iterator[T]],
+) -> tuple[dict[T, int], dict[T, T]]:
+    q: deque[tuple[int, T]] = deque()
+    q.append((0, start))
+    seen: set[T] = set()
+    seen.add(start)
+    parent: dict[T, T] = {}
+    dists = defaultdict[T, int](int)
+    while not len(q) == 0:
+        distance, node = q.popleft()
+        if is_end(node):
+            dists[node] = distance
+        for n in adjacent(node):
+            if n in seen:
+                continue
+            seen.add(n)
+            parent[n] = node
+            q.append((distance + 1, n))
+    return dists, parent
+
+
 def flood_fill(
     start: T,
     adjacent: Callable[[T], Iterator[T]],

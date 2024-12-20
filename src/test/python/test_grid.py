@@ -186,3 +186,50 @@ class IntGridIteratorTest(unittest.TestCase):
                 "333333333",
             ],
         )
+
+
+class CellTest(unittest.TestCase):
+    def test_get_all_at_manhattan_distance_1(self) -> None:
+        cell = Cell(0, 0)
+
+        ans = {n for n in cell.get_all_at_manhattan_distance(1)}
+
+        self.assertTrue(len(ans) == 4)
+
+    def test_get_all_at_manhattan_distance_2(self) -> None:
+        cell = Cell(0, 0)
+
+        ans = {n for n in cell.get_all_at_manhattan_distance(2)}
+
+        self.assertTrue(len(ans) == 8)
+        self.assertTrue(Cell(-2, 0) in ans)
+        self.assertTrue(Cell(-1, 1) in ans)
+        self.assertTrue(Cell(0, 2) in ans)
+        self.assertTrue(Cell(1, 1) in ans)
+        self.assertTrue(Cell(2, 0) in ans)
+        self.assertTrue(Cell(1, -1) in ans)
+        self.assertTrue(Cell(0, -2) in ans)
+        self.assertTrue(Cell(-1, -1) in ans)
+
+    def test_get_all_at_manhattan_distance_3(self) -> None:
+        cell = Cell(0, 0)
+
+        ans = {n for n in cell.get_all_at_manhattan_distance(3)}
+
+        self.assertTrue(len(ans) == 12)
+        self.assertTrue(Cell(-3, 0) in ans)
+        self.assertTrue(Cell(-2, 1) in ans)
+        self.assertTrue(Cell(-1, 2) in ans)
+        self.assertTrue(Cell(0, 3) in ans)
+        self.assertTrue(Cell(1, 2) in ans)
+        self.assertTrue(Cell(2, 1) in ans)
+        self.assertTrue(Cell(3, 0) in ans)
+        self.assertTrue(Cell(2, -1) in ans)
+        self.assertTrue(Cell(1, -2) in ans)
+        self.assertTrue(Cell(0, -3) in ans)
+        self.assertTrue(Cell(-1, -2) in ans)
+        self.assertTrue(Cell(-2, -1) in ans)
+
+
+if __name__ == '__main__':
+    unittest.main()

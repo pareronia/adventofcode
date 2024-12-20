@@ -38,6 +38,18 @@ class Cell(NamedTuple):
             return Direction.DOWN if self.row < other.row else Direction.UP
         raise ValueError("not supported")
 
+    def get_all_at_manhattan_distance(self, distance: int) -> Iterator[Cell]:
+        r, c = self.row, self.col
+        for dr in range(distance + 1):
+            dc = distance - dr
+            for rr, cc in {
+                (r + dr, c + dc),
+                (r + dr, c - dc),
+                (r - dr, c + dc),
+                (r - dr, c - dc),
+            }:
+                yield Cell(rr, cc)
+
 
 @unique
 class IterDir(Enum):

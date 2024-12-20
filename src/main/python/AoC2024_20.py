@@ -7,7 +7,7 @@ import sys
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
-from aoc.graph import bfs
+from aoc.graph import bfs_full
 from aoc.grid import CharGrid
 
 Input = CharGrid
@@ -39,28 +39,34 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return CharGrid.from_strings(list(input_data))
 
     def solve(self, grid: CharGrid, cheat_len: int, target: int) -> int:
-        for cell in grid.get_cells():
-            if grid.get_value(cell) == "S":
-                start = cell
-            if grid.get_value(cell) == "E":
-                end = cell
-        time, path = bfs(
+        start = next(
+            cell for cell in grid.get_cells() if grid.get_value(cell) == "S"
+        )
+        distances, _ = bfs_full(
             start,
-            lambda cell: cell == end,
+            lambda cell: grid.get_value(cell) != "#",
             lambda cell: (
                 n
                 for n in grid.get_capital_neighbours(cell)
                 if grid.get_value(n) != "#"
             ),
         )
-
+        dist = {(k.row, k.col): v for k, v in distances.items()}
         ans = 0
-        for i1 in range(len(path) - cheat_len):
-            for i2 in range(i1 + cheat_len, len(path)):
-                p1, p2 = path[i1], path[i2]
-                md = abs(p1.row - p2.row) + abs(p1.col - p2.col)
-                if md <= cheat_len and i2 - i1 - md >= target:
-                    ans += 1
+        for r, c in dist.keys():
+            for md in range(2, cheat_len + 1):
+                for dr in range(md + 1):
+                    dc = md - dr
+                    for rr, cc in {
+                        (r + dr, c + dc),
+                        (r + dr, c - dc),
+                        (r - dr, c + dc),
+                        (r - dr, c - dc),
+                    }:
+                        if (rr, cc) not in dist:
+                            continue
+                        if dist[(rr, cc)] - dist[(r, c)] >= target + md:
+                            ans += 1
         return ans
 
     def part_1(self, grid: Input) -> Output1:
