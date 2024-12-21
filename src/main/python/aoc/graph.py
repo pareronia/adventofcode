@@ -12,37 +12,6 @@ from typing import TypeVar
 T = TypeVar("T")
 
 
-def a_star(
-    start: T,
-    is_end: Callable[[T], bool],
-    adjacent: Callable[[T], Iterator[T]],
-    get_cost: Callable[[T], int],
-) -> tuple[int, dict[T, int], list[T]]:
-    q: PriorityQueue[tuple[int, T]] = PriorityQueue()
-    q.put((0, start))
-    best: defaultdict[T, int] = defaultdict(lambda: 1_000_000_000)
-    best[start] = 0
-    parent: dict[T, T] = {}
-    path = []
-    while not q.empty():
-        cost, node = q.get()
-        if is_end(node):
-            path = [node]
-            curr = node
-            while curr in parent:
-                curr = parent[curr]
-                path.append(curr)
-            break
-        c_total = best[node]
-        for n in adjacent(node):
-            new_risk = c_total + get_cost(n)
-            if new_risk < best[n]:
-                best[n] = new_risk
-                parent[n] = node
-                q.put((new_risk, n))
-    return cost, best, path
-
-
 def bfs(
     start: T,
     is_end: Callable[[T], bool],
@@ -115,6 +84,7 @@ def flood_fill(
 
 class AllResults[T](NamedTuple):
     start: T
+    distances: dict[T, int]
     prececessors: dict[T, list[T]]
 
     def get_paths(self, t: T) -> list[list[T]]:
@@ -126,8 +96,44 @@ class AllResults[T](NamedTuple):
                 paths.append(path + [t])
         return paths
 
+    def get_distance(self, t: T) -> int:
+        return self.distances[t]
+
 
 class Dijkstra:
+
+    @classmethod
+    def dijkstra(
+        cls,
+        start: T,
+        is_end: Callable[[T], bool],
+        adjacent: Callable[[T], Iterator[T]],
+        get_cost: Callable[[T, T], int],
+    ) -> tuple[int, dict[T, int], list[T]]:
+        q: PriorityQueue[tuple[int, T]] = PriorityQueue()
+        q.put((0, start))
+        best: defaultdict[T, int] = defaultdict(lambda: sys.maxsize)
+        best[start] = 0
+        parent: dict[T, T] = {}
+        path = []
+        while not q.empty():
+            cost, node = q.get()
+            if is_end(node):
+                path = [node]
+                curr = node
+                while curr in parent:
+                    curr = parent[curr]
+                    path.append(curr)
+                break
+            c_total = best[node]
+            for n in adjacent(node):
+                new_risk = c_total + get_cost(node, n)
+                if new_risk < best[n]:
+                    best[n] = new_risk
+                    parent[n] = node
+                    q.put((new_risk, n))
+        return cost, best, path
+
     @classmethod
     def distance(
         cls,
@@ -183,4 +189,4 @@ class Dijkstra:
                     q.put((new_distance, n))
                 elif new_distance == dist_n:
                     predecessors.setdefault(n, []).append(node)
-        return AllResults(start, predecessors)
+        return AllResults(start, distances, predecessors)
