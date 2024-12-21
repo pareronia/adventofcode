@@ -63,6 +63,36 @@ where
         unreachable!();
     }
 
+    pub fn execute_full(
+        start: T,
+        is_end: impl Fn(T) -> bool,
+        adjacent: impl Fn(T) -> Vec<T>,
+    ) -> HashMap<T, usize> {
+        let mut q: VecDeque<State<T>> = VecDeque::new();
+        q.push_back(State {
+            node: start,
+            distance: 0,
+        });
+        let mut seen: HashSet<T> = HashSet::new();
+        seen.insert(start);
+        let mut distances: HashMap<T, usize> = HashMap::new();
+        while let Some(state) = q.pop_front() {
+            if is_end(state.node) {
+                distances.insert(state.node, state.distance);
+            }
+            adjacent(state.node).iter().for_each(|n| {
+                if !seen.contains(n) {
+                    seen.insert(*n);
+                    q.push_back(State {
+                        node: *n,
+                        distance: state.distance + 1,
+                    });
+                }
+            });
+        }
+        distances
+    }
+
     pub fn flood_fill(start: T, adjacent: impl Fn(T) -> Vec<T>) -> HashSet<T> {
         let mut q: VecDeque<T> = VecDeque::new();
         q.push_back(start);
@@ -331,6 +361,39 @@ mod tests {
     #[should_panic]
     pub fn bfs_unreachable() {
         bfs_execute(Cell::at(0, 0), Cell::at(4, 0));
+    }
+
+    fn bfs_execute_full(start: Cell) -> HashMap<Cell, usize> {
+        #[rustfmt::skip]
+        let v = &vec![
+            ".###",
+            "..##",
+            "#..#",
+            "##..",
+            "###."];
+        let grid = CharGrid::from(&v);
+        let adjacent = |cell| {
+            grid.capital_neighbours(&cell)
+                .iter()
+                .filter(|n| grid.get(&n) != '#')
+                .cloned()
+                .collect()
+        };
+        BFS::execute_full(start, |cell| grid.get(&cell) == '.', adjacent)
+    }
+
+    #[test]
+    pub fn bfs_execute_full_ok() {
+        let dist = bfs_execute_full(Cell::at(0, 0));
+        assert_eq!(dist.len(), 8);
+        assert_eq!(dist[&Cell::at(0, 0)], 0);
+        assert_eq!(dist[&Cell::at(1, 0)], 1);
+        assert_eq!(dist[&Cell::at(1, 1)], 2);
+        assert_eq!(dist[&Cell::at(2, 1)], 3);
+        assert_eq!(dist[&Cell::at(2, 2)], 4);
+        assert_eq!(dist[&Cell::at(3, 2)], 5);
+        assert_eq!(dist[&Cell::at(3, 3)], 6);
+        assert_eq!(dist[&Cell::at(4, 3)], 7);
     }
 
     #[test]

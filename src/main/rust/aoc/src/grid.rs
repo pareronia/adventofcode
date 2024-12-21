@@ -1,6 +1,7 @@
 use crate::geometry::XY;
 use itertools::Itertools;
 use std::cmp::Ordering;
+use std::collections::HashSet;
 use std::fmt::{Display, Error, Formatter};
 
 #[derive(Clone, Copy, Debug, Hash, PartialEq, Eq)]
@@ -60,6 +61,25 @@ impl Cell {
             ans.push(Cell::at(self.row + 1, self.col - 1));
         }
         ans
+    }
+
+    #[allow(clippy::needless_lifetimes)]
+    pub fn get_all_at_manhattan_distance<'a>(
+        &'a self,
+        distance: usize,
+    ) -> impl Iterator<Item = Cell> + 'a {
+        (0..=distance).flat_map(move |dr| {
+            let dc = distance - dr;
+            let set = HashSet::from([
+                (self.row.checked_add(dr), self.col.checked_add(dc)),
+                (self.row.checked_add(dr), self.col.checked_sub(dc)),
+                (self.row.checked_sub(dr), self.col.checked_add(dc)),
+                (self.row.checked_sub(dr), self.col.checked_sub(dc)),
+            ]);
+            set.into_iter()
+                .filter(|(rr, cc)| rr.is_some() && cc.is_some())
+                .map(|(rr, cc)| Cell::at(rr.unwrap(), cc.unwrap()))
+        })
     }
 }
 
