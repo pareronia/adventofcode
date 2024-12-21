@@ -5,11 +5,11 @@
 
 import itertools
 import sys
+from functools import cache
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 from aoc.graph import Dijkstra
 from aoc.grid import Cell
 
@@ -32,10 +32,10 @@ DIR_KEYPAD = {
         ">": [["v"]],
         "v": [["<", "v"], ["v", "<"]],
         "<": [["v", "<", "<"], ["<", "v", "<"]],
-        "A": [[""]],
+        "A": [],
     },
     "^": {
-        "^": [[""]],
+        "^": [],
         ">": [["v", ">"], [">", "v"]],
         "v": [["v"]],
         "<": [["v", "<"]],
@@ -43,7 +43,7 @@ DIR_KEYPAD = {
     },
     ">": {
         "^": [["<", "^"], ["^", "<"]],
-        ">": [[""]],
+        ">": [],
         "v": [["<"]],
         "<": [["<", "<"]],
         "A": [["^"]],
@@ -51,7 +51,7 @@ DIR_KEYPAD = {
     "v": {
         "^": [["^"]],
         ">": [[">"]],
-        "v": [[""]],
+        "v": [],
         "<": [["<"]],
         "A": [[">", "^"], ["^", ">"]],
     },
@@ -59,7 +59,7 @@ DIR_KEYPAD = {
         "^": [[">", "^"]],
         ">": [[">", ">"]],
         "v": [[">"]],
-        "<": [[""]],
+        "<": [],
         "A": [[">", ">", "^"], [">", "^", ">"]],
     },
 }
@@ -83,24 +83,29 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def do_dir_keypad(self, seq: list[str]) -> list[list[str]]:
-        ans = []
-
-        def dfs(seq: list[str], pos: int, path: list[str]) -> None:
-            if pos == len(seq):
-                ans.append(path)
-                return
-            prev, nxt = seq[pos - 1], seq[pos]
-            for s in DIR_KEYPAD[prev][nxt]:
-                new_path = path[:]
-                if s != [""]:
-                    for x in s:
-                        new_path.append(x)
-                new_path.append("A")
-                dfs(seq, pos + 1, new_path)
-
-        dfs(["A"] + seq, 1, [])
-        return ans
+    @cache
+    def do_dir_keypad(self, seq: tuple[str, ...], level: int) -> int:
+        assert len(seq) > 0
+        if level == 1:
+            ans = 0
+            for first, second in zip(("A",) + seq, seq):
+                moves = DIR_KEYPAD[first][second]
+                ans += 1 if len(moves) == 0 else len(moves[0] + ["A"])
+            return ans
+        else:
+            ans = 0
+            for first, second in zip(("A",) + seq, seq):
+                moves = DIR_KEYPAD[first][second]
+                if len(moves) > 0:
+                    ans += min(
+                        self.do_dir_keypad(
+                            tuple(_ for _ in move + ["A"]), level - 1
+                        )
+                        for move in moves
+                    )
+                else:
+                    ans += self.do_dir_keypad(("A",), level - 1)
+            return ans
 
     def do_num_keypad(self, seq: str) -> list[list[str]]:
         lst = [_ for _ in seq]
@@ -120,7 +125,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 ),
                 lambda curr, nxt: 1,
             )
-            # log((prev, nxt))
             paths = result.get_paths(end)
             moves = []
             for path in paths:
@@ -130,9 +134,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 moves.append(move)
             all_moves.append(moves)
 
-        # log(all_moves)
         tmp = [p for p in itertools.product(*all_moves)]
-        # log(tmp)
         for t in tmp:
             a = []
             for tt in t:
@@ -140,35 +142,22 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 a.extend(x)
             if a is not None:
                 ans.append(a)  # type:ignore
-        log(seq)
-        log(ans)
         return ans
 
-    def solve_1(self, input: str) -> int:
+    def solve(self, input: str, levels: int) -> int:
         best = sys.maxsize
         seqs = self.do_num_keypad(input)
-        for seq1 in seqs:
-            seq2 = self.do_dir_keypad(seq1)
-            seq3 = []
-            for seq in seq2:
-                seq3.extend(self.do_dir_keypad(seq))
-            shortest = sorted(seq3, key=len)[0]
-            if len(shortest) < best:
-                best = len(shortest)
+        for seq in seqs:
+            best = min(best, self.do_dir_keypad(tuple(_ for _ in seq), levels))
         return best
 
     def part_1(self, input: Input) -> Output1:
-        return sum(self.solve_1(combo) * int(combo[:-1]) for combo in input)
+        return sum(self.solve(combo, 2) * int(combo[:-1]) for combo in input)
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        return sum(self.solve(combo, 25) * int(combo[:-1]) for combo in input)
 
-    @aoc_samples(
-        (
-            ("part_1", TEST, 126384),
-            # ("part_2", TEST, "TODO"),
-        )
-    )
+    @aoc_samples((("part_1", TEST, 126384),))
     def samples(self) -> None:
         pass
 
