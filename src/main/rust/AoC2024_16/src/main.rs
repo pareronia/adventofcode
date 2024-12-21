@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use aoc::geometry::{Direction, Turn};
-use aoc::graph::AStar;
+use aoc::graph::Dijkstra;
 use aoc::grid::{Cell, CharGrid, Grid};
 use aoc::Puzzle;
 use itertools::Itertools;
@@ -45,7 +45,7 @@ impl aoc::Puzzle for AoC2024_16 {
     fn part_1(&self, grid: &Self::Input) -> Self::Output1 {
         let start = Cell::at(grid.height() - 2, 1);
         let end = Cell::at(1, grid.width() - 2);
-        AStar::distance(
+        Dijkstra::distance(
             State {
                 pos: start,
                 dir: Direction::Right,
@@ -59,7 +59,7 @@ impl aoc::Puzzle for AoC2024_16 {
     fn part_2(&self, grid: &Self::Input) -> Self::Output2 {
         let start = Cell::at(grid.height() - 2, 1);
         let end = Cell::at(1, grid.width() - 2);
-        let result = AStar::all(
+        let result = Dijkstra::all(
             State {
                 pos: start,
                 dir: Direction::Right,

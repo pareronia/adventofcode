@@ -129,7 +129,7 @@ where
     }
 }
 
-pub struct AStar<T>(T);
+pub struct Dijkstra<T>(T);
 
 pub struct Result<T> {
     start: T,
@@ -196,7 +196,7 @@ where
     }
 }
 
-impl<T> AStar<T>
+impl<T> Dijkstra<T>
 where
     T: Eq + Copy + Hash,
 {
@@ -204,7 +204,7 @@ where
         start: T,
         is_end: impl Fn(T) -> bool,
         adjacent: impl Fn(T) -> Vec<T>,
-        cost: impl Fn(T) -> usize,
+        cost: impl Fn(T, T) -> usize,
     ) -> Result<T> {
         let mut q: BinaryHeap<State<T>> = BinaryHeap::new();
         q.push(State {
@@ -223,7 +223,7 @@ where
                 continue;
             }
             adjacent(state.node).iter().for_each(|n| {
-                let risk = total + cost(*n);
+                let risk = total + cost(state.node, *n);
                 if risk < *distances.get(n).unwrap_or(&usize::MAX) {
                     distances.insert(*n, risk);
                     paths.insert(*n, state.node);
@@ -429,7 +429,7 @@ mod tests {
     }
 
     #[test]
-    pub fn astar_execute_ok() {
+    pub fn dijkstra_execute_ok() {
         #[rustfmt::skip]
         let v = &vec![
             ".###",
@@ -445,11 +445,11 @@ mod tests {
                 .cloned()
                 .collect()
         };
-        let result = AStar::execute(
+        let result = Dijkstra::execute(
             Cell::at(0, 0),
             |cell| cell == Cell::at(4, 3),
             adjacent,
-            |_| 1,
+            |_, _| 1,
         );
         assert_eq!(result.get_distance(Cell::at(2, 2)).unwrap(), 4);
         assert_eq!(result.get_distance(Cell::at(4, 3)).unwrap(), 7);

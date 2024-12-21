@@ -1,11 +1,7 @@
 #![allow(non_snake_case)]
-#![allow(unused)]
 #![allow(clippy::upper_case_acronyms)]
 
-use aoc::{
-    graph::{AStar, Result},
-    log, Puzzle,
-};
+use aoc::{graph::Dijkstra, Puzzle};
 use itertools::Itertools;
 use std::collections::{HashMap, HashSet};
 
@@ -25,11 +21,11 @@ impl Cave {
         let size = self.valves.len();
         let mut distances: Vec<Vec<usize>> = vec![vec![0; size]; size];
         for i in relevant_valves.iter().copied() {
-            let result = AStar::execute(
+            let result = Dijkstra::execute(
                 i,
-                |v| false,
+                |_| false,
                 |v| self.tunnels[v].iter().copied().collect_vec(),
-                |v| 1,
+                |_, _| 1,
             );
             for j in relevant_valves.iter().copied() {
                 distances[i][j] = result.get_distance(j).unwrap();
@@ -160,7 +156,7 @@ impl aoc::Puzzle for AoC2022_16 {
                 splits.as_slice()[9..].iter().for_each(|&split| {
                     edges
                         .entry(String::from(name))
-                        .and_modify(|mut s| {
+                        .and_modify(|s| {
                             s.insert(String::from(split));
                         })
                         .or_insert(HashSet::from([String::from(split)]));
