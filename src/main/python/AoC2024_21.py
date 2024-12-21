@@ -3,7 +3,6 @@
 # Advent of Code 2024 Day 21
 #
 
-import itertools
 import sys
 from functools import cache
 
@@ -28,39 +27,39 @@ TEST = """\
 
 DIR_KEYPAD = {
     "A": {
-        "^": [["<"]],
-        ">": [["v"]],
-        "v": [["<", "v"], ["v", "<"]],
-        "<": [["v", "<", "<"], ["<", "v", "<"]],
-        "A": [],
+        "^": ["<A"],
+        ">": ["vA"],
+        "v": ["<vA", "v<A"],
+        "<": ["v<<A", "<v<A"],
+        "A": ["A"],
     },
     "^": {
-        "^": [],
-        ">": [["v", ">"], [">", "v"]],
-        "v": [["v"]],
-        "<": [["v", "<"]],
-        "A": [[">"]],
+        "^": ["A"],
+        ">": ["v>A", ">vA"],
+        "v": ["vA"],
+        "<": ["v<A"],
+        "A": [">A"],
     },
     ">": {
-        "^": [["<", "^"], ["^", "<"]],
-        ">": [],
-        "v": [["<"]],
-        "<": [["<", "<"]],
-        "A": [["^"]],
+        "^": ["<^A", "^<A"],
+        ">": ["A"],
+        "v": ["<A"],
+        "<": ["<<A"],
+        "A": ["^A"],
     },
     "v": {
-        "^": [["^"]],
-        ">": [[">"]],
-        "v": [],
-        "<": [["<"]],
-        "A": [[">", "^"], ["^", ">"]],
+        "^": ["^A"],
+        ">": [">A"],
+        "v": ["A"],
+        "<": ["<A"],
+        "A": [">^A", "^>A"],
     },
     "<": {
-        "^": [[">", "^"]],
-        ">": [[">", ">"]],
-        "v": [[">"]],
-        "<": [],
-        "A": [[">", ">", "^"], [">", "^", ">"]],
+        "^": [">^A"],
+        ">": [">>A"],
+        "v": [">A"],
+        "<": ["A"],
+        "A": [">>^A", ">^>A"],
     },
 }
 
@@ -83,79 +82,58 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    @cache
-    def do_dir_keypad(self, seq: tuple[str, ...], level: int) -> int:
-        assert len(seq) > 0
-        if level == 1:
-            ans = 0
-            for first, second in zip(("A",) + seq, seq):
-                moves = DIR_KEYPAD[first][second]
-                ans += 1 if len(moves) == 0 else len(moves[0] + ["A"])
-            return ans
-        else:
-            ans = 0
-            for first, second in zip(("A",) + seq, seq):
-                moves = DIR_KEYPAD[first][second]
-                if len(moves) > 0:
-                    ans += min(
-                        self.do_dir_keypad(
-                            tuple(_ for _ in move + ["A"]), level - 1
-                        )
-                        for move in moves
+    def solve(self, input: Input, levels: int) -> int:
+        @cache
+        def do_dir_keypad(seq: str, level: int) -> int:
+            if level == 1:
+                return sum(
+                    len(DIR_KEYPAD[first][second][0])
+                    for first, second in zip("A" + seq, seq)
+                )
+            else:
+                return sum(
+                    min(
+                        do_dir_keypad(move, level - 1)
+                        for move in DIR_KEYPAD[first][second]
                     )
-                else:
-                    ans += self.do_dir_keypad(("A",), level - 1)
-            return ans
+                    for first, second in zip("A" + seq, seq)
+                )
 
-    def do_num_keypad(self, seq: str) -> list[list[str]]:
-        lst = [_ for _ in seq]
-        ans = list[list[str]]()
+        def do_num_keypad(prev: str, nxt: str, levels: int) -> int:
+            def get_paths(first: str, second: str) -> list[list[Cell]]:
+                start, end = NUM_KEYPAD[first], NUM_KEYPAD[second]
+                result = Dijkstra.all(
+                    start,
+                    lambda cell: cell == end,
+                    lambda cell: (
+                        n
+                        for n in cell.get_capital_neighbours()
+                        if n in NUM_KEYPAD.values()
+                    ),
+                    lambda curr, nxt: 1,
+                )
+                return result.get_paths(end)
 
-        all_moves = []
-        for prev, nxt in zip(["A"] + lst, lst):
-            start = NUM_KEYPAD[prev]
-            end = NUM_KEYPAD[nxt]
-            result = Dijkstra.all(
-                start,
-                lambda cell: cell == end,
-                lambda cell: (
-                    n
-                    for n in cell.get_capital_neighbours()
-                    if n in NUM_KEYPAD.values()
-                ),
-                lambda curr, nxt: 1,
-            )
-            paths = result.get_paths(end)
-            moves = []
-            for path in paths:
-                move = []
-                for c1, c2 in zip(path, path[1:]):
-                    move.append(c1.to(c2).arrow)
-                moves.append(move)
-            all_moves.append(moves)
+            moves = [
+                "".join(
+                    cell_1.to(cell_2).arrow  # type:ignore
+                    for cell_1, cell_2 in zip(path, path[1:])
+                )
+                for path in get_paths(prev, nxt)
+            ]
+            return min(do_dir_keypad(move + "A", levels) for move in moves)
 
-        tmp = [p for p in itertools.product(*all_moves)]
-        for t in tmp:
-            a = []
-            for tt in t:
-                x = list(tt) + ["A"]
-                a.extend(x)
-            if a is not None:
-                ans.append(a)  # type:ignore
-        return ans
-
-    def solve(self, input: str, levels: int) -> int:
-        best = sys.maxsize
-        seqs = self.do_num_keypad(input)
-        for seq in seqs:
-            best = min(best, self.do_dir_keypad(tuple(_ for _ in seq), levels))
-        return best
+        return sum(
+            int(combo[:-1]) * do_num_keypad(a, b, levels)
+            for combo in input
+            for a, b in zip("A" + combo, combo)
+        )
 
     def part_1(self, input: Input) -> Output1:
-        return sum(self.solve(combo, 2) * int(combo[:-1]) for combo in input)
+        return self.solve(input, 2)
 
     def part_2(self, input: Input) -> Output2:
-        return sum(self.solve(combo, 25) * int(combo[:-1]) for combo in input)
+        return self.solve(input, 25)
 
     @aoc_samples((("part_1", TEST, 126384),))
     def samples(self) -> None:
