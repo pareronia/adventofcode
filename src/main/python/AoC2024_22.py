@@ -9,7 +9,6 @@ from collections import defaultdict
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = list[int]
 Output1 = int
@@ -34,70 +33,45 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return list(map(int, input_data))
 
+    def secret(self, num: int) -> int:
+        num = (num ^ (num * 64)) % 16777216
+        num = (num ^ (num // 32)) % 16777216
+        num = (num ^ (num * 2048)) % 16777216
+        return num
+
     def part_1(self, seeds: Input) -> Output1:
         nums = seeds[:]
         for _ in range(2000):
             for i in range(len(nums)):
-                nums[i] = (nums[i] ^ (nums[i] * 64)) % 16777216
-                nums[i] = (nums[i] ^ (nums[i] // 32)) % 16777216
-                nums[i] = (nums[i] ^ (nums[i] * 2048)) % 16777216
+                nums[i] = self.secret(nums[i])
         return sum(nums)
 
     def part_2(self, seeds: Input) -> Output2:
-        d = defaultdict[tuple[int, int, int, int], int](int)
-        for i in range(len(seeds)):
-            secrets = list[int]()
-            secrets.append(seeds[i])
-            for j in range(2000):
-                num = secrets[-1]
-                num = (num ^ (num * 64)) % 16777216
-                num = (num ^ (num // 32)) % 16777216
-                num = (num ^ (num * 2048)) % 16777216
-                secrets.append(num)
-            diffs = list[tuple[int, int]]()
-            # prices: list[list[tuple[int, tuple[int, int, int, int]]]] = [
-            #     [] for _ in range(len(secrets))
-            # ]
-            prev = secrets[0]
-            for price in secrets[1:]:
-                diffs.append(((price % 10) - (prev % 10), price % 10))
-                prev = price
-            seen = set[tuple[int, int, int, int]]()
-            for j in range(len(diffs) - 3):
-                key = (
-                    diffs[j][0],
-                    diffs[j + 1][0],
-                    diffs[j + 2][0],
-                    diffs[j + 3][0],
-                )
-                if key in seen:
+        p = defaultdict[int, int](int)
+        seen = [-1 for _ in range(19**4)]
+        for i, num in enumerate(seeds):
+            na = num
+            nb = self.secret(na)
+            nc = self.secret(nb)
+            nd = self.secret(nc)
+            b, c, d = (
+                na % 10 - nb % 10 + 9,
+                nb % 10 - nc % 10 + 9,
+                nc % 10 - nd % 10 + 9,
+            )
+            num = nd
+            prev_price = num % 10
+            for _ in range(3, 2000):
+                num = self.secret(num)
+                price = num % 10
+                a, b, c, d = b, c, d, prev_price - price + 9
+                prev_price = price
+                key = (a * 19**3) + (b * 19**2) + (c * 19) + d
+                if seen[key] == i:
                     continue
-                seen.add(key)
-                d[key] += diffs[j + 3][1]
-        # best = 0
-        # for n in tqdm(range(len(prices[0]))):
-        #     seq = prices[0][n][1]
-        #     bananas = 0
-        #     for i in range(len(prices)):
-        #         for j in range(4, len(prices[i])):
-        #             if prices[i][j][1] == seq:
-        #                 bananas += prices[i][j][0]
-        #                 break
-        #     best = max(best, bananas)
-        # for i in tqdm(range(len(prices))):
-        #     e = dict[tuple[int, int, int, int], int]()
-        #     for j in range(len(prices[i])):
-        #         seq = prices[i][j][1]
-        #         # if seq == (0, 0, 0, 0):
-        #         #     continue
-        #         if seq in e:
-        #             continue
-        #         e[seq] = prices[i][j][0]
-        #     for k, v in e.items():
-        #         d[k] += v
-        log([(k, v) for k, v in d.items()][0:10])
-        log([(k, v) for k, v in d.items()][-9:])
-        return max(d.values())
+                seen[key] = i
+                p[key] += price
+        return max(p.values())
 
     @aoc_samples(
         (
