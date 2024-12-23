@@ -10,9 +10,9 @@ from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 
-Input = InputData
+Input = dict[str, set[str]]
 Output1 = int
-Output2 = int
+Output2 = str
 
 
 TEST = """\
@@ -53,36 +53,31 @@ td-yn
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        edges = defaultdict[str, set[str]](set)
+        for line in input_data:
+            node_1, node_2 = line.split("-")
+            edges[node_1].add(node_2)
+            edges[node_2].add(node_1)
+        return edges
 
-    def part_1(self, input: Input) -> Output1:
-        d = defaultdict[str, list[str]](list)
-        for line in input:
-            a, b = line.split("-")
-            d[a].append(b)
-            d[b].append(a)
-        lst = set()
-        ts = [c for c in d if c.startswith("t")]
-        for t in ts:
-            for n1 in d[t]:
-                for n2 in d[n1]:
-                    if t in d[n2]:
-                        lst.add(tuple(_ for _ in sorted([t, n1, n2])))
-        return len(lst)
+    def part_1(self, edges: Input) -> Output1:
+        return len(
+            {
+                tuple(sorted((t, neighbour_1, neighbour_2)))
+                for t in (comp for comp in edges if comp.startswith("t"))
+                for neighbour_1 in edges[t]
+                for neighbour_2 in edges[neighbour_1]
+                if t in edges[neighbour_2]
+            }
+        )
 
-    def part_2(self, input: Input) -> Output2:
-        d = defaultdict[str, list[str]](list)
-        for line in input:
-            a, b = line.split("-")
-            d[a].append(b)
-            d[b].append(a)
-
-        nws = [{c} for c in d]
-        for nw in nws:
-            for c in d:
-                if all(n in d[c] for n in nw):
-                    nw.add(c)
-        return ",".join(sorted(max(nws, key=len)))
+    def part_2(self, edges: Input) -> Output2:
+        cliques = [{comp} for comp in edges]
+        for clique in cliques:
+            for comp in edges:
+                if clique & edges[comp] == clique:
+                    clique.add(comp)
+        return ",".join(sorted(max(cliques, key=len)))  # type:ignore
 
     @aoc_samples(
         (
