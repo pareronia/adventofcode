@@ -9,7 +9,6 @@ from collections import defaultdict
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = InputData
 Output1 = int
@@ -62,7 +61,6 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             a, b = line.split("-")
             d[a].append(b)
             d[b].append(a)
-        log(d)
         lst = set()
         ts = [c for c in d if c.startswith("t")]
         for t in ts:
@@ -70,16 +68,26 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 for n2 in d[n1]:
                     if t in d[n2]:
                         lst.add(tuple(_ for _ in sorted([t, n1, n2])))
-        log(lst)
         return len(lst)
 
     def part_2(self, input: Input) -> Output2:
-        return 0
+        d = defaultdict[str, list[str]](list)
+        for line in input:
+            a, b = line.split("-")
+            d[a].append(b)
+            d[b].append(a)
+
+        nws = [{c} for c in d]
+        for nw in nws:
+            for c in d:
+                if all(n in d[c] for n in nw):
+                    nw.add(c)
+        return ",".join(sorted(max(nws, key=len)))
 
     @aoc_samples(
         (
             ("part_1", TEST, 7),
-            # ("part_2", TEST, "TODO"),
+            ("part_2", TEST, "co,de,ka,ta"),
         )
     )
     def samples(self) -> None:
