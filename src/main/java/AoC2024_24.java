@@ -1,12 +1,15 @@
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
+import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
@@ -15,7 +18,7 @@ import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, Integer> {
+public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String> {
 
 	private AoC2024_24(final boolean debug) {
 		super(debug);
@@ -36,14 +39,13 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, Intege
 
     int part1(final List<Gate> inputs, final String wire) {
 		final Circuit circuit = Circuit.of(inputs);
-		log(circuit);
 		return circuit.getValue(wire);
 	}
 	
 	@Override
 	public Long solvePart1(final List<Gate> inputs) {
 	    String ans = "";
-	    for (int i = 0; i <= 99; i++) {
+	    for (int i = 0; i <= 45; i++) {
 	        try {
                 ans = part1(inputs, String.format("z%02d", i)) + ans;
             } catch (final AssertionError e) {
@@ -53,14 +55,45 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, Intege
 	}
 	
 	@Override
-	public Integer solvePart2(final List<Gate> inputs) {
-//	    final List<Gate> clone = inputs.stream().map(Gate::cloneGate).collect(toList());
-//		final Circuit circuit1 = Circuit.of(inputs);
-//		final int a = circuit1.getValue("a");
-//		final Circuit circuit2 = Circuit.of(clone);
-//		circuit2.setGate("b", Gate.set("b", String.valueOf(a)));
-//		return circuit2.getValue("a");
-	    return 0;
+	public String solvePart2(final List<Gate> inputs) {
+		final List<Gate> gates = Circuit.of(inputs).getGates().stream().filter(gate -> gate.op != AoC2024_24.Gate.Op.SET).toList();
+		final Set<String> swapped = new HashSet<>();
+		for (final Gate gate : gates) {
+            if (gate.op == AoC2024_24.Gate.Op.SET) {
+		        continue;
+		    }
+		    if (gate.name.startsWith("z")
+		            && gate.op != AoC2024_24.Gate.Op.XOR
+		            && !gate.name.equals("z45")) {
+		        swapped.add(gate.name);
+		    }
+		    if (gate.op == AoC2024_24.Gate.Op.XOR
+		            && Set.of(gate.name, gate.in1, gate.in2).stream()
+		                    .noneMatch(n ->    n.startsWith("x")
+		                                    || n.startsWith("y")
+		                                    || n.startsWith("z"))) {
+		        swapped.add(gate.name);
+		    }
+		    if (gate.op == AoC2024_24.Gate.Op.AND
+		            && !(gate.in1.equals("x00") || gate.in2.equals("x00"))) {
+		        for (final Gate other : gates) {
+		            if (other.op != AoC2024_24.Gate.Op.OR
+		                    && (Set.of(other.in1, other.in2).contains(gate.name))) {
+		                swapped.add(gate.name);
+		            }
+		        }
+		    }
+		    if (gate.op == AoC2024_24.Gate.Op.XOR) {
+		        for (final Gate other : gates) {
+		            if (other.op == AoC2024_24.Gate.Op.OR
+		                    && (Set.of(other.in1, other.in2).contains(gate.name))) {
+		                swapped.add(gate.name);
+		            }
+		        }
+		    }
+        }
+		log(swapped);
+	    return swapped.stream().sorted().collect(joining(","));
 	}
 	
     @Override
@@ -139,8 +172,6 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, Intege
 	
     static final class Gate implements Cloneable {
 
-        private static final int BIT_SIZE = 16;
-        
         enum Op { SET, AND, OR, XOR }
         
         final String name;
@@ -182,7 +213,6 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, Intege
                 return Gate.or(splits[1], orSplits[0], orSplits[1]);
             } else {
                 throw new IllegalArgumentException();
-//                return Gate.set(splits[1], splits[0]);
             }
         }
 
