@@ -1,24 +1,24 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
+import static com.github.pareronia.aoc.StringOps.splitOnce;
 import static java.util.Objects.requireNonNull;
 import static java.util.function.Function.identity;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
-import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String> {
+public class AoC2024_24 extends SolutionBase<AoC2024_24.Circuit, Long, String> {
 
 	private AoC2024_24(final boolean debug) {
 		super(debug);
@@ -33,67 +33,55 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
 	}
 	
 	@Override
-    protected List<Gate> parseInput(final List<String> inputs) {
-		return inputs.stream().filter(s -> !s.isBlank()).map(Gate::fromInput).collect(toList());
+    protected Circuit parseInput(final List<String> inputs) {
+		return Circuit.fromInput(inputs);
     }
 
-    int part1(final List<Gate> inputs, final String wire) {
-		final Circuit circuit = Circuit.of(inputs);
-		return circuit.getValue(wire);
+	@Override
+	public Long solvePart1(final Circuit circuit) {
+	    final int maxZ = circuit.getGates().stream()
+	            .filter(gate -> gate.getName().startsWith("z"))
+	            .map(gate -> gate.getName().substring(1))
+	            .mapToInt(Integer::parseInt)
+	            .max().getAsInt();
+	    return rangeClosed(maxZ, 0, -1).intStream()
+                .mapToLong(i -> ((1L << i)
+                        * circuit.getValue("z%02d".formatted(i))))
+                .sum();
 	}
 	
 	@Override
-	public Long solvePart1(final List<Gate> inputs) {
-	    String ans = "";
-	    for (int i = 0; i <= 45; i++) {
-	        try {
-                ans = part1(inputs, String.format("z%02d", i)) + ans;
-            } catch (final AssertionError e) {
-            }
-        }
-	    return Long.parseLong(ans, 2);
-	}
-	
-	@Override
-	public String solvePart2(final List<Gate> inputs) {
-		final List<Gate> gates = Circuit.of(inputs).getGates().stream().filter(gate -> gate.op != AoC2024_24.Gate.Op.SET).toList();
-		final Set<String> swapped = new HashSet<>();
-		for (final Gate gate : gates) {
-            if (gate.op == AoC2024_24.Gate.Op.SET) {
-		        continue;
-		    }
-		    if (gate.name.startsWith("z")
-		            && gate.op != AoC2024_24.Gate.Op.XOR
-		            && !gate.name.equals("z45")) {
-		        swapped.add(gate.name);
-		    }
-		    if (gate.op == AoC2024_24.Gate.Op.XOR
+	public String solvePart2(final Circuit circuit) {
+		final Predicate<Gate> outputsToZExceptFirstOneAndNotXOR
+		    = gate -> (gate.name.startsWith("z")
+		            && gate.op != Gate.Op.XOR
+		            && !gate.name.equals("z45"));
+		final Predicate<Gate> isXORNotConnectedToXorYorZ
+		    = gate -> gate.op == Gate.Op.XOR
 		            && Set.of(gate.name, gate.in1, gate.in2).stream()
-		                    .noneMatch(n ->    n.startsWith("x")
-		                                    || n.startsWith("y")
-		                                    || n.startsWith("z"))) {
-		        swapped.add(gate.name);
-		    }
-		    if (gate.op == AoC2024_24.Gate.Op.AND
-		            && !(gate.in1.equals("x00") || gate.in2.equals("x00"))) {
-		        for (final Gate other : gates) {
-		            if (other.op != AoC2024_24.Gate.Op.OR
-		                    && (Set.of(other.in1, other.in2).contains(gate.name))) {
-		                swapped.add(gate.name);
-		            }
-		        }
-		    }
-		    if (gate.op == AoC2024_24.Gate.Op.XOR) {
-		        for (final Gate other : gates) {
-		            if (other.op == AoC2024_24.Gate.Op.OR
-		                    && (Set.of(other.in1, other.in2).contains(gate.name))) {
-		                swapped.add(gate.name);
-		            }
-		        }
-		    }
-        }
-		log(swapped);
-	    return swapped.stream().sorted().collect(joining(","));
+		            .noneMatch(n ->    n.startsWith("x")
+		                            || n.startsWith("y")
+		                            || n.startsWith("z"));
+		final BiPredicate<Gate, List<Gate>> isANDExceptLastWithAnOutputNotToOR
+		    = (gate, others) -> (gate.op == Gate.Op.AND
+                && !(gate.in1.equals("x00") || gate.in2.equals("x00"))
+                && others.stream().anyMatch(other -> other.op != Gate.Op.OR
+                    && (Set.of(other.in1, other.in2).contains(gate.name))));
+		final BiPredicate<Gate, List<Gate>> isXORWithAnOutputToOR
+		    = (gate, others) -> (gate.op == Gate.Op.XOR
+                && others.stream().anyMatch(other -> other.op == Gate.Op.OR
+                    && (Set.of(other.in1, other.in2).contains(gate.name))));
+		final List<Gate> gates = circuit.getGates().stream()
+		        .filter(gate -> gate.op != Gate.Op.SET)
+		        .toList();
+		return gates.stream()
+		        .filter(gate -> outputsToZExceptFirstOneAndNotXOR.test(gate)
+		            || isXORNotConnectedToXorYorZ.test(gate)
+		            || isANDExceptLastWithAnOutputNotToOR.test(gate, gates)
+		            || isXORWithAnOutputToOR.test(gate, gates))
+		        .map(Gate::getName)
+		        .sorted()
+		        .collect(joining(","));
 	}
 	
     @Override
@@ -170,7 +158,7 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
 	        tnw OR pbm -> gnj
 	        """;
 	
-    static final class Gate implements Cloneable {
+    static final class Gate {
 
         enum Op { SET, AND, OR, XOR }
         
@@ -197,38 +185,24 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
         
         public static Gate fromInput(final String input) {
             if (input.contains(": ")) {
-                final StringSplit splits = StringOps.splitOnce(input, ": ");
+                final StringSplit splits = splitOnce(input, ": ");
                 return Gate.set(splits.left(), splits.right());
             }
-            final String[] splits = input.split(" -> ");
-            if (splits[0].contains("AND")) {
-                final String[] andSplits = splits[0].split(" AND ");
-                return Gate.and(splits[1], andSplits[0], andSplits[1]);
-            } else if (splits[0].contains("XOR")) {
-                final String in = splits[0].substring(" XOR ".length());
-                final String[] xorSplits = splits[0].split(" XOR ");
-                return Gate.xor(splits[1], xorSplits[0], xorSplits[1]);
-            } else if (splits[0].contains("OR") && !splits[0].contains("XOR")) {
-                final String[] orSplits = splits[0].split(" OR ");
-                return Gate.or(splits[1], orSplits[0], orSplits[1]);
+            final StringSplit splits = splitOnce(input, " -> ");
+            if (splits.left().contains("AND")) {
+                final StringSplit andSplits = splitOnce(splits.left(), " AND ");
+                return Gate.and(splits.right(), andSplits.left(), andSplits.right());
+            } else if (splits.left().contains("XOR")) {
+                final StringSplit xorSplits = splitOnce(splits.left(), " XOR ");
+                return Gate.xor(splits.right(), xorSplits.left(), xorSplits.right());
+            } else if (splits.left().contains("OR") && !splits.left().contains("XOR")) {
+                final StringSplit orSplits = splitOnce(splits.left(), " OR ");
+                return Gate.or(splits.right(), orSplits.left(), orSplits.right());
             } else {
                 throw new IllegalArgumentException();
             }
         }
 
-        @Override
-        protected Gate clone() throws CloneNotSupportedException {
-            return new Gate(this.name, this.in1, this.in2, this.op, this.arg);
-        }
-        
-        public static Gate cloneGate(final Gate gate) {
-            try {
-                return gate.clone();
-            } catch (final CloneNotSupportedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        
         public static Gate xor(final String name, final String in) {
             return new Gate(name, in, null, Op.XOR, null);
         }
@@ -259,20 +233,10 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
 
         public Integer updateResult(final Integer in1, final Integer in2) {
             switch (this.op) {
-            case SET:
-                this.result = in1;
-                break;
-            case AND:
-                this.result = in1 & in2;
-                break;
-            case XOR:
-                this.result = in1 ^ in2;
-                break;
-            case OR:
-                this.result = in1 | in2;
-                break;
-            default:
-                throw new IllegalStateException();
+            case SET -> this.result = in1;
+            case AND -> this.result = in1 & in2;
+            case XOR -> this.result = in1 ^ in2;
+            case OR -> this.result = in1 | in2;
             }
             return this.result;
         }
@@ -281,35 +245,22 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
         public String toString() {
             final StringBuilder sb = new StringBuilder();
             switch (this.op) {
-            case SET:
-                sb.append(this.in1);
-                break;
-            case AND:
-                sb.append(this.in1).append(" AND ").append(this.in2);
-                break;
-            case OR:
-                sb.append(this.in1).append(" OR ").append(this.in2);
-                break;
-            case XOR:
-                sb.append(this.in1).append(" XOR ").append(this.in2);
-                break;
-            default:
-                throw new IllegalStateException();
+            case SET -> sb.append(this.in1);
+            case AND -> sb.append(this.in1).append(" AND ").append(this.in2);
+            case OR -> sb.append(this.in1).append(" OR ").append(this.in2);
+            case XOR -> sb.append(this.in1).append(" XOR ").append(this.in2);
             }
             return sb.toString();
         }
     }
 
-    private static final class Circuit {
-        private final Map<String, Gate> gates;
+    record Circuit(Map<String, Gate> gates) {
 
-        protected Circuit(final Map<String, AoC2024_24.Gate> gates) {
-            this.gates = gates;
-        }
-
-        public static Circuit of(final Collection<Gate> gates) {
-            return new Circuit(requireNonNull(gates).stream()
-                                .collect(toMap(Gate::getName, identity())));
+        public static Circuit fromInput(final List<String> inputs) {
+            return new Circuit(inputs.stream()
+                    .filter(s -> !s.isBlank())
+                    .map(Gate::fromInput)
+                    .collect(toMap(Gate::getName, identity())));
         }
         
         public Collection<Gate> getGates() {
@@ -318,20 +269,6 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
         
         public Gate getGate(final String name) {
             return this.gates.get(requireNonNull(name));
-        }
-        
-        public void setGate(final String name, final Gate gate) {
-            this.gates.put(requireNonNull(name), requireNonNull(gate));
-        }
-        
-        public Optional<Gate> getGateIn1(final String name) {
-            final Gate gate = this.getGate(name);
-            return Optional.ofNullable(gate.in1).map(this::getGate);
-        }
-        
-        public Optional<Gate> getGateIn2(final String name) {
-            final Gate gate = this.getGate(name);
-            return Optional.ofNullable(gate.in2).map(this::getGate);
         }
         
         public int getValue(final String name) {
@@ -348,13 +285,6 @@ public class AoC2024_24 extends SolutionBase<List<AoC2024_24.Gate>, Long, String
             final Integer in1 = getValue(gate.in1);
             final Integer in2 = gate.in2 != null ? getValue(gate.in2) : null;
             return gate.updateResult(in1, in2);
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("Circuit [gates=").append(gates).append("]");
-            return builder.toString();
         }
     }
 }
