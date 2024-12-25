@@ -1,9 +1,12 @@
 import static com.github.pareronia.aoc.StringOps.splitLines;
 import static com.github.pareronia.aoc.StringOps.splitOnce;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
+import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.StringOps.StringSplit;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
@@ -32,38 +35,39 @@ public final class AoC2024_14
         return inputs.stream().map(Robot::fromInput).toList();
     }
     
-    private int move(
+    private int getSafetyFactor(
             final List<Robot> robots,
             final int w,
             final int h,
             final int rounds
     ) {
-        final List<Position> moved = robots.stream()
-            .map(r -> r.position.translate(r.velocity, rounds))
-            .toList();
+        final int midW = w / 2;
+        final int midH = h / 2;
         final int[] q = {0, 0, 0, 0};
-        moved.forEach(p -> {
-            final int px = Math.floorMod(p.getX(), w);
-            final int py = Math.floorMod(p.getY(), h);
-            if (0 <= px && px < w / 2) {
-                if (0 <= py && py < h / 2) {
-                    q[0] += 1;
-                } else if (h / 2 + 1 <= py && py < h) {
-                    q[1] += 1;
+        robots.stream()
+            .map(r -> r.position.translate(r.velocity, rounds))
+            .forEach(p -> {
+                final int px = Math.floorMod(p.getX(), w);
+                final int py = Math.floorMod(p.getY(), h);
+                if (px < midW) {
+                    if (py < midH) {
+                        q[0] += 1;
+                    } else if (midH < py) {
+                        q[1] += 1;
+                    }
+                } else if (midW < px) {
+                    if (py < midH) {
+                        q[2] += 1;
+                    } else if (midH < py) {
+                        q[3] += 1;
+                    }
                 }
-            } else if (w / 2 + 1 <= px && px < w) {
-                if (0 <= py && py < h / 2) {
-                    q[2] += 1;
-                } else if (h / 2 + 1 <= py && py < h) {
-                    q[3] += 1;
-                }
-            }
         });
         return Arrays.stream(q).reduce(1, (a, b) -> a * b);
     }
     
     private int solve1(final List<Robot> robots, final int w, final int h) {
-        return move(robots, w, h, 100);
+        return getSafetyFactor(robots, w, h, 100);
     }
     
     @Override
@@ -75,12 +79,34 @@ public final class AoC2024_14
     public Integer solvePart2(final List<Robot> robots) {
         int ans = 0;
         int best = Integer.MAX_VALUE;
-        for (int round = 1; round <= W * H; round++) {
-            final int safetyFactor = move(robots, W, H, round);
+        int round = 1;
+        final List<Integer> sfs = new ArrayList<>();
+        while (round <= W + H) {
+            final int safetyFactor = getSafetyFactor(robots, W, H, round);
+            sfs.add(safetyFactor);
             if (safetyFactor < best) {
                 best = safetyFactor;
                 ans = round;
             }
+            round++;
+        }
+        final List<Integer> mins = new ArrayList<>();
+        Range.between(2, sfs.size() - 3).forEach(i -> {
+            final int avg = Set.of(-2, -1, 1, 2).stream()
+                    .mapToInt(j -> sfs.get(i + j)).sum() / 4;
+            if (sfs.get(i) < avg * 9 / 10) {
+                mins.add(i + 1);
+            }
+        });
+        final int period = mins.get(2) - mins.get(0);
+        round = mins.get(2) + period;
+        while (round <= W * H) {
+            final int safetyFactor = getSafetyFactor(robots, W, H, round);
+            if (safetyFactor < best) {
+                best = safetyFactor;
+                ans = round;
+            }
+            round += period;
         }
         return ans;
     }
