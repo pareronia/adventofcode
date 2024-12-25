@@ -43,39 +43,34 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             robots.append(((px, py), (vx, vy)))
         return robots
 
-    def move(
+    def safety_factor(
         self,
         robots: list[tuple[Position, Vector]],
         w: int,
         h: int,
         rounds: int,
-    ) -> tuple[list[Position], int]:
-        tmp_robots = [
-            (pos[0] + rounds * vec[0], pos[1] + rounds * vec[1])
-            for pos, vec in robots
-        ]
-        new_robots = []
+    ) -> int:
+        mid_w, mid_h = w // 2, h // 2
         q1, q2, q3, q4 = 0, 0, 0, 0
-        for pos in tmp_robots:
-            px, py = pos[0] % w, pos[1] % h
-            new_robots.append((px, py))
-            if 0 <= px < w // 2:
-                if 0 <= py < h // 2:
+        for pos, vec in robots:
+            px, py = pos[0] + rounds * vec[0], pos[1] + rounds * vec[1]
+            px, py = px % w, py % h
+            if px < mid_w:
+                if py < mid_h:
                     q1 += 1
-                elif h // 2 + 1 <= py < h:
+                elif mid_h < py:
                     q2 += 1
-            elif w // 2 + 1 <= px < w:
-                if 0 <= py < h // 2:
+            elif mid_w < px:
+                if py < mid_h:
                     q3 += 1
-                elif h // 2 + 1 <= py < h:
+                elif mid_h < py:
                     q4 += 1
-        return new_robots, math.prod((q1, q2, q3, q4))
+        return math.prod((q1, q2, q3, q4))
 
     def solve_1(
         self, robots: list[tuple[Position, Vector]], w: int, h: int
     ) -> int:
-        _, safety_factor = self.move(robots, w, h, 100)
-        return safety_factor
+        return self.safety_factor(robots, w, h, 100)
 
     def part_1(self, robots: Input) -> Output1:
         return self.solve_1(robots, W, H)
@@ -86,7 +81,10 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         ) -> None:
             if not __debug__:
                 return
-            new_robots, _ = self.move(robots, w, h, round)
+            new_robots = [
+                ((pos[0] + round * vec[0]) % w, (pos[1] + round * vec[1]) % h)
+                for pos, vec in robots
+            ]
             lines = [
                 "".join("*" if (x, y) in new_robots else "." for x in range(w))
                 for y in range(h)
@@ -95,12 +93,27 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 print(line)
 
         ans, best, round = 0, sys.maxsize, 1
-        while round <= W * H:
-            _, safety_factor = self.move(robots, W, H, round)
+        sfs = list[int]()
+        while round < W + H:
+            safety_factor = self.safety_factor(robots, W, H, round)
+            sfs.append(safety_factor)
             if safety_factor < best:
                 best = safety_factor
                 ans = round
             round += 1
+        mins = list[int]()
+        for i in range(2, len(sfs) - 2):
+            avg = sum(sfs[i + j] for j in (-2, -1, 1, 2)) // 4
+            if sfs[i] < avg * 9 // 10:
+                mins.append(i + 1)
+        period = mins[2] - mins[0]
+        round = mins[2] + period
+        while round <= W * H:
+            safety_factor = self.safety_factor(robots, W, H, round)
+            if safety_factor < best:
+                best = safety_factor
+                ans = round
+            round += period
         print_robots(robots, W, H, ans)
         return ans
 
