@@ -31,13 +31,13 @@ impl AoC2024_14 {
             if px < mid_x {
                 if py < mid_y {
                     q[0] += 1;
-                } else if mid_y < py && py < h {
+                } else if mid_y < py {
                     q[1] += 1;
                 }
-            } else if mid_x < px && px < w {
+            } else if mid_x < px {
                 if py < mid_y {
                     q[2] += 1;
-                } else if mid_y < py && py < h {
+                } else if mid_y < py {
                     q[3] += 1;
                 }
             }
@@ -91,12 +91,37 @@ impl aoc::Puzzle for AoC2024_14 {
     fn part_2(&self, robots: &Self::Input) -> Self::Output2 {
         let mut ans = 0;
         let mut best = usize::MAX;
-        for round in 1..=W * H {
+        let mut round = 1;
+        let mut sfs: Vec<usize> = Vec::new();
+        while round < W + H {
+            let safety_factor = self.do_move(robots, W, H, round);
+            sfs.push(safety_factor);
+            if safety_factor < best {
+                best = safety_factor;
+                ans = round;
+            }
+            round += 1;
+        }
+        let mut mins: Vec<usize> = Vec::new();
+        for i in 2..sfs.len() - 2 {
+            let avg = [-2_i64, -1_i64, 1_i64, 2_i64]
+                .iter()
+                .map(|j| sfs[(i as i64 + j) as usize])
+                .sum::<usize>()
+                / 4;
+            if sfs[i] < avg * 9 / 10 {
+                mins.push(i + 1);
+            }
+        }
+        let period = mins[2] - mins[0];
+        round = mins[2] + period;
+        while round <= W * H {
             let safety_factor = self.do_move(robots, W, H, round);
             if safety_factor < best {
                 best = safety_factor;
                 ans = round;
             }
+            round += period;
         }
         ans
     }
