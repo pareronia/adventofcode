@@ -5,17 +5,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class AStar {
+public class Dijkstra {
 
     public static <T> Result<T> execute(
             final T start,
             final Predicate<T> end,
             final Function<T, Stream<T>> adjacent,
-            final Function<T, Integer> cost
+            final BiFunction<T, T, Integer> cost
     ) {
         final PriorityQueue<State<T>> q = new PriorityQueue<>();
         q.add(new State<>(start, 0));
@@ -30,7 +31,7 @@ public class AStar {
             final long cTotal = best.getOrDefault(state.node, Long.MAX_VALUE);
             adjacent.apply(state.node)
                 .forEach(n -> {
-                    final long newRisk = cTotal + cost.apply(n);
+                    final long newRisk = cTotal + cost.apply(state.node, n);
                     if (newRisk < best.getOrDefault(n, Long.MAX_VALUE)) {
                         best.put(n, newRisk);
                         parent.put(n, state.node);
@@ -45,7 +46,7 @@ public class AStar {
             final T start,
             final Predicate<T> end,
             final Function<T, Stream<T>> adjacent,
-            final Function<T, Integer> cost
+            final BiFunction<T, T, Integer> cost
     ) {
         final PriorityQueue<State<T>> q = new PriorityQueue<>();
         q.add(new State<>(start, 0));
@@ -59,7 +60,7 @@ public class AStar {
             final long cTotal = best.getOrDefault(state.node, Long.MAX_VALUE);
             adjacent.apply(state.node)
                 .forEach(n -> {
-                    final long newRisk = cTotal + cost.apply(n);
+                    final long newRisk = cTotal + cost.apply(state.node, n);
                     if (newRisk < best.getOrDefault(n, Long.MAX_VALUE)) {
                         best.put(n, newRisk);
                         q.add(new State<>(n, newRisk));

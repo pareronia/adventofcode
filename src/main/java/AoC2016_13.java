@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aoc.graph.AStar;
+import com.github.pareronia.aoc.graph.Dijkstra;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -50,12 +50,12 @@ public final class AoC2016_13 extends AoCBase {
             .filter(this::isOpenSpace);
     }
     
-    private AStar.Result<Cell> runAStar() {
-        return AStar.execute(
+    private Dijkstra.Result<Cell> runAStar() {
+        return Dijkstra.execute(
                 START,
                 cell -> false,
                 this::adjacent,
-                cell -> 1);
+                (curr, next) -> 1);
     }
     
     private int getDistance(final Cell end) {

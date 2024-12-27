@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.graph.AStar;
+import com.github.pareronia.aoc.graph.Dijkstra;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -113,11 +113,11 @@ public class AoC2022_16 extends AoCBase {
         final int size = valves.length;
         final var distances = new int[size][size];
         for (final int i : relevantValves) {
-            final var result = AStar.execute(
+            final var result = Dijkstra.execute(
                     i,
                     v -> false,
                     v -> this.tunnels[v].stream(),
-                    v -> 1);
+                    (v, w) -> 1);
             for (final int j : relevantValves) {
                 distances[i][j] = (int) result.getDistance(j);
             }

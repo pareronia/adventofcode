@@ -6,9 +6,9 @@ import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.graph.AStar;
+import com.github.pareronia.aoc.IntGrid;
+import com.github.pareronia.aoc.graph.Dijkstra;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
 
@@ -51,15 +51,15 @@ public class AoC2021_15 extends AoCBase {
             .filter(n -> n.getCol() < tiles * this.grid.getWidth());
     }
     
-    private AStar.Result<Cell> runAStar(final int tiles) {
+    private Dijkstra.Result<Cell> runAStar(final int tiles) {
         final Cell end = Cell.at(
                 tiles * this.grid.getHeight() - 1,
                 tiles * this.grid.getWidth() - 1);
-        return AStar.execute(
+        return Dijkstra.execute(
                 START,
                 end::equals,
                 cell -> findNeighbours(cell, tiles),
-                this::getRisk);
+                (curr, next) -> this.getRisk(next));
     }
     
     private int solve(final int tiles) {
@@ -128,15 +128,16 @@ public class AoC2021_15 extends AoCBase {
     }
 
     private static final List<String> TEST = splitLines(
-        "1163751742\r\n" +
-        "1381373672\r\n" +
-        "2136511328\r\n" +
-        "3694931569\r\n" +
-        "7463417111\r\n" +
-        "1319128137\r\n" +
-        "1359912421\r\n" +
-        "3125421639\r\n" +
-        "1293138521\r\n" +
-        "2311944581"
+        """
+            1163751742\r
+            1381373672\r
+            2136511328\r
+            3694931569\r
+            7463417111\r
+            1319128137\r
+            1359912421\r
+            3125421639\r
+            1293138521\r
+            2311944581"""
     );
 }
