@@ -5,8 +5,6 @@
 
 from __future__ import annotations
 
-import multiprocessing
-import os
 import sys
 from collections import OrderedDict
 from typing import Iterator
@@ -164,40 +162,15 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return len(self.visited(grid, 0))
 
     def part_2(self, grid: Input) -> Output2:
-        n = os.process_cpu_count()
-        ans = multiprocessing.Array("i", [0 for _ in range(n)])
-
-        def worker(
-            id: int, data: list[tuple[Cell, int, Obstacles, Cell]]
-        ) -> None:
-            ans[id] = sum(self.is_loop(*row) for row in data)
-
         obs = Obstacles.from_grid(grid)
         visited = self.visited(grid, 0)
-        data = list[tuple[Cell, int, Obstacles, Cell]]()
         prev_pos, prev_dirs = visited.popitem(last=False)
+        ans = 0
         while len(visited) > 0:
             pos, dirs = visited.popitem(last=False)
-            data.append((prev_pos, prev_dirs.pop(0), obs, pos))
+            ans += self.is_loop(prev_pos, prev_dirs.pop(0), obs, pos)
             prev_pos, prev_dirs = pos, dirs
-        if sys.platform.startswith("win"):
-            worker(0, data)
-        else:
-            batch = [
-                list[tuple[Cell, int, Obstacles, Cell]]() for _ in range(n)
-            ]
-            cnt = 0
-            for row in data:
-                batch[cnt % n].append(row)
-                cnt += 1
-            jobs = []
-            for i in range(n):
-                p = multiprocessing.Process(target=worker, args=(i, batch[i]))
-                jobs.append(p)
-                p.start()
-            for p in jobs:
-                p.join()
-        return sum(ans)  # type:ignore
+        return ans
 
     @aoc_samples(
         (
