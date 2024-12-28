@@ -17,12 +17,6 @@ from aoc.common import aoc_samples
 from aoc.geometry import Direction
 from aoc.graph import Dijkstra
 from aoc.grid import Cell
-from aoc.grid import CharGrid
-
-Input = CharGrid
-Output1 = int
-Output2 = int
-State = tuple[int, int, int]
 
 IDX_TO_DIR = {
     0: Direction.UP,
@@ -82,34 +76,42 @@ TEST2 = """\
 """
 
 
+class ReindeerMaze(NamedTuple):
+    grid: list[list[str]]
+    start: Cell
+    end: Cell
+
+    @classmethod
+    def from_grid(cls, strings: list[str]) -> Self:
+        grid = [[ch for ch in line] for line in strings]
+        start = Cell(len(grid) - 2, 1)
+        end = Cell(1, len(grid[0]) - 2)
+        return cls(grid, start, end)
+
+    def adjacent(self, state: State) -> Iterator[State]:
+        r, c, dir = state
+        direction = IDX_TO_DIR[dir]
+        states = (
+            (r - d.y, c + d.x, DIR_TO_IDX[d])
+            for d in [direction] + TURNS[direction]
+        )
+        for state in states:
+            if self.grid[state[0]][state[1]] != "#":
+                yield state
+
+
+Input = ReindeerMaze
+Output1 = int
+Output2 = int
+State = tuple[int, int, int]
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
-    class ReindeerMaze(NamedTuple):
-        grid: CharGrid
-        start: Cell
-        end: Cell
-
-        @classmethod
-        def from_grid(cls, grid: CharGrid) -> Self:
-            start = Cell(grid.get_height() - 2, 1)
-            end = Cell(1, grid.get_width() - 2)
-            return cls(grid, start, end)
-
-        def adjacent(self, state: State) -> Iterator[State]:
-            r, c, dir = state
-            direction = IDX_TO_DIR[dir]
-            states = (
-                (r - d.y, c + d.x, DIR_TO_IDX[d])
-                for d in [direction] + TURNS[direction]
-            )
-            for state in states:
-                if self.grid.values[state[0]][state[1]] != "#":
-                    yield state
 
     def parse_input(self, input_data: InputData) -> Input:
-        return CharGrid.from_strings(list(input_data))
+        return ReindeerMaze.from_grid(list(input_data))
 
-    def part_1(self, grid: Input) -> Output1:
-        maze = Solution.ReindeerMaze.from_grid(grid)
+    def part_1(self, maze: Input) -> Output1:
         return Dijkstra.distance(
             (maze.start.row, maze.start.col, DIR_TO_IDX[Direction.RIGHT]),
             lambda state: (state[0], state[1]) == (maze.end.row, maze.end.col),
@@ -117,8 +119,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             lambda curr, nxt: 1 if curr[2] == nxt[2] else 1001,
         )
 
-    def part_2(self, grid: Input) -> Output2:
-        maze = Solution.ReindeerMaze.from_grid(grid)
+    def part_2(self, maze: Input) -> Output2:
         result = Dijkstra.all(
             (maze.start.row, maze.start.col, DIR_TO_IDX[Direction.RIGHT]),
             lambda state: (state[0], state[1]) == (maze.end.row, maze.end.col),
