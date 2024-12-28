@@ -70,6 +70,10 @@ impl Direction {
         *self == Direction::Right || *self == Direction::Left
     }
 
+    pub fn is_vertical(&self) -> bool {
+        *self == Direction::Up || *self == Direction::Down
+    }
+
     pub fn turn(&self, turn: Turn) -> Direction {
         match self {
             Direction::Up => match turn {

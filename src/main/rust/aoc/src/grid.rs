@@ -15,6 +15,25 @@ impl Cell {
         Cell { row, col }
     }
 
+    pub fn to(&self, other: &Cell) -> Option<crate::geometry::Direction> {
+        if self.row == other.row {
+            if self.col == other.col {
+                return None;
+            }
+            match self.col < other.col {
+                true => Some(crate::geometry::Direction::Right),
+                false => Some(crate::geometry::Direction::Left),
+            }
+        } else if self.col == other.col {
+            match self.row < other.row {
+                true => Some(crate::geometry::Direction::Down),
+                false => Some(crate::geometry::Direction::Up),
+            }
+        } else {
+            panic!();
+        }
+    }
+
     pub fn try_at(
         &self,
         direction: crate::geometry::Direction,
