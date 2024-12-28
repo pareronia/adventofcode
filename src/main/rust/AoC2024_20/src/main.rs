@@ -1,35 +1,56 @@
 #![allow(non_snake_case)]
 
-use aoc::graph::BFS;
-use aoc::grid::{CharGrid, Grid};
+use aoc::geometry::{Direction, Turn};
+use aoc::grid::{Cell, CharGrid, Grid};
 use aoc::Puzzle;
 
 struct AoC2024_20;
 
 impl AoC2024_20 {
     fn solve(&self, grid: &CharGrid, cheat_len: usize, target: usize) -> usize {
+        let (h, w) = (grid.height(), grid.width());
         let start = grid.find_first_matching(|ch| ch == 'S').unwrap();
-        let distances = BFS::execute_full(
-            start,
-            |cell| grid.get(&cell) != '#',
-            |cell| {
-                grid.capital_neighbours(&cell)
-                    .into_iter()
-                    .filter(|n| grid.get(n) != '#')
-                    .collect()
-            },
-        );
+        let end = grid.find_first_matching(|ch| ch == 'E').unwrap();
+        let mut dir = Direction::capital()
+            .into_iter()
+            .find(|d| start.try_at(*d).is_some_and(|n| grid.get(&n) != '#'))
+            .unwrap();
+        let mut pos = start;
+        let mut dist = 0;
+        let mut track: Vec<Cell> = Vec::new();
+        let mut d: Vec<usize> = Vec::with_capacity(h * w);
+        (0..h).for_each(|_| {
+            (0..w).for_each(|_| {
+                d.push(usize::MAX);
+            });
+        });
+        loop {
+            d[pos.row * h + pos.col] = dist;
+            track.push(pos);
+            if pos == end {
+                break;
+            }
+            dir = [dir, dir.turn(Turn::Right), dir.turn(Turn::Left)]
+                .into_iter()
+                .find(|d| pos.try_at(*d).is_some_and(|n| grid.get(&n) != '#'))
+                .unwrap();
+            pos = pos.try_at(dir).unwrap();
+            dist += 1;
+        }
         let mut ans = 0;
-        for cell in distances.keys() {
+        for cell in track {
+            let d_cell = d[cell.row * h + cell.col];
             for md in 2..cheat_len + 1 {
+                let min_req = target + md;
                 for n in cell.get_all_at_manhattan_distance(md) {
-                    if !distances.contains_key(&n) {
+                    if !(0..h).contains(&n.row) || !(0..w).contains(&n.col) {
                         continue;
                     }
-                    if distances[&n] < distances[cell] {
+                    let d_n = d[n.row * h + n.col];
+                    if d_n == usize::MAX || d_n < d_cell {
                         continue;
                     }
-                    if distances[&n] - distances[cell] >= target + md {
+                    if d_n - d_cell >= min_req {
                         ans += 1;
                     }
                 }
