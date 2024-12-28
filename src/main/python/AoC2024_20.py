@@ -9,9 +9,11 @@ import sys
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
-from aoc.graph import bfs_full
+from aoc.geometry import Direction
+from aoc.geometry import Turn
 from aoc.grid import CharGrid
 
+Cell = tuple[int, int]
 Input = CharGrid
 Output1 = int
 Output2 = int
@@ -42,15 +44,18 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
     def solve(self, grid: CharGrid, cheat_len: int, target: int) -> int:
         ans = multiprocessing.Manager().dict()
+        h, w = grid.get_height(), grid.get_width()
 
         def count_shortcuts(
             id: str,
-            cells: list[tuple[int, int]],
-            dist: dict[tuple[int, int], int],
+            cells: list[Cell],
+            dist: list[int],
         ) -> None:
             count = 0
             for r, c in cells:
+                d_cell = dist[r * h + c]
                 for md in range(2, cheat_len + 1):
+                    min_req = target + md
                     for dr in range(md + 1):
                         dc = md - dr
                         for rr, cc in {
@@ -59,38 +64,55 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                             (r - dr, c + dc),
                             (r - dr, c - dc),
                         }:
-                            if (rr, cc) not in dist:
+                            if not (0 <= rr < h and 0 <= cc < w):
                                 continue
-                            if dist[(rr, cc)] - dist[(r, c)] >= target + md:
+                            d_n = dist[rr * h + cc]
+                            if d_n == sys.maxsize:
+                                continue
+                            if d_n - d_cell >= min_req:
                                 count += 1
             ans[id] = count
 
         start = next(
             cell for cell in grid.get_cells() if grid.get_value(cell) == "S"
         )
-        distances, _ = bfs_full(
-            start,
-            lambda cell: grid.get_value(cell) != "#",
-            lambda cell: (
-                n
-                for n in grid.get_capital_neighbours(cell)
-                if grid.get_value(n) != "#"
-            ),
+        end = next(
+            cell for cell in grid.get_cells() if grid.get_value(cell) == "E"
         )
-        dist = {(k.row, k.col): v for k, v in distances.items()}
+        dir = next(
+            d
+            for d in Direction.capitals()
+            if grid.get_value(start.at(d)) != "#"
+        )
+        pos = start
+        dist = 0
+        track = list[Cell]()
+        distances = [sys.maxsize for r in range(h) for c in range(w)]
+        while True:
+            distances[pos.row * h + pos.col] = dist
+            track.append((pos.row, pos.col))
+            if pos == end:
+                break
+            dir = next(
+                d
+                for d in (dir, dir.turn(Turn.RIGHT), dir.turn(Turn.LEFT))
+                if grid.get_value(pos.at(d)) != "#"
+            )
+            pos = pos.at(dir)
+            dist += 1
         if sys.platform.startswith("win"):
-            count_shortcuts("main", [(r, c) for r, c in dist.keys()], dist)
+            count_shortcuts("main", track, distances)
         else:
             n = os.process_cpu_count()
-            cells: list[list[tuple[int, int]]] = [[] for _ in range(n)]
+            cells: list[list[Cell]] = [[] for _ in range(n)]
             cnt = 0
-            for r, c in dist.keys():
-                cells[cnt % n].append((r, c))
+            for cell in track:
+                cells[cnt % n].append(cell)
                 cnt += 1
             jobs = []
             for i in range(n):
                 p = multiprocessing.Process(
-                    target=count_shortcuts, args=(str(i), cells[i], dist)
+                    target=count_shortcuts, args=(str(i), cells[i], distances)
                 )
                 jobs.append(p)
                 p.start()
