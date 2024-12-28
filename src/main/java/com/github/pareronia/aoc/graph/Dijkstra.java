@@ -10,6 +10,8 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
+import com.github.pareronia.aoc.Utils;
+
 public class Dijkstra {
 
     public static <T> Result<T> execute(
@@ -40,6 +42,40 @@ public class Dijkstra {
             });
         }
         return new Result<>(start, best, parent);
+    }
+
+    public static <T> AllResults<T> all(
+            final T start,
+            final Predicate<T> end,
+            final Function<T, Stream<T>> adjacent,
+            final BiFunction<T, T, Integer> cost
+    ) {
+        final PriorityQueue<State<T>> q = new PriorityQueue<>();
+        q.add(new State<>(start, 0));
+        final Map<T, Long> distances = new HashMap<>();
+        distances.put(start, 0L);
+        final Map<T, List<T>> predecessors = new HashMap<>();
+        while (!q.isEmpty()) {
+            final State<T> state = q.poll();
+            if (end.test(state.node)) {
+                break;
+            }
+            final long total = distances.getOrDefault(state.node, Long.MAX_VALUE);
+            adjacent.apply(state.node)
+                .forEach(n -> {
+                    final long newDistance = total + cost.apply(state.node, n);
+                    final Long dist_n = distances.getOrDefault(n, Long.MAX_VALUE);
+                    if (newDistance < dist_n) {
+                        distances.put(n, newDistance);
+                        predecessors.put(n, new ArrayList<>(List.of(state.node)));
+                        q.add(new State<>(n, newDistance));
+                    } else if (newDistance == dist_n) {
+                        predecessors.computeIfAbsent(n, k -> new ArrayList<>())
+                                .add(state.node);
+                    }
+            });
+        }
+        return new AllResults<>(start, distances, predecessors);
     }
 
     public static <T> long distance(
@@ -92,17 +128,8 @@ public class Dijkstra {
         }
     }
 
-    public static class Result<T> {
-        private final T source;
-        private final Map<T, Long> distances;
-        private final Map<T, T> paths;
+    public record Result<T>(T source, Map<T, Long> distances, Map<T, T> paths) {
         
-        protected Result(final T source, final Map<T, Long> distances, final Map<T, T> paths) {
-            this.source = source;
-            this.distances = distances;
-            this.paths = paths;
-        }
-
         public Map<T, Long> getDistances() {
             return distances;
         }
@@ -124,6 +151,23 @@ public class Dijkstra {
                 p.add(this.source);
             }
             return p;
+        }
+    }
+    
+    public record AllResults<T>(
+            T source, Map<T, Long> distances, Map<T, List<T>> predecessors) {
+        
+        public List<List<T>> getPaths(final T t) {
+            if (t.equals(source)) {
+                return List.of(List.of(source));
+            }
+            final List<List<T>> paths = new ArrayList<>();
+            for (final T predecessor : predecessors.getOrDefault(t, List.of())) {
+                for (final List<T> path : getPaths(predecessor)) {
+                    paths.add(Utils.concat(path, t));
+                }
+            }
+            return paths;
         }
     }
 }
