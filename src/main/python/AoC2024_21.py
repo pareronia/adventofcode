@@ -27,42 +27,41 @@ TEST = """\
 
 DIR_KEYPAD = {
     "A": {
-        "^": ["<A"],
-        ">": ["vA"],
-        "v": ["<vA", "v<A"],
-        "<": ["v<<A", "<v<A"],
-        "A": ["A"],
+        "^": "<A",
+        ">": "vA",
+        "v": "<vA",
+        "<": "v<<A",
+        "A": "A",
     },
     "^": {
-        "^": ["A"],
-        ">": ["v>A", ">vA"],
-        "v": ["vA"],
-        "<": ["v<A"],
-        "A": [">A"],
+        "^": "A",
+        ">": "v>A",
+        "v": "vA",
+        "<": "v<A",
+        "A": ">A",
     },
     ">": {
-        "^": ["<^A", "^<A"],
-        ">": ["A"],
-        "v": ["<A"],
-        "<": ["<<A"],
-        "A": ["^A"],
+        "^": "<^A",
+        ">": "A",
+        "v": "<A",
+        "<": "<<A",
+        "A": "^A",
     },
     "v": {
-        "^": ["^A"],
-        ">": [">A"],
-        "v": ["A"],
-        "<": ["<A"],
-        "A": [">^A", "^>A"],
+        "^": "^A",
+        ">": ">A",
+        "v": "A",
+        "<": "<A",
+        "A": "^>A",
     },
     "<": {
-        "^": [">^A"],
-        ">": [">>A"],
-        "v": [">A"],
-        "<": ["A"],
-        "A": [">>^A", ">^>A"],
+        "^": ">^A",
+        ">": ">>A",
+        "v": ">A",
+        "<": "A",
+        "A": ">>^A",
     },
 }
-
 NUM_KEYPAD = {
     "7": Cell(0, 0),
     "8": Cell(0, 1),
@@ -76,6 +75,24 @@ NUM_KEYPAD = {
     "0": Cell(3, 1),
     "A": Cell(3, 2),
 }
+SORT = {
+    ("^", "^"): 0,
+    ("^", ">"): -1,
+    ("^", "v"): -1,
+    ("^", "<"): 1,
+    (">", "^"): 1,
+    (">", ">"): 0,
+    (">", "v"): 1,
+    (">", "<"): 1,
+    ("v", "^"): 1,
+    ("v", ">"): -1,
+    ("v", "v"): 0,
+    ("v", "<"): 1,
+    ("<", "^"): -1,
+    ("<", ">"): -1,
+    ("<", "v"): -1,
+    ("<", "<"): 0,
+}
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
@@ -85,17 +102,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def solve(self, input: Input, levels: int) -> int:
         @cache
         def do_dir_keypad(seq: str, level: int) -> int:
-            if level == 1:
+            if level == 0:
                 return sum(
-                    len(DIR_KEYPAD[first][second][0])
+                    len(DIR_KEYPAD[first][second])
                     for first, second in zip("A" + seq, seq)
                 )
             else:
                 return sum(
-                    min(
-                        do_dir_keypad(move, level - 1)
-                        for move in DIR_KEYPAD[first][second]
-                    )
+                    do_dir_keypad(DIR_KEYPAD[first][second], level - 1)
                     for first, second in zip("A" + seq, seq)
                 )
 
@@ -115,13 +129,20 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 return result.get_paths(end)
 
             moves = [
-                "".join(
-                    cell_1.to(cell_2).arrow  # type:ignore
+                [
+                    cell_1.to(cell_2).arrow + ""  # type:ignore
                     for cell_1, cell_2 in zip(path, path[1:])
-                )
+                ]
                 for path in get_paths(prev, nxt)
             ]
-            return min(do_dir_keypad(move + "A", levels) for move in moves)
+            best = min(
+                sorted(
+                    moves,
+                    key=lambda m: [SORT[(a, b)] for a, b in zip(m, m[1:])],
+                ),
+                key=lambda m: sum(a != b for a, b in zip(m, m[1:])),
+            )
+            return do_dir_keypad("".join(best) + "A", levels - 1)
 
         return sum(
             int(combo[:-1]) * do_num_keypad(a, b, levels)
