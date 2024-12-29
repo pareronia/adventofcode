@@ -74,12 +74,12 @@ public class IterTools {
         });
     }
     
-    public static <T> Iterable<ZippedPair<T>>
+    private static <T> Iterator<ZippedPair<T>>
     zip(
         final Iterator<T> iterator1,
         final Iterator<T> iterator2
     ) {
-        return () -> new Iterator<>() {
+        return new Iterator<>() {
 
             @Override
             public boolean hasNext() {
@@ -93,14 +93,14 @@ public class IterTools {
         };
     }
 
-    public static <T> Iterable<ZippedPair<T>> zip(
+    public static <T> Iterator<ZippedPair<T>> zip(
             final Iterable<T> iterable1,
             final Iterable<T> iterable2
     ) {
         return zip(iterable1.iterator(), iterable2.iterator());
     }
     
-    public static <T> Iterator<T> cycle(final Iterator<T> iterator) {
+    private static <T> Iterator<T> cycle(final Iterator<T> iterator) {
         return new Iterator<>() {
             List<T> saved = new ArrayList<>();
             int i = 0;
@@ -145,19 +145,20 @@ public class IterTools {
         };
     }
 
-    public static <T, U> Iterable<ProductPair<T, U>> product(
+    public static <T, U> Iterator<ProductPair<T, U>> product(
             final Iterable<T> first,
             final Iterable<U> second
     ) {
-        return () -> productIterator(first, second);
+        return product(first.iterator(), second.iterator());
     }
 
-    public static <T, U> Iterator<ProductPair<T, U>> productIterator(
-            final Iterable<T> first,
-            final Iterable<U> second
+    public static <T, U> Iterator<ProductPair<T, U>> product(
+            final Iterator<T> first,
+            final Iterator<U> second
     ) {
-        return Utils.stream(first.iterator())
-                .flatMap(a -> Utils.stream(second.iterator())
+        final List<U> lstU = Utils.stream(second).toList();
+        return Utils.stream(first)
+                .flatMap(a -> lstU.stream()
                         .map(b -> new ProductPair<>(a, b)))
                 .iterator();
     }

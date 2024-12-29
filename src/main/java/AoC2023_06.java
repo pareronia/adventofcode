@@ -36,7 +36,7 @@ public final class AoC2023_06
                         .map(Long::parseLong)
                         .toList())
             .toArray(List[]::new);
-        return Utils.stream(zip(values[0], values[1]).iterator())
+        return Utils.stream(zip(values[0], values[1]))
             .map(z -> new Race(z.first(), z.second()))
             .toList();
     }
@@ -73,7 +73,7 @@ public final class AoC2023_06
         final List<Function<Race, Long>> fs
                 = List.<Function<Race, Long>> of(Race::time, Race::distance);
         final long[] a = IntStream.rangeClosed(0, 1)
-            .mapToLong(i -> Long.valueOf(races.stream()
+            .mapToLong(i -> Long.parseLong(races.stream()
                     .map(r -> fs.get(i).apply(r))
                     .map(String::valueOf)
                     .collect(joining())))

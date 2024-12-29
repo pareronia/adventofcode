@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.IterTools.productIterator;
+import static com.github.pareronia.aoc.IterTools.product;
 
 import java.util.List;
 import java.util.Set;
@@ -50,7 +50,7 @@ public final class AoC2024_16
                 state -> state.cell.equals(maze.end),
                 state -> maze.adjacent(state),
                 (curr, next) -> curr.direction == next.direction ? 1 : 1001);
-        return (int) Utils.stream(productIterator(List.of(maze.end), Direction.CAPITAL))
+        return (int) Utils.stream(product(List.of(maze.end), Direction.CAPITAL))
             .flatMap(pp -> result.getPaths(new State(pp.first(), pp.second())).stream())
             .flatMap(List::stream)
             .map(State::cell)

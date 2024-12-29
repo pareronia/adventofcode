@@ -40,7 +40,7 @@ public final class AoC2024_01
     
     @Override
     public Integer solvePart1(final Lists lists) {
-        return Utils.stream(zip(sorted(lists.left), sorted(lists.right)).iterator())
+        return Utils.stream(zip(sorted(lists.left), sorted(lists.right)))
                 .mapToInt(z -> Math.abs(z.first() - z.second()))
                 .sum();
     }

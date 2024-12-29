@@ -40,7 +40,7 @@ public final class AoC2023_09
         List<Integer> line = new ArrayList<>(lineIn);
         final Deque<Integer> tails = new ArrayDeque<>(List.of(last(line)));
         while (!line.stream().allMatch(tails.peekLast()::equals)) {
-            line = stream(zip(line, line.subList(1, line.size())).iterator())
+            line = stream(zip(line, line.subList(1, line.size())))
                 .map(z -> z.second() - z.first())
                 .toList();
             tails.addLast(last(line));

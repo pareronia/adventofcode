@@ -1,5 +1,5 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.productIterator;
+import static com.github.pareronia.aoc.IterTools.product;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +47,7 @@ public class AoC2019_02 extends SolutionBase<List<Long>, Long, Integer> {
 
     @Override
     public Integer solvePart2(final List<Long> program) {
-        return Utils.stream(productIterator(range(100), range(100)))
+        return Utils.stream(product(range(100), range(100)))
             .filter(p -> runProgram(program, p.first(), p.second()) == 19_690_720)
             .map(p -> 100 * p.first() + p.second())
             .findFirst().orElseThrow();

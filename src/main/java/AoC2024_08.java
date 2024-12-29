@@ -63,7 +63,9 @@ public final class AoC2024_08
                 pair.first.getX() - pair.second.getX(),
                 pair.first.getY() - pair.second.getY());
         final Set<Position> antinodes = new HashSet<>();
-        for (final ProductPair<Position, Integer> pp : product(pair, Set.of(1, -1))) {
+        final Iterable<ProductPair<Position, Integer>> pps
+                = () -> product(pair, Set.of(1, -1));
+        for (final ProductPair<Position, Integer> pp : pps) {
             for (int a = 1; a <= maxCount; a++) {
                 final Position antinode = pp.first().translate(vec, pp.second() * a);
                 if (0 <= antinode.getX() && antinode.getX() < w

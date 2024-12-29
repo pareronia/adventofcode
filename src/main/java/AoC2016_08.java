@@ -50,7 +50,7 @@ public class AoC2016_08 extends SolutionBase<List<String>, Integer, String> {
             if (input.startsWith("rect ")) {
                 final StringSplit coords = splitOnce(
                         input.substring("rect ".length()), "x");
-                final Set<Cell> cells = Utils.stream(IterTools.productIterator(
+                final Set<Cell> cells = Utils.stream(IterTools.product(
                         range(Integer.parseInt(coords.right())),
                         range(Integer.parseInt(coords.left()))))
                     .map(lst -> Cell.at(lst.first(), lst.second()))

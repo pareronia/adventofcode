@@ -7,6 +7,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -46,10 +47,12 @@ public class StringOps {
 		return blocks;
 	}
 
-	public static Iterable<ZippedPair<Character>> zip(final String s1, final String s2) {
+	public static Iterator<ZippedPair<Character>> zip(
+	        final String s1, final String s2
+	) {
 	    return IterTools.zip(
-                Utils.asCharacterStream(s1).iterator(),
-                Utils.asCharacterStream(s2).iterator());
+                () -> Utils.asCharacterStream(s1).iterator(),
+                () -> Utils.asCharacterStream(s2).iterator());
 	}
 	
     public static Integer[] getDigits(final String s, final int expected) {

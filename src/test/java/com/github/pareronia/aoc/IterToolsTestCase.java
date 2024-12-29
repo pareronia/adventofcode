@@ -4,6 +4,7 @@ import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -18,29 +19,35 @@ public class IterToolsTestCase {
 
     @Test
     public void product() {
-        assertThat(
-            IterTools.product(List.of(0, 1), Set.of(0, 1)))
-            .containsExactlyInAnyOrder(
-                    ProductPair.of(0, 0),
-                    ProductPair.of(0, 1),
-                    ProductPair.of(1, 0),
-                    ProductPair.of(1, 1));
-        assertThat(
-            IterTools.product(List.of("A", "B"), List.of("A", "B")))
-            .containsExactlyInAnyOrder(
-                    ProductPair.of("A", "A"),
-                    ProductPair.of("A", "B"),
-                    ProductPair.of("B", "A"),
-                    ProductPair.of("B", "B"));
-        assertThat(
-            IterTools.product(range(3), range(2)))
-            .containsExactlyInAnyOrder(
-                    ProductPair.of(0, 0),
-                    ProductPair.of(0, 1),
-                    ProductPair.of(1, 0),
-                    ProductPair.of(1, 1),
-                    ProductPair.of(2, 0),
-                    ProductPair.of(2, 1));
+        final Iterator<ProductPair<Integer, Integer>> product1
+                = IterTools.product(List.of(0, 1), Set.of(0, 1));
+        final List<ProductPair<Integer, Integer>> ans = new ArrayList<>();
+        while (product1.hasNext()) {
+            ans.add(product1.next());
+        }
+        assertThat(ans).containsExactlyInAnyOrder(
+            ProductPair.of(0, 0),
+            ProductPair.of(0, 1),
+            ProductPair.of(1, 0),
+            ProductPair.of(1, 1)
+        );
+
+        final Iterator<ProductPair<String, String>> product2
+                = IterTools.product(List.of("A", "B"), List.of("A", "B"));
+        assertThat(product2.next()).isEqualTo(ProductPair.of("A", "A"));
+        assertThat(product2.next()).isEqualTo(ProductPair.of("A", "B"));
+        assertThat(product2.next()).isEqualTo(ProductPair.of("B", "A"));
+        assertThat(product2.next()).isEqualTo(ProductPair.of("B", "B"));
+        assertThat(product2.hasNext()).isFalse();
+
+        final Iterator<ProductPair<Integer, Integer>> product3
+                = IterTools.product(range(3), range(2));
+        assertThat(product3.next()).isEqualTo( ProductPair.of(0, 0));
+        assertThat(product3.next()).isEqualTo( ProductPair.of(0, 1));
+        assertThat(product3.next()).isEqualTo( ProductPair.of(1, 0));
+        assertThat(product3.next()).isEqualTo( ProductPair.of(1, 1));
+        assertThat(product3.next()).isEqualTo( ProductPair.of(2, 0));
+        assertThat(product3.next()).isEqualTo( ProductPair.of(2, 1));
     }
     
     @Test
@@ -61,21 +68,34 @@ public class IterToolsTestCase {
     
     @Test
     public void zip() {
-        assertThat(
-            IterTools.zip(List.of(1, 2, 3), List.of(4, 5, 6)))
-            .containsExactly(new ZippedPair<>(1, 4), new ZippedPair<>(2, 5), new ZippedPair<>(3, 6));
-        assertThat(
-            IterTools.zip(List.of(1L, 2L, 3L), List.of(4L, 5L, 6L)))
-            .containsExactly(new ZippedPair<>(1L, 4L), new ZippedPair<>(2L, 5L), new ZippedPair<>(3L, 6L));
-        assertThat(
-            IterTools.zip(List.of("a", "b", "c"), List.of("d", "e", "f")))
-            .containsExactly(new ZippedPair<>("a", "d"), new ZippedPair<>("b", "e"), new ZippedPair<>("c", "f"));
-        assertThat(
-            IterTools.zip(List.of("a", "b"), List.of("d", "e", "f")))
-            .containsExactly(new ZippedPair<>("a", "d"), new ZippedPair<>("b", "e"));
-        assertThat(
-            IterTools.zip(List.of("a", "b"), List.of()))
-            .isEmpty();
+        final Iterator<ZippedPair<Integer>> zip
+                = IterTools.zip(List.of(1, 2, 3), List.of(4, 5, 6));
+        assertThat(zip.next()).isEqualTo(new ZippedPair<>(1, 4));
+        assertThat(zip.next()).isEqualTo(new ZippedPair<>(2, 5));
+        assertThat(zip.next()).isEqualTo(new ZippedPair<>(3, 6));
+        assertThat(zip.hasNext()).isFalse();
+        
+        final Iterator<ZippedPair<Long>> zip2
+                = IterTools.zip(List.of(1L, 2L, 3L), List.of(4L, 5L, 6L));
+        assertThat(zip2.next()).isEqualTo(new ZippedPair<>(1L, 4L));
+        assertThat(zip2.next()).isEqualTo(new ZippedPair<>(2L, 5L));
+        assertThat(zip2.next()).isEqualTo(new ZippedPair<>(3L, 6L));
+        assertThat(zip2.hasNext()).isFalse();
+
+        final Iterator<ZippedPair<String>> zip3
+            = IterTools.zip(List.of("a", "b", "c"), List.of("d", "e", "f"));
+        assertThat(zip3.next()).isEqualTo(new ZippedPair<>("a", "d"));
+        assertThat(zip3.next()).isEqualTo(new ZippedPair<>("b", "e"));
+        assertThat(zip3.next()).isEqualTo(new ZippedPair<>("c", "f"));
+        assertThat(zip3.hasNext()).isFalse();
+
+        final Iterator<ZippedPair<String>> zip4
+                = IterTools.zip(List.of("a", "b"), List.of("d", "e", "f"));
+        assertThat(zip4.next()).isEqualTo(new ZippedPair<>("a", "d"));
+        assertThat(zip4.next()).isEqualTo(new ZippedPair<>("b", "e"));
+        assertThat(zip4.hasNext()).isFalse();
+
+        assertThat(IterTools.zip(List.of("a", "b"), List.of()).hasNext()).isFalse();
     }
     
     @Test
