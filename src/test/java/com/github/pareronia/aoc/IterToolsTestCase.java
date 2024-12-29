@@ -103,4 +103,18 @@ public class IterToolsTestCase {
         assertThat(windows.next()).isEqualTo(new WindowPair<>(3, 4));
         assertThat(windows.hasNext()).isFalse();
     }
+    
+    @Test
+    public void chain() {
+        final Iterator<Integer> chain = IterTools.chain(
+                List.of(1, 2, 3).iterator(),
+                List.of(4, 5).iterator());
+        
+        assertThat(chain.next()).isEqualTo(1);
+        assertThat(chain.next()).isEqualTo(2);
+        assertThat(chain.next()).isEqualTo(3);
+        assertThat(chain.next()).isEqualTo(4);
+        assertThat(chain.next()).isEqualTo(5);
+        assertThat(chain.hasNext()).isFalse();
+    }
 }

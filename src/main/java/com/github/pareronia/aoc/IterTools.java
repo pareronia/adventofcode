@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -73,8 +74,8 @@ public class IterTools {
         });
     }
     
-    private static <T> Iterable<ZippedPair<T>>
-    doZip(
+    public static <T> Iterable<ZippedPair<T>>
+    zip(
         final Iterator<T> iterator1,
         final Iterator<T> iterator2
     ) {
@@ -96,7 +97,7 @@ public class IterTools {
             final Iterable<T> iterable1,
             final Iterable<T> iterable2
     ) {
-        return doZip(iterable1.iterator(), iterable2.iterator());
+        return zip(iterable1.iterator(), iterable2.iterator());
     }
     
     public static <T> Iterator<T> cycle(final Iterator<T> iterator) {
@@ -159,6 +160,25 @@ public class IterTools {
                 .flatMap(a -> Utils.stream(second.iterator())
                         .map(b -> new ProductPair<>(a, b)))
                 .iterator();
+    }
+    
+    public static <T> Iterator<T> chain(final Iterator<T> iterator1, final Iterator<T> iterator2) {
+        return new Iterator<>() {
+            @Override
+            public boolean hasNext() {
+                return iterator1.hasNext() || iterator2.hasNext();
+            }
+
+            @Override
+            public T next() {
+                if (iterator1.hasNext()) {
+                    return iterator1.next();
+                } else if (iterator2.hasNext()) {
+                    return iterator2.next();
+                }
+                throw new NoSuchElementException();
+            }
+        };
     }
     
     private static final class Heap {
