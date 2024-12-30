@@ -67,8 +67,11 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 if to_x > x and keypad[y][x + 1] != " ":
                     yield from paths(x + 1, y, s + ">")
 
+            G = [_ for _ in paths(from_x, from_y, "")]
+            print((from_, to))
+            print(G)
             return min(
-                paths(from_x, from_y, ""),
+                G,
                 key=lambda p: sum(a != b for a, b in zip(p, p[1:])),
             )
 
@@ -92,7 +95,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def part_2(self, input: Input) -> Output2:
         return self.solve(input, 25)
 
-    @aoc_samples((("part_1", TEST, 126384),))
+    @aoc_samples((("part_1", TEST, 126385),))
     def samples(self) -> None:
         pass
 
