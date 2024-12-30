@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.IterTools.combinationsIterator;
+import static com.github.pareronia.aoc.IterTools.combinations;
 import static com.github.pareronia.aoc.IterTools.product;
 import static com.github.pareronia.aoc.SetUtils.difference;
 
@@ -12,9 +12,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.IterTools.ProductPair;
 import com.github.pareronia.aoc.SetUtils;
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.geometry.Vector;
 import com.github.pareronia.aoc.solution.Sample;
@@ -63,9 +61,7 @@ public final class AoC2024_08
                 pair.first.getX() - pair.second.getX(),
                 pair.first.getY() - pair.second.getY());
         final Set<Position> antinodes = new HashSet<>();
-        final Iterable<ProductPair<Position, Integer>> pps
-                = () -> product(pair, Set.of(1, -1));
-        for (final ProductPair<Position, Integer> pp : pps) {
+        product(pair, Set.of(1, -1)).stream().forEach(pp -> {
             for (int a = 1; a <= maxCount; a++) {
                 final Position antinode = pp.first().translate(vec, pp.second() * a);
                 if (0 <= antinode.getX() && antinode.getX() < w
@@ -75,7 +71,7 @@ public final class AoC2024_08
                     break;
                 }
             }
-        }
+        });
         return antinodes;
     }
     
@@ -85,7 +81,7 @@ public final class AoC2024_08
     ) {
         final Function<List<Position>, Stream<AntennaPair>> antennaPairs =
             sameFrequency ->
-                Utils.stream(combinationsIterator(sameFrequency.size(), 2))
+                combinations(sameFrequency.size(), 2).stream()
                     .map(comb_idx -> new AntennaPair(
                             sameFrequency.get(comb_idx[0]),
                             sameFrequency.get(comb_idx[1])));

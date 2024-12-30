@@ -7,7 +7,6 @@ import java.util.function.Function;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
 
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -36,7 +35,7 @@ public final class AoC2023_06
                         .map(Long::parseLong)
                         .toList())
             .toArray(List[]::new);
-        return Utils.stream(zip(values[0], values[1]))
+        return zip(values[0], values[1]).stream()
             .map(z -> new Race(z.first(), z.second()))
             .toList();
     }

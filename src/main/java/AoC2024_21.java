@@ -78,7 +78,7 @@ public class AoC2024_21 extends SolutionBase<List<String>, Long, Long> {
 	    }
 	    final KeyPad keypad = level > 0 ? DIRECTIONAL : NUMERIC;
 	    final ToLongFunction<String> countConsecutiveSameChars = s ->
-	            Utils.stream(zip(s, s.substring(1)))
+	            zip(s, s.substring(1)).stream()
 	                .filter(zp -> zp.first() == zp.second())
 	                .count();
 	    final Function<ZippedPair<Character>, String> bestPath = zp -> {
@@ -87,7 +87,7 @@ public class AoC2024_21 extends SolutionBase<List<String>, Long, Long> {
 	        return Utils.stream(paths(keypad, from, to, ""))
 	                .max(comparingLong(countConsecutiveSameChars))
 	                .orElseThrow();};
-	    return Utils.stream(zip("A" + path, path))
+	    return zip("A" + path, path).stream()
 	            .map(bestPath)
 	            .mapToLong(best -> cachedCount(best, level + 1, maxLevel))
 	            .sum();

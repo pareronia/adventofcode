@@ -46,7 +46,7 @@ public class AoC2019_12 extends AoCBase {
     }
        
     private void step(final Moon[] moons) {
-        combinations(moons.length, 2).forEach(idxs -> {
+        combinations(moons.length, 2).stream().forEach(idxs -> {
             final Moon a = moons[idxs[0]];
             final Moon b = moons[idxs[1]];
             final int dx = gravity(a.position, b.position, Position3D::getX);
@@ -119,16 +119,18 @@ public class AoC2019_12 extends AoCBase {
     }
     
     private static final List<String> TEST1 = splitLines(
-            "<x=-1, y=0, z=2>\r\n" +
-            "<x=2, y=-10, z=-7>\r\n" +
-            "<x=4, y=-8, z=8>\r\n" +
-            "<x=3, y=5, z=-1>"
+            """
+                <x=-1, y=0, z=2>\r
+                <x=2, y=-10, z=-7>\r
+                <x=4, y=-8, z=8>\r
+                <x=3, y=5, z=-1>"""
     );
     private static final List<String> TEST2 = splitLines(
-            "<x=-8, y=-10, z=0>\r\n" +
-            "<x=5, y=5, z=10>\r\n" +
-            "<x=2, y=-7, z=3>\r\n" +
-            "<x=9, y=-8, z=-3>"
+            """
+                <x=-8, y=-10, z=0>\r
+                <x=5, y=5, z=10>\r
+                <x=2, y=-7, z=3>\r
+                <x=9, y=-8, z=-3>"""
     );
     
     private static final class Moon {

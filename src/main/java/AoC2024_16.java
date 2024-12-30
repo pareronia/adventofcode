@@ -5,7 +5,6 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
 import com.github.pareronia.aoc.graph.Dijkstra;
@@ -50,7 +49,7 @@ public final class AoC2024_16
                 state -> state.cell.equals(maze.end),
                 state -> maze.adjacent(state),
                 (curr, next) -> curr.direction == next.direction ? 1 : 1001);
-        return (int) Utils.stream(product(List.of(maze.end), Direction.CAPITAL))
+        return (int) product(List.of(maze.end), Direction.CAPITAL).stream()
             .flatMap(pp -> result.getPaths(new State(pp.first(), pp.second())).stream())
             .flatMap(List::stream)
             .map(State::cell)

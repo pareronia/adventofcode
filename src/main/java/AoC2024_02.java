@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -35,7 +34,7 @@ public final class AoC2024_02
     }
     
     private boolean safe(final List<Integer> levels) {
-        final List<Integer> diffs = Utils.stream(windows(levels))
+        final List<Integer> diffs = windows(levels).stream()
             .map(w -> w.second() - w.first())
             .toList();
         return diffs.stream().allMatch(diff -> 1 <= diff && diff <= 3)

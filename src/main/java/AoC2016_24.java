@@ -125,7 +125,7 @@ public final class AoC2016_24 extends AoCBase {
     public Integer solveAlt() {
         final List<Character> poiKeys = List.copyOf(this.pois.keySet());
         final Map<FromTo, Integer> distances = new HashMap<>();
-        combinations(poiKeys.size(), 2).forEach(a -> {
+        combinations(poiKeys.size(), 2).stream().forEach(a -> {
             final Character from = poiKeys.get(a[0]);
             final Character to = poiKeys.get(a[1]);
             final Path path = findPath(from, to);
@@ -172,11 +172,12 @@ public final class AoC2016_24 extends AoCBase {
     }
     
     private static final List<String> TEST = splitLines(
-            "###########\n" +
-            "#0.1.....2#\n" +
-            "#.#######.#\n" +
-            "#4.......3#\n" +
-            "###########"
+            """
+                ###########
+                #0.1.....2#
+                #.#######.#
+                #4.......3#
+                ###########"""
     );
     
     private static final class Path {

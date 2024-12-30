@@ -6,7 +6,6 @@ import java.util.List;
 import com.github.pareronia.aoc.Counter;
 import com.github.pareronia.aoc.ListUtils;
 import com.github.pareronia.aoc.StringOps;
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -40,7 +39,7 @@ public final class AoC2024_01
     
     @Override
     public Integer solvePart1(final Lists lists) {
-        return Utils.stream(zip(sorted(lists.left), sorted(lists.right)))
+        return zip(sorted(lists.left), sorted(lists.right)).stream()
                 .mapToInt(z -> Math.abs(z.first() - z.second()))
                 .sum();
     }

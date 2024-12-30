@@ -41,14 +41,24 @@ public class IterTools {
         return builder.build();
     }
 
-    public static Iterator<int[]> combinationsIterator(final int n, final int k) {
-        return CombinatoricsUtils.combinationsIterator(n, k);
+    public static IterToolsIterator<int[]> combinations(
+            final int n, final int k
+    ) {
+        final Iterator<int[]> ans
+                = CombinatoricsUtils.combinationsIterator(n, k);
+        return new IterToolsIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return ans.hasNext();
+            }
+
+            @Override
+            public int[] next() {
+                return ans.next();
+            }
+        };
     }
 
-    public static Iterable<int[]> combinations(final int n, final int k) {
-        return () -> combinationsIterator(n, k);
-    }
-    
     public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
         return enumerateFrom(0, stream);
     }
@@ -74,12 +84,12 @@ public class IterTools {
         });
     }
     
-    private static <T> Iterator<ZippedPair<T>>
+    private static <T> IterToolsIterator<ZippedPair<T>>
     zip(
         final Iterator<T> iterator1,
         final Iterator<T> iterator2
     ) {
-        return new Iterator<>() {
+        return new IterToolsIterator<>() {
 
             @Override
             public boolean hasNext() {
@@ -93,7 +103,7 @@ public class IterTools {
         };
     }
 
-    public static <T> Iterator<ZippedPair<T>> zip(
+    public static <T> IterToolsIterator<ZippedPair<T>> zip(
             final Iterable<T> iterable1,
             final Iterable<T> iterable2
     ) {
@@ -107,7 +117,7 @@ public class IterTools {
 
             @Override
             public boolean hasNext() {
-                return iterator.hasNext();
+                return true;
             }
 
             @Override
@@ -126,8 +136,10 @@ public class IterTools {
         return cycle(iterable.iterator());
     }
     
-    public static <T> Iterator<WindowPair<T>> windows(final List<T> list) {
-        return new Iterator<>() {
+    public static <T> IterToolsIterator<WindowPair<T>> windows(
+            final List<T> list
+    ) {
+        return new IterToolsIterator<>() {
             int i = 0;
             
             @Override
@@ -145,26 +157,37 @@ public class IterTools {
         };
     }
 
-    public static <T, U> Iterator<ProductPair<T, U>> product(
+    public static <T, U> IterToolsIterator<ProductPair<T, U>> product(
             final Iterable<T> first,
             final Iterable<U> second
     ) {
         return product(first.iterator(), second.iterator());
     }
 
-    public static <T, U> Iterator<ProductPair<T, U>> product(
+    public static <T, U> IterToolsIterator<ProductPair<T, U>> product(
             final Iterator<T> first,
             final Iterator<U> second
     ) {
         final List<U> lstU = Utils.stream(second).toList();
-        return Utils.stream(first)
+        final Iterator<ProductPair<T, U>> ans = Utils.stream(first)
                 .flatMap(a -> lstU.stream()
                         .map(b -> new ProductPair<>(a, b)))
                 .iterator();
+        return new IterToolsIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return ans.hasNext();
+            }
+
+            @Override
+            public ProductPair<T, U> next() {
+                return ans.next();
+            }
+        };
     }
     
-    public static <T> Iterator<T> chain(final Iterator<T> iterator1, final Iterator<T> iterator2) {
-        return new Iterator<>() {
+    public static <T> IterToolsIterator<T> chain(final Iterator<T> iterator1, final Iterator<T> iterator2) {
+        return new IterToolsIterator<>() {
             @Override
             public boolean hasNext() {
                 return iterator1.hasNext() || iterator2.hasNext();
@@ -229,4 +252,14 @@ public class IterTools {
     }
     
     public record Enumerated<T>(int index, T value) {}
+    
+    public interface IterToolsIterator<T> extends Iterator<T> {
+        default Stream<T> stream() {
+            return Utils.stream(this);
+        }
+        
+        default Iterable<T> iterable() {
+            return () -> this;
+        }
+    }
 }

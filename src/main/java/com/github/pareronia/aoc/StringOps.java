@@ -7,10 +7,10 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
+import com.github.pareronia.aoc.IterTools.IterToolsIterator;
 import com.github.pareronia.aoc.IterTools.ZippedPair;
 
 public class StringOps {
@@ -47,7 +47,7 @@ public class StringOps {
 		return blocks;
 	}
 
-	public static Iterator<ZippedPair<Character>> zip(
+	public static IterToolsIterator<ZippedPair<Character>> zip(
 	        final String s1, final String s2
 	) {
 	    return IterTools.zip(

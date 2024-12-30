@@ -105,12 +105,14 @@ public class IterToolsTestCase {
             assertThat(icycle.next()).isEqualTo(1);
             assertThat(icycle.next()).isEqualTo(2);
             assertThat(icycle.next()).isEqualTo(3);
+            assertThat(icycle.hasNext()).isTrue();
         }
         final Iterator<Character> ccycle = IterTools.cycle(Utils.asCharacterStream("abc").toList());
         for (int i = 0; i < 10; i++) {
             assertThat(ccycle.next()).isEqualTo('a');
             assertThat(ccycle.next()).isEqualTo('b');
             assertThat(ccycle.next()).isEqualTo('c');
+            assertThat(ccycle.hasNext()).isTrue();
         }
    }
     

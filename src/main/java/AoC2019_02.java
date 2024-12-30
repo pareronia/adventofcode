@@ -4,7 +4,6 @@ import static com.github.pareronia.aoc.IterTools.product;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.intcode.IntCode;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
@@ -47,7 +46,7 @@ public class AoC2019_02 extends SolutionBase<List<Long>, Long, Integer> {
 
     @Override
     public Integer solvePart2(final List<Long> program) {
-        return Utils.stream(product(range(100), range(100)))
+        return product(range(100), range(100)).stream()
             .filter(p -> runProgram(program, p.first(), p.second()) == 19_690_720)
             .map(p -> 100 * p.first() + p.second())
             .findFirst().orElseThrow();
