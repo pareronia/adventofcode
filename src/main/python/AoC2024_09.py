@@ -3,7 +3,11 @@
 # Advent of Code 2024 Day 9
 #
 
+import heapq
 import sys
+from enum import Enum
+from enum import auto
+from enum import unique
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -12,6 +16,7 @@ from aoc.common import aoc_samples
 Input = list[int]
 Output1 = int
 Output2 = int
+File = tuple[int, int, int]
 
 TRIANGLE = [0, 0, 1, 3, 6, 10, 15, 21, 28, 36]
 
@@ -20,82 +25,70 @@ TEST = """\
 """
 
 
-class Solution(SolutionBase[Input, Output1, Output2]):
-    """https://github.com/maneatingape/advent-of-code-rust/blob/main/src/year2024/day09.rs"""  # noqa E501
+@unique
+class Mode(Enum):
+    MODE_1 = (auto(),)
+    MODE_2 = (auto(),)
 
+    def create_files(self, id: int, pos: int, sz: int) -> list[File]:
+        match self:
+            case Mode.MODE_1:
+                return [(id, pos + i, 1) for i in range(sz)]
+            case Mode.MODE_2:
+                return [(id, pos, sz)]
+
+    def checksum(self, f: File) -> int:
+        id, pos, sz = f
+        match self:
+            case Mode.MODE_1:
+                return id * pos
+            case Mode.MODE_2:
+                return id * (pos * sz + TRIANGLE[sz])
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return list(map(int, list(input_data)[0]))
 
-    def update(
-        self, ans: int, block: int, idx: int, size: int
-    ) -> tuple[int, int]:
-        id = idx // 2
-        extra = block * size + TRIANGLE[size]
-        return (ans + id * extra, block + size)
+    def solve(self, disk: Input, mode: Mode) -> int:
+        files = list[File]()
+        free_by_sz: list[list[int]] = [[] for _ in range(10)]
+        is_free, id, pos = False, 0, 0
+        for n in disk:
+            if is_free:
+                heapq.heappush(free_by_sz[n], pos)
+            else:
+                files.extend(mode.create_files(id, pos, n))
+                id += 1
+            pos += n
+            is_free = not is_free
+        ans = 0
+        for id, pos, sz in reversed(files):
+            earliest = min(
+                (
+                    (i, free)
+                    for i, free in enumerate(free_by_sz[sz:], sz)
+                    if len(free) > 0
+                ),
+                key=lambda e: e[1][0],
+                default=None,
+            )
+            if earliest is not None:
+                free_sz, free = earliest
+                free_pos = free[0]
+                if free_pos < pos:
+                    heapq.heappop(free_by_sz[free_sz])
+                    pos = free_pos
+                    if sz < free_sz:
+                        heapq.heappush(free_by_sz[free_sz - sz], pos + sz)
+            ans += mode.checksum((id, pos, sz))
+        return ans
 
     def part_1(self, disk: Input) -> Output1:
-        left = 0
-        right = len(disk) - 2 + len(disk) % 2
-        need = disk[right]
-        block = 0
-        ans = 0
-        while left < right:
-            ans, block = self.update(ans, block, left, disk[left])
-            available = disk[left + 1]
-            left += 2
-            while available > 0:
-                if need == 0:
-                    if left == right:
-                        break
-                    right -= 2
-                    need = disk[right]
-                size = min(need, available)
-                ans, block = self.update(ans, block, right, size)
-                available -= size
-                need -= size
-        ans, _ = self.update(ans, block, right, need)
-        return ans
+        return self.solve(disk, Mode.MODE_1)
 
     def part_2(self, disk: Input) -> Output2:
-        block = 0
-        ans = 0
-        free: list[list[int]] = list()
-        for i in range(10):
-            free.append(list())
-        for idx, size in enumerate(disk):
-            if idx % 2 and size > 0:
-                free[size].append(block)
-            block += size
-        for i in range(10):
-            free[i].append(block)
-            free[i].reverse()
-        for idx, size in reversed(list(enumerate(disk))):
-            block -= size
-            if idx % 2:
-                continue
-            nxt_block = block
-            nxt_idx = sys.maxsize
-            for i in range(size, len(free)):
-                first = free[i][-1]
-                if first < nxt_block:
-                    nxt_block = first
-                    nxt_idx = i
-            if len(free):
-                if free[-1][-1] > block:
-                    free.pop()
-            id = idx // 2
-            extra = nxt_block * size + TRIANGLE[size]
-            ans += id * extra
-            if nxt_idx != sys.maxsize:
-                free[nxt_idx].pop()
-                to = nxt_idx - size
-                if to > 0:
-                    i = len(free[to])
-                    val = nxt_block + size
-                    while free[to][i - 1] < val:
-                        i -= 1
-                    free[to].insert(i, val)
-        return ans
+        return self.solve(disk, Mode.MODE_2)
 
     @aoc_samples(
         (
