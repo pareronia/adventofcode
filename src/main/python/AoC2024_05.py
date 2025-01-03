@@ -78,13 +78,8 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         for update in updates:
             correct = update[:]
             correct.sort(key=cmp_to_key(cmp))
-            match mode:
-                case Mode.USE_CORRECT:
-                    if update == correct:
-                        ans += correct[len(correct) // 2]
-                case Mode.USE_INCORRECT:
-                    if update != correct:
-                        ans += correct[len(correct) // 2]
+            if not ((mode == Mode.USE_CORRECT) ^ (update == correct)):
+                ans += correct[len(correct) // 2]
         return ans
 
     def part_1(self, input: Input) -> Output1:
