@@ -4,6 +4,10 @@
 #
 
 import sys
+from collections import deque
+from enum import Enum
+from enum import auto
+from enum import unique
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -28,34 +32,48 @@ TEST = """\
 """
 
 
+@unique
+class Grading(Enum):
+    SCORE = auto()
+    RATING = auto()
+
+    def get(self, trails: list[list[Cell]]) -> int:
+        match self:
+            case Grading.SCORE:
+                return len({trail[-1] for trail in trails})
+            case Grading.RATING:
+                return len(trails)
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return IntGrid.from_strings(list(input_data))
 
-    def get_trails(self, grid: IntGrid) -> list[list[Cell]]:
-        trails = list[list[Cell]]()
+    def solve(self, grid: IntGrid, grading: Grading) -> int:
+        def bfs(trail_head: Cell) -> list[list[Cell]]:
+            trails = list[list[Cell]]()
+            q = deque([[trail_head]])
+            while q:
+                trail = q.pop()
+                nxt = len(trail)
+                if nxt == 10:
+                    trails.append(trail)
+                    continue
+                for n in grid.get_capital_neighbours(trail[-1]):
+                    if grid.get_value(n) == nxt:
+                        q.append(trail + [n])
+            return trails
 
-        def dfs(trail: list[Cell]) -> None:
-            if len(trail) == 10:
-                trails.append(trail)
-                return
-            nxt = grid.get_value(trail[-1]) + 1
-            for n in grid.get_capital_neighbours(trail[-1]):
-                if grid.get_value(n) == nxt:
-                    dfs(trail + [n])
-
-        list(map(lambda s: dfs([s]), grid.get_all_equal_to(0)))
-        return trails
-
-    def part_1(self, grid: Input) -> Output1:
-        trails = self.get_trails(grid)
         return sum(
-            len({trail[9] for trail in trails if trail[0] == zero})
-            for zero in {trail[0] for trail in trails}
+            grading.get(bfs(trail_head))
+            for trail_head in grid.get_all_equal_to(0)
         )
 
+    def part_1(self, grid: Input) -> Output1:
+        return self.solve(grid, Grading.SCORE)
+
     def part_2(self, grid: Input) -> Output2:
-        return len(self.get_trails(grid))
+        return self.solve(grid, Grading.RATING)
 
     @aoc_samples(
         (
