@@ -1,104 +1,190 @@
 concepts:
     year:
-        - 2016:
-            day:
-                - 13:
-                    tags:
-                        - path finding
-                        - A*
-                        - binary
-        - 2017:
-            day:
-                - 1:
-                    tags:
-                        - circular list
-                        - sum
-                        - rule matching
-                - 2:
-                    tags:
-                        - minimum
-                        - maximum
-                        - division
-                        - sum
-                        - combinations
-                - 3:
-                    tags:
-                        - manhattan distance
-                        - grid
-                        - exotic coordinate system
-                - 4:
-                    tags:
-                        - string
-                        - rule matching
-                - 10:
-                    tags:
-                        - knot hash
-                        - ascii
-                        - hexadecimal
-                        - xor
-                - 14:
-                    tags:
-                        - knot hash
-                        - ascii
-                        - hexadecimal
-                        - binary
-                        - xor
-                        - grid
-                        - group finding
-                        - bfs
-                - 21:
-                    tags:
-                        - grid
-                        - dihedral group of the square
-        - 2020:
-            day:
-                - 20:
-                    tags:
-                        - grid
-                        - dihedral group of the square
-                        - sea monsters
-        - 2021:
-            day:
-                - 15:
-                    tags:
-                        - grid
-                        - int grid
-                        - path finding
-                        - A*
-        - 2022:
-            day:
-                - 1:
-                    tags:
-                        - sum
-                - 2:
-                    tags:
-                        - simulation
-                - 3:
-                    tags:
-                        - set operations
-                        - ascii
-        - 2024:
-            day:
-              - 1:
-                  tags:
-                    - difference
-                    - transpose
-                    - counter
-              - 2:
-                  tags:
-                    - increasing/decreasing
-              - 3:
-                  tags:
-                    - regex
-              - 4:
-                  tags:
-                    - grid
-                    - char grid search
-              - 5:
-                  tags:
-                    - sort
-                    - custom sort
-              - 6:
-                  tags:
-                    - grid
-                    - grid navigation
+      - 2016:
+          day:
+            - 13:
+                tags:
+                  - path finding
+                  - A*
+                  - binary
+      - 2017:
+          day:
+            - 1:
+                tags:
+                  - circular list
+                  - sum
+                  - rule matching
+            - 2:
+                tags:
+                  - minimum
+                  - maximum
+                  - division
+                  - sum
+                  - combinations
+            - 3:
+                tags:
+                  - manhattan distance
+                  - grid
+                  - exotic coordinate system
+            - 4:
+                tags:
+                  - string
+                  - rule matching
+            - 10:
+                tags:
+                  - knot hash
+                  - ascii
+                  - hexadecimal
+                  - xor
+            - 14:
+                tags:
+                  - knot hash
+                  - ascii
+                  - hexadecimal
+                  - binary
+                  - xor
+                  - grid
+                  - group finding
+                  - bfs
+            - 21:
+                tags:
+                  - grid
+                  - dihedral group of the square
+      - 2020:
+          day:
+            - 20:
+                tags:
+                  - grid
+                  - dihedral group of the square
+                  - sea monsters
+                  - pattern recognition
+      - 2021:
+          day:
+            - 15:
+                tags:
+                  - grid
+                  - int grid
+                  - path finding
+                  - A*
+      - 2022:
+          day:
+            - 1:
+                tags:
+                  - sum
+            - 2:
+                tags:
+                  - simulation
+            - 3:
+                tags:
+                  - set operations
+                  - ascii
+      - 2024:
+          day:
+            - 1:
+                tags:
+                  - difference
+                  - transpose
+                  - counter
+            - 2:
+                tags:
+                  - increasing/decreasing
+            - 3:
+                tags:
+                  - regex
+            - 4:
+                tags:
+                  - grid
+                  - char grid search
+            - 5:
+                tags:
+                  - sort
+                  - custom sort
+            - 6:
+                tags:
+                  - grid
+                  - grid navigation
+            - 7:
+                tags:
+                  - recursion
+            - 8:
+                tags:
+                  - grid
+                  - geometry
+                  - combinations
+            - 9:
+                tags:
+                  - large list
+            - 10:
+                tags:
+                  - grid
+                  - int grid
+                  - path finding
+            - 11:
+                tags:
+                  - recursion
+                  - memoization
+            - 12:
+                tags:
+                  - grid
+                  - char grid
+                  - geometry
+                  - polygons
+            - 13:
+                tags:
+                  - geometry
+                  - linear equations
+            - 14:
+                tags:
+                  - geometry
+                  - pattern recognition
+                  - loop detection
+                  - christmas tree
+            - 15:
+                tags:
+                  - grid
+                  - char grid
+            - 16:
+                tags:
+                  - grid
+                  - char grid
+                  - path finding
+            - 17:
+                tags:
+                  - virtual machine
+                  - bit shifting
+                  - reverse engineering
+            - 18:
+                tags:
+                  - grid
+                  - char grid
+                  - path finding
+                  - binary search
+            - 19:
+                tags:
+                  - recursion
+                  - memoization
+            - 20:
+                tags:
+                  - grid
+                  - char grid
+                  - path finding
+                  - manhattan distance
+            - 21:
+                tags:
+                  - recursion
+                  - memoization
+            - 22:
+                tags:
+                  - large list
+            - 23:
+                tags:
+                  - graph
+                  - graph cliques
+            - 24:
+                tags:
+                  - simulation
+                  - binary logic
+            - 25:
+                tags:
+                  - grid
+                  - char grid
