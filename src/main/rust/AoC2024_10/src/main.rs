@@ -3,31 +3,55 @@
 use aoc::grid::{Cell, Grid, IntGrid};
 use aoc::Puzzle;
 use itertools::Itertools;
+use std::collections::VecDeque;
+
+enum Grading {
+    Score,
+    Rating,
+}
+
+impl Grading {
+    fn get(&self, trails: &Vec<Vec<Cell>>) -> usize {
+        match self {
+            Grading::Score => {
+                trails.iter().map(|trail| trail.last()).unique().count()
+            }
+            Grading::Rating => trails.len(),
+        }
+    }
+}
 
 struct AoC2024_10;
 
 impl AoC2024_10 {
-    fn get_trails(&self, grid: &IntGrid) -> Vec<Vec<Cell>> {
-        fn dfs(grid: &IntGrid, trails: &mut Vec<Vec<Cell>>, trail: Vec<Cell>) {
-            if trail.len() == 10 {
-                trails.push(trail);
-                return;
-            }
-            let nxt = grid.get(trail.last().unwrap()) + 1;
-            for n in grid.capital_neighbours(trail.last().unwrap()) {
-                if grid.get(&n) == nxt {
-                    let mut new_trail = trail.to_vec();
-                    new_trail.push(n);
-                    dfs(grid, trails, new_trail);
+    fn solve(&self, grid: &IntGrid, grading: Grading) -> usize {
+        fn bfs(grid: &IntGrid, trail_head: Cell) -> Vec<Vec<Cell>> {
+            let mut trails: Vec<Vec<Cell>> = Vec::new();
+            let mut q: VecDeque<Vec<Cell>> =
+                VecDeque::from(vec![vec![trail_head]]);
+            while !q.is_empty() {
+                let trail = q.pop_front().unwrap();
+                let nxt = trail.len() as u32;
+                if nxt == 10 {
+                    trails.push(trail);
+                    continue;
                 }
+                grid.capital_neighbours(&trail.last().unwrap())
+                    .into_iter()
+                    .filter(|n| grid.get(&n) == nxt)
+                    .for_each(|n| {
+                        let mut new_trail = trail.to_vec();
+                        new_trail.push(n);
+                        q.push_back(new_trail);
+                    });
             }
+            trails
         }
 
-        let mut trails = vec![];
-        for s in grid.cells().filter(|cell| grid.get(cell) == 0) {
-            dfs(grid, &mut trails, vec![s]);
-        }
-        trails
+        grid.cells()
+            .filter(|cell| grid.get(cell) == 0)
+            .map(|trail_head| grading.get(&bfs(grid, trail_head)))
+            .sum()
     }
 }
 
@@ -43,24 +67,11 @@ impl aoc::Puzzle for AoC2024_10 {
     }
 
     fn part_1(&self, grid: &Self::Input) -> Self::Output1 {
-        let trails = self.get_trails(grid);
-        trails
-            .iter()
-            .map(|trail| trail[0])
-            .unique()
-            .map(|zero| {
-                trails
-                    .iter()
-                    .filter(|trail| trail[0] == zero)
-                    .map(|trail| trail[9])
-                    .unique()
-                    .count()
-            })
-            .sum()
+        self.solve(grid, Grading::Score)
     }
 
     fn part_2(&self, grid: &Self::Input) -> Self::Output2 {
-        self.get_trails(grid).len()
+        self.solve(grid, Grading::Rating)
     }
 
     fn samples(&self) {
