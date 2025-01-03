@@ -54,19 +54,8 @@ public final class AoC2024_05
         for (final List<Integer> update : input.updates) {
            final List<Integer> correct = new ArrayList<>(update);
            Collections.sort(correct, comparator);
-           switch (mode) {
-               case USE_CORRECT: {
-                   if (update.equals(correct)) {
-                       ans += correct.get(correct.size() / 2);
-                   }
-                   break;
-               }
-               case USE_INCORRECT: {
-                   if (!update.equals(correct)) {
-                       ans += correct.get(correct.size() / 2);
-                   }
-                   break;
-               }
+           if (!(mode == Mode.USE_CORRECT ^ update.equals(correct))) {
+               ans += correct.get(correct.size() / 2);
            }
         }
         return ans;
