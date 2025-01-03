@@ -4,6 +4,7 @@ use aoc::Puzzle;
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
+#[derive(PartialEq)]
 enum Mode {
     UseCorrect,
     UseIncorrect,
@@ -27,17 +28,8 @@ impl AoC2024_05 {
                     false => Ordering::Greater,
                 }
             });
-            match mode {
-                Mode::UseCorrect => {
-                    if *update == correct {
-                        ans += correct[correct.len() / 2]
-                    }
-                }
-                Mode::UseIncorrect => {
-                    if *update != correct {
-                        ans += correct[correct.len() / 2]
-                    }
-                }
+            if !((mode == Mode::UseCorrect) ^ (*update == correct)) {
+                ans += correct[correct.len() / 2]
             }
         }
         ans
