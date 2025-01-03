@@ -51,33 +51,11 @@ public final class AoC2024_08
         return new Input(w, h, antennae.values().stream().toList());
     }
     
-    private Set<Position> getAntinodes(
-            final AntennaPair pair,
+    private int solve(
             final int h,
             final int w,
-            final int maxCount
-    ) {
-        final Vector vec = Vector.of(
-                pair.first.getX() - pair.second.getX(),
-                pair.first.getY() - pair.second.getY());
-        final Set<Position> antinodes = new HashSet<>();
-        product(pair, Set.of(1, -1)).stream().forEach(pp -> {
-            for (int a = 1; a <= maxCount; a++) {
-                final Position antinode = pp.first().translate(vec, pp.second() * a);
-                if (0 <= antinode.getX() && antinode.getX() < w
-                        && 0 <= antinode.getY() && antinode.getY() < h) {
-                    antinodes.add(antinode);
-                } else {
-                    break;
-                }
-            }
-        });
-        return antinodes;
-    }
-    
-    private int solve(
             final List<List<Position>> antennae,
-            final Function<AntennaPair, Set<Position>> collectAntinodes
+            final Mode mode
     ) {
         final Function<List<Position>, Stream<AntennaPair>> antennaPairs =
             sameFrequency ->
@@ -87,23 +65,19 @@ public final class AoC2024_08
                             sameFrequency.get(comb_idx[1])));
         return antennae.stream()
                 .flatMap(antennaPairs)
-                .map(collectAntinodes)
+                .map(pair -> mode.collectAntinodes(h, w, pair))
                 .reduce(SetUtils::union)
                 .map(Set::size).orElseThrow();
     }
     
     @Override
     public Integer solvePart1(final Input input) {
-        return solve(input.antennae, pair ->
-                difference(
-                        getAntinodes(pair, input.h, input.w, 1),
-                        Set.of(pair.first, pair.second)));
+        return solve(input.h, input.w, input.antennae, Mode.MODE_1);
     }
     
     @Override
     public Integer solvePart2(final Input input) {
-        return solve(input.antennae, pair ->
-                getAntinodes(pair, input.h, input.w, Integer.MAX_VALUE));
+        return solve(input.h, input.w, input.antennae, Mode.MODE_2);
     }
     
     @Override
@@ -116,6 +90,46 @@ public final class AoC2024_08
     
     public static void main(final String[] args) throws Exception {
         AoC2024_08.create().run();
+    }
+
+    enum Mode {
+        MODE_1, MODE_2;
+
+        private Set<Position> getAntinodes(
+                final AntennaPair pair,
+                final int h,
+                final int w,
+                final int maxCount
+        ) {
+            final Vector vec = Vector.of(
+                    pair.first.getX() - pair.second.getX(),
+                    pair.first.getY() - pair.second.getY());
+            final Set<Position> antinodes = new HashSet<>();
+            product(pair, Set.of(1, -1)).stream().forEach(pp -> {
+                for (int a = 1; a <= maxCount; a++) {
+                    final Position antinode
+                            = pp.first().translate(vec, pp.second() * a);
+                    if (0 <= antinode.getX() && antinode.getX() < w
+                            && 0 <= antinode.getY() && antinode.getY() < h) {
+                        antinodes.add(antinode);
+                    } else {
+                        break;
+                    }
+                }
+            });
+            return antinodes;
+        }
+
+        public Set<Position> collectAntinodes(
+                final int h, final int w, final AntennaPair pair
+        ) {
+            return switch (this) {
+                case MODE_1 -> difference(
+                                    getAntinodes(pair, h, w, 1),
+                                    Set.of(pair.first, pair.second));
+                case MODE_2 -> getAntinodes(pair, h, w, Integer.MAX_VALUE);
+            };
+        }
     }
 
     private static final String TEST = """
