@@ -53,7 +53,7 @@ public class CharGrid implements Grid<Character>, Cloneable {
             throw new RuntimeException(e);
         }
 	}
-
+	
     public CharGrid addRow(final String string ) {
 	    assertTrue(string.length() == getWidth(), () -> "Invalid row length.");
 	    final List<String> list = new ArrayList<>(getRowsAsStringList());

@@ -27,20 +27,16 @@ public class SolutionUtils {
     }
     
     public static String printDuration(final Duration duration) {
-        final long timeSpent = duration.toNanos() / 1_000;
-        double time;
-        String unit;
-        if (timeSpent < 1000) {
-            time = timeSpent;
-            unit = "µs";
-        } else if (timeSpent < 1_000_000) {
-            time = timeSpent / 1000.0;
-            unit = "ms";
+        final double timeSpent = duration.toNanos() / 1_000_000.0;
+        String time;
+        if (timeSpent <= 1000) {
+            time = String.format("%.3f", timeSpent);
+        } else if (timeSpent <= 5_000) {
+            time = ANSIColors.yellow(String.format("%.0f", timeSpent));
         } else {
-            time = timeSpent / 1_000_000.0;
-            unit = "s";
+            time = ANSIColors.red(String.format("%.0f", timeSpent));
         }
-        return String.format("%.3f %s", time, unit);
+        return String.format("%s ms", time);
     }
 
     public static <V> V lap(final String prefix, final Callable<V> callable)
@@ -52,7 +48,7 @@ public class SolutionUtils {
         final V answer = timed.result();
         final String duration = printDuration(timed.duration());
         System.out.println(String.format("%s : %s, took: %s",
-                                         prefix, answer, duration));
+                prefix, ANSIColors.bold(answer.toString()), duration));
         return answer;
     }
     

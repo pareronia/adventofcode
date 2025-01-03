@@ -1,6 +1,5 @@
 import static com.github.pareronia.aoc.IterTools.zip;
 import static com.github.pareronia.aoc.Utils.last;
-import static com.github.pareronia.aoc.Utils.stream;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ public final class AoC2023_09
         List<Integer> line = new ArrayList<>(lineIn);
         final Deque<Integer> tails = new ArrayDeque<>(List.of(last(line)));
         while (!line.stream().allMatch(tails.peekLast()::equals)) {
-            line = stream(zip(line, line.subList(1, line.size())).iterator())
+            line = zip(line, line.subList(1, line.size())).stream()
                 .map(z -> z.second() - z.first())
                 .toList();
             tails.addLast(last(line));

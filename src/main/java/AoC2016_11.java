@@ -214,8 +214,8 @@ public final class AoC2016_11
                 final List<String> chipsOnFloor) {
             final List<State> states = new ArrayList<>();
             if (chipsOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
-                combinations(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
-                    c -> {
+                combinations(chipsOnFloor.size(), MAX_ITEMS_PER_MOVE).stream()
+                    .forEach(c -> {
                         final List<String> chipsToMove = Arrays.stream(c)
                                 .mapToObj(chipsOnFloor::get).collect(toList());
                         states.add(moveUpWithChips(chipsToMove));
@@ -245,8 +245,8 @@ public final class AoC2016_11
                 final List<String> gennysOnFloor) {
             final List<State> states = new ArrayList<>();
             if (gennysOnFloor.size() >= MAX_ITEMS_PER_MOVE) {
-                combinations(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE).forEach(
-                    c -> {
+                combinations(gennysOnFloor.size(), MAX_ITEMS_PER_MOVE).stream()
+                .forEach(c -> {
                         final List<String> gennysToMove = Arrays.stream(c)
                                 .mapToObj(gennysOnFloor::get).collect(toList());
                         states.add(moveUpWitGennys(gennysToMove));

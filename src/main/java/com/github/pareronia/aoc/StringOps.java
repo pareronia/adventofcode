@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
+import com.github.pareronia.aoc.IterTools.IterToolsIterator;
+import com.github.pareronia.aoc.IterTools.ZippedPair;
+
 public class StringOps {
     
 	public static List<String> splitLines(final String input) {
@@ -42,6 +45,14 @@ public class StringOps {
 			}
 		}
 		return blocks;
+	}
+
+	public static IterToolsIterator<ZippedPair<Character>> zip(
+	        final String s1, final String s2
+	) {
+	    return IterTools.zip(
+                () -> Utils.asCharacterStream(s1).iterator(),
+                () -> Utils.asCharacterStream(s2).iterator());
 	}
 	
     public static Integer[] getDigits(final String s, final int expected) {

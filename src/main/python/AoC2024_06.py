@@ -3,19 +3,26 @@
 # Advent of Code 2024 Day 6
 #
 
+from __future__ import annotations
+
 import sys
 from collections import OrderedDict
+from typing import Iterator
+from typing import NamedTuple
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
+from aoc.grid import CharGrid
 
 Cell = tuple[int, int]
-Input = tuple[int, int, set[Cell], Cell]
+Direction = tuple[int, int]
+Input = CharGrid
 Output1 = int
 Output2 = int
 
-DIRS = [(0, 1), (1, 0), (0, -1), (-1, 0)]
+UP, RIGHT, DOWN, LEFT = (0, 1), (1, 0), (0, -1), (-1, 0)
+DIRS = [UP, RIGHT, DOWN, LEFT]
 
 
 TEST = """\
@@ -32,53 +39,136 @@ TEST = """\
 """
 
 
-class Solution(SolutionBase[Input, Output1, Output2]):
-    def parse_input(self, input_data: InputData) -> Input:
-        lines = list(input_data)
-        obs = set[Cell]()
-        h, w = len(lines), len(lines[0])
-        for r in range(h):
-            for c in range(w):
-                if lines[r][c] == "^":
-                    start = (r, c)
-                elif lines[r][c] == "#":
-                    obs.add((r, c))
-        return h, w, obs, start
+class Obstacles(NamedTuple):
+    obs: dict[Direction, list[list[Cell | None]]]
 
-    def route(
-        self, h: int, w: int, obs: set[Cell], pos: Cell, dir: int
-    ) -> tuple[bool, OrderedDict[Cell, list[int]]]:
+    @classmethod
+    def _obstacles(
+        cls, grid: CharGrid, starts: Iterator[Cell], dir: Direction
+    ) -> list[list[Cell | None]]:
+        h, w = grid.get_height(), grid.get_width()
+        obs: list[list[Cell | None]] = [
+            [None for _ in range(w)] for _ in range(h)
+        ]
+        for start in starts:
+            last = start if grid.values[start[0]][start[1]] == "#" else None
+            cell = start
+            while True:
+                r, c = cell
+                obs[r][c] = last
+                if grid.values[r][c] == "#":
+                    last = cell
+                nr, nc = r - dir[1], c + dir[0]
+                if not (0 <= nr < h and 0 <= nc < w):
+                    break
+                cell = (nr, nc)
+        return obs
+
+    @classmethod
+    def from_grid(cls, grid: CharGrid) -> Obstacles:
+        h, w = grid.get_height(), grid.get_width()
+        obs = dict[Direction, list[list[Cell | None]]]()
+        mci, mri = grid.get_max_col_index(), grid.get_max_row_index()
+        obs[RIGHT] = Obstacles._obstacles(
+            grid, ((r, mci) for r in range(h)), LEFT
+        )
+        obs[LEFT] = Obstacles._obstacles(
+            grid, ((r, 0) for r in range(h)), RIGHT
+        )
+        obs[UP] = Obstacles._obstacles(grid, ((0, c) for c in range(w)), DOWN)
+        obs[DOWN] = Obstacles._obstacles(
+            grid, ((mri, c) for c in range(w)), UP
+        )
+        return Obstacles(obs)
+
+    def get_next(
+        self, start: Cell, dir: Direction, extra: Cell
+    ) -> Cell | None:
+        obs = self.obs[dir][start[0]][start[1]]
+        if obs is None:
+            return (
+                extra
+                if (
+                    dir[1] == 0
+                    and start[0] == extra[0]
+                    and dir == (RIGHT if start[1] < extra[1] else LEFT)
+                    or dir[0] == 0
+                    and start[1] == extra[1]
+                    and dir == (DOWN if start[0] < extra[0] else UP)
+                )
+                else None
+            )
+        else:
+            if (
+                dir[1] == 0
+                and obs[0] == extra[0]
+                and dir == (RIGHT if start[1] < extra[1] else LEFT)
+            ):
+                dextra = abs(extra[1] - start[1])
+                dobs = abs(obs[1] - start[1])
+                return obs if dobs < dextra else extra
+            elif (
+                dir[0] == 0
+                and obs[1] == extra[1]
+                and dir == (DOWN if start[0] < extra[0] else UP)
+            ):
+                dextra = abs(extra[0] - start[0])
+                dobs = abs(obs[0] - start[0])
+                return obs if dobs < dextra else extra
+            return obs
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+
+    def parse_input(self, input_data: InputData) -> Input:
+        return CharGrid.from_strings(list(input_data))
+
+    def visited(
+        self,
+        grid: CharGrid,
+        dir: int,
+    ) -> OrderedDict[Cell, list[int]]:
+        start = next(grid.get_all_equal_to("^"))
+        pos = (start.row, start.col)
+        h, w = grid.get_height(), grid.get_width()
         seen = OrderedDict[Cell, list[int]]()
         seen.setdefault(pos, list()).append(dir)
         while True:
             nxt = (pos[0] - DIRS[dir][1], pos[1] + DIRS[dir][0])
             if not (0 <= nxt[0] < h and 0 <= nxt[1] < w):
-                return False, seen
-            if nxt in obs:
+                return seen
+            if grid.values[nxt[0]][nxt[1]] == "#":
                 dir = (dir + 1) % len(DIRS)
             else:
                 pos = nxt
-            if pos in seen and dir in seen[pos]:
-                return True, OrderedDict()
             seen.setdefault(pos, list()).append(dir)
 
-    def part_1(self, input: Input) -> Output1:
-        h, w, obs, start = input
-        _, seen = self.route(h, w, obs, start, 0)
-        return len(seen)
+    def is_loop(
+        self, pos: Cell, dir: int, obs: Obstacles, extra: Cell
+    ) -> bool:
+        seen = dict[Cell, int]()
+        seen[pos] = 1 << dir
+        while True:
+            nxt_obs = obs.get_next(pos, DIRS[dir], extra)
+            if nxt_obs is None:
+                return False
+            pos = (nxt_obs[0] + DIRS[dir][1], nxt_obs[1] - DIRS[dir][0])
+            dir = (dir + 1) % len(DIRS)
+            if pos in seen and seen[pos] & (1 << dir) != 0:
+                return True
+            seen[pos] = seen.get(pos, 0) | (1 << dir)
 
-    def part_2(self, input: Input) -> Output2:
-        h, w, obs, start = input
-        _, seen = self.route(h, w, obs, start, 0)
-        prev_pos, prev_dirs = seen.popitem(last=False)
+    def part_1(self, grid: Input) -> Output1:
+        return len(self.visited(grid, 0))
+
+    def part_2(self, grid: Input) -> Output2:
+        obs = Obstacles.from_grid(grid)
+        visited = self.visited(grid, 0)
+        prev_pos, prev_dirs = visited.popitem(last=False)
         ans = 0
-        while len(seen) > 0:
-            pos, dirs = seen.popitem(last=False)
-            obs.add(pos)
-            loop, _ = self.route(h, w, obs, prev_pos, prev_dirs.pop(0))
-            if loop:
-                ans += 1
-            obs.remove(pos)
+        while len(visited) > 0:
+            pos, dirs = visited.popitem(last=False)
+            ans += self.is_loop(prev_pos, prev_dirs.pop(0), obs, pos)
             prev_pos, prev_dirs = pos, dirs
         return ans
 

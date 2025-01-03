@@ -1,7 +1,10 @@
 import unittest
+import sys
 from typing import Iterator
-from aoc.graph import a_star
-from aoc.grid import IntGrid, Cell
+
+from aoc.graph import Dijkstra
+from aoc.grid import Cell
+from aoc.grid import IntGrid
 
 
 class AStarTest(unittest.TestCase):
@@ -12,7 +15,7 @@ class AStarTest(unittest.TestCase):
             if grid.get_value(c) != 9
         )
 
-    def test_a_star_ok(self) -> None:
+    def test_dijkstra_ok(self) -> None:
         # fmt: off
         v = [
             [0, 9, 9, 9],
@@ -23,11 +26,11 @@ class AStarTest(unittest.TestCase):
         ]
         # fmt: on
         grid = IntGrid(v)
-        cost, distances, path = a_star(
+        cost, distances, path = Dijkstra.dijkstra(
             Cell(0, 0),
             lambda cell: cell == Cell(4, 3),
             lambda cell: self.adjacent(grid, cell),
-            lambda cell: 1,
+            lambda curr, nxt: 1,
         )
         self.assertEqual(cost, 7)
         self.assertEqual(distances[Cell(2, 2)], 4)
@@ -45,4 +48,8 @@ class AStarTest(unittest.TestCase):
                 Cell(0, 0),
             ],
         )
-        self.assertEqual(distances[Cell(4, 0)], 1_000_000_000)
+        self.assertEqual(distances[Cell(4, 0)], sys.maxsize)
+
+
+if __name__ == "__main__":
+    unittest.main()

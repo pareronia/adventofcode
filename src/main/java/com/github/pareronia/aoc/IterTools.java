@@ -4,44 +4,15 @@ import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 import org.apache.commons.math3.util.CombinatoricsUtils;
 
 public class IterTools {
-
-    @SafeVarargs
-    public static <T> Set<List<T>> product(final Iterator<T>... iterators) {
-        Set<List<T>> ans = new HashSet<>(Set.of(List.of()));
-        for (final Iterator<T> range : iterators) {
-            final Set<List<T>> set = new HashSet<>();
-            for (final T i : (Iterable<T>) () -> range) {
-                for (final List<T> tmp : ans) {
-                    final List<T> lst = new ArrayList<>();
-                    lst.addAll(tmp);
-                    lst.add(i);
-                    set.add(lst);
-                }
-            }
-            ans = set;
-        }
-        return ans;
-    }
-
-    @SafeVarargs
-    @SuppressWarnings("unchecked")
-    public static <T> Set<List<T>> product(final Iterable<T>... iterables) {
-        final Iterator<T>[] iterators = new Iterator[iterables.length];
-        for (int i = 0; i < iterables.length; i++) {
-            iterators[i] = iterables[i].iterator();
-        }
-        return IterTools.product(iterators);
-    }
     
     // TODO potentially huge storage cost -> make iterative version
     public static <T> Stream<List<T>> permutations(final Iterable<T> iterable) {
@@ -70,14 +41,24 @@ public class IterTools {
         return builder.build();
     }
 
-    public static Iterator<int[]> combinationsIterator(final int n, final int k) {
-        return CombinatoricsUtils.combinationsIterator(n, k);
+    public static IterToolsIterator<int[]> combinations(
+            final int n, final int k
+    ) {
+        final Iterator<int[]> ans
+                = CombinatoricsUtils.combinationsIterator(n, k);
+        return new IterToolsIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return ans.hasNext();
+            }
+
+            @Override
+            public int[] next() {
+                return ans.next();
+            }
+        };
     }
 
-    public static Iterable<int[]> combinations(final int n, final int k) {
-        return () -> combinationsIterator(n, k);
-    }
-    
     public static <T> Stream<Enumerated<T>> enumerate(final Stream<T> stream) {
         return enumerateFrom(0, stream);
     }
@@ -103,12 +84,12 @@ public class IterTools {
         });
     }
     
-    private static <T> Iterable<ZippedPair<T>>
-    doZip(
+    private static <T> IterToolsIterator<ZippedPair<T>>
+    zip(
         final Iterator<T> iterator1,
         final Iterator<T> iterator2
     ) {
-        return () -> new Iterator<>() {
+        return new IterToolsIterator<>() {
 
             @Override
             public boolean hasNext() {
@@ -122,21 +103,21 @@ public class IterTools {
         };
     }
 
-    public static <T> Iterable<ZippedPair<T>> zip(
+    public static <T> IterToolsIterator<ZippedPair<T>> zip(
             final Iterable<T> iterable1,
             final Iterable<T> iterable2
     ) {
-        return doZip(iterable1.iterator(), iterable2.iterator());
+        return zip(iterable1.iterator(), iterable2.iterator());
     }
     
-    public static <T> Iterator<T> cycle(final Iterator<T> iterator) {
+    private static <T> Iterator<T> cycle(final Iterator<T> iterator) {
         return new Iterator<>() {
             List<T> saved = new ArrayList<>();
             int i = 0;
 
             @Override
             public boolean hasNext() {
-                return iterator.hasNext();
+                return true;
             }
 
             @Override
@@ -155,8 +136,10 @@ public class IterTools {
         return cycle(iterable.iterator());
     }
     
-    public static <T> Iterator<WindowPair<T>> windows(final List<T> list) {
-        return new Iterator<>() {
+    public static <T> IterToolsIterator<WindowPair<T>> windows(
+            final List<T> list
+    ) {
+        return new IterToolsIterator<>() {
             int i = 0;
             
             @Override
@@ -170,6 +153,54 @@ public class IterTools {
                         = new WindowPair<>(list.get(i), list.get(i + 1));
                 i++;
                 return next;
+            }
+        };
+    }
+
+    public static <T, U> IterToolsIterator<ProductPair<T, U>> product(
+            final Iterable<T> first,
+            final Iterable<U> second
+    ) {
+        return product(first.iterator(), second.iterator());
+    }
+
+    public static <T, U> IterToolsIterator<ProductPair<T, U>> product(
+            final Iterator<T> first,
+            final Iterator<U> second
+    ) {
+        final List<U> lstU = Utils.stream(second).toList();
+        final Iterator<ProductPair<T, U>> ans = Utils.stream(first)
+                .flatMap(a -> lstU.stream()
+                        .map(b -> new ProductPair<>(a, b)))
+                .iterator();
+        return new IterToolsIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return ans.hasNext();
+            }
+
+            @Override
+            public ProductPair<T, U> next() {
+                return ans.next();
+            }
+        };
+    }
+    
+    public static <T> IterToolsIterator<T> chain(final Iterator<T> iterator1, final Iterator<T> iterator2) {
+        return new IterToolsIterator<>() {
+            @Override
+            public boolean hasNext() {
+                return iterator1.hasNext() || iterator2.hasNext();
+            }
+
+            @Override
+            public T next() {
+                if (iterator1.hasNext()) {
+                    return iterator1.next();
+                } else if (iterator2.hasNext()) {
+                    return iterator2.next();
+                }
+                throw new NoSuchElementException();
             }
         };
     }
@@ -213,6 +244,22 @@ public class IterTools {
     public record ZippedPair<T>(T first, T second) {}
     
     public record WindowPair<T>(T first, T second) {}
+
+    public record ProductPair<T, U>(T first, U second) {
+        public static <T, U> ProductPair<T, U> of(final T first, final U second) {
+            return new ProductPair<>(first, second);
+        }
+    }
     
     public record Enumerated<T>(int index, T value) {}
+    
+    public interface IterToolsIterator<T> extends Iterator<T> {
+        default Stream<T> stream() {
+            return Utils.stream(this);
+        }
+        
+        default Iterable<T> iterable() {
+            return () -> this;
+        }
+    }
 }

@@ -52,7 +52,7 @@ public class AoC2016_08 extends SolutionBase<List<String>, Integer, String> {
                 final Set<Cell> cells = IterTools.product(
                         range(Integer.parseInt(coords.right())),
                         range(Integer.parseInt(coords.left()))).stream()
-                    .map(lst -> Cell.at(lst.get(0), lst.get(1)))
+                    .map(lst -> Cell.at(lst.first(), lst.second()))
                     .collect(toSet());
                 grid = grid.update(cells, ON);
             } else if (input.startsWith("rotate row ")) {

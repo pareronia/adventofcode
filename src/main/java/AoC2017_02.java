@@ -38,7 +38,7 @@ public final class AoC2017_02 extends AoCBase {
     }
     
     private int evenlyDivisibleQuotient(final List<Integer> numbers) {
-        for (final int[] c : combinations(numbers.size(), 2)) {
+        for (final int[] c : combinations(numbers.size(), 2).iterable()) {
             final int n1 = numbers.get(c[0]);
             final int n2 = numbers.get(c[1]);
             if (n1 > n2) {
@@ -79,13 +79,15 @@ public final class AoC2017_02 extends AoCBase {
     }
     
     private static final List<String> TEST1 = splitLines(
-            "5 1 9 5\n" +
-            "7 5 3\n" +
-            "2 4 6 8"
+            """
+                5 1 9 5
+                7 5 3
+                2 4 6 8"""
     );
     private static final List<String> TEST2 = splitLines(
-            "5 9 2 8\n" +
-            "9 4 7 3\n" +
-            "3 8 6 5"
+            """
+                5 9 2 8
+                9 4 7 3
+                3 8 6 5"""
     );
 }

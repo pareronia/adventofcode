@@ -10,7 +10,7 @@ from collections import defaultdict
 from typing import NamedTuple
 
 from aoc.common import aoc_main
-from aoc.graph import a_star
+from aoc.graph import Dijkstra
 
 
 class Cave(NamedTuple):
@@ -51,14 +51,14 @@ class Cave(NamedTuple):
         ]
         distances = [[0] * size for i in range(size)]
         for i in relevant_valves:
-            _, distance, _ = a_star(
+            result = Dijkstra.all(
                 i,
                 lambda v: False,
                 lambda v: (_ for _ in self.tunnels[v]),
-                lambda v: 1,
+                lambda curr, nxt: 1,
             )
             for j in relevant_valves:
-                distances[i][j] = distance[j]
+                distances[i][j] = result.get_distance(j)
         return distances
 
 

@@ -5,13 +5,13 @@ import static java.util.stream.Collectors.groupingBy;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import com.github.pareronia.aoc.IntegerSequence.Range;
-import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.game_of_life.GameOfLife.Type;
 
 public final class InfiniteGrid implements Type<List<Integer>> {
@@ -51,6 +51,23 @@ public final class InfiniteGrid implements Type<List<Integer>> {
         final Iterator<Integer>[] iterators = ranges.stream()
             .map(Range::iterator)
             .toArray(Iterator[]::new);
-        return IterTools.product(iterators);
+        return product(iterators);
+    }
+
+    public <T> Set<List<T>> product(final Iterator<T>... iterators) {
+        Set<List<T>> ans = new HashSet<>(Set.of(List.of()));
+        for (final Iterator<T> range : iterators) {
+            final Set<List<T>> set = new HashSet<>();
+            for (final T i : (Iterable<T>) () -> range) {
+                for (final List<T> tmp : ans) {
+                    final List<T> lst = new ArrayList<>();
+                    lst.addAll(tmp);
+                    lst.add(i);
+                    set.add(lst);
+                }
+            }
+            ans = set;
+        }
+        return ans;
     }
 }

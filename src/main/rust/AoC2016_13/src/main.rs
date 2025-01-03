@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use aoc::{
-    graph::{self, AStar},
+    graph::{self, Dijkstra},
     grid::Cell,
     Puzzle,
 };
@@ -28,7 +28,7 @@ impl AoC2016_13 {
                 .collect()
         };
 
-        AStar::execute(*START, |_| false, adjacent, |_| 1)
+        Dijkstra::execute(*START, |_| false, adjacent, |_, _| 1)
     }
 
     fn get_distance(&self, input: usize, cell: Cell) -> usize {

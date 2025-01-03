@@ -168,4 +168,9 @@ public class SystemUtils {
 	private String getSystemProperty(final String property) {
 	    return System.getProperty(property);
 	}
+
+    public void clrscr() {
+        // TODO Auto-generated method stub
+        
+    }
 }

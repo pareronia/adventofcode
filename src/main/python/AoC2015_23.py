@@ -21,7 +21,7 @@ def _parse(inputs: tuple[str]) -> list[Instruction_]:
 def _build_program(inss: list[Instruction_]) -> Program:
     def translate_instruction(ins: Instruction_) -> Instruction:
         if ins.operation == "hlf":
-            return Instruction.DIV(ins.operands[0], 2)
+            return Instruction.DIV(ins.operands[0], "2")
         elif ins.operation == "tpl":
             return Instruction.MUL(ins.operands[0], "3")
         elif ins.operation == "inc":

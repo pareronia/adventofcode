@@ -4,11 +4,12 @@
 #
 
 from collections.abc import Iterator
+
+import aocd
 from aoc import my_aocd
 from aoc.geometry import Direction
-from aoc.graph import a_star
+from aoc.graph import Dijkstra
 from aoc.grid import IntGrid
-import aocd
 
 START = (0, 0)
 Cell = tuple[int, int]
@@ -47,11 +48,11 @@ def _find_neighbours(
 def _solve(grid: IntGrid, tiles: int) -> int:
     seen = set[Cell]()
     end = (tiles * grid.get_height() - 1, tiles * grid.get_width() - 1)
-    risk, _, _ = a_star(
+    risk = Dijkstra.distance(
         START,
         lambda cell: cell == end,
         lambda cell: _find_neighbours(grid, tiles, seen, *cell),
-        lambda cell: _get_risk(grid, *cell),
+        lambda curr, nxt: _get_risk(grid, *nxt),
     )
     return risk
 

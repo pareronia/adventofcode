@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 from typing import Any
-from aoc.common import log
+from aoc.common import log as do_log
 
 
 class Instruction:
@@ -60,7 +60,7 @@ class Instruction:
         return Instruction("MUL", (register, value))
 
     @classmethod
-    def DIV(cls, register: str, value: int) -> Instruction:
+    def DIV(cls, register: str, value: str) -> Instruction:
         return Instruction("DIV", (register, value))
 
     @classmethod
@@ -70,6 +70,18 @@ class Instruction:
     @classmethod
     def OUT(cls, operand: str) -> Instruction:
         return Instruction("OUT", (operand,))
+
+    @classmethod
+    def RSH(cls, operand: str, value: str) -> Instruction:
+        return Instruction("RSH", (operand, value))
+
+    @classmethod
+    def AND(cls, register: str, value: str) -> Instruction:
+        return Instruction("AND", (register, value))
+
+    @classmethod
+    def XOR(cls, operand: str, value: str) -> Instruction:
+        return Instruction("XOR", (operand, value))
 
     @property
     def opcode(self) -> str:
@@ -92,12 +104,14 @@ class Program:
     _inf_loop_treshold: int | None
     _output_consumer: Callable[[str], None] | None
     _cycles: int
+    _debug: bool
 
     def __init__(
         self,
         instructions: list[Instruction],
         inf_loop_treshold: int | None = None,
         output_consumer: Callable[[str], None] | None = None,
+        debug: bool = False,
     ) -> None:
         self._instructions = instructions
         self._inf_loop_treshold = inf_loop_treshold
@@ -106,6 +120,7 @@ class Program:
         self._instruction_pointer = 0
         self._output_consumer = output_consumer
         self._cycles = 0
+        self._debug = debug
 
     @property
     def instructions(self) -> list[Instruction]:
@@ -135,6 +150,10 @@ class Program:
     def output_consumer(self) -> Callable[[str], None] | None:
         return self._output_consumer
 
+    def log(self, s: object) -> None:
+        if self._debug:
+            do_log(s)
+
     def null_operation(self) -> None:
         pass
 
@@ -145,20 +164,25 @@ class Program:
         self._instruction_pointer += value
         return self._instruction_pointer
 
+    def set_instruction_pointer(self, value: int) -> int:
+        self._instruction_pointer = value
+        return self._instruction_pointer
+
     def set_memory_value(self, address: int, value: object) -> None:
         self._memory[address] = value
 
     def replace_instruction(self, idx: int, new_ins: Instruction) -> None:
-        log(self.instructions)
-        log(f"replacing {self.instructions[idx]} with {new_ins}")
+        self.log(self.instructions)
+        self.log(f"replacing {self.instructions[idx]} with {new_ins}")
         self._instructions[idx] = new_ins
-        log(self.instructions)
+        self.log(self.instructions)
 
 
 class VirtualMachine:
     _instruction_set: dict[str, Callable[[Program, Instruction, Any], Any]]
+    _debug: bool
 
-    def __init__(self) -> None:
+    def __init__(self, debug: bool = False) -> None:
         self._instruction_set = {
             "NOP": self._nop,
             "JMP": self._jmp,
@@ -173,7 +197,15 @@ class VirtualMachine:
             "DIV": self._div,
             "MEM": self._mem,
             "OUT": self._out,
+            "RSH": self._rsh,
+            "AND": self._and,
+            "XOR": self._xor,
         }
+        self._debug = debug
+
+    def log(self, s: object) -> None:
+        if self._debug:
+            do_log(s)
 
     def _nop(
         self, program: Program, instruction: Instruction, ip: int
@@ -186,17 +218,17 @@ class VirtualMachine:
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (count, *_) = instruction.operands
         program.move_instruction_pointer(count)
-        log(program.registers)
+        self.log(program.registers)
 
     def _jie(
         self, program: Program, instruction: Instruction, ip: int
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, count) = instruction.operands
         if (
             register not in program.registers
@@ -205,27 +237,27 @@ class VirtualMachine:
             program.move_instruction_pointer(count)
         else:
             program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
 
     def _ji1(
         self, program: Program, instruction: Instruction, ip: int
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, count) = instruction.operands
         if register in program.registers and program.registers[register] == 1:
             program.move_instruction_pointer(count)
         else:
             program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
 
     def _jn0(
         self, program: Program, instruction: Instruction, ip: int
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (test, count) = instruction.operands
         if test.startswith("*"):
             if test[1:] in program.registers:
@@ -234,25 +266,31 @@ class VirtualMachine:
                 test = 0
         else:
             test = int(test)
-        if count.startswith("*"):
-            if count[1:] in program.registers:
-                count = program.registers[count[1:]]
+        if count.startswith("!"):
+            if test != 0:
+                program.set_instruction_pointer(int(count[1:]))
             else:
-                count = 0
+                program.move_instruction_pointer(1)
         else:
-            count = int(count)
-        if test != 0:
-            program.move_instruction_pointer(int(count))
-        else:
-            program.move_instruction_pointer(1)
-        log(program.registers)
+            if count.startswith("*"):
+                if count[1:] in program.registers:
+                    count = program.registers[count[1:]]
+                else:
+                    count = 0
+            else:
+                count = int(count)
+            if test != 0:
+                program.move_instruction_pointer(int(count))
+            else:
+                program.move_instruction_pointer(1)
+        self.log(program.registers)
 
     def _set(
         self, program: Program, instruction: Instruction, ip: int
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         if str(value).startswith("*"):
             value = value[1:]
@@ -263,14 +301,14 @@ class VirtualMachine:
         else:
             program.set_register_value(register, int(value))
         program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
 
     def _tgl(
         self, program: Program, instruction: Instruction, ip: int
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register,) = instruction.operands
         if register in program.registers:
             idx = ip + int(program.registers[register])
@@ -312,7 +350,7 @@ class VirtualMachine:
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         new_value = (
             value
@@ -321,14 +359,14 @@ class VirtualMachine:
         )
         program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
 
     def _sub(
         self, program: Program, instruction: Instruction, ip: str
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         value = self._value(program, value)
         new_value = (
@@ -338,15 +376,16 @@ class VirtualMachine:
         )
         program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
 
     def _div(
         self, program: Program, instruction: Instruction, ip: int
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
+        value = self._value(program, value)
         new_value = (
             0
             if register not in program.registers
@@ -354,14 +393,14 @@ class VirtualMachine:
         )
         program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
 
     def _mul(
         self, program: Program, instruction: Instruction, ip: str
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
-        log(instruction.opcode + str(instruction.operands))
+        self.log(instruction.opcode + str(instruction.operands))
         (register, value) = instruction.operands
         value = self._value(program, value)
         new_value = (
@@ -371,7 +410,58 @@ class VirtualMachine:
         )
         program.set_register_value(register, new_value)
         program.move_instruction_pointer(1)
-        log(program.registers)
+        self.log(program.registers)
+
+    def _rsh(
+        self, program: Program, instruction: Instruction, ip: str
+    ) -> None:
+        if instruction.operands is None:
+            raise RuntimeError
+        self.log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        value = self._value(program, value)
+        new_value = (
+            value
+            if register not in program.registers
+            else program.registers[register] >> value
+        )
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        self.log(program.registers)
+
+    def _and(
+        self, program: Program, instruction: Instruction, ip: str
+    ) -> None:
+        if instruction.operands is None:
+            raise RuntimeError
+        self.log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        value = self._value(program, value)
+        new_value = (
+            value
+            if register not in program.registers
+            else program.registers[register] & value
+        )
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        self.log(program.registers)
+
+    def _xor(
+        self, program: Program, instruction: Instruction, ip: str
+    ) -> None:
+        if instruction.operands is None:
+            raise RuntimeError
+        self.log(instruction.opcode + str(instruction.operands))
+        (register, value) = instruction.operands
+        value = self._value(program, value)
+        new_value = (
+            value
+            if register not in program.registers
+            else program.registers[register] ^ value
+        )
+        program.set_register_value(register, new_value)
+        program.move_instruction_pointer(1)
+        self.log(program.registers)
 
     def _mem(
         self, program: Program, instruction: Instruction, ip: int
@@ -387,6 +477,7 @@ class VirtualMachine:
     ) -> None:
         if instruction.operands is None:
             raise RuntimeError
+        self.log(instruction.opcode + str(instruction.operands))
         (operand,) = instruction.operands
         if operand.startswith("*"):
             operand = operand[1:]
@@ -395,7 +486,7 @@ class VirtualMachine:
         else:
             operand = int(operand)
         if operand is not None and program.output_consumer is not None:
-            program.output_consumer(operand)
+            program.output_consumer(str(operand))
         program.move_instruction_pointer(1)
 
     def _value(self, program: Program, op: str) -> int | str:
@@ -425,7 +516,7 @@ class VirtualMachine:
                 instruction_count = seen[program.instruction_pointer]
                 if instruction_count >= program.inf_loop_treshold:
                     raise RuntimeError("Infinite loop!")
-        log("Normal exit")
+        self.log("Normal exit")
 
     def step(self, program: Program) -> None:
         instruction = program.instructions[program.instruction_pointer]

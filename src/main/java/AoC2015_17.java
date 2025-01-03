@@ -39,7 +39,7 @@ public class AoC2015_17 extends SolutionBase<List<Integer>, Integer, Integer> {
         }
         final List<List<Integer>> cocos = new ArrayList<>();
         for (int i = minimalContainers.size(); i < containers.size(); i++) {
-            combinations(containers.size(), i).forEach(c -> {
+            combinations(containers.size(), i).stream().forEach(c -> {
                 if (Arrays.stream(c).map(containers::get).sum() == eggnogVolume) {
                     cocos.add(Arrays.stream(c).mapToObj(containers::get).collect(toList()));
                 }
@@ -78,10 +78,11 @@ public class AoC2015_17 extends SolutionBase<List<Integer>, Integer, Integer> {
     }
     
     private static final List<String> TEST = splitLines(
-            "20\r\n"
-            + "15\r\n"
-            + "10\r\n"
-            + "5\r\n"
-            + "5"
+            """
+                20\r
+                15\r
+                10\r
+                5\r
+                5"""
     );
 }

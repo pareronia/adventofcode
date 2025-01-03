@@ -9,7 +9,7 @@ import com.github.pareronia.aoc.IntGrid;
 import com.github.pareronia.aoc.SetUtils;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Turn;
-import com.github.pareronia.aoc.graph.AStar;
+import com.github.pareronia.aoc.graph.Dijkstra;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -60,11 +60,11 @@ public final class AoC2023_17
             return moves.build();
         };
         final Cell end = Cell.at(grid.getMaxRowIndex(), grid.getMaxColIndex());
-        return (int) AStar.distance(
+        return (int) Dijkstra.distance(
                 new Move(Cell.at(0, 0), null, 0),
                 move -> move.cell().equals(end),
                 adjacent,
-                Move::cost);
+                (curr, next) -> next.cost);
     }
 
     @Override

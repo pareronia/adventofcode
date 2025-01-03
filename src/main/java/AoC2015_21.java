@@ -197,7 +197,7 @@ public class AoC2015_21 extends SolutionBase<AoC2015_21.Game, Integer, Integer> 
                         .filter(ShopItem::isRing)
                         .collect(toList());
                 final Set<Set<ShopItem>> ringCombinations = new HashSet<>();
-                combinations(rings.size(), 2).forEach(indices -> {
+                combinations(rings.size(), 2).stream().forEach(indices -> {
                     ringCombinations.add(
                         Set.of(rings.get(indices[0]), rings.get(indices[1])));
                 });

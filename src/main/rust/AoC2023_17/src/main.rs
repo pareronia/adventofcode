@@ -1,7 +1,7 @@
 #![allow(non_snake_case)]
 
 use aoc::geometry::{Direction, Turn};
-use aoc::graph::AStar;
+use aoc::graph::Dijkstra;
 use aoc::grid::{Cell, Grid, IntGrid};
 use aoc::Puzzle;
 
@@ -47,7 +47,7 @@ impl AoC2023_17 {
         };
 
         let end: Cell = Cell::at(grid.height() - 1, grid.width() - 1);
-        AStar::distance(
+        Dijkstra::distance(
             Move {
                 cell: Cell::at(0, 0),
                 dir: None,
@@ -55,7 +55,7 @@ impl AoC2023_17 {
             },
             |r#move| r#move.cell == end,
             adjacent,
-            |r#move| r#move.cost,
+            |_, r#move| r#move.cost,
         ) as u32
     }
 }

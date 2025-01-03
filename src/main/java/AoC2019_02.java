@@ -47,8 +47,8 @@ public class AoC2019_02 extends SolutionBase<List<Long>, Long, Integer> {
     @Override
     public Integer solvePart2(final List<Long> program) {
         return product(range(100), range(100)).stream()
-            .filter(p -> runProgram(program, p.get(0), p.get(1)) == 19_690_720)
-            .map(p -> 100 * p.get(0) + p.get(1))
+            .filter(p -> runProgram(program, p.first(), p.second()) == 19_690_720)
+            .map(p -> 100 * p.first() + p.second())
             .findFirst().orElseThrow();
     }
 
