@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.Utils.concat;
 import static com.github.pareronia.aoc.Utils.last;
 
 import java.util.ArrayDeque;
@@ -7,6 +8,7 @@ import java.util.List;
 
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.IntGrid;
+import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
@@ -30,53 +32,44 @@ public final class AoC2024_10 extends SolutionBase<IntGrid, Integer, Integer> {
         return IntGrid.from(inputs);
     }
     
-    private List<List<Cell>> getTrails(final IntGrid grid) {
+    private int solve(final IntGrid grid, final Grading grading) {
         class BFS {
-            private final List<List<Cell>> trails = new ArrayList<>();
-            
-            void bfs(final List<Cell> trail) {
-               final Deque<List<Cell>> q = new ArrayDeque<>(List.of(trail));
-               while (!q.isEmpty()) {
-                   final List<Cell> curr = q.pop();
-                   if (curr.size() == 10) {
-                       trails.add(curr);
-                       continue;
-                   }
-                   final int next = grid.getValue(last(curr)) + 1;
-                   grid.getCapitalNeighbours(last(curr))
-                       .filter(n -> grid.getValue(n) == next)
-                       .forEach(n -> {
-                           final List<Cell> newTrail = new ArrayList<>(curr);
-                           newTrail.add(n);
-                           q.add(newTrail);
-                   });
-               }
+            static List<List<Cell>> bfs(
+                    final IntGrid grid, final Cell trailHead
+            ) {
+                final List<List<Cell>> trails = new ArrayList<>();
+                final Deque<List<Cell>> q
+                        = new ArrayDeque<>(List.of(List.of(trailHead)));
+                while (!q.isEmpty()) {
+                    final List<Cell> curr = q.pop();
+                    if (curr.size() == 10) {
+                        trails.add(curr);
+                        continue;
+                    }
+                    final int next = grid.getValue(last(curr)) + 1;
+                    grid.getCapitalNeighbours(last(curr))
+                        .filter(n -> grid.getValue(n) == next)
+                        .forEach(n -> q.add(concat(curr, n)));
+                }
+                return trails;
             }
         }
-        
-        final BFS bfs = new BFS();
-        grid.getAllEqualTo(0).forEach(zero -> bfs.bfs(List.of(zero)));
-        return bfs.trails;
+
+        return grid.getAllEqualTo(0)
+            .mapToInt(trailhead -> grading.get(BFS.bfs(grid, trailhead)))
+            .sum();
     }
     
     @Override
     public Integer solvePart1(final IntGrid grid) {
-        final List<List<Cell>> trails = getTrails(grid);
-        return trails.stream()
-                .map(trail -> trail.get(0))
-                .distinct()
-                .mapToInt(zero -> (int) trails.stream()
-                            .filter(trail -> trail.get(0).equals(zero))
-                            .map(trail -> trail.get(9))
-                            .distinct()
-                            .count())
-                .sum();
+        return solve(grid, Grading.SCORE);
     }
     
     @Override
     public Integer solvePart2(final IntGrid grid) {
-        return getTrails(grid).size();
+        return solve(grid, Grading.RATING);
     }
+
     
     @Override
     @Samples({
@@ -84,6 +77,19 @@ public final class AoC2024_10 extends SolutionBase<IntGrid, Integer, Integer> {
         @Sample(method = "part2", input = TEST, expected = "81"),
     })
     public void samples() {
+    }
+    
+    enum Grading {
+        SCORE, RATING;
+        
+        public int get(final List<List<Cell>> trails) {
+            return switch (this) {
+                case SCORE -> (int) trails.stream()
+                                    .map(Utils::last)
+                                    .distinct().count();
+                case RATING -> trails.size();
+            };
+        }
     }
     
     public static void main(final String[] args) throws Exception {
