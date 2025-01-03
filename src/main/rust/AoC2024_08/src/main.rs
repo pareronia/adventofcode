@@ -6,48 +6,66 @@ use itertools::Itertools;
 use std::collections::HashMap;
 use std::collections::HashSet;
 
+enum Mode {
+    Mode1,
+    Mode2,
+}
+
+impl Mode {
+    fn collect_antinodes(
+        &self,
+        h: usize,
+        w: usize,
+        pair: (&XY, &XY),
+    ) -> HashSet<XY> {
+        let get_antinodes = |max_count| {
+            let mut ans: HashSet<XY> = HashSet::new();
+            let vec = XY::of(pair.0.x() - pair.1.x(), pair.0.y() - pair.1.y());
+            for p in [pair.0, pair.1].iter().cartesian_product([-1_i32, 1_i32])
+            {
+                let (pos, d) = p;
+                for a in 1..=max_count {
+                    let antinode = pos.translate(&vec, d * a as i32);
+                    if 0_i32 <= antinode.x()
+                        && antinode.x() < w as i32
+                        && 0_i32 <= antinode.y()
+                        && antinode.y() < h as i32
+                    {
+                        ans.insert(antinode);
+                    } else {
+                        break;
+                    }
+                }
+            }
+            ans
+        };
+
+        match self {
+            Mode::Mode1 => {
+                let mut antinodes = get_antinodes(1);
+                antinodes.remove(pair.0);
+                antinodes.remove(pair.1);
+                antinodes
+            }
+            Mode::Mode2 => get_antinodes(usize::MAX),
+        }
+    }
+}
+
 struct AoC2024_08;
 
 impl AoC2024_08 {
-    fn get_antinodes(
+    fn solve<'a>(
         &self,
-        pair: (&XY, &XY),
         h: usize,
         w: usize,
-        max_count: usize,
-    ) -> HashSet<XY> {
-        let mut ans: HashSet<XY> = HashSet::new();
-        let vec = XY::of(pair.0.x() - pair.1.x(), pair.0.y() - pair.1.y());
-        for p in [pair.0, pair.1].iter().cartesian_product([-1_i32, 1_i32]) {
-            let (pos, d) = p;
-            for a in 1..=max_count {
-                let antinode = pos.translate(&vec, d * a as i32);
-                if 0_i32 <= antinode.x()
-                    && antinode.x() < w as i32
-                    && 0_i32 <= antinode.y()
-                    && antinode.y() < h as i32
-                {
-                    ans.insert(antinode);
-                } else {
-                    break;
-                }
-            }
-        }
-        ans
-    }
-
-    fn solve<'a, F>(
-        &self,
         antennae: &'a [HashSet<XY>],
-        collect_antinodes: F,
-    ) -> usize
-    where
-        F: Fn((&'a XY, &'a XY)) -> HashSet<XY>,
-    {
+        mode: Mode,
+    ) -> usize {
         antennae
             .iter()
             .flat_map(|same_frequency| same_frequency.iter().combinations(2))
-            .map(|pair| collect_antinodes((pair[0], pair[1])))
+            .map(|pair| mode.collect_antinodes(h, w, (pair[0], pair[1])))
             .reduce(|acc, e| acc.union(&e).copied().collect())
             .unwrap()
             .len()
@@ -79,22 +97,12 @@ impl aoc::Puzzle for AoC2024_08 {
 
     fn part_1(&self, input: &Self::Input) -> Self::Output1 {
         let (h, w, antennae) = input;
-        let collect_antinodes = |pair| {
-            let mut antinodes = self.get_antinodes(pair, *h, *w, 1);
-            antinodes.remove(pair.0);
-            antinodes.remove(pair.1);
-            antinodes
-        };
-
-        self.solve(antennae, collect_antinodes)
+        self.solve(*h, *w, antennae, Mode::Mode1)
     }
 
     fn part_2(&self, input: &Self::Input) -> Self::Output2 {
         let (h, w, antennae) = input;
-        let collect_antinodes =
-            |pair| self.get_antinodes(pair, *h, *w, usize::MAX);
-
-        self.solve(antennae, collect_antinodes)
+        self.solve(*h, *w, antennae, Mode::Mode2)
     }
 
     fn samples(&self) {
