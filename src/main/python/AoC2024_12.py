@@ -5,7 +5,9 @@
 
 import sys
 from collections import defaultdict
-from typing import Callable
+from enum import Enum
+from enum import auto
+from enum import unique
 from typing import Iterator
 
 from aoc.common import InputData
@@ -68,13 +70,32 @@ AAAAAA
 """
 
 
+@unique
+class Pricing(Enum):
+    PERIMETER = auto()
+    NUMBER_OF_SIDES = auto()
+
+    def calculate(self, plot: Cell, region: set[Cell]) -> int:
+        match self:
+            case Pricing.PERIMETER:
+                return 4 - sum(
+                    n in region for n in plot.get_capital_neighbours()
+                )
+            case Pricing.NUMBER_OF_SIDES:
+                return sum(
+                    tuple(
+                        1 if plot.at(d[i]) in region else 0 for i in range(3)
+                    )
+                    in ((0, 0, 0), (1, 0, 0), (0, 1, 1))
+                    for d in CORNER_DIRS
+                )
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def solve(
-        self, input: Input, count: Callable[[Cell, set[Cell]], int]
-    ) -> int:
+    def solve(self, input: Input, pricing: Pricing) -> int:
         def get_regions(input: Input) -> Iterator[set[Cell]]:
             plots_by_plant = defaultdict[str, set[Cell]](set)
             for r, row in enumerate(input):
@@ -94,25 +115,16 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     all_plots_with_plant -= region
 
         return sum(
-            sum(count(plot, region) for plot in region) * len(region)
+            sum(pricing.calculate(plot, region) for plot in region)
+            * len(region)
             for region in get_regions(input)
         )
 
     def part_1(self, input: Input) -> Output1:
-        def count_edges(plot: Cell, region: set[Cell]) -> int:
-            return 4 - sum(n in region for n in plot.get_capital_neighbours())
-
-        return self.solve(input, count_edges)
+        return self.solve(input, Pricing.PERIMETER)
 
     def part_2(self, input: Input) -> Output2:
-        def count_corners(plot: Cell, region: set[Cell]) -> int:
-            return sum(
-                tuple(1 if plot.at(d[i]) in region else 0 for i in range(3))
-                in ((0, 0, 0), (1, 0, 0), (0, 1, 1))
-                for d in CORNER_DIRS
-            )
-
-        return self.solve(input, count_corners)
+        return self.solve(input, Pricing.NUMBER_OF_SIDES)
 
     @aoc_samples(
         (
