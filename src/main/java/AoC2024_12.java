@@ -7,10 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.ToIntBiFunction;
 
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.IterTools.IterToolsIterator;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.graph.BFS;
 import com.github.pareronia.aoc.solution.Sample;
@@ -18,13 +17,6 @@ import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
 public final class AoC2024_12 extends SolutionBase<List<String>, Integer, Integer> {
-    
-    private static final List<List<Direction>> CORNER_DIRS = List.of(
-        List.of(Direction.LEFT_AND_UP, Direction.LEFT, Direction.UP),
-        List.of(Direction.RIGHT_AND_UP, Direction.RIGHT, Direction.UP),
-        List.of(Direction.RIGHT_AND_DOWN, Direction.RIGHT, Direction.DOWN),
-        List.of(Direction.LEFT_AND_DOWN, Direction.LEFT, Direction.DOWN)
-    );
 
     private AoC2024_12(final boolean debug) {
         super(debug);
@@ -43,17 +35,14 @@ public final class AoC2024_12 extends SolutionBase<List<String>, Integer, Intege
         return inputs;
     }
     
-    private int solve(
-            final List<String> input,
-            final ToIntBiFunction<Cell, Set<Cell>> count
-    ) {
+    private int solve(final List<String> input, final Pricing pricing) {
         final Map<Character, Set<Cell>> plotsByPlant = new HashMap<>();
         range(input.size()).forEach(r ->
             range(input.get(r).length()).forEach(c ->
                 plotsByPlant
                     .computeIfAbsent(input.get(r).charAt(c), k -> new HashSet<>())
                     .add(Cell.at(r, c))));
-        final Iterator<Set<Cell>> regions = new Iterator<>() {
+        final IterToolsIterator<Set<Cell>> regions = new IterToolsIterator<>() {
             final Iterator<Character> keys = plotsByPlant.keySet().iterator();
             char key = keys.next();
             Set<Cell> allPlotsWithPlant = plotsByPlant.get(key);
@@ -77,36 +66,51 @@ public final class AoC2024_12 extends SolutionBase<List<String>, Integer, Intege
                 return !allPlotsWithPlant.isEmpty() || keys.hasNext();
             }
         };
-        return Utils.stream(regions)
+        return regions.stream()
             .mapToInt(region -> region.stream()
-                .mapToInt(plot -> count.applyAsInt(plot, region) * region.size())
-                .sum())
+                .mapToInt(plot -> pricing.calculate(plot, region))
+                .sum() * region.size())
             .sum();
     }
     
     @Override
     public Integer solvePart1(final List<String> input) {
-        final ToIntBiFunction<Cell, Set<Cell>> countEdges
-            = (plot, region) -> (4 - (int) plot.capitalNeighbours()
-                    .filter(region::contains)
-                    .count());
-        return solve(input, countEdges);
+        return solve(input, Pricing.PERIMETER);
     }
     
     @Override
     public Integer solvePart2(final List<String> input) {
-        final Set<int[]> matches = Set.of(
+        return solve(input, Pricing.NUMBER_OF_SIDES);
+    }
+    
+    private enum Pricing {
+        PERIMETER, NUMBER_OF_SIDES;
+
+        private static final List<List<Direction>> CORNER_DIRS = List.of(
+            List.of(Direction.LEFT_AND_UP, Direction.LEFT, Direction.UP),
+            List.of(Direction.RIGHT_AND_UP, Direction.RIGHT, Direction.UP),
+            List.of(Direction.RIGHT_AND_DOWN, Direction.RIGHT, Direction.DOWN),
+            List.of(Direction.LEFT_AND_DOWN, Direction.LEFT, Direction.DOWN)
+        );
+        private static final Set<int[]> MATCHES = Set.of(
             new int[] {0, 0, 0}, new int[] {1, 0, 0}, new int[] {0, 1, 1});
-        final ToIntBiFunction<Cell, Set<Cell>> countCorners
-            = (plot, region) -> ((int) CORNER_DIRS.stream()
+
+        public int calculate(final Cell plot, final Set<Cell> region) {
+            return switch (this) {
+            case PERIMETER -> 4 - (int) plot.capitalNeighbours()
+                                        .filter(region::contains)
+                                        .count();
+            case NUMBER_OF_SIDES -> (int) CORNER_DIRS.stream()
                 .filter(d -> {
                     final int[] test = range(3).intStream()
                         .map(i -> region.contains(plot.at(d.get(i))) ? 1 : 0)
                         .toArray();
-                    return matches.stream().anyMatch(m -> Arrays.equals(m, test));
+                    return MATCHES.stream()
+                                .anyMatch(m -> Arrays.equals(m, test));
                 })
-                .count());
-        return solve(input, countCorners);
+                .count();
+            };
+        }
     }
     
     @Override
