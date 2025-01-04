@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import java.util.stream.Stream;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
@@ -47,64 +47,84 @@ public final class AoC2024_15
                         blocks.get(1).stream().collect(joining()))
                 .map(Direction::fromChar)
                 .toList();
-        return new Input(new GridSupplier(blocks.get(0)), dirs);
+        return new Input(blocks.get(0), dirs);
     }
 
     private int solve(
-            final CharGrid grid,
-            final List<Direction> dirs,
-            final GetToMove getToMove
+            final Warehouse warehouse, final List<Direction> dirs
     ) {
-        Cell robot = grid.getAllEqualTo(ROBOT).findFirst().orElseThrow();
+        Cell robot = warehouse.grid().getAllEqualTo(ROBOT)
+                        .findFirst().orElseThrow();
         for (final Direction dir : dirs) {
-            final List<Cell> toMove = getToMove.getToMove(grid, robot, dir);
+            final List<Cell> toMove = warehouse.getToMove(robot, dir);
             if (toMove.isEmpty()) {
                 continue;
             }
             final Map<Cell, Character> vals = toMove.stream()
-                .collect(toMap(tm -> tm, grid::getValue));
+                .collect(toMap(tm -> tm, warehouse.grid::getValue));
             robot = robot.at(dir);
             for (final Cell cell : toMove) {
-                grid.setValue(cell, FLOOR);
+                warehouse.grid.setValue(cell, FLOOR);
             }
             for (final Cell cell : toMove) {
-                grid.setValue(cell.at(dir), vals.get(cell));
+                warehouse.grid.setValue(cell.at(dir), vals.get(cell));
             }
         }
-        return grid.findAllMatching(Set.of(BOX, BIG_BOX_LEFT)::contains)
+        return warehouse.getBoxes()
                 .mapToInt(cell -> cell.getRow() * 100 + cell.getCol())
                 .sum();
     }
     
     @Override
     public Integer solvePart1(final Input input) {
-        final GetToMove getToMove = (grid, robot, dir) -> {
-            final List<Cell> toMove = new ArrayList<>(List.of(robot));
-            final Deque<Cell> q = new ArrayDeque<>(toMove);
-            while (!q.isEmpty()) {
-                final Cell cell = q.pop();
-                final Cell nxt = cell.at(dir);
-                if (q.contains(nxt)) {
-                    continue;
-                }
-                switch (grid.getValue(nxt)) {
-                    case WALL:
-                        return List.of();
-                    case BOX:
-                        q.add(nxt);
-                        toMove.add(nxt);
-                        break;
-                }
-            }
-            return toMove;
-        };
-        
-        return solve(input.grid.getGrid(), input.dirs, getToMove);
+        return solve(
+                Warehouse.create(Warehouse.Type.WAREHOUSE_1, input.grid),
+                input.dirs);
     }
     
     @Override
     public Integer solvePart2(final Input input) {
-        final GetToMove getToMove = (grid, robot, dir) -> {
+        return solve(
+                Warehouse.create(Warehouse.Type.WAREHOUSE_2, input.grid),
+                input.dirs);
+    }
+
+    record Warehouse(Type type, CharGrid grid) {
+        private static final Map<Character, char[]> SCALE_UP = Map.of(
+                FLOOR, new char[] { FLOOR, FLOOR },
+                WALL, new char[] { WALL, WALL },
+                ROBOT, new char[] { ROBOT, FLOOR },
+                BOX, new char[] { BIG_BOX_LEFT, BIG_BOX_RIGHT }
+        );
+
+        enum Type {
+            WAREHOUSE_1, WAREHOUSE_2;
+        }
+        
+        public static Warehouse create(
+                final Type type, final List<String> gridIn
+        ) {
+            final CharGrid grid = switch (type) {
+            case WAREHOUSE_1: yield CharGrid.from(gridIn);
+            case WAREHOUSE_2 : {
+                final char[][] chars = new char[gridIn.size()][];
+                for (final int r : range(gridIn.size())) {
+                    final String line = gridIn.get(r);
+                    final char[] row = new char[2 * line.length()];
+                    for(final int c : range(line.length())) {
+                        final char[] s = SCALE_UP.get(line.charAt(c));
+                        row[2 * c] = s[0];
+                        row[2 * c + 1] = s[1];
+                    }
+                    chars[r] = row;
+                }
+                yield new CharGrid(chars);
+            }
+            };
+            return new Warehouse(type, grid);
+        }
+
+        public List<Cell> getToMove(final Cell robot, final Direction dir) {
             final List<Cell> toMove = new ArrayList<>(List.of(robot));
             final Deque<Cell> q = new ArrayDeque<>(toMove);
             while (!q.isEmpty()) {
@@ -113,29 +133,42 @@ public final class AoC2024_15
                 if (q.contains(nxt)) {
                     continue;
                 }
-                switch (grid.getValue(nxt)) {
-                    case WALL:
-                        return List.of();
-                    case BIG_BOX_LEFT:
-                        final Cell right = nxt.at(Direction.RIGHT);
+                final char nxtVal = grid.getValue(nxt);
+                if (nxtVal == WALL) {
+                    return List.of();
+                }
+                switch(this.type) {
+                    case WAREHOUSE_1: {
+                        if (nxtVal == BOX) {
+                            q.add(nxt);
+                            toMove.add(nxt);
+                        }
+                    }
+                    case WAREHOUSE_2: {
+                        final Cell also;
+                        if (nxtVal == BIG_BOX_LEFT) {
+                            also = nxt.at(Direction.RIGHT);
+                        } else if (nxtVal == BIG_BOX_RIGHT) {
+                            also = nxt.at(Direction.LEFT);
+                        } else {
+                            continue;
+                        }
                         q.add(nxt);
-                        q.add(right);
+                        q.add(also);
                         toMove.add(nxt);
-                        toMove.add(right);
-                        break;
-                    case BIG_BOX_RIGHT:
-                        final Cell left = nxt.at(Direction.LEFT);
-                        q.add(nxt);
-                        q.add(left);
-                        toMove.add(nxt);
-                        toMove.add(left);
-                        break;
+                        toMove.add(also);
+                    }
                 }
             }
             return toMove;
-        };
-        
-        return solve(input.grid.getWideGrid(), input.dirs, getToMove);
+        }
+
+        public Stream<Cell> getBoxes() {
+            return switch(this.type) {
+                case WAREHOUSE_1 -> grid.getAllEqualTo(BOX);
+                case WAREHOUSE_2 -> grid.getAllEqualTo(BIG_BOX_LEFT);
+            };
+        }
     }
     
     @Override
@@ -187,37 +220,5 @@ public final class AoC2024_15
             v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
             """;
 
-    private interface GetToMove {
-        List<Cell> getToMove(CharGrid grid, Cell robot, Direction dir);
-    }
-    
-    record GridSupplier(List<String> gridIn) {
-        private static final Map<Character, char[]> SCALE_UP = Map.of(
-                FLOOR, new char[] { FLOOR, FLOOR },
-                WALL, new char[] { WALL, WALL },
-                ROBOT, new char[] { ROBOT, FLOOR },
-                BOX, new char[] { BIG_BOX_LEFT, BIG_BOX_RIGHT }
-        );
-
-        public CharGrid getGrid() {
-            return CharGrid.from(this.gridIn);
-        }
-        
-        public CharGrid getWideGrid() {
-            final char[][] chars = new char[this.gridIn.size()][];
-            for (final int r : range(this.gridIn.size())) {
-                final String line = this.gridIn.get(r);
-                final char[] row = new char[2 * line.length()];
-                for(final int c : range(line.length())) {
-                    final char[] s = SCALE_UP.get(line.charAt(c));
-                    row[2 * c] = s[0];
-                    row[2 * c + 1] = s[1];
-                }
-                chars[r] = row;
-            }
-            return new CharGrid(chars);
-        }
-    }
-    
-    record Input(GridSupplier grid, List<Direction> dirs) {}
+    record Input(List<String> grid, List<Direction> dirs) {}
 }
