@@ -6,60 +6,119 @@ use aoc::Puzzle;
 use std::collections::{HashMap, VecDeque};
 use std::str::FromStr;
 
+enum WarehouseType {
+    Type1,
+    Type2,
+}
+
+struct Warehouse {
+    r#type: WarehouseType,
+    grid: CharGrid,
+}
+
+impl Warehouse {
+    fn new(r#type: WarehouseType, lines: &[String]) -> Self {
+        let grid = match r#type {
+            WarehouseType::Type1 => CharGrid::from(
+                &lines.iter().map(AsRef::as_ref).collect::<Vec<_>>(),
+            ),
+            WarehouseType::Type2 => {
+                let mut grid: Vec<String> = vec![];
+                for line in lines {
+                    let mut row = String::new();
+                    line.chars().for_each(|ch| match ch {
+                        '.' => row.push_str(".."),
+                        'O' => row.push_str("[]"),
+                        '@' => row.push_str("@."),
+                        '#' => row.push_str("##"),
+                        _ => panic!(),
+                    });
+                    grid.push(row);
+                }
+                CharGrid::from(
+                    &grid.iter().map(AsRef::as_ref).collect::<Vec<_>>(),
+                )
+            }
+        };
+        Self { r#type, grid }
+    }
+
+    fn get_to_move(&self, robot: Cell, dir: &Direction) -> Vec<Cell> {
+        let mut to_move = vec![robot];
+        let mut q: VecDeque<Cell> = VecDeque::from(vec![robot]);
+        while let Some(cell) = q.pop_front() {
+            let nxt = cell.try_at(*dir).unwrap();
+            if to_move.contains(&nxt) {
+                continue;
+            }
+            let nxt_val = self.grid.get(&nxt);
+            if nxt_val == '#' {
+                return vec![];
+            }
+            match self.r#type {
+                WarehouseType::Type1 => {
+                    if nxt_val != 'O' {
+                        continue;
+                    }
+                }
+                WarehouseType::Type2 => match nxt_val {
+                    '[' => {
+                        let right = nxt.try_at(Direction::Right).unwrap();
+                        to_move.push(right);
+                        q.push_back(right);
+                    }
+                    ']' => {
+                        let left = nxt.try_at(Direction::Left).unwrap();
+                        to_move.push(left);
+                        q.push_back(left);
+                    }
+                    _ => continue,
+                },
+            }
+            to_move.push(nxt);
+            q.push_back(nxt);
+        }
+        to_move
+    }
+
+    #[inline]
+    fn get_box(&self) -> char {
+        match self.r#type {
+            WarehouseType::Type1 => 'O',
+            WarehouseType::Type2 => '[',
+        }
+    }
+}
+
 struct AoC2024_15;
 
 impl AoC2024_15 {
-    fn get_grid(&self, lines: &[String]) -> CharGrid {
-        CharGrid::from(&lines.iter().map(AsRef::as_ref).collect::<Vec<_>>())
-    }
-
-    fn get_wide_grid(&self, lines: &[String]) -> CharGrid {
-        let mut grid: Vec<String> = vec![];
-        for line in lines {
-            let mut row = String::new();
-            line.chars().for_each(|ch| match ch {
-                '.' => row.push_str(".."),
-                'O' => row.push_str("[]"),
-                '@' => row.push_str("@."),
-                '#' => row.push_str("##"),
-                _ => panic!(),
-            });
-            grid.push(row);
-        }
-        CharGrid::from(&grid.iter().map(AsRef::as_ref).collect::<Vec<_>>())
-    }
-
-    fn solve<F>(
-        &self,
-        grid: &mut CharGrid,
-        dirs: &Vec<Direction>,
-        get_to_move: F,
-    ) -> usize
-    where
-        F: Fn(&CharGrid, Cell, &Direction) -> Vec<Cell>,
-    {
-        let mut robot = grid.find_first_matching(|ch| ch == '@').unwrap();
+    fn solve(&self, warehouse: &mut Warehouse, dirs: &Vec<Direction>) -> usize {
+        let mut robot =
+            warehouse.grid.find_first_matching(|ch| ch == '@').unwrap();
         for dir in dirs {
-            let to_move = get_to_move(grid, robot, dir);
+            let to_move = warehouse.get_to_move(robot, dir);
             if to_move.is_empty() {
                 continue;
             }
             let vals: HashMap<(usize, usize), char> = to_move
                 .iter()
-                .map(|cell| ((cell.row, cell.col), grid.get(cell)))
+                .map(|cell| ((cell.row, cell.col), warehouse.grid.get(cell)))
                 .collect();
             robot = robot.try_at(*dir).unwrap();
             for cell in to_move.iter() {
-                grid.get_data_mut()[cell.row][cell.col] = '.';
+                warehouse.grid.get_data_mut()[cell.row][cell.col] = '.';
             }
             for cell in to_move.iter() {
                 let nxt = cell.try_at(*dir).unwrap();
-                grid.get_data_mut()[nxt.row][nxt.col] =
+                warehouse.grid.get_data_mut()[nxt.row][nxt.col] =
                     *(vals.get(&(cell.row, cell.col)).unwrap());
             }
         }
-        grid.cells()
-            .filter(|cell| grid.get(cell) == 'O' || grid.get(cell) == '[')
+        warehouse
+            .grid
+            .cells()
+            .filter(|cell| warehouse.grid.get(cell) == warehouse.get_box())
             .map(|cell| (cell.row * 100 + cell.col))
             .sum()
     }
@@ -85,63 +144,13 @@ impl aoc::Puzzle for AoC2024_15 {
     }
 
     fn part_1(&self, input: &Self::Input) -> Self::Output1 {
-        let get_to_move = |grid: &CharGrid, robot: Cell, dir: &Direction| {
-            let mut to_move = vec![robot];
-            let mut q: VecDeque<Cell> = VecDeque::from(vec![robot]);
-            while let Some(cell) = q.pop_front() {
-                let nxt = cell.try_at(*dir).unwrap();
-                if to_move.contains(&nxt) {
-                    continue;
-                }
-                match grid.get(&nxt) {
-                    '#' => return vec![],
-                    'O' => {
-                        to_move.push(nxt);
-                        q.push_back(nxt);
-                    }
-                    _ => continue,
-                }
-            }
-            to_move
-        };
-
         let (grid, dirs) = input;
-        self.solve(&mut self.get_grid(grid), dirs, get_to_move)
+        self.solve(&mut Warehouse::new(WarehouseType::Type1, grid), dirs)
     }
 
     fn part_2(&self, input: &Self::Input) -> Self::Output2 {
-        let get_to_move = |grid: &CharGrid, robot: Cell, dir: &Direction| {
-            let mut to_move = vec![robot];
-            let mut q: VecDeque<Cell> = VecDeque::from(vec![robot]);
-            while let Some(cell) = q.pop_front() {
-                let nxt = cell.try_at(*dir).unwrap();
-                if to_move.contains(&nxt) {
-                    continue;
-                }
-                match grid.get(&nxt) {
-                    '#' => return vec![],
-                    '[' => {
-                        let right = nxt.try_at(Direction::Right).unwrap();
-                        to_move.push(nxt);
-                        q.push_back(nxt);
-                        to_move.push(right);
-                        q.push_back(right);
-                    }
-                    ']' => {
-                        let left = nxt.try_at(Direction::Left).unwrap();
-                        to_move.push(nxt);
-                        q.push_back(nxt);
-                        to_move.push(left);
-                        q.push_back(left);
-                    }
-                    _ => continue,
-                }
-            }
-            to_move
-        };
-
         let (grid, dirs) = input;
-        self.solve(&mut self.get_wide_grid(grid), dirs, get_to_move)
+        self.solve(&mut Warehouse::new(WarehouseType::Type2, grid), dirs)
     }
 
     fn samples(&self) {
