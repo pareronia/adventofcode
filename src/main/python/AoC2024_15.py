@@ -3,8 +3,13 @@
 # Advent of Code 2024 Day 15
 #
 
+from __future__ import annotations
+
 import sys
-from typing import Callable
+from enum import Enum
+from enum import auto
+from enum import unique
+from typing import Iterator
 from typing import NamedTuple
 
 from aoc import my_aocd
@@ -14,6 +19,15 @@ from aoc.common import aoc_samples
 from aoc.geometry import Direction
 from aoc.grid import Cell
 from aoc.grid import CharGrid
+
+FLOOR, WALL, ROBOT = ".", "#", "@"
+BOX, BIG_BOX_LEFT, BIG_BOX_RIGHT = "O", "[", "]"
+SCALE_UP = {
+    WALL: WALL + WALL,
+    BOX: BIG_BOX_LEFT + BIG_BOX_RIGHT,
+    FLOOR: FLOOR + FLOOR,
+    ROBOT: ROBOT + FLOOR,
+}
 
 TEST1 = """\
 ########
@@ -52,106 +66,96 @@ v^^>>><<^^<>>^v^<v^vv<>v^<<>^<^v^v><^<<<><<^<v><v<>vv>>v><v^<vv<>v^<<^
 """
 
 
-class GridSupplier(NamedTuple):
-    grid_in: list[str]
-
-    def get_grid(self) -> CharGrid:
-        return CharGrid.from_strings(self.grid_in)
-
-    def get_wide_grid(self) -> CharGrid:
-        grid = [
-            "".join(Solution.SCALE_UP[ch] for ch in line)
-            for line in self.grid_in
-        ]
-        return CharGrid.from_strings(grid)
+@unique
+class WarehouseType(Enum):
+    WAREHOUSE_1 = auto()
+    WAREHOUSE_2 = auto()
 
 
-Input = tuple[GridSupplier, list[Direction]]
+class Warehouse(NamedTuple):
+    type: WarehouseType
+    grid: CharGrid
+
+    @classmethod
+    def create(cls, type: WarehouseType, grid_in: list[str]) -> Warehouse:
+        match type:
+            case WarehouseType.WAREHOUSE_1:
+                grid = CharGrid.from_strings(grid_in)
+            case WarehouseType.WAREHOUSE_2:
+                strings = [
+                    "".join(SCALE_UP[ch] for ch in line) for line in grid_in
+                ]
+                grid = CharGrid.from_strings(strings)
+        return Warehouse(type, grid)
+
+    def get_to_move(self, robot: Cell, dir: Direction) -> list[Cell]:
+        to_move = [robot]
+        for cell in to_move:
+            nxt = cell.at(dir)
+            if nxt in to_move:
+                continue
+            nxt_val = self.grid.get_value(nxt)
+            if nxt_val == WALL:
+                return []
+            match self.type:
+                case WarehouseType.WAREHOUSE_1:
+                    if nxt_val != BOX:
+                        continue
+                case WarehouseType.WAREHOUSE_2:
+                    if nxt_val == BIG_BOX_LEFT:
+                        to_move.append(nxt.at(Direction.RIGHT))
+                    elif nxt_val == BIG_BOX_RIGHT:
+                        to_move.append(nxt.at(Direction.LEFT))
+                    else:
+                        continue
+            to_move.append(nxt)
+        return to_move
+
+    def get_boxes(self) -> Iterator[Cell]:
+        match self.type:
+            case WarehouseType.WAREHOUSE_1:
+                ch = BOX
+            case WarehouseType.WAREHOUSE_2:
+                ch = BIG_BOX_LEFT
+        return self.grid.get_all_equal_to(ch)
+
+
+Input = tuple[list[str], list[Direction]]
 Output1 = int
 Output2 = int
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
-    FLOOR, WALL, ROBOT = ".", "#", "@"
-    BOX, BIG_BOX_LEFT, BIG_BOX_RIGHT = "O", "[", "]"
-    SCALE_UP = {
-        WALL: WALL + WALL,
-        BOX: BIG_BOX_LEFT + BIG_BOX_RIGHT,
-        FLOOR: FLOOR + FLOOR,
-        ROBOT: ROBOT + FLOOR,
-    }
-
     def parse_input(self, input_data: InputData) -> Input:
         blocks = my_aocd.to_blocks(input_data)
         dirs = [Direction.from_str(ch) for ch in "".join(blocks[1])]
-        return GridSupplier(blocks[0]), dirs
+        return blocks[0], dirs
 
-    def solve(
-        self,
-        grid: CharGrid,
-        dirs: list[Direction],
-        get_to_move: Callable[[CharGrid, Cell, Direction], list[Cell]],
-    ) -> int:
-        robot = next(grid.get_all_equal_to(Solution.ROBOT))
+    def solve(self, warehouse: Warehouse, dirs: list[Direction]) -> int:
+        robot = next(warehouse.grid.get_all_equal_to(ROBOT))
         for dir in dirs:
-            to_move = get_to_move(grid, robot, dir)
+            to_move = warehouse.get_to_move(robot, dir)
             if len(to_move) == 0:
                 continue
-            vals = {tm: grid.get_value(tm) for tm in to_move}
+            vals = {tm: warehouse.grid.get_value(tm) for tm in to_move}
             robot = robot.at(dir)
             for cell in to_move:
-                grid.set_value(cell, Solution.FLOOR)
+                warehouse.grid.set_value(cell, FLOOR)
             for cell in to_move:
-                grid.set_value(cell.at(dir), vals[cell])
-        return sum(
-            cell.row * 100 + cell.col
-            for cell in grid.find_all_matching(
-                lambda cell: grid.get_value(cell)
-                in {Solution.BOX, Solution.BIG_BOX_LEFT}
-            )
-        )
+                warehouse.grid.set_value(cell.at(dir), vals[cell])
+        return sum(cell.row * 100 + cell.col for cell in warehouse.get_boxes())
 
     def part_1(self, input: Input) -> Output1:
-        def get_to_move(
-            grid: CharGrid, robot: Cell, dir: Direction
-        ) -> list[Cell]:
-            to_move = [robot]
-            for cell in to_move:
-                nxt = cell.at(dir)
-                if nxt in to_move:
-                    continue
-                match grid.get_value(nxt):
-                    case Solution.WALL:
-                        return []
-                    case Solution.BOX:
-                        to_move.append(nxt)
-            return to_move
-
         grid, dirs = input
-        return self.solve(grid.get_grid(), dirs, get_to_move)
+        return self.solve(
+            Warehouse.create(WarehouseType.WAREHOUSE_1, grid), dirs
+        )
 
     def part_2(self, input: Input) -> Output2:
-        def get_to_move(
-            grid: CharGrid, robot: Cell, dir: Direction
-        ) -> list[Cell]:
-            to_move = [robot]
-            for cell in to_move:
-                nxt = cell.at(dir)
-                if nxt in to_move:
-                    continue
-                match grid.get_value(nxt):
-                    case Solution.WALL:
-                        return []
-                    case Solution.BIG_BOX_LEFT:
-                        to_move.append(nxt)
-                        to_move.append(nxt.at(Direction.RIGHT))
-                    case Solution.BIG_BOX_RIGHT:
-                        to_move.append(nxt)
-                        to_move.append(nxt.at(Direction.LEFT))
-            return to_move
-
         grid, dirs = input
-        return self.solve(grid.get_wide_grid(), dirs, get_to_move)
+        return self.solve(
+            Warehouse.create(WarehouseType.WAREHOUSE_2, grid), dirs
+        )
 
     @aoc_samples(
         (
