@@ -5,7 +5,22 @@ use aoc::graph::BFS;
 use aoc::grid::Cell;
 use aoc::Puzzle;
 use itertools::Itertools;
+use lazy_static::lazy_static;
 use std::collections::{HashMap, HashSet};
+
+lazy_static! {
+    static ref CORNER_DIRS: [[Direction; 3]; 4] = [
+        [Direction::LeftAndUp, Direction::Left, Direction::Up],
+        [Direction::RightAndUp, Direction::Right, Direction::Up],
+        [Direction::RightAndDown, Direction::Right, Direction::Down],
+        [Direction::LeftAndDown, Direction::Left, Direction::Down],
+    ];
+    static ref MATCHES: [[bool; 3]; 3] = [
+        [false, false, false],
+        [true, false, false],
+        [false, true, true],
+    ];
+}
 
 #[derive(Clone, Debug)]
 struct Regions {
@@ -84,13 +99,41 @@ impl<'a> Iterator for RegionIterator<'a> {
     }
 }
 
+enum Pricing {
+    Perimeter,
+    NumberOfSides,
+}
+
+impl Pricing {
+    fn calculate(&self, plot: &Cell, region: &HashSet<Cell>) -> usize {
+        match self {
+            Pricing::Perimeter => {
+                4 - plot
+                    .capital_neighbours()
+                    .iter()
+                    .filter(|n| region.contains(n))
+                    .count()
+            }
+            Pricing::NumberOfSides => CORNER_DIRS
+                .iter()
+                .filter(|d| {
+                    let test = (0..3)
+                        .map(|i| {
+                            plot.try_at(d[i])
+                                .is_some_and(|n| region.contains(&n))
+                        })
+                        .collect::<Vec<bool>>();
+                    MATCHES.iter().any(|m| *m == *test)
+                })
+                .count(),
+        }
+    }
+}
+
 struct AoC2024_12;
 
 impl AoC2024_12 {
-    fn solve<F>(&self, input: &[String], count: F) -> usize
-    where
-        F: Fn(&Cell, &HashSet<Cell>) -> usize,
-    {
+    fn solve(&self, input: &[String], pricing: Pricing) -> usize {
         let regions: Regions = (0..input.len())
             .cartesian_product(0..input[0].len())
             .map(|(r, c)| (input[r].chars().nth(c).unwrap(), Cell::at(r, c)))
@@ -99,7 +142,7 @@ impl AoC2024_12 {
             .iter()
             .map(|r| {
                 r.iter()
-                    .map(|plot| count(plot, &r) * r.len())
+                    .map(|plot| pricing.calculate(plot, &r) * r.len())
                     .sum::<usize>()
             })
             .sum()
@@ -118,43 +161,11 @@ impl aoc::Puzzle for AoC2024_12 {
     }
 
     fn part_1(&self, input: &Self::Input) -> Self::Output1 {
-        let count_edges = |plot: &Cell, region: &HashSet<Cell>| {
-            4 - plot
-                .capital_neighbours()
-                .iter()
-                .filter(|n| region.contains(n))
-                .count()
-        };
-        self.solve(input, count_edges)
+        self.solve(input, Pricing::Perimeter)
     }
 
     fn part_2(&self, input: &Self::Input) -> Self::Output2 {
-        let corner_dirs = [
-            [Direction::LeftAndUp, Direction::Left, Direction::Up],
-            [Direction::RightAndUp, Direction::Right, Direction::Up],
-            [Direction::RightAndDown, Direction::Right, Direction::Down],
-            [Direction::LeftAndDown, Direction::Left, Direction::Down],
-        ];
-        let matches = [
-            [false, false, false],
-            [true, false, false],
-            [false, true, true],
-        ];
-        let count_corners = |plot: &Cell, region: &HashSet<Cell>| {
-            corner_dirs
-                .iter()
-                .filter(|d| {
-                    let test = (0..3)
-                        .map(|i| match plot.try_at(d[i]) {
-                            Some(n) => region.contains(&n),
-                            None => false,
-                        })
-                        .collect::<Vec<bool>>();
-                    matches.iter().any(|m| *m == *test)
-                })
-                .count()
-        };
-        self.solve(input, count_corners)
+        self.solve(input, Pricing::NumberOfSides)
     }
 
     fn samples(&self) {
