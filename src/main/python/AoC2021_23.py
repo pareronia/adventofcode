@@ -5,7 +5,6 @@
 
 from __future__ import annotations
 
-from copy import deepcopy
 import heapq
 import sys
 from typing import NamedTuple
@@ -90,6 +89,15 @@ class Diagram(NamedTuple):
             Room(B, level, amphipods_b),
             Room(C, level, amphipods_c),
             Room(D, level, amphipods_d),
+        )
+
+    def copy(self) -> Diagram:
+        return Diagram(
+            Room(EMPTY, HALLWAY_SIZE, self.hallway.amphipods[:]),
+            Room(A, self.room_a.capacity, self.room_a.amphipods[:]),
+            Room(B, self.room_b.capacity, self.room_b.amphipods[:]),
+            Room(C, self.room_c.capacity, self.room_c.amphipods[:]),
+            Room(D, self.room_d.capacity, self.room_d.amphipods[:]),
         )
 
     def assert_valid(self) -> None:
@@ -200,7 +208,7 @@ class Diagram(NamedTuple):
 
     def do_move_from_hallway(self, move: tuple[str, int, int]) -> Diagram:
         room_name, from_, to = move
-        copy = deepcopy(self)
+        copy = self.copy()
         room = getattr(copy, room_name)
         assert copy.hallway.amphipods[from_] == room.destination_for
         temp = room.amphipods[to]
@@ -213,7 +221,7 @@ class Diagram(NamedTuple):
 
     def do_move_to_hallway(self, move: tuple[str, int, int]) -> Diagram:
         room_name, from_, to = move
-        copy = deepcopy(self)
+        copy = self.copy()
         room = getattr(copy, room_name)
         temp = copy.hallway.amphipods[to]
         assert temp == EMPTY
