@@ -4,134 +4,131 @@
 #
 
 from __future__ import annotations
+
+import sys
 from dataclasses import dataclass
-from aoc import my_aocd
-from aoc.common import log
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+
+Input = list[int]
+Output1 = int
+Output2 = int
+
+
+TEST = """\
+389125467
+"""
 
 
 @dataclass
 class Cup:
     label: int
-    next_: Cup
+    next_: Cup | None
 
 
-def _parse(inputs: tuple[str]) -> list[int]:
-    assert len(inputs) == 1
-    return [int(c) for c in inputs[0]]
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [int(c) for c in list(input_data)[0]]
 
+    def prepare_cups(
+        self, labels: list[int]
+    ) -> tuple[dict[int, Cup], int, int, int]:
+        cups = dict[int, Cup]()
+        first = labels[0]
+        last = labels[-1]
+        tail = Cup(last, None)
+        prev = tail
+        for label in reversed(labels[1:-1]):
+            cup = Cup(label, prev)
+            cups[label] = cup
+            prev = cup
+        head = Cup(first, prev)
+        cups[first] = head
+        tail.next_ = head
+        cups[last] = tail
+        return cups, len(labels), min(labels), max(labels)
 
-def _log(size: int, msg):
-    if size <= 10:
-        log(msg)
-
-
-def _print_cups(move: int, cups: dict[int, Cup], current: Cup) -> str:
-    if len(cups) > 10:
-        return
-    p = current
-    result = ""
-    while True:
-        result += f"{p.label} "
-        p = p.next_
-        if p == current:
-            break
-    result = result.replace(str(current.label), "(" + str(current.label) + ")")
-    return result
-
-
-def _prepare_cups(labels: list[int]) -> (dict[int, Cup], int, int, int):
-    cups = dict[int, Cup]()
-    first = labels[0]
-    last = labels[-1]
-    tail = Cup(last, None)
-    prev = tail
-    for label in reversed(labels[1:-1]):
-        cup = Cup(label, prev)
-        cups[label] = cup
-        prev = cup
-    head = Cup(first, prev)
-    cups[first] = head
-    tail.next_ = head
-    cups[last] = tail
-    return cups, len(labels), min(labels), max(labels)
-
-
-def _do_move(move: int, cups: dict[int, Cup],
-             current: Cup, size: int, min_val: int,
-             max_val: int) -> (dict[int, Cup], int):
-    # _log(size, f"-- move {move+1} --")
-    # _log(size, f"cups: {_print_cups(move, cups, current)}")
-    c = current
-    p1 = c.next_
-    p2 = p1.next_
-    p3 = p2.next_
-    c.next_ = p3.next_
-    pickup = (p1.label, p2.label, p3.label)
-    # _log(size, f"pick up: {p1.label}, {p2.label}, {p3.label}")
-    d = c.label-1
-    if d < min_val:
-        d = max_val
-    while d in pickup:
-        d -= 1
+    def do_move(
+        self,
+        move: int,
+        cups: dict[int, Cup],
+        current: Cup,
+        size: int,
+        min_val: int,
+        max_val: int,
+    ) -> tuple[dict[int, Cup], Cup]:
+        c = current
+        p1 = c.next_
+        assert p1 is not None
+        p2 = p1.next_
+        assert p2 is not None
+        p3 = p2.next_
+        assert p3 is not None
+        c.next_ = p3.next_
+        pickup = (p1.label, p2.label, p3.label)
+        d = c.label - 1
         if d < min_val:
             d = max_val
-    # _log(size, f"destination: {d}")
-    destination = cups[d]
-    p3.next_ = destination.next_
-    destination.next_ = p1
-    current = c.next_
-    # _log(size, "")
-    return cups, current
+        while d in pickup:
+            d -= 1
+            if d < min_val:
+                d = max_val
+        destination = cups[d]
+        p3.next_ = destination.next_
+        destination.next_ = p1
+        assert c.next_ is not None
+        current = c.next_
+        return cups, current
+
+    def part_1(self, cups: Input) -> Output1:
+        cd, size, min_val, max_val = self.prepare_cups(cups)
+        current = cd[cups[0]]
+        for move in range(100):
+            cd, current = self.do_move(
+                move, cd, current, size, min_val, max_val
+            )
+        cup = cd[1]
+        result = ""
+        while cup.next_:
+            if cup.next_.label == 1:
+                break
+            result += str(cup.next_.label)
+            cup = cup.next_
+        return int(result)
+
+    def part_2(self, cups: Input) -> Output2:
+        cups.extend([i for i in range(max(cups) + 1, 1_000_001)])
+        cd, size, min_val, max_val = self.prepare_cups(cups)
+        current = cd[cups[0]]
+        for move in range(10_000_000):
+            cd, current = self.do_move(
+                move, cd, current, size, min_val, max_val
+            )
+        one = cd[1]
+        assert one.next_ is not None
+        star1 = one.next_.label
+        assert one.next_.next_ is not None
+        star2 = one.next_.next_.label
+        return star1 * star2
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 67384529),
+            ("part_2", TEST, 149245887792),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def part_1(inputs: tuple[str]) -> int:
-    cups = _parse(inputs)
-    cd, size, min_val, max_val = _prepare_cups(cups)
-    current = cd[cups[0]]
-    for move in range(100):
-        cd, current = _do_move(move, cd, current, size, min_val, max_val)
-    cup = cd[1]
-    result = ""
-    while cup.next_.label != 1:
-        result += str(cup.next_.label)
-        cup = cup.next_
-    log(result)
-    return int(result)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    cups = _parse(inputs)
-    cups.extend([i for i in range(max(cups)+1, 1_000_001)])
-    cd, size, min_val, max_val = _prepare_cups(cups)
-    current = cd[cups[0]]
-    for move in range(10_000_000):
-        cd, current = _do_move(move, cd, current, size, min_val, max_val)
-        # if move % 100_000 == 0:
-        #     print('.', end='', flush=True)
-    # print("")
-    one = cd[1]
-    star1 = one.next_.label
-    star2 = one.next_.next_.label
-    return star1 * star2
-
-
-TEST = """\
-389125467
-""".splitlines()
+solution = Solution(2020, 23)
 
 
 def main() -> None:
-    my_aocd.print_header(2020, 23)
-
-    assert part_1(TEST) == 67384529
-    assert part_2(TEST) == 149245887792
-
-    inputs = my_aocd.get_input(2020, 23, 1)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
