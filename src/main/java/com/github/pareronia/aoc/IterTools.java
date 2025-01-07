@@ -110,8 +110,8 @@ public class IterTools {
         return zip(iterable1.iterator(), iterable2.iterator());
     }
     
-    private static <T> Iterator<T> cycle(final Iterator<T> iterator) {
-        return new Iterator<>() {
+    private static <T> IterToolsIterator<T> cycle(final Iterator<T> iterator) {
+        return new IterToolsIterator<>() {
             List<T> saved = new ArrayList<>();
             int i = 0;
 
@@ -132,7 +132,7 @@ public class IterTools {
         };
     }
 
-    public static <T> Iterator<T> cycle(final Iterable<T> iterable) {
+    public static <T> IterToolsIterator<T> cycle(final Iterable<T> iterable) {
         return cycle(iterable.iterator());
     }
     
