@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 import itertools
 import logging
 import os
@@ -45,6 +46,7 @@ from .config import config
 from .cpp import Cpp
 from .java import Java
 from .julia import Julia
+from .listener import BenchmarkListener
 from .listener import CLIListener
 from .listener import JUnitXmlListener
 from .listener import Listener
@@ -146,6 +148,14 @@ def main() -> None:
             "Default level is logging.WARNING."
         ),
     )
+    subparsers = parser.add_subparsers()
+    parser_bench = subparsers.add_parser("bench")
+    parser_bench.add_argument(
+        "-s",
+        "--slowest",
+        type=int,
+        default=5,
+    )
     args = parser.parse_args()
 
     if args.verbose is None:
@@ -162,6 +172,10 @@ def main() -> None:
         args.plugins, args.users, args.timeout, args.hide_missing
     )
     junitxml_listener = JUnitXmlListener()
+    listeners = [cli_listener, junitxml_listener]
+    if "slowest" in args:
+        bench = BenchmarkListener()
+        listeners.append(bench)
 
     with use_plugins(plugins):
         rc = run_for(
@@ -171,8 +185,19 @@ def main() -> None:
             datasets=datasets,
             timeout=args.timeout,
             autosubmit=args.autosubmit,
-            listener=Listeners([cli_listener, junitxml_listener]),
+            listener=Listeners(listeners),
         )
+
+    if "slowest" in args:
+        print()
+        by_time = [_ for _ in bench.get_by_time()]
+        by_time.reverse()
+        for i in range(args.slowest):
+            print(
+                f"{by_time[i].year}/{by_time[i].day:02}/{by_time[i].part}"
+                f"/{by_time[i].plugin}/{by_time[i].user_id}: "
+                f"{by_time[i].time / 1e9:6.3f}s"
+            )
 
     sys.exit(rc)
 
@@ -298,7 +323,7 @@ def run_for(
                         expected is not None and str(expected) == result.answer
                     )
                     listener.part_finished(
-                        time, part, result.answer, expected, correct
+                        result.duration, part, result.answer, expected, correct
                     )
                     if not correct:
                         n_incorrect += 1

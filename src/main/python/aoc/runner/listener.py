@@ -5,6 +5,8 @@ from abc import ABC
 from abc import abstractmethod
 from datetime import datetime
 from typing import Iterable
+from typing import Iterator
+from typing import NamedTuple
 
 from dateutil import tz
 from junitparser import Attr
@@ -56,7 +58,7 @@ class Listener(ABC):
     @abstractmethod
     def part_finished(
         self,
-        time: int,
+        time: int | None,
         part: str,
         answer: str | None,
         expected: str | None,
@@ -107,7 +109,7 @@ class Listeners(Listener):
 
     def part_finished(
         self,
-        time: int,
+        time: int | None,
         part: str,
         answer: str | None,
         expected: str | None,
@@ -152,6 +154,7 @@ class CLIListener(Listener):
         progress = "{}/{:<2d} - {:<39}   {:>%d}/{:<%d}"
         progress %= (self.plugin_pad, self.user_pad)
         self.progress = progress.format(year, day, title, plugin, user_id)
+        self.times = list[int]()
 
     def run_elapsed(self, amount: int) -> None:
         if self.progress is not None:
@@ -203,7 +206,7 @@ class CLIListener(Listener):
 
     def part_finished(
         self,
-        time: int,
+        time: int | None,
         part: str,
         answer: str | None,
         expected: str | None,
@@ -220,7 +223,9 @@ class CLIListener(Listener):
                 icon = colored("❌", "red")
                 correction = f"(expected: {expected})"
             string = f"{answer[:CLIListener.cutoff]} {correction}"
-        self._update_part(time, part, string, icon)
+        if time is not None:
+            self.times.append(time)
+        self._update_part(sum(self.times), part, string, icon)
 
     def stop(self) -> None:
         print()
@@ -240,7 +245,12 @@ class CLIListener(Listener):
         if part == "a":
             self._init_line(time)
             answer = answer.ljust(30)
-        self.line += f"   {icon} part {part}: {answer}"
+            self.line_a = f"   {icon} part {part}: {answer}"
+            self.line += self.line_a
+        else:
+            self._init_line(time)
+            self.line += self.line_a
+            self.line += f"   {icon} part {part}: {answer}"
 
     def _format_time(self, time: int, timeout: float) -> str:
         t = time / 1e9
@@ -318,7 +328,7 @@ class JUnitXmlListener(Listener):
 
     def part_finished(
         self,
-        time: int,
+        time: int | None,
         part: str,
         answer: str | None,
         expected: str | None,
@@ -341,3 +351,71 @@ class JUnitXmlListener(Listener):
         xml = JUnitXml()
         xml.add_testsuite(self.suite)
         xml.write(filepath=config.junitxml["filepath"], pretty=True)
+
+
+class BenchmarkListener(Listener):
+    class PartRun(NamedTuple):
+        year: int
+        day: int
+        part: str
+        plugin: str
+        user_id: str
+        time: int
+
+    def __init__(self) -> None:
+        self.part_runs = list[BenchmarkListener.PartRun]()
+
+    def puzzle_started(
+        self, year: int, day: int, title: str, plugin: str, user_id: str
+    ) -> None:
+        self.year = year
+        self.day = day
+        self.plugin = plugin
+        self.user_id = user_id
+
+    def run_elapsed(self, amount: int) -> None:
+        pass
+
+    def run_finished(self) -> None:
+        pass
+
+    def puzzle_finished(self, time: int, walltime: float) -> None:
+        pass
+
+    def puzzle_finished_with_error(
+        self, time: int, walltime: float, error: str
+    ) -> None:
+        pass
+
+    def part_missing(self, time: int, part: str) -> None:
+        pass
+
+    def part_skipped(self, time: int, part: str) -> None:
+        pass
+
+    def part_finished(
+        self,
+        time: int | None,
+        part: str,
+        answer: str | None,
+        expected: str | None,
+        correct: bool,
+    ) -> None:
+        if time is None:
+            return
+        self.part_runs.append(
+            BenchmarkListener.PartRun(
+                year=self.year,
+                day=self.day,
+                part=part,
+                plugin=self.plugin,
+                user_id=self.user_id,
+                time=time,
+            )
+        )
+
+    def stop(self) -> None:
+        pass
+
+    def get_by_time(self) -> Iterator[PartRun]:
+        return (_ for _ in sorted(self.part_runs, key=lambda pr: pr.time))
