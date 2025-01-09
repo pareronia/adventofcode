@@ -122,6 +122,7 @@
 | bash | [✓](src/main/bash/AoC2017_01.sh) | [✓](src/main/bash/AoC2017_02.sh) |  | [✓](src/main/bash/AoC2017_04.sh) | [✓](src/main/bash/AoC2017_05.sh) |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 | c++ | [✓](src/main/cpp/2017/01/AoC2017_01.cpp) | [✓](src/main/cpp/2017/02/AoC2017_02.cpp) | [✓](src/main/cpp/2017/03/AoC2017_03.cpp) | [✓](src/main/cpp/2017/04/AoC2017_04.cpp) | [✓](src/main/cpp/2017/05/AoC2017_05.cpp) |  |  |  | [✓](src/main/cpp/2017/09/AoC2017_09.cpp) |  | [✓](src/main/cpp/2017/11/AoC2017_11.cpp) |  | [✓](src/main/cpp/2017/13/AoC2017_13.cpp) |  |  |  |  | [✓](src/main/cpp/2017/18/AoC2017_18.cpp) |  |  | [✓](src/main/cpp/2017/21/AoC2017_21.cpp) |  |  |  | [✓](src/main/cpp/2017/25/AoC2017_25.cpp) |
 | julia | [✓](src/main/julia/AoC2017_01.jl) | [✓](src/main/julia/AoC2017_02.jl) | [✓](src/main/julia/AoC2017_03.jl) | [✓](src/main/julia/AoC2017_04.jl) |  |  |  |  |  |  |  |  | [✓](src/main/julia/AoC2017_13.jl) |  |  |  |  |  |  |  |  |  |  |  |  |
+| rust |  |  |  |  |  |  |  |  |  |  |  |  |  |  | [✓](src/main/rust/AoC2017_15/src/main.rs) |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2017@ -->
 
 ## 2016
