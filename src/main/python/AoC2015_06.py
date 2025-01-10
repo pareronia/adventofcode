@@ -5,13 +5,21 @@
 
 from __future__ import annotations
 
+import sys
 from enum import Enum
 from typing import Callable
 from typing import NamedTuple
 
-import aocd
-from aoc import my_aocd
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 from aoc.grid import Cell
+
+TEST1 = "turn on 0,0 through 999,999"
+TEST2 = "toggle 0,0 through 999,0"
+TEST3 = "turn off 499,499 through 500,500"
+TEST4 = "turn on 0,0 through 0,0"
+TEST5 = "toggle 0,0 through 999,999"
 
 
 class Action(Enum):
@@ -79,83 +87,81 @@ class Grid:
         )
 
 
-def _parse(inputs: tuple[str, ...]) -> list[Instruction]:
-    return [Instruction.from_input(line) for line in inputs]
+Input = list[Instruction]
+Output1 = int
+Output2 = int
 
 
-def part_1(inputs: tuple[str, ...]) -> int:
-    def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
-        for r in range(start.row, end.row + 1):
-            for c in range(start.col, end.col + 1):
-                lights[r][c] = 1
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [Instruction.from_input(line) for line in input_data]
 
-    def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
-        for r in range(start.row, end.row + 1):
-            for c in range(start.col, end.col + 1):
-                lights[r][c] = 0
+    def part_1(self, inputs: Input) -> Output1:
+        def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
+            for r in range(start.row, end.row + 1):
+                for c in range(start.col, end.col + 1):
+                    lights[r][c] = 1
 
-    def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
-        for r in range(start.row, end.row + 1):
-            for c in range(start.col, end.col + 1):
-                lights[r][c] = 0 if lights[r][c] == 1 else 1
+        def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
+            for r in range(start.row, end.row + 1):
+                for c in range(start.col, end.col + 1):
+                    lights[r][c] = 0
 
-    lights = Grid(
-        lambda lights, start, end: turn_on(lights, start, end),
-        lambda lights, start, end: turn_off(lights, start, end),
-        lambda lights, start, end: toggle(lights, start, end),
+        def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
+            for r in range(start.row, end.row + 1):
+                for c in range(start.col, end.col + 1):
+                    lights[r][c] = 0 if lights[r][c] == 1 else 1
+
+        lights = Grid(
+            lambda lights, start, end: turn_on(lights, start, end),
+            lambda lights, start, end: turn_off(lights, start, end),
+            lambda lights, start, end: toggle(lights, start, end),
+        )
+        lights.process_instructions(inputs)
+        return lights.get_total_light_value()
+
+    def part_2(self, inputs: Input) -> Output2:
+        def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
+            for r in range(start.row, end.row + 1):
+                for c in range(start.col, end.col + 1):
+                    lights[r][c] += 1
+
+        def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
+            for r in range(start.row, end.row + 1):
+                for c in range(start.col, end.col + 1):
+                    lights[r][c] = max(lights[r][c] - 1, 0)
+
+        def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
+            for r in range(start.row, end.row + 1):
+                for c in range(start.col, end.col + 1):
+                    lights[r][c] += 2
+
+        lights = Grid(
+            lambda lights, start, end: turn_on(lights, start, end),
+            lambda lights, start, end: turn_off(lights, start, end),
+            lambda lights, start, end: toggle(lights, start, end),
+        )
+        lights.process_instructions(inputs)
+        return lights.get_total_light_value()
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 1_000_000),
+            ("part_1", TEST2, 1000),
+            ("part_1", TEST3, 0),
+            ("part_2", TEST4, 1),
+            ("part_2", TEST5, 2_000_000),
+        )
     )
-    lights.process_instructions(_parse(inputs))
-    return lights.get_total_light_value()
+    def samples(self) -> None:
+        pass
 
 
-def part_2(inputs: tuple[str, ...]) -> int:
-    def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
-        for r in range(start.row, end.row + 1):
-            for c in range(start.col, end.col + 1):
-                lights[r][c] += 1
-
-    def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
-        for r in range(start.row, end.row + 1):
-            for c in range(start.col, end.col + 1):
-                lights[r][c] = max(lights[r][c] - 1, 0)
-
-    def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
-        for r in range(start.row, end.row + 1):
-            for c in range(start.col, end.col + 1):
-                lights[r][c] += 2
-
-    lights = Grid(
-        lambda lights, start, end: turn_on(lights, start, end),
-        lambda lights, start, end: turn_off(lights, start, end),
-        lambda lights, start, end: toggle(lights, start, end),
-    )
-    lights.process_instructions(_parse(inputs))
-    return lights.get_total_light_value()
-
-
-TEST1 = "turn on 0,0 through 999,999".splitlines()
-TEST2 = "toggle 0,0 through 999,0".splitlines()
-TEST3 = "turn off 499,499 through 500,500".splitlines()
-TEST4 = "turn on 0,0 through 0,0".splitlines()
-TEST5 = "toggle 0,0 through 999,999".splitlines()
+solution = Solution(2015, 6)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2015, 6)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST1) == 1_000_000  # type:ignore[arg-type]
-    assert part_1(TEST2) == 1000  # type:ignore[arg-type]
-    assert part_1(TEST3) == 0  # type:ignore[arg-type]
-    assert part_2(TEST4) == 1  # type:ignore[arg-type]
-    assert part_2(TEST5) == 2_000_000  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 300)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":
