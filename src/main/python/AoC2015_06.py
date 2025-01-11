@@ -7,7 +7,8 @@ from __future__ import annotations
 
 import sys
 from enum import Enum
-from typing import Callable
+from enum import auto
+from enum import unique
 from typing import NamedTuple
 
 from aoc.common import InputData
@@ -22,10 +23,62 @@ TEST4 = "turn on 0,0 through 0,0"
 TEST5 = "toggle 0,0 through 999,999"
 
 
+@unique
+class Mode(Enum):
+    MODE_1 = auto()
+    MODE_2 = auto()
+
+
+@unique
 class Action(Enum):
-    TURN_ON = 1
-    TOGGLE = 2
-    TURN_OFF = 3
+    TURN_ON = auto()
+    TOGGLE = auto()
+    TURN_OFF = auto()
+
+    @classmethod
+    def from_string(cls, action: str) -> Action:
+        match action:
+            case "turn_on":
+                return Action.TURN_ON
+            case "turn_off":
+                return Action.TURN_OFF
+            case _:
+                return Action.TOGGLE
+
+    def apply(
+        self, lights: list[list[int]], start: Cell, end: Cell, mode: Mode
+    ) -> None:
+        match self:
+            case Action.TURN_ON:
+                match mode:
+                    case Mode.MODE_1:
+                        for r in range(start.row, end.row + 1):
+                            for c in range(start.col, end.col + 1):
+                                lights[r][c] = 1
+                    case Mode.MODE_2:
+                        for r in range(start.row, end.row + 1):
+                            for c in range(start.col, end.col + 1):
+                                lights[r][c] += 1
+            case Action.TURN_OFF:
+                match mode:
+                    case Mode.MODE_1:
+                        for r in range(start.row, end.row + 1):
+                            for c in range(start.col, end.col + 1):
+                                lights[r][c] = 0
+                    case Mode.MODE_2:
+                        for r in range(start.row, end.row + 1):
+                            for c in range(start.col, end.col + 1):
+                                lights[r][c] = max(lights[r][c] - 1, 0)
+            case Action.TOGGLE:
+                match mode:
+                    case Mode.MODE_1:
+                        for r in range(start.row, end.row + 1):
+                            for c in range(start.col, end.col + 1):
+                                lights[r][c] = 0 if lights[r][c] == 1 else 1
+                    case Mode.MODE_2:
+                        for r in range(start.row, end.row + 1):
+                            for c in range(start.col, end.col + 1):
+                                lights[r][c] += 2
 
 
 class Instruction(NamedTuple):
@@ -35,56 +88,11 @@ class Instruction(NamedTuple):
 
     @classmethod
     def from_input(cls, input_: str) -> Instruction:
-        input_ = input_.replace("turn ", "turn_")
-        splits = input_.split(" through ")
-        action_and_start_splits = splits[0].split(" ")
-        action_s = action_and_start_splits[0]
-        if action_s == "turn_on":
-            action = Action.TURN_ON
-        elif action_s == "turn_off":
-            action = Action.TURN_OFF
-        elif action_s == "toggle":
-            action = Action.TOGGLE
-        else:
-            raise ValueError("Invalid input")
-        start_splits = action_and_start_splits[1].split(",")
-        start = Cell(int(start_splits[0]), int(start_splits[1]))
-        end_splits = splits[1].split(",")
-        end = Cell(int(end_splits[0]), int(end_splits[1]))
-        return Instruction(action, start, end)
-
-
-class Grid:
-    def __init__(
-        self,
-        turn_on: Callable[[list[list[int]], Cell, Cell], None],
-        turn_off: Callable[[list[list[int]], Cell, Cell], None],
-        toggle: Callable[[list[list[int]], Cell, Cell], None],
-    ):
-        self.lights = [[0 for _ in range(1000)] for _ in range(1000)]
-        self.turn_on = turn_on
-        self.turn_off = turn_off
-        self.toggle = toggle
-
-    def process_instructions(self, instructions: list[Instruction]) -> None:
-        for instruction in instructions:
-            action = (
-                self.turn_on
-                if instruction.action == Action.TURN_ON
-                else (
-                    self.turn_off
-                    if instruction.action == Action.TURN_OFF
-                    else self.toggle
-                )
-            )
-            action(self.lights, instruction.start, instruction.end)
-
-    def get_total_light_value(self) -> int:
-        return sum(
-            self.lights[r][c]
-            for r in range(len(self.lights))
-            for c in range(len(self.lights[0]))
-        )
+        splits = input_.replace("turn ", "turn_").split(" through ")
+        action_s, start_s = splits[0].split(" ")
+        start = Cell(*list(map(int, start_s.split(",")))[:2])
+        end = Cell(*list(map(int, splits[1].split(",")))[:2])
+        return Instruction(Action.from_string(action_s), start, end)
 
 
 Input = list[Instruction]
@@ -96,53 +104,19 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return [Instruction.from_input(line) for line in input_data]
 
-    def part_1(self, inputs: Input) -> Output1:
-        def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
-            for r in range(start.row, end.row + 1):
-                for c in range(start.col, end.col + 1):
-                    lights[r][c] = 1
+    def solve(self, instructions: Input, mode: Mode) -> int:
+        lights = [[0 for _ in range(1000)] for _ in range(1000)]
+        for instruction in instructions:
+            instruction.action.apply(
+                lights, instruction.start, instruction.end, mode
+            )
+        return sum(lights[r][c] for r in range(1000) for c in range(1000))
 
-        def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
-            for r in range(start.row, end.row + 1):
-                for c in range(start.col, end.col + 1):
-                    lights[r][c] = 0
+    def part_1(self, instructions: Input) -> Output1:
+        return self.solve(instructions, Mode.MODE_1)
 
-        def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
-            for r in range(start.row, end.row + 1):
-                for c in range(start.col, end.col + 1):
-                    lights[r][c] = 0 if lights[r][c] == 1 else 1
-
-        lights = Grid(
-            lambda lights, start, end: turn_on(lights, start, end),
-            lambda lights, start, end: turn_off(lights, start, end),
-            lambda lights, start, end: toggle(lights, start, end),
-        )
-        lights.process_instructions(inputs)
-        return lights.get_total_light_value()
-
-    def part_2(self, inputs: Input) -> Output2:
-        def turn_on(lights: list[list[int]], start: Cell, end: Cell) -> None:
-            for r in range(start.row, end.row + 1):
-                for c in range(start.col, end.col + 1):
-                    lights[r][c] += 1
-
-        def turn_off(lights: list[list[int]], start: Cell, end: Cell) -> None:
-            for r in range(start.row, end.row + 1):
-                for c in range(start.col, end.col + 1):
-                    lights[r][c] = max(lights[r][c] - 1, 0)
-
-        def toggle(lights: list[list[int]], start: Cell, end: Cell) -> None:
-            for r in range(start.row, end.row + 1):
-                for c in range(start.col, end.col + 1):
-                    lights[r][c] += 2
-
-        lights = Grid(
-            lambda lights, start, end: turn_on(lights, start, end),
-            lambda lights, start, end: turn_off(lights, start, end),
-            lambda lights, start, end: toggle(lights, start, end),
-        )
-        lights.process_instructions(inputs)
-        return lights.get_total_light_value()
+    def part_2(self, instructions: Input) -> Output2:
+        return self.solve(instructions, Mode.MODE_2)
 
     @aoc_samples(
         (
