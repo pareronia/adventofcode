@@ -7,30 +7,27 @@
 
 #include "../../aoc/aoc.hpp"
 #include "../../aoc/grid/grid.hpp"
-#include "../../aocd/aocd.hpp"
 
 using namespace std;
 
 const string REGEX = "([ a-z]+) ([0-9]+),([0-9]+) through ([0-9]+),([0-9]+)";
 
-void forEachCell(Grid<int>& grid, const Cell& start, const Cell& end,
-                 const function<void(Grid<int>&, const Cell&)>& f) {
-    for (int rr : aoc::Range::rangeClosed(start.row(), end.row())) {
-        for (int cc : aoc::Range::rangeClosed(start.col(), end.col())) {
-            f(grid, Cell::at(rr, cc));
+void forEachCell(int (&grid)[1'000'000], const Cell& start, const Cell& end,
+                 const function<int(int)>& f) {
+    for (int r = start.row() * 1000; r <= end.row() * 1000; r += 1000) {
+        for (int i = r + start.col(); i <= r + end.col(); i++) {
+            grid[i] = f(grid[i]);
         }
     }
 }
 
-int solve(const vector<string>& input,
-          const function<void(Grid<int>&, const Cell&)>& turn_on,
-          const function<void(Grid<int>&, const Cell&)>& turn_off,
-          const function<void(Grid<int>&, const Cell&)>& toggle) {
-    vector<string> cells;
-    for (int i = 0; i < 1000; ++i) {
-        cells.push_back(string(1000, '0'));
-    }
-    Grid<int> grid = Grid<int>::from(cells);
+int solve(
+        const vector<string>& input,
+        const function<int(int)>& turn_on,
+        const function<int(int)>& turn_off,
+        const function<int(int)>& toggle
+) {
+    int grid[1'000'000] = {};
     const regex re(REGEX);
     for (const string& line : input) {
         smatch sm;
@@ -46,33 +43,25 @@ int solve(const vector<string>& input,
             forEachCell(grid, start, end, toggle);
         }
     }
-    return accumulate(
-        grid.begin(), grid.end(), 0,
-        [&grid](const int a, const Cell& b) { return a + grid.get(b); });
+    return accumulate(begin(grid), end(grid), 0, plus<int>());
 }
 
 int part1(const vector<string>& input) {
     return solve(
         input,
-        [](Grid<int>& grid, const Cell& cell) { grid.setValue(cell, 1); },
-        [](Grid<int>& grid, const Cell& cell) { grid.setValue(cell, 0); },
-        [](Grid<int>& grid, const Cell& cell) {
-            grid.setValue(cell, grid.get(cell) == 1 ? 0 : 1);
-        });
+        [](int v) { return 1; },
+        [](int v) { return 0; },
+        [](int v) { return v == 0 ? 1 : 0; }
+    );
 }
 
 int part2(const vector<string>& input) {
     return solve(
         input,
-        [](Grid<int>& grid, const Cell& cell) {
-            grid.setValue(cell, grid.get(cell) + 1);
-        },
-        [](Grid<int>& grid, const Cell& cell) {
-            grid.setValue(cell, max(grid.get(cell) - 1, 0));
-        },
-        [](Grid<int>& grid, const Cell& cell) {
-            grid.setValue(cell, grid.get(cell) + 2);
-        });
+        [](int v) { return v + 1; },
+        [](int v) { return v == 0 ? 0 : v - 1; },
+        [](int v) { return v + 2; }
+    );
 }
 
 const vector<string> TEST1 = {"turn on 0,0 through 999,999"};
