@@ -53,7 +53,7 @@ public class IntegerSequence {
         }
         
         public static Range rangeClosed(final int from, final int to, final int step) {
-            return new Range(from, from == to ? to : (from < to ? to + 1 : to - 1), step);
+            return new Range(from, from == to ? to + 1 : (from < to ? to + 1 : to - 1), step);
         }
         
         public static Range between(final int fromInclusive, final int toInclusive) {

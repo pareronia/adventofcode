@@ -35,7 +35,7 @@ public class IntegerSequenceTestCase {
         assertThat(collect(rangeClosed(3, -1, -1))).containsExactly(3, 2, 1, 0, -1);
         assertThat(collect(between(3, -1))).containsExactly(3, 2, 1, 0, -1);
         assertThat(collect(between(1, 4))).containsExactly(1, 2, 3, 4);
-        assertThat(collect(between(1, 1))).isEmpty();
+        assertThat(collect(between(1, 1))).containsExactly(1);
     }
     
     @Test
