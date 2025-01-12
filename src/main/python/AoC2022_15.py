@@ -3,16 +3,17 @@
 # Advent of Code 2022 Day 15
 #
 
+import itertools
 import re
 import sys
-from collections import defaultdict
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
+from aoc.geometry import Position
+from aoc.range import RangeInclusive
 
-Sensors = list[tuple[int, int, int]]
-Beacons = dict[int, set[int]]
-Range = tuple[int, int]
+Sensors = dict[Position, int]
+Beacons = set[Position]
 Input = tuple[Sensors, Beacons]
 Output1 = int
 Output2 = int
@@ -37,61 +38,58 @@ Sensor at x=20, y=1: closest beacon is at x=15, y=3
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        sensors = Sensors()
-        beacons = defaultdict[int, set[int]](set)
+        sensors, beacons = Sensors(), Beacons()
         for line in input_data:
             sx, sy, bx, by = map(int, re.findall(r"-?[0-9]+", line))
-            sensors.append((sx, sy, abs(sx - bx) + abs(sy - by)))
-            beacons[by].add(bx)
+            s, b = Position.of(sx, sy), Position.of(bx, by)
+            sensors[s] = s.manhattan_distance(b)
+            beacons.add(b)
         return sensors, beacons
 
-    def _get_ranges(self, sensors: Sensors, y: int) -> list[Range]:
-        ranges = list[Range]()
-        for sx, sy, d in sensors:
-            dy = abs(sy - y)
-            if dy > d:
-                continue
-            ranges.append((sx - d + dy, sx + d - dy))
-        merged = list[Range]()
-        for s_min, s_max in sorted(ranges):
-            if len(merged) == 0:
-                merged.append((s_min, s_max))
-                continue
-            last_min, last_max = merged[-1]
-            if s_min <= last_max:
-                merged[-1] = (last_min, max(last_max, s_max))
-                continue
-            merged.append((s_min, s_max))
-        return merged
-
-    def solve_1(self, input: Input, y: int) -> int:
+    def solve_1(self, input: Input, y: int) -> Output1:
         sensors, beacons = input
+
+        def get_ranges(y: int) -> list[RangeInclusive]:
+            ranges = list[RangeInclusive]()
+            for s, md in sensors.items():
+                dy = abs(s.y - y)
+                if dy > md:
+                    continue
+                ranges.append(
+                    RangeInclusive.between(s.x - md + dy, s.x + md - dy)
+                )
+            return RangeInclusive.merge(ranges)
+
         return sum(
-            (
-                r_max
-                - r_min
-                + 1
-                - sum(1 for bx in beacons[y] if r_min <= bx <= r_max)
-            )
-            for r_min, r_max in self._get_ranges(sensors, y)
+            r.len - len({b for b in beacons if b.y == y and r.contains(b.x)})
+            for r in get_ranges(y)
         )
 
-    def solve_2(self, input: Input, the_max: int) -> int:
+    def solve_2(self, input: Input, the_max: int) -> Output2:
+        """https://old.reddit.com/r/adventofcode/comments/zmcn64/2022_day_15_solutions/j0b90nr/"""  # noqa E501
         sensors, _ = input
-        for y in range(the_max, 0, -1):
-            ranges = self._get_ranges(sensors, y)
-            x = 0
-            while x <= the_max:
-                for r_min, r_max in ranges:
-                    if x < r_min:
-                        return x * 4_000_000 + y
-                    x = r_max + 1
-        raise RuntimeError()
+        a_coeffs, b_coeffs = set(), set()
+        for s, md in sensors.items():
+            a_coeffs.add(s.y - s.x + md + 1)
+            a_coeffs.add(s.y - s.x - md - 1)
+            b_coeffs.add(s.x + s.y + md + 1)
+            b_coeffs.add(s.x + s.y - md - 1)
+        return next(
+            4_000_000 * p.x + p.y
+            for p in (
+                Position.of((ab[1] - ab[0]) // 2, (ab[0] + ab[1]) // 2)
+                for ab in itertools.product(a_coeffs, b_coeffs)
+                if ab[0] < ab[1] and (ab[1] - ab[0]) % 2 == 0
+            )
+            if 0 < p.x < the_max
+            and 0 < p.y < the_max
+            and all(p.manhattan_distance(s) > sensors[s] for s in sensors)
+        )
 
-    def part_1(self, input: Input) -> int:
+    def part_1(self, input: Input) -> Output1:
         return self.solve_1(input, 2_000_000)
 
-    def part_2(self, input: Input) -> int:
+    def part_2(self, input: Input) -> Output2:
         return self.solve_2(input, 4_000_000)
 
     def samples(self) -> None:
