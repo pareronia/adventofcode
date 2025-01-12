@@ -1,6 +1,11 @@
 package com.github.pareronia.aoc;
 
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 
 public final class RangeInclusive<T> {
@@ -38,6 +43,36 @@ public final class RangeInclusive<T> {
 
     public static <T> RangeInclusive<T> between(final T fromInclusive, final T toInclusive) {
         return new RangeInclusive<>(fromInclusive, toInclusive);
+    }
+
+    public static List<RangeInclusive<Integer>> mergeRanges(
+            final Collection<RangeInclusive<Integer>> ranges
+    ) {
+        final var merged = new ArrayDeque<RangeInclusive<Integer>>();
+        final var sorted = new ArrayList<>(ranges);
+        Collections.sort(sorted, (r1, r2) -> {
+            final int first = Integer.compare(r1.getMinimum(), r2.getMinimum());
+            if (first == 0) {
+                return Integer.compare(r1.getMaximum(), r2.getMaximum());
+            }
+            return first;
+        });
+        for (final var range : sorted) {
+            if (merged.isEmpty()) {
+                merged.addLast(range);
+                continue;
+            }
+            final var last = merged.peekLast();
+            if (range.isOverlappedBy(last)) {
+                merged.removeLast();
+                merged.add(RangeInclusive.between(
+                    last.getMinimum(),
+                    Math.max(last.getMaximum(), range.getMaximum())));
+            } else {
+                merged.addLast(range);
+            }
+        }
+        return merged.stream().toList();
     }
 
     public T getMinimum() {
