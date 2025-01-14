@@ -4,50 +4,74 @@
 #
 
 import re
-from aoc import my_aocd
+import sys
+from enum import Enum
+from enum import auto
+from enum import unique
 
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
-def _count_decoding_overhead(string: str) -> int:
-    assert string[0] == '"' and string[-1] == '"'
-    cnt = 2
-    while string.find(r'\\') != -1:
-        string = string.replace(r'\\', '', 1)
-        cnt += 1
-    return cnt + string.count(r'\"') \
-        + 3 * len(re.findall(r'\\x[0-9a-f]{2}', string))
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return sum([_count_decoding_overhead(s) for s in inputs])
-
-
-def _count_encoding_overhead(string: str) -> int:
-    return 2 + string.count('\\') + string.count('"')
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return sum([_count_encoding_overhead(s) for s in inputs])
-
-
-TEST = r'''""
+TEST = r"""""
 "abc"
 "aaa\"aaa"
 "\x27"
-'''.splitlines()
+"""
+RE = re.compile(r"\\x[0-9a-f]{2}")
+
+Input = InputData
+Output1 = int
+Output2 = int
+
+
+@unique
+class Mode(Enum):
+    DECODE = auto()
+    ENCODE = auto()
+
+    def overhead(self, string: str) -> int:
+        match self:
+            case Mode.DECODE:
+                assert string[0] == '"' and string[-1] == '"'
+                cnt = 2
+                while string.find(r"\\") != -1:
+                    string = string.replace(r"\\", "", 1)
+                    cnt += 1
+                return cnt + string.count(r"\"") + 3 * len(RE.findall(string))
+            case Mode.ENCODE:
+                return 2 + string.count("\\") + string.count('"')
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return input_data
+
+    def solve(self, input: Input, mode: Mode) -> int:
+        return sum(mode.overhead(s) for s in input)
+
+    def part_1(self, input: Input) -> Output1:
+        return self.solve(input, Mode.DECODE)
+
+    def part_2(self, input: Input) -> Output2:
+        return self.solve(input, Mode.ENCODE)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 12),
+            ("part_2", TEST, 19),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2015, 8)
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 8)
-
-    assert part_1(TEST) == 12
-    assert part_2(TEST) == 19
-
-    inputs = my_aocd.get_input(2015, 8, 300)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
