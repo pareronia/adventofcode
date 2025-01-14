@@ -56,6 +56,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "AoC2015_08"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "lazy_static",
+ "regex",
+]
+
+[[package]]
 name = "AoC2015_09"
 version = "0.1.0"
 dependencies = [
