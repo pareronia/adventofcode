@@ -28,30 +28,40 @@ public class AoC2015_08 extends SolutionBase<List<String>, Integer, Integer> {
         return inputs;
     }
 
+    private int solve(final List<String> inputs, final Mode mode) {
+        return inputs.stream().mapToInt(mode::overhead).sum();
+    }
+
     @Override
     public Integer solvePart1(final List<String> inputs) {
-        return inputs.stream().mapToInt(this::countDecodingOverhead).sum();
+        return solve(inputs, Mode.DECODE);
     }
 
     @Override
     public Integer solvePart2(final List<String> inputs) {
-        return inputs.stream().mapToInt(this::countEncodingOverhead).sum();
+        return solve(inputs, Mode.ENCODE);
     }
 
-    private int countDecodingOverhead(String str) {
-        assert str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"';
-        int cnt = 2;
-        while (str.contains("\\\\")) {
-            str = str.replaceFirst("[\\\\]{2}", "");
-            cnt++;
+    private enum Mode {
+        DECODE, ENCODE;
+
+        public int overhead(String str) {
+            return switch (this) {
+                case DECODE -> {
+                    assert str.charAt(0) == '"' && str.charAt(str.length() - 1) == '"';
+                    int cnt = 2;
+                    while (str.contains("\\\\")) {
+                        str = str.replaceFirst("[\\\\]{2}", "");
+                        cnt++;
+                    }
+                    cnt += countMatches(str, "\\\"");
+                    cnt += 3 * HEX.matcher(str).results().count();
+                    yield cnt;
+                }
+                case ENCODE ->
+                        2 + countMatches(str, "\\") + countMatches(str, "\"");
+            };
         }
-        cnt += countMatches(str, "\\\"");
-        cnt += 3 * HEX.matcher(str).results().count();
-        return cnt;
-    }
-    
-    private int countEncodingOverhead(final String str) {
-        return 2 + countMatches(str, "\\") + countMatches(str, "\"");
     }
 
     @Override
@@ -67,8 +77,10 @@ public class AoC2015_08 extends SolutionBase<List<String>, Integer, Integer> {
     }
 
     private static final String TEST =
-            "\"\"\r\n" +
-            "\"abc\"\r\n" +
-            "\"aaa\\\"aaa\"\r\n" +
-            "\"\\x27\"";
+            """
+            ""
+            "abc"
+            "aaa\\"aaa"
+            "\\x27\"\
+            """;
 }
