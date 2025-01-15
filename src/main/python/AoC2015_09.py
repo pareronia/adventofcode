@@ -6,22 +6,30 @@
 from __future__ import annotations
 
 import itertools
+import sys
 from collections import defaultdict
-from typing import Generator, NamedTuple
+from typing import Iterator
+from typing import NamedTuple
 
-import aocd
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
-from aoc import my_aocd
+TEST = """\
+London to Dublin = 464
+London to Belfast = 518
+Dublin to Belfast = 141
+"""
 
 
 class Distances(NamedTuple):
     matrix: list[list[int]]
 
     @classmethod
-    def from_input(cls, inputs: tuple[str]) -> Distances:
+    def from_input(cls, inputs: InputData) -> Distances:
         cnt = 0
 
-        def get_and_increment():
+        def get_and_increment() -> int:
             nonlocal cnt
             tmp = cnt
             cnt += 1
@@ -38,40 +46,42 @@ class Distances(NamedTuple):
             matrix[k[1]][k[0]] = v
         return Distances(matrix)
 
-    def get_distances_of_complete_routes(self) -> Generator[int]:
+    def get_distances_of_complete_routes(self) -> Iterator[int]:
         size = len(self.matrix)
         for p in itertools.permutations(range(size), size):
             yield sum(self.matrix[p[i - 1]][p[i]] for i in range(1, size))
 
 
-def part_1(inputs: tuple[str]) -> int:
-    return min(Distances.from_input(inputs).get_distances_of_complete_routes())
+Input = Distances
+Output1 = int
+Output2 = int
 
 
-def part_2(inputs: tuple[str]) -> int:
-    return max(Distances.from_input(inputs).get_distances_of_complete_routes())
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Distances.from_input(input_data)
+
+    def part_1(self, distances: Input) -> Output1:
+        return min(distances.get_distances_of_complete_routes())
+
+    def part_2(self, distances: Input) -> Output2:
+        return max(distances.get_distances_of_complete_routes())
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 605),
+            ("part_2", TEST, 982),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-TEST = """\
-London to Dublin = 464
-London to Belfast = 518
-Dublin to Belfast = 141
-""".splitlines()
+solution = Solution(2015, 9)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2015, 9)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == 605
-    assert part_2(TEST) == 982
-
-    inputs = my_aocd.get_input(puzzle.year, puzzle.day, 28)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":
