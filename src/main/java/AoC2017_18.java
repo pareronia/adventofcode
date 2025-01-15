@@ -41,29 +41,21 @@ public final class AoC2017_18 extends AoCBase {
         for (final String s : inputs) {
             final String[] splits = s.split(" ");
             switch (splits[0]) {
-            case "snd":
+            case "snd" ->
                 instructions.add(sndBuilder.apply(getValue.apply(splits[1])));
-                break;
-            case "set":
+            case "set" ->
                 instructions.add(Instruction.SET(splits[1], getValue.apply(splits[2])));
-                break;
-            case "add":
+            case "add" ->
                 instructions.add(Instruction.ADD(splits[1], getValue.apply(splits[2])));
-                break;
-            case "mul":
+            case "mul" ->
                 instructions.add(Instruction.MUL(splits[1], getValue.apply(splits[2])));
-                break;
-            case "mod":
+            case "mod" ->
                 instructions.add(Instruction.MOD(splits[1], getValue.apply(splits[2])));
-                break;
-            case "rcv":
+            case "rcv" ->
                 instructions.add(rcvBuilder.apply(splits[1]));
-                break;
-            case "jgz":
+            case "jgz" ->
                 instructions.add(Instruction.JG0(getValue.apply(splits[1]), getValue.apply(splits[2])));
-                break;
-            default:
-                throw new IllegalStateException();
+            default -> throw new IllegalStateException();
             }
         }
         return instructions;
@@ -98,8 +90,8 @@ public final class AoC2017_18 extends AoCBase {
         final long EMPTY = -1L;
         final List<Instruction> instructions = buildInstructions(
                 this.input,
-                op -> Instruction.OUT(op),
-                op -> Instruction.INP(op));
+                Instruction::OUT,
+                Instruction::INP);
         final Deque<Long> q0 = new ArrayDeque<>();
         final Deque<Long> q1 = new ArrayDeque<>();
         final MutableBoolean waiting0 = new MutableBoolean(false);
@@ -176,24 +168,26 @@ public final class AoC2017_18 extends AoCBase {
     }
     
     private static final List<String> TEST1 = splitLines(
-            "set a 1\r\n" +
-            "add a 2\r\n" +
-            "mul a a\r\n" +
-            "mod a 5\r\n" +
-            "snd a\r\n" +
-            "set a 0\r\n" +
-            "rcv a\r\n" +
-            "jgz a -1\r\n" +
-            "set a 1\r\n" +
-            "jgz a -2"
+            """
+                set a 1\r
+                add a 2\r
+                mul a a\r
+                mod a 5\r
+                snd a\r
+                set a 0\r
+                rcv a\r
+                jgz a -1\r
+                set a 1\r
+                jgz a -2"""
     );
     private static final List<String> TEST2 = splitLines(
-            "snd 1\r\n" +
-            "snd 2\r\n" +
-            "snd p\r\n" +
-            "rcv a\r\n" +
-            "rcv b\r\n" +
-            "rcv c\r\n" +
-            "rcv d"
+            """
+                snd 1\r
+                snd 2\r
+                snd p\r
+                rcv a\r
+                rcv b\r
+                rcv c\r
+                rcv d"""
     );
 }

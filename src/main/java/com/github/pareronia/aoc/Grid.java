@@ -121,15 +121,15 @@ public interface Grid<T> {
 
     default Stream<Cell> getCells(final Cell cell, final Direction dir) {
         return switch (dir) {
-            case UP: yield getCellsN(cell);
-            case RIGHT_AND_UP: yield getCellsNE(cell);
-            case RIGHT: yield getCellsE(cell);
-            case RIGHT_AND_DOWN: yield getCellsSE(cell);
-            case DOWN: yield getCellsS(cell);
-            case LEFT_AND_DOWN: yield getCellsSW(cell);
-            case LEFT: yield getCellsW(cell);
-            case LEFT_AND_UP: yield getCellsNW(cell);
-            default: throw new IllegalArgumentException();
+            case UP -> getCellsN(cell);
+            case RIGHT_AND_UP -> getCellsNE(cell);
+            case RIGHT -> getCellsE(cell);
+            case RIGHT_AND_DOWN -> getCellsSE(cell);
+            case DOWN -> getCellsS(cell);
+            case LEFT_AND_DOWN -> getCellsSW(cell);
+            case LEFT -> getCellsW(cell);
+            case LEFT_AND_UP -> getCellsNW(cell);
+            default -> throw new IllegalArgumentException();
         };
     }
 

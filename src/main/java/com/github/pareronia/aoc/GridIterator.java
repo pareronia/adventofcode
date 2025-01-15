@@ -44,36 +44,36 @@ final class GridIterator<T> implements Iterator<Cell> {
         if (this.next == null) {
             return false;
         }
-        switch (this.direction) {
-        case FORWARD:
-            return true;
-        default:
-            final Cell next = this.next.at(this.direction.delegate);
-            if (this.grid.isInBounds(next)) {
-                this.next = next;
-                return true;
-            } else {
-                this.next = null;
-                return false;
+        return switch (this.direction) {
+            case FORWARD -> true;
+            default -> {
+                final Cell next = this.next.at(this.direction.delegate);
+                if (this.grid.isInBounds(next)) {
+                    this.next = next;
+                    yield true;
+                } else {
+                    this.next = null;
+                    yield false;
+                }
             }
-        }
+        };
     }
 
     @Override
     public Cell next() {
         final Cell prev = this.next;
-        switch (this.direction) {
-        case FORWARD:
-            if (prev.col + 1 < this.grid.getWidth()) {
-                this.next = Cell.at(prev.row, prev.col + 1);
-            } else if (prev.row + 1 < this.grid.getHeight()) {
-                this.next = Cell.at(prev.row + 1, 0);
-            } else {
-                this.next = null;
+        return switch (this.direction) {
+            case FORWARD -> {
+                if (prev.col + 1 < this.grid.getWidth()) {
+                    this.next = Cell.at(prev.row, prev.col + 1);
+                } else if (prev.row + 1 < this.grid.getHeight()) {
+                    this.next = Cell.at(prev.row + 1, 0);
+                } else {
+                    this.next = null;
+                }
+                yield prev;
             }
-            return prev;
-        default:
-            return this.next;
-        }
+            default -> this.next;
+        };
     }
 }

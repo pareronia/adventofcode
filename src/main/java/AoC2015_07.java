@@ -128,15 +128,16 @@ public class AoC2015_07 extends SolutionBase<List<AoC2015_07.Gate>, Integer, Int
 	}
 
 	private static final List<String> TEST = splitLines(
-			"123 -> x\r\n" +
-			"456 -> y\r\n" +
-			"x AND y -> d\r\n" +
-			"x OR y -> e\r\n" +
-			"x LSHIFT 2 -> f\r\n" +
-			"y RSHIFT 2 -> g\r\n" +
-			"NOT x -> h\r\n" +
-			"NOT y -> i\r\n" +
-			"i -> j"
+			"""
+                123 -> x\r
+                456 -> y\r
+                x AND y -> d\r
+                x OR y -> e\r
+                x LSHIFT 2 -> f\r
+                y RSHIFT 2 -> g\r
+                NOT x -> h\r
+                NOT y -> i\r
+                i -> j"""
 	);
 	
     static final class Gate implements Cloneable {
@@ -239,26 +240,13 @@ public class AoC2015_07 extends SolutionBase<List<AoC2015_07.Gate>, Integer, Int
 
         public Integer updateResult(final Integer in1, final Integer in2) {
             switch (this.op) {
-            case SET:
-                this.result = in1;
-                break;
-            case AND:
-                this.result = in1 & in2;
-                break;
-            case LSHIFT:
-                this.result = in1 << arg;
-                break;
-            case NOT:
-                this.result = (int) (Math.pow(2, BIT_SIZE) + ~in1);
-                break;
-            case OR:
-                this.result = in1 | in2;
-                break;
-            case RSHIFT:
-                this.result = in1 >>> arg;
-                break;
-            default:
-                throw new IllegalStateException();
+                case SET -> this.result = in1;
+                case AND -> this.result = in1 & in2;
+                case LSHIFT -> this.result = in1 << arg;
+                case NOT -> this.result = (1 << BIT_SIZE) + ~in1;
+                case OR -> this.result = in1 | in2;
+                case RSHIFT -> this.result = in1 >>> arg;
+                default -> throw new IllegalStateException();
             }
             return this.result;
         }
@@ -267,26 +255,13 @@ public class AoC2015_07 extends SolutionBase<List<AoC2015_07.Gate>, Integer, Int
         public String toString() {
             final StringBuilder sb = new StringBuilder();
             switch (this.op) {
-            case SET:
-                sb.append(this.in1);
-                break;
-            case AND:
-                sb.append(this.in1).append(" AND ").append(this.in2);
-                break;
-            case LSHIFT:
-                sb.append(this.in1).append(" LSHIFT ").append(arg);
-                break;
-            case NOT:
-                sb.append("NOT ").append(this.in1);
-                break;
-            case OR:
-                sb.append(this.in1).append(" OR ").append(this.in2);
-                break;
-            case RSHIFT:
-                sb.append(this.in1).append(" RSHIFT ").append(arg);
-                break;
-            default:
-                throw new IllegalStateException();
+            case SET -> sb.append(this.in1);
+            case AND -> sb.append(this.in1).append(" AND ").append(this.in2);
+            case LSHIFT -> sb.append(this.in1).append(" LSHIFT ").append(arg);
+            case NOT -> sb.append("NOT ").append(this.in1);
+            case OR -> sb.append(this.in1).append(" OR ").append(this.in2);
+            case RSHIFT -> sb.append(this.in1).append(" RSHIFT ").append(arg);
+            default -> throw new IllegalStateException();
             }
             return sb.toString();
         }

@@ -96,55 +96,51 @@ public class IntCode implements LoggerEnabled {
             };
             final int[] addr = getAddr(modes);
             switch (opcode) {
-            case ADD:
+            case ADD -> {
                 set(addr[3], get(addr[1]) + get(addr[2]));
                 ip += 4;
-                break;
-            case MUL:
+            }
+            case MUL -> {
                 set(addr[3], get(addr[1]) * get(addr[2]));
                 ip += 4;
-                break;
-            case INPUT:
+            }
+            case INPUT -> {
                 if (this.runTillInputRequired && input.isEmpty()) {
                     this.runTillInputRequired = false;
                     return;
                 }
                 set(addr[1], input.pop());
                 ip += 2;
-                break;
-            case OUTPUT:
+            }
+            case OUTPUT -> {
                 output.add(get(addr[1]));
                 ip += 2;
                 if (this.runTillHasOutput) {
                     this.runTillHasOutput = false;
                     return;
                 }
-                break;
-            case JIT:
-                ip = get(addr[1]) != 0 ? getInt(addr[2]) : ip + 3;
-                break;
-            case JIF:
-                ip = get(addr[1]) == 0 ? getInt(addr[2]) : ip + 3;
-                break;
-            case LT:
+            }
+            case JIT -> ip = get(addr[1]) != 0 ? getInt(addr[2]) : ip + 3;
+            case JIF -> ip = get(addr[1]) == 0 ? getInt(addr[2]) : ip + 3;
+            case LT -> {
                 set(addr[3], get(addr[1]) < get(addr[2]) ? 1 : 0);
                 ip += 4;
-                break;
-            case EQ:
+            }
+            case EQ -> {
                 set(addr[3], get(addr[1]) == get(addr[2]) ? 1 : 0);
                 ip += 4;
-                break;
-            case BASE:
+            }
+            case BASE -> {
                 base += get(addr[1]);
                 ip += 2;
-                break;
-            case EXIT:
+            }
+            case EXIT -> {
                 log(String.format("%d: EXIT", ip));
                 this.halted = true;
                 return;
-            default:
-                throw new IllegalStateException(
-                        String.format("Invalid opcode: '%d'", opcode));
+            }
+            default -> throw new IllegalStateException(
+                                "Invalid opcode: '%d'".formatted(opcode));
             }
         }
     }
@@ -175,16 +171,15 @@ public class IntCode implements LoggerEnabled {
         final int[] addr = new int[4];
         try {
             for (int i = 1; i <= 3; i++) {
-                if (modes[i] == POSITION) {
-                    addr[i] = Math.toIntExact(this.program.get(this.ip + i));
-                } else if (modes[i] == IMMEDIATE) {
-                    addr[i] = this.ip + i;
-                } else if (modes[i] == RELATIVE) {
-                    addr[i] = Math.toIntExact(this.program.get(this.ip + i) + this.base);
-                } else {
-                    throw new IllegalArgumentException(
-                            String.format("Invalid mode '%d'", modes[i]));
-                }
+                addr[i] = switch(modes[i]) {
+                    case POSITION -> Math.toIntExact(
+                                            this.program.get(this.ip + i));
+                    case IMMEDIATE -> this.ip + i;
+                    case RELATIVE -> Math.toIntExact(
+                                this.program.get(this.ip + i) + this.base);
+                    default -> throw new IllegalArgumentException(
+                                "Invalid mode '%d'".formatted(modes[i]));
+                };
             }
         } catch (final IndexOutOfBoundsException | ArithmeticException e) {
         }

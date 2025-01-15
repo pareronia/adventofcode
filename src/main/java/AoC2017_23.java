@@ -37,20 +37,15 @@ public final class AoC2017_23 extends AoCBase {
         for (final String s : inputs) {
             final String[] splits = s.split(" ");
             switch (splits[0]) {
-            case "set":
+            case "set" ->
                 instructions.add(Instruction.SET(splits[1], getValue.apply(splits[2])));
-                break;
-            case "sub":
+            case "sub" ->
                 instructions.add(Instruction.SUB(splits[1], getValue.apply(splits[2])));
-                break;
-            case "mul":
+            case "mul" ->
                 instructions.add(Instruction.MUL(splits[1], getValue.apply(splits[2])));
-                break;
-            case "jnz":
+            case "jnz" ->
                 instructions.add(Instruction.JN0(getValue.apply(splits[1]), getValue.apply(splits[2])));
-                break;
-            default:
-                throw new IllegalStateException();
+            default -> throw new IllegalStateException();
             }
         }
         return instructions;
