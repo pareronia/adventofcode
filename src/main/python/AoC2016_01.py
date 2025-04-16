@@ -3,66 +3,64 @@
 # Advent of Code 2016 Day 1
 #
 
-import aocd
-from aoc import my_aocd
-from aoc.navigation import NavigationWithHeading, Heading
-from aoc.geometry import Position, Turn
+import sys
+from typing import Iterator
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+from aoc.geometry import Position
+from aoc.geometry import Turn
+from aoc.navigation import Heading
+from aoc.navigation import NavigationWithHeading
+
+Input = list[str]
+Output1 = int
+Output2 = int
 
 
-def _parse(inputs: tuple[str, ...]) -> list[str]:
-    assert len(inputs) == 1
-    return inputs[0].split(", ")
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return list(input_data)[0].split(", ")
+
+    def navigate(self, steps: list[str]) -> Iterator[Position]:
+        navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
+        for step in steps:
+            navigation.turn(Turn.from_str(step[0]))
+            for _ in range(int(step[1:])):
+                navigation.forward(1)
+                yield navigation.position
+
+    def part_1(self, steps: Input) -> Output1:
+        *_, final = self.navigate(steps)
+        return final.manhattan_distance_to_origin()
+
+    def part_2(self, steps: Input) -> Output2:
+        seen = set()
+        for pos in self.navigate(steps):
+            if pos in seen:
+                return pos.manhattan_distance_to_origin()
+            else:
+                seen.add(pos)
+        raise ValueError("Unsolvable")
+
+    @aoc_samples(
+        (
+            ("part_1", "R2, L3", 5),
+            ("part_1", "R2, R2, R2", 2),
+            ("part_1", "R5, L5, R5, R3", 12),
+            ("part_2", "R8, R4, R4, R8", 4),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def _navigate(steps: list[str]) -> NavigationWithHeading:
-    navigation = NavigationWithHeading(Position(0, 0), Heading.NORTH)
-    for step in steps:
-        navigation.turn(Turn.from_str(step[0]))
-        for _ in range(int(step[1:])):
-            navigation.forward(1)
-    return navigation
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    steps = _parse(inputs)
-    navigation = _navigate(steps)
-    return abs(navigation.position.x) + abs(navigation.position.y)
-
-
-def part_2(inputs: tuple[str, ...]) -> int:
-    steps = _parse(inputs)
-    navigation = _navigate(steps)
-    seen = set()
-    for pos in navigation.get_visited_positions(True):
-        _pos = (pos.x, pos.y)
-        if _pos in seen:
-            return abs(pos.x) + abs(pos.y)
-        else:
-            seen.add(_pos)
-    raise ValueError("Unsolvable")
-
-
-TEST1 = "R2, L3".splitlines()
-TEST2 = "R2, R2, R2".splitlines()
-TEST3 = "R5, L5, R5, R3".splitlines()
-TEST4 = "R8, R4, R4, R8".splitlines()
+solution = Solution(2016, 1)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2016, 1)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST1) == 5  # type:ignore[arg-type]
-    assert part_1(TEST2) == 2  # type:ignore[arg-type]
-    assert part_1(TEST3) == 12  # type:ignore[arg-type]
-    assert part_2(TEST4) == 4  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 1)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

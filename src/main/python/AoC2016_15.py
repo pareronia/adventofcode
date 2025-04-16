@@ -4,9 +4,24 @@
 #
 
 from __future__ import annotations
-import re
+
+import itertools
+import sys
 from typing import NamedTuple
-from aoc import my_aocd
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+
+TEST1 = """\
+Disc #1 has 5 positions; at time=0, it is at position 4.
+Disc #2 has 2 positions; at time=0, it is at position 1.
+"""
+TEST2 = """\
+Disc #1 has 5 positions; at time=0, it is at position 3.
+Disc #2 has 2 positions; at time=0, it is at position 1.
+Disc #3 has 3 positions; at time=0, it is at position 2.
+"""
 
 
 class Disc(NamedTuple):
@@ -15,61 +30,52 @@ class Disc(NamedTuple):
     delay: int
 
     @classmethod
-    def of(cls, period: str, position: str, delay: str) -> Disc:
-        period = int(period)
-        return Disc(period, (period - int(position)) % period, int(delay))
+    def from_input(cls, line: str) -> Disc:
+        sp = line.split()
+        delay, period, position = map(int, (sp[1][1:], sp[3], sp[11][:-1]))
+        return cls(period, (period - position) % period, delay)
 
     def aligned_at(self, time: int) -> bool:
         return (time + self.delay) % self.period == self.offset
 
 
-def _parse(inputs: tuple[str]) -> list[Disc]:
-    return [Disc.of(m[1], m[3], m[0])
-            for m in [re.findall(r'[0-9]+', i) for i in inputs]
-            ]
+Input = list[Disc]
+Output1 = int
+Output2 = int
 
 
-def _solve(discs: list[Disc]) -> int:
-    i = 0
-    while (not all([True if d.aligned_at(i) else False for d in discs])):
-        i += 1
-    return i
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [Disc.from_input(line) for line in input_data]
+
+    def solve(self, discs: list[Disc]) -> int:
+        return next(
+            i for i in itertools.count() if all(d.aligned_at(i) for d in discs)
+        )
+
+    def part_1(self, discs: Input) -> Output1:
+        return self.solve(discs)
+
+    def part_2(self, discs: Input) -> Output2:
+        discs.append(Disc(11, 0, len(discs) + 1))
+        return self.solve(discs)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 5),
+            ("part_1", TEST2, 1),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def part_1(inputs: tuple[str]) -> int:
-    discs = _parse(inputs)
-    return _solve(discs)
-
-
-def part_2(inputs: tuple[str]) -> int:
-    discs = _parse(inputs)
-    discs.insert(len(discs), Disc.of("11", "0", str(len(discs)+1)))
-    return _solve(discs)
-
-
-TEST1 = '''\
-Disc #1 has 5 positions; at time=0, it is at position 4.
-Disc #2 has 2 positions; at time=0, it is at position 1.
-'''.splitlines()
-TEST2 = '''\
-Disc #1 has 5 positions; at time=0, it is at position 3.
-Disc #2 has 2 positions; at time=0, it is at position 1.
-Disc #3 has 3 positions; at time=0, it is at position 2.
-'''.splitlines()
+solution = Solution(2016, 15)
 
 
 def main() -> None:
-    my_aocd.print_header(2016, 15)
-
-    assert part_1(TEST1) == 5
-    assert part_1(TEST2) == 1
-
-    inputs = my_aocd.get_input(2016, 15, 6)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

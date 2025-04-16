@@ -1,7 +1,6 @@
 from __future__ import annotations
 from collections.abc import Callable
 from enum import Enum, unique
-from copy import deepcopy
 from aoc.geometry import Position, Vector, Direction, Turn
 
 
@@ -66,7 +65,7 @@ class Navigation:
         self._remember_visited_position(self._position)
 
     def _remember_visited_position(self, position: Position) -> None:
-        self.visited_positions.append(deepcopy(position))
+        self.visited_positions.append(Position.copy(position))
 
     def get_visited_positions(
         self, include_start_position: bool = False

@@ -3,13 +3,22 @@
 # Advent of Code 2016 Day 2
 #
 
-from typing import Callable
-import aocd
-from aoc import my_aocd
-from aoc.navigation import NavigationWithHeading, Heading
-from aoc.geometry import Position
-from aoc.common import log
+import sys
+from typing import NamedTuple
 
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+from aoc.geometry import Position
+from aoc.navigation import Heading
+from aoc.navigation import NavigationWithHeading
+
+TEST = """\
+ULL
+RRDDD
+LURDL
+UUUUD
+"""
 
 KEYPAD_1 = {
     (-1, 1): "1",
@@ -39,69 +48,57 @@ KEYPAD_2 = {
 }
 
 
-def _navigate(
-    ins: str, start: Position, in_bounds: Callable[[Position], bool]
-) -> NavigationWithHeading:
-    navigation = NavigationWithHeading(start, Heading.NORTH, in_bounds)
-    for c in ins:
-        navigation.drift(Heading.from_str(c), 1)
-    return navigation
+Input = InputData
+Output1 = str
+Output2 = str
 
 
-def _solve(
-    inputs: tuple[str, ...],
-    in_bounds: Callable[[Position], bool],
-    get: Callable[[Position], str],
-) -> str:
-    code = str()
-    start = Position.of(0, 0)
-    for ins in inputs:
-        navigation = _navigate(ins, start, in_bounds)
-        last = navigation.get_visited_positions()[-1]
-        log(last)
-        code += get(last)
-        log(code)
-        start = last
-    return code
+class Keypad(NamedTuple):
+    keys: dict[tuple[int, int], str]
+
+    def in_bounds(self, pos: Position) -> bool:
+        return (pos.x, pos.y) in self.keys.keys()
+
+    def get(self, pos: Position) -> str:
+        return self.keys[(pos.x, pos.y)]
 
 
-def part_1(inputs: tuple[str, ...]) -> str:
-    return _solve(
-        inputs,
-        lambda pos: (pos.x, pos.y) in KEYPAD_1,
-        lambda pos: KEYPAD_1[(pos.x, pos.y)],
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return input_data
+
+    def solve(self, inputs: Input, keypad: Keypad) -> str:
+        navigation = NavigationWithHeading(
+            Position.of(0, 0), Heading.NORTH, keypad.in_bounds
+        )
+        code = ""
+        for line in inputs:
+            for c in line:
+                navigation.drift(Heading.from_str(c), 1)
+            code += keypad.get(navigation.position)
+        return code
+
+    def part_1(self, inputs: Input) -> Output1:
+        return self.solve(inputs, Keypad(KEYPAD_1))
+
+    def part_2(self, inputs: Input) -> Output2:
+        return self.solve(inputs, Keypad(KEYPAD_2))
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, "1985"),
+            ("part_2", TEST, "5DB3"),
+        )
     )
+    def samples(self) -> None:
+        pass
 
 
-def part_2(inputs: tuple[str, ...]) -> str:
-    return _solve(
-        inputs,
-        lambda pos: (pos.x, pos.y) in KEYPAD_2,
-        lambda pos: KEYPAD_2[(pos.x, pos.y)],
-    )
-
-
-TEST = """\
-ULL
-RRDDD
-LURDL
-UUUUD
-""".splitlines()
+solution = Solution(2016, 2)
 
 
 def main() -> None:
-    puzzle = aocd.models.Puzzle(2016, 2)
-    my_aocd.print_header(puzzle.year, puzzle.day)
-
-    assert part_1(TEST) == "1985"  # type:ignore[arg-type]
-    assert part_2(TEST) == "5DB3"  # type:ignore[arg-type]
-
-    inputs = my_aocd.get_input_data(puzzle, 5)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
-    my_aocd.check_results(puzzle, result1, result2)
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":
