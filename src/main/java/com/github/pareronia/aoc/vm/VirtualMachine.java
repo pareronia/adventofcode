@@ -28,6 +28,9 @@ public class VirtualMachine {
         this.instructionSet.put(Opcode.OUT, this::out);
         this.instructionSet.put(Opcode.ON0, this::on0);
         this.instructionSet.put(Opcode.INP, this::inp);
+        this.instructionSet.put(Opcode.RSH, this::rsh);
+        this.instructionSet.put(Opcode.XOR, this::xor);
+        this.instructionSet.put(Opcode.AND, this::and);
     }
     
     private void nop(final Program program, final Instruction instruction, final Integer ip) {
@@ -143,15 +146,20 @@ public class VirtualMachine {
         final Optional<Long> test = getValue(program, op1);
         final String op2 = (String) instruction.operands().get(1);
         final Long count;
-        if (op2.startsWith("*")) {
-            count = program.getRegisters().get(op2.substring(1));
+        if (op2.startsWith("!")) {
+        	test.filter(condition).ifPresentOrElse(
+        			v -> program.setIntructionPointer(Integer.parseInt(op2.substring(1))),
+        			() -> program.moveIntructionPointer(1));
         } else {
-            count = Long.valueOf(op2);
+        	if (op2.startsWith("*")) {
+        		count = program.getRegisters().get(op2.substring(1));
+        	} else {
+        		count = Long.valueOf(op2);
+        	}
+        	test.filter(condition).ifPresentOrElse(
+        			v -> program.moveIntructionPointer(count.intValue()),
+        			() -> program.moveIntructionPointer(1));
         }
-        test.filter(condition)
-                .ifPresentOrElse(
-                        v -> program.moveIntructionPointer(count.intValue()),
-                        () -> program.moveIntructionPointer(1));
     }
     
     private void tgl(final Program program, final Instruction instruction, final Integer ip) {
@@ -227,6 +235,48 @@ public class VirtualMachine {
         assert program.getInputSupplier() != null;
         final Long value = program.getInputSupplier().get();
         program.getRegisters().put(op1, value);
+        program.moveIntructionPointer(1);
+    }
+    
+    private void rsh(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
+        final Optional<Long> value = getValue(program, op2);
+        value.ifPresent(v -> {
+//            assert v != 0;
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r >> v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
+        program.moveIntructionPointer(1);
+    }
+    
+    private void xor(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
+        final Optional<Long> value = getValue(program, op2);
+        value.ifPresent(v -> {
+//            assert v != 0;
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r ^ v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
+        program.moveIntructionPointer(1);
+    }
+    
+    private void and(final Program program, final Instruction instruction, final Integer ip) {
+        final String register = (String) instruction.operands().get(0);
+        final String op2 = (String) instruction.operands().get(1);
+        final Optional<Long> value = getValue(program, op2);
+        value.ifPresent(v -> {
+            assert v != 0;
+            final Long newValue = Optional.ofNullable(program.getRegisters().get(register))
+                    .map(r -> r & v)
+                    .orElse(v); // FIXME
+            program.getRegisters().put(register, newValue);
+        });
         program.moveIntructionPointer(1);
     }
     

@@ -42,7 +42,13 @@ public class VirtualMachineTestCase {
             Instruction.SET("E", "2"),
             Instruction.JG0("*B", "*E"),
             Instruction.NOP(),
-            Instruction.SET("E", "7")
+            Instruction.SET("E", "7"),
+            Instruction.ADD("E", "1"),
+            Instruction.RSH("E", "2"),
+            Instruction.SET("F", "12"),
+            Instruction.XOR("F", "5"),
+            Instruction.SET("G", "12"),
+            Instruction.AND("G", "5")
         ),
         output::add);
         
@@ -53,8 +59,10 @@ public class VirtualMachineTestCase {
         assertThat(program.getRegisters().get("B")).isEqualTo(2L);
         assertThat(program.getRegisters().get("C")).isEqualTo(0L);
         assertThat(program.getRegisters().get("D")).isNull();
-        assertThat(program.getRegisters().get("E")).isEqualTo(7L);
-        assertThat(program.getInstructionPointer()).isEqualTo(21);
+        assertThat(program.getRegisters().get("E")).isEqualTo(2L);
+        assertThat(program.getRegisters().get("F")).isEqualTo(9L);
+        assertThat(program.getRegisters().get("G")).isEqualTo(4L);
+        assertThat(program.getInstructionPointer()).isEqualTo(27);
         assertThat(output).containsExactly(6L, 7L);
     }
 }

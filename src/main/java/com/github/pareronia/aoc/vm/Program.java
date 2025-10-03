@@ -104,6 +104,11 @@ public class Program {
         return this.instructionPointer;
     }
     
+    public Integer setIntructionPointer(final Integer value) {
+        this.instructionPointer = value;
+        return this.instructionPointer;
+    }
+    
     public void incrementCycles() {
         this.cycles++;
     }

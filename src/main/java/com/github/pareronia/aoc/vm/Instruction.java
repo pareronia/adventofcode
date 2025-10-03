@@ -75,6 +75,18 @@ public record Instruction(Opcode opcode, List<Object> operands) {
         return new Instruction(Opcode.INP, List.of(operand));
     }
     
+    public static Instruction RSH(final String register, final String count) {
+        return new Instruction(Opcode.RSH, asList(register, count));
+    }
+    
+    public static Instruction XOR(final String register, final String value) {
+        return new Instruction(Opcode.XOR, asList(register, value));
+    }
+    
+    public static Instruction AND(final String register, final String value) {
+        return new Instruction(Opcode.AND, asList(register, value));
+    }
+    
     public boolean isMUL() {
         return this.opcode == Opcode.MUL;
     }
