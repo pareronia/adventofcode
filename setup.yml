@@ -102,8 +102,8 @@ runner:
                 host: localhost
                 port: 5556
         rust:
-            base_dir: src/main/rust
-            day_format: target/release/AoC{year}_{day:0>2}
+            base_dir: build/rs/release
+            day_format: AoC{year}_{day:0>2}
     listeners:
       junitxml:
         filepath: build/junit.xml

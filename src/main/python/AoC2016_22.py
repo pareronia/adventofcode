@@ -41,7 +41,7 @@ class Node(NamedTuple):
         return Node(int(x[1:]), int(y[1:]), int(used[:-1]), int(avail[:-1]))
 
     def __eq__(self, other: object) -> bool:
-        if other is None or not type(other) is Node:
+        if other is None or type(other) is not Node:
             return False
         return self.x == other.x and self.y == other.y
 

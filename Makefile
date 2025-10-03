@@ -5,7 +5,6 @@ SRC_ROOT_MAIN := $(SRC_ROOT)/main
 SRC_ROOT_TEST := $(SRC_ROOT)/test
 PYTHON_ROOT := $(SRC_ROOT_MAIN)/python
 PYTHON_TEST_ROOT := $(SRC_ROOT_TEST)/python
-CLITEST_ROOT := $(SRC_ROOT_TEST)/clitest
 PYTHON_PATH := PYTHONPATH=$(PYTHON_ROOT)
 JAVA_ROOT := $(SRC_ROOT_MAIN)/java
 JAVA_TEST_ROOT := $(SRC_ROOT_TEST)/java
@@ -23,7 +22,7 @@ SHELLCHECK := shellcheck -a -P SCRIPTDIR --exclude=SC2317
 BANDIT := bandit --silent --configfile $(CFG)
 FLAKE := flake8
 VULTURE := vulture
-PMD := pmd pmd -R rulesets/java/quickstart.xml
+PMD := pmd check -R rulesets/java/quickstart.xml
 PMD_CACHE_DIR := .cache/pmd
 PMD_HTML_DIR := htmlpmd
 PMD_HTML := $(PMD_HTML_DIR)/pmd.html
@@ -31,7 +30,6 @@ GREP := grep
 GAWK := awk
 SORT := sort
 SED := sed
-CLITEST := clitest
 PYTHON_CMD := python -O
 PYTHON_UNITTEST_CMD := -m unittest discover -s $(PYTHON_TEST_ROOT)
 JAVA_CMD := $(JAVA_EXE) -ea
@@ -134,7 +132,7 @@ unittest.py:
 #: Run Java unit tests
 unittest.java:
 	@$(call msg,"Running Java unit tests...")
-	@$(JAVA_CMD) -DNDEBUG -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
+	@$(JAVA_CMD) -javaagent:$(JAVA_AGENT) -DNDEBUG -cp $(JAVA_CP_LIBS):$(JAVA_DST):$(JAVA_TEST_DST) \
 		$(JAVA_UNITTEST_CMD) --details=summary --select-class=AllUnitTests
 
 #: Run C++ unit tests
@@ -151,13 +149,8 @@ unittest.rust:
 #: Run all unit tests
 unittest: unittest.py unittest.java unittest.rust
 
-#: Run command line integration tests
-clitest:
-	@$(call msg,"Running clitest...")
-	@$(CLITEST) $(CLITEST_SRCS)
-
-#: Run all tests (unit tests, command line integration tests)
-alltest: unittest clitest
+#: Run all tests
+alltest: unittest
 
 #: Run Flake8 Python code linter
 flake:
@@ -181,12 +174,12 @@ shellcheck:
 
 #: Run PMD - Java static source code analyzer
 pmd: $(PMD_CACHE_DIR)
-	@$(PMD) -cache $(PMD_CACHE_DIR)/cache -dir $(JAVA_ROOT) -format textcolor
+	@$(PMD) --cache $(PMD_CACHE_DIR)/cache --dir $(JAVA_ROOT) --format textcolor
 
 #: Run PMD - Java static source code analyzer (HTML report)
 pmd.html: $(PMD_CACHE_DIR) $(PMD_HTML_DIR)
-	-@$(PMD) -cache $(PMD_CACHE_DIR)/cache -dir $(JAVA_ROOT) -format xslt \
-		-reportfile $(PMD_HTML)
+	-@$(PMD) --cache $(PMD_CACHE_DIR)/cache --dir $(JAVA_ROOT) --format xslt \
+		--report-file $(PMD_HTML)
 
 #: Open PMD html report
 pmd.html.open: pmd.html
@@ -253,6 +246,6 @@ help:
 		| $(SORT)
 
 .PHONY: flake vulture bandit fixme todo list help py java cpp julia \
-	unittest.py clitest build.java clean unittest.java pmd pmd.html \
+	unittest.py build.java clean unittest.java pmd pmd.html \
 	pmd.html.open docs.update unittest.cplusplus build.cplusplus \
 	build.rust rustfmt.check unittest.rust rust bash

@@ -86,7 +86,7 @@ def part_2(inputs: tuple[str, ...]) -> int:
             range(min_y + 1, max_y),
             range(min_z + 1, max_z),
         )
-        if not (x, y, z) in air and not (x, y, z) in cubes
+        if (x, y, z) not in air and (x, y, z) not in cubes
     ]
     return _surface_area(cubes) - _surface_area(trapped)
 
