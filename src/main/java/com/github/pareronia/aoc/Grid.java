@@ -6,6 +6,7 @@ import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -273,6 +274,19 @@ public interface Grid<T> {
 		    } else {
 		        throw new UnsupportedOperationException();
 		    }
+		}
+
+		public Stream<Cell> allAtManhattanDistance(final int distance) {
+			return Stream.iterate(0, dr -> dr <= distance, dr -> dr + 1)
+					.flatMap(dr -> {
+						final int dc = distance - dr;
+						return new HashSet<>(List.of(
+							Cell.at(row + dr, col + dc),
+							Cell.at(row + dr, col - dc),
+							Cell.at(row - dr, col + dc),
+							Cell.at(row - dr, col - dc)
+						)).stream();
+					});
 		}
 
         @Override
