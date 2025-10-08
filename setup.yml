@@ -71,13 +71,13 @@ runner:
         py:
             day_format: *python-file_pattern
         java:
-            command: java
+            command: ${JAVA_HOME}/bin/java
             classpath:
                 - ${CLASSPATH}
                 - ${PWD}/build/java/classes
             class: com.github.pareronia.aocd.Runner
             server:
-                command: java
+                command: ${JAVA_HOME}/bin/java
                 classpath:
                     - ${CLASSPATH}
                     - ${PWD}/build/java/classes
