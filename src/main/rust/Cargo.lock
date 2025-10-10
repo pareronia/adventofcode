@@ -590,6 +590,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "AoC2024_21"
+version = "0.1.0"
+dependencies = [
+ "aoc",
+ "cached",
+ "lazy_static",
+]
+
+[[package]]
 name = "AoC2024_22"
 version = "0.1.0"
 dependencies = [
