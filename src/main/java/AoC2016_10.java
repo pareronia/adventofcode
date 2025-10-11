@@ -1,168 +1,193 @@
+import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.NoPackage", "PMD.ClassNamingConventions"})
+public final class AoC2016_10 extends SolutionBase<AoC2016_10.Factory, Integer, Integer> {
 
-public class AoC2016_10 extends AoCBase {
+    private static final String TEST =
+            """
+            value 5 goes to bot 2
+            bot 2 gives low to bot 1 and high to bot 0
+            value 3 goes to bot 1
+            bot 1 gives low to output 1 and high to bot 0
+            bot 0 gives low to output 2 and high to output 0
+            value 2 goes to bot 2
+            """;
 
-	private final Set<Bot> bots;
-	private final List<Input> inputs;
-	private final Map<Integer, Integer> outputs;
-	
-	private AoC2016_10(final List<String> inputs, final boolean debug) {
-		super(debug);
-        this.bots = new HashSet<>();
-        this.inputs = new ArrayList<>();
-		this.outputs = new HashMap<>();
-        for (final String string : inputs) {
-            if (string.startsWith("value ")) {
-                final String[] splits
-                    = string.substring("value ".length()).split(" goes to bot ");
-                final Integer value = Integer.valueOf(splits[0]);
-                final Integer toBot = Integer.valueOf(splits[1]);
-                this.inputs.add(new AoC2016_10.Input(value, toBot));
+    private AoC2016_10(final boolean debug) {
+        super(debug);
+    }
+
+    public static AoC2016_10 create() {
+        return new AoC2016_10(false);
+    }
+
+    public static AoC2016_10 createDebug() {
+        return new AoC2016_10(true);
+    }
+
+    @Override
+    protected Factory parseInput(final List<String> inputs) {
+        return Factory.fromInputs(inputs);
+    }
+
+    private Integer solvePart1(final Factory factory, final int first, final int second) {
+        return factory.bots.values().stream()
+                .filter(
+                        b ->
+                                b.comparisons().stream()
+                                        .anyMatch(c -> c.loValue == first && c.hiValue == second))
+                .findFirst()
+                .map(Bot::number)
+                .orElseThrow();
+    }
+
+    @Override
+    public Integer solvePart1(final Factory factory) {
+        return solvePart1(factory, 17, 61);
+    }
+
+    @Override
+    public Integer solvePart2(final Factory factory) {
+        return factory.outputs.entrySet().stream()
+                .filter(e -> Set.of(0, 1, 2).contains(e.getKey()))
+                .map(Entry::getValue)
+                .reduce(1, (a, b) -> a * b);
+    }
+
+    @Override
+    protected void samples() {
+        final AoC2016_10 test = createDebug();
+        final Factory input = test.parseInput(StringOps.splitLines(TEST));
+        assert test.solvePart1(input, 2, 5) == 2;
+        assert test.solvePart2(input) == 30;
+    }
+
+    public static void main(final String[] args) throws Exception {
+        create().run();
+    }
+
+    record Bot(
+            int number,
+            BotActionType loAction,
+            BotActionType hiAction,
+            List<Integer> values,
+            Set<Comparison> comparisons) {
+
+        record Comparison(int loValue, int hiValue) {}
+
+        private Bot(final Bot bot, final List<Integer> values, final Set<Comparison> comparisons) {
+            this(bot.number, bot.loAction, bot.hiAction, values, comparisons);
+        }
+
+        public static Bot fromInput(final String string) {
+            final String[] splits = string.substring("bot ".length()).split(" ");
+            final int bot = Integer.parseInt(splits[0]);
+            final BotActionType loAction =
+                    new BotActionType(
+                            "bot".equals(splits[4])
+                                    ? BotActionType.Type.TO_BOT
+                                    : BotActionType.Type.TO_OUT,
+                            Integer.parseInt(splits[5]));
+            final BotActionType hiAction =
+                    new BotActionType(
+                            "bot".equals(splits[9])
+                                    ? BotActionType.Type.TO_BOT
+                                    : BotActionType.Type.TO_OUT,
+                            Integer.parseInt(splits[10]));
+            return new Bot(bot, loAction, hiAction, new ArrayList<>(), new HashSet<>());
+        }
+
+        public BotResponse receive(final int value) {
+            final List<Integer> values = new ArrayList<>(this.values);
+            values.add(value);
+            final Set<Comparison> comparisons = new HashSet<>(this.comparisons);
+            if (values.size() == 2) {
+                Collections.sort(values);
+                final int loValue = values.get(0);
+                final int hiValue = values.get(1);
+                values.clear();
+                comparisons.add(new Comparison(loValue, hiValue));
+                final Bot newBot = new Bot(this, values, comparisons);
+                final BotAction lo = new BotAction(this.loAction, loValue);
+                final BotAction hi = new BotAction(this.hiAction, hiValue);
+                return new BotResponse(newBot, Optional.of(lo), Optional.of(hi));
             } else {
-                final String[] splits
-                    = string.substring("bot ".length()).split(" ");
-                final Integer bot = Integer.valueOf(splits[0]);
-                final String typeLo = splits[4];
-                final Integer outLo = (typeLo.equals("bot") ? 0 : 1000)
-                                            + Integer.valueOf(splits[5]);
-                final String typeHi = splits[9];
-                final Integer outHi = (typeHi.equals("bot") ? 0 : 1000)
-                                            + Integer.valueOf(splits[10]);
-                this.bots.add(new AoC2016_10.Bot(bot, outLo, outHi));
+                return new BotResponse(
+                        new Bot(this, values, comparisons), Optional.empty(), Optional.empty());
             }
         }
-        log(this.inputs);
-        log(this.bots);
-	}
-	
-	public static final AoC2016_10 create(final List<String> input) {
-		return new AoC2016_10(input, false);
-	}
+    }
 
-	public static final AoC2016_10 createDebug(final List<String> input) {
-		return new AoC2016_10(input, true);
-	}
-	
-	private Bot findBot(final Integer number) {
-	    return bots.stream()
-	            .filter(b -> b.getNumber().equals(number))
-	            .findFirst()
-	            .orElseThrow();
-	}
-	
-	private void output(final Integer number, final Integer value) {
-	    outputs.put(number, value);
-	}
-	
-    private void run() {
-        for (final Input input : this.inputs) {
-            findBot(input.toBot())
-                    .receive(input.value(), this::findBot, this::output);
+    record BotInput(int value, int toBot) {
+
+        public static BotInput fromInput(final String string) {
+            final String[] splits = string.substring("value ".length()).split(" goes to bot ");
+            return new BotInput(Integer.parseInt(splits[0]), Integer.parseInt(splits[1]));
         }
     }
 
-	private Integer solvePart1(final Integer first, final Integer second) {
-	    run();
-	    return bots.stream()
-	            .filter(b -> b.getCompares().contains(Set.of(first, second)))
-	            .findFirst()
-	            .map(Bot::getNumber)
-	            .orElseThrow();
+    record Factory(Map<Integer, Bot> bots, Map<Integer, Integer> outputs) {
+
+        public static Factory fromInputs(final List<String> inputs) {
+            final Map<Integer, Bot> bots = new HashMap<>();
+            final List<BotInput> botInputs = new ArrayList<>();
+            for (final String string : inputs) {
+                if (string.startsWith("value ")) {
+                    botInputs.add(BotInput.fromInput(string));
+                } else {
+                    final Bot bot = Bot.fromInput(string);
+                    bots.put(bot.number, bot);
+                }
+            }
+            return new Factory(bots, doRun(bots, botInputs));
+        }
+
+        private static Map<Integer, Integer> doRun(
+                final Map<Integer, Bot> bots, final List<BotInput> botInputs) {
+            final Map<Integer, Integer> outputs = new HashMap<>();
+            final Deque<BotInput> q = new ArrayDeque<>(botInputs);
+            while (!q.isEmpty()) {
+                final BotInput input = q.pollFirst();
+                final BotResponse output = bots.get(input.toBot).receive(input.value);
+                bots.put(output.bot.number, output.bot);
+                for (final Optional<BotAction> action : List.of(output.lo, output.hi)) {
+                    action.ifPresent(
+                            a -> {
+                                switch (a.type.type) {
+                                    case TO_BOT -> q.addLast(new BotInput(a.value, a.type.target));
+                                    case TO_OUT -> outputs.put(a.type.target, a.value);
+                                    default -> {}
+                                }
+                            });
+                }
+            }
+            return outputs;
+        }
     }
 
-	@Override
-	public Integer solvePart1() {
-	    return solvePart1(17, 61);
-	}
-	
-	@Override
-	public Integer solvePart2() {
-	    run();
-		return outputs.entrySet().stream()
-		        .filter(e -> Set.of(0, 1, 2).contains(e.getKey()))
-		        .map(Entry::getValue)
-		        .reduce(1, (a, b) -> a * b);
-	}
+    record BotActionType(Type type, int target) {
 
-	public static void main(final String[] args) throws Exception {
-		assert AoC2016_10.createDebug(TEST).solvePart1(2, 5) == 2;
-		assert AoC2016_10.createDebug(TEST).solvePart2() == 30;
-		
-        final Puzzle puzzle = Aocd.puzzle(2016, 10);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2016_10.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2016_10.create(inputData)::solvePart2)
-        );
-	}
-
-	private static final List<String> TEST = splitLines(
-	        "value 5 goes to bot 2\n" +
-	        "bot 2 gives low to bot 1 and high to bot 0\n" +
-	        "value 3 goes to bot 1\n" +
-	        "bot 1 gives low to output 1 and high to bot 0\n" +
-	        "bot 0 gives low to output 2 and high to output 0\n" +
-	        "value 2 goes to bot 2"
-	);
-	
-	private static final class Bot {
-	    private final Integer number;
-	    private final Integer lowTo;
-	    private final Integer highTo;
-	    private final List<Integer> values = new ArrayList<>();
-	    private final Set<Set<Integer>> compares = new HashSet<>();
-	    
-	    protected Bot(final Integer number, final Integer lowTo, final Integer highTo) {
-            this.number = number;
-            this.lowTo = lowTo;
-            this.highTo = highTo;
+        enum Type {
+            NONE,
+            TO_BOT,
+            TO_OUT;
         }
+    }
 
-        public Integer getNumber() {
-            return number;
-        }
+    record BotAction(BotActionType type, int value) {}
 
-        public Set<Set<Integer>> getCompares() {
-            return compares;
-        }
-
-        public void receive(
-	            final Integer value,
-	            final Function<Integer, Bot> botLookup,
-	            final BiConsumer<Integer, Integer> output
-	    ) {
-	       this.values.add(value);
-	       if (this.values.size() == 2) {
-	           Collections.sort(this.values);
-	           final Integer lowValue = this.values.get(0);
-	           final Integer highValue = this.values.get(1);
-	           if (this.lowTo < 1000) {
-	               botLookup.apply(this.lowTo).receive(lowValue, botLookup, output);
-	           } else {
-	               output.accept(this.lowTo - 1000, lowValue);
-	           }
-	           if (this.highTo < 1000) {
-	               botLookup.apply(this.highTo).receive(highValue, botLookup, output);
-	           } else {
-	               output.accept(this.highTo - 1000, highValue);
-	           }
-	           this.compares.add(Set.of(lowValue, highValue));
-	           this.values.clear();
-	       }
-	    }
-	}
-	
-	record Input(int value, int toBot) { }
+    record BotResponse(Bot bot, Optional<BotAction> lo, Optional<BotAction> hi) {}
 }
