@@ -90,7 +90,11 @@ public enum Direction {
         return this.vector.getY();
     }
     
-    public boolean isHorizontal() {
+    public Optional<Character> getLetter() {
+		return letter;
+	}
+
+	public boolean isHorizontal() {
         return this == Direction.LEFT || this == Direction.RIGHT;
     }
 

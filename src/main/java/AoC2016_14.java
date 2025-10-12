@@ -1,95 +1,89 @@
+import com.github.pareronia.aoc.StringUtils;
+import com.github.pareronia.aoc.codec.MD5;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.github.pareronia.aoc.MutableInt;
-import com.github.pareronia.aoc.StringUtils;
-import com.github.pareronia.aoc.codec.MD5;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.NoPackage", "PMD.ClassNamingConventions"})
+public final class AoC2016_14 extends SolutionBase<String, Integer, Integer> {
 
-public class AoC2016_14 extends AoCBase {
-    
+    private static final int NUMBER_OF_KEYS = 64;
     private static final Pattern TRIPLET = Pattern.compile("([a-f0-9])\\1\\1");
 
-    private final String salt;
-    private final Map<Integer, String> table = new HashMap<>();
-
-	private AoC2016_14(final List<String> inputs, final boolean debug) {
-		super(debug);
-		assert inputs.size() == 1;
-		this.salt = inputs.get(0);
-	}
-	
-	public static final AoC2016_14 create(final List<String> input) {
-		return new AoC2016_14(input, false);
-	}
-
-	public static final AoC2016_14 createDebug(final List<String> input) {
-		return new AoC2016_14(input, true);
-	}
-	
-	private String calculateMD5(final String salt, final Integer stretch, final Integer index) {
-	    String toHash = salt + String.valueOf(index);
-	    for (int i = 0; i < 1 + stretch; i++) {
-	        toHash = MD5.md5Hex(toHash);
-	    }
-	    return toHash;
-	}
-	
-	private String getMD5(final String salt, final Integer stretch, final Integer index) {
-	   return this.table.computeIfAbsent(index, i -> calculateMD5(salt, stretch, i));
-	}
-	
-	private Optional<String> findTriplet(final String string) {
-	    return Optional.of(string)
-	            .map(TRIPLET::matcher)
-	            .filter(Matcher::find)
-	            .map(m -> m.group(1));
-	}
-
-    private Integer solve(final int stretch) {
-        final MutableInt index = new MutableInt(-1);
-	    final MutableInt cnt = new MutableInt(0);
-	    while (cnt.getValue() < 64) {
-	        final int idx = index.incrementAndGet();
-	        findTriplet(getMD5(this.salt, stretch, idx)).ifPresent(triplet -> {
-	            final String quintet = StringUtils.repeat(triplet.charAt(0), 5);
-	            for (int i = idx + 1; i < idx + 1001; i++) {
-	                if (getMD5(this.salt, stretch, i).contains(quintet)) {
-	                    cnt.increment();
-	                    break;
-	                }
-	            }
-	        });
-	    }
-	    return index.getValue();
+    private AoC2016_14(final boolean debug) {
+        super(debug);
     }
-    
+
+    public static AoC2016_14 create() {
+        return new AoC2016_14(false);
+    }
+
+    public static AoC2016_14 createDebug() {
+        return new AoC2016_14(true);
+    }
+
     @Override
-    public Integer solvePart1() {
-        return solve(0);
+    protected String parseInput(final List<String> inputs) {
+        return inputs.get(0);
     }
-	
-	@Override
-	public Integer solvePart2() {
-	    return solve(2016);
-	}
 
-	public static void main(final String[] args) throws Exception {
-		assert AoC2016_14.createDebug(TEST).solvePart1() == 22728;
-		assert AoC2016_14.createDebug(TEST).solvePart2() == 22551;
-		
-        final Puzzle puzzle = Aocd.puzzle(2016, 14);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2016_14.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2016_14.create(inputData)::solvePart2)
-        );
-	}
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    private int solve(final String salt, final int stretch) {
+        final Function<Key, String> calculateMD5 =
+                key -> {
+                    String hash = String.format("%s%d", key.salt, key.index);
+                    for (int i = 0; i < 1 + key.stretch; i++) {
+                        hash = MD5.md5Hex(hash);
+                    }
+                    return hash;
+                };
+        final Map<Key, String> cache = new HashMap<>();
+        int idx = -1;
+        int cnt = 0;
+        while (cnt < NUMBER_OF_KEYS) {
+            idx++;
+            String md5 = cache.computeIfAbsent(new Key(salt, idx, stretch), calculateMD5);
+            final Matcher matcher = TRIPLET.matcher(md5);
+            if (matcher.find()) {
+                final String quintet = StringUtils.repeat(matcher.group(1).charAt(0), 5);
+                for (int i = idx + 1; i < idx + 1001; i++) {
+                    md5 = cache.computeIfAbsent(new Key(salt, i, stretch), calculateMD5);
+                    if (md5.contains(quintet)) {
+                        cnt++;
+                        break;
+                    }
+                }
+            }
+        }
+        return idx;
+    }
 
-	private static final List<String> TEST = splitLines("abc");
+    @Override
+    public Integer solvePart1(final String salt) {
+        return solve(salt, 0);
+    }
+
+    @Override
+    public Integer solvePart2(final String salt) {
+        return solve(salt, 2016);
+    }
+
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "22728"),
+        @Sample(method = "part2", input = TEST, expected = "22551"),
+    })
+    public static void main(final String[] args) throws Exception {
+        create().run();
+    }
+
+    private static final String TEST = "abc";
+
+    record Key(String salt, int index, int stretch) {}
 }

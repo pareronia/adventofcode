@@ -1,91 +1,79 @@
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
 import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.graph.Dijkstra;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public final class AoC2016_13 extends AoCBase {
+import java.util.List;
+import java.util.function.Predicate;
+
+@SuppressWarnings({"PMD.NoPackage", "PMD.ClassNamingConventions"})
+public final class AoC2016_13 extends SolutionBase<Dijkstra.Result<Cell>, Integer, Integer> {
 
     private static final char ONE = '1';
     private static final Cell START = Cell.at(1, 1);
-    
-    private final transient Integer input;
-    private final transient Map<Cell, Boolean> openSpaceCache;
 
-    private AoC2016_13(final List<String> inputs, final boolean debug) {
+    private AoC2016_13(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = Integer.valueOf(inputs.get(0));
-        this.openSpaceCache = new HashMap<>();
     }
 
-    public static AoC2016_13 create(final List<String> input) {
-        return new AoC2016_13(input, false);
+    public static AoC2016_13 create() {
+        return new AoC2016_13(false);
     }
 
-    public static AoC2016_13 createDebug(final List<String> input) {
-        return new AoC2016_13(input, true);
+    public static AoC2016_13 createDebug() {
+        return new AoC2016_13(true);
     }
-    
-    private boolean isOpenSpace(final Cell cell) {
-        return this.openSpaceCache.computeIfAbsent(cell, pos -> {
-            final int x = cell.getRow();
-            final int y = cell.getCol();
-            final int t = this.input + x * x + 3 * x + 2 * x * y + y + y * y;
-            final long ones = Utils.asCharacterStream(Integer.toBinaryString(t))
-                    .filter(c -> c == ONE).count();
-            return ones % 2 == 0;
-        });
-    }
-    
-    private Stream<Cell> adjacent(final Cell c) {
-        return c.capitalNeighbours()
-            .filter(n -> n.getRow() >= 0)
-            .filter(n -> n.getCol() >= 0)
-            .filter(this::isOpenSpace);
-    }
-    
-    private Dijkstra.Result<Cell> runAStar() {
+
+    @Override
+    protected Dijkstra.Result<Cell> parseInput(final List<String> inputs) {
+        final int input = Integer.parseInt(inputs.get(0));
+        final Predicate<Cell> isOpenSpace =
+                cell -> {
+                    final int x = cell.getRow();
+                    final int y = cell.getCol();
+                    final int t = input + x * x + 3 * x + 2 * x * y + y + y * y;
+                    final long ones =
+                            Utils.asCharacterStream(Integer.toBinaryString(t))
+                                    .filter(c -> c == ONE)
+                                    .count();
+                    return ones % 2 == 0;
+                };
         return Dijkstra.execute(
                 START,
                 cell -> false,
-                this::adjacent,
+                cell ->
+                        cell.capitalNeighbours()
+                                .filter(n -> n.getRow() >= 0 && n.getCol() >= 0)
+                                .filter(isOpenSpace),
                 (curr, next) -> 1);
     }
-    
-    private int getDistance(final Cell end) {
-        return (int) runAStar().getDistance(end);
+
+    private int getDistance(final Dijkstra.Result<Cell> input, final Cell end) {
+        return (int) input.getDistance(end);
     }
 
     @Override
-    public Integer solvePart1() {
-        return getDistance(Cell.at(31, 39));
+    public Integer solvePart1(final Dijkstra.Result<Cell> input) {
+        return getDistance(input, Cell.at(31, 39));
     }
 
     @Override
-    public Integer solvePart2() {
-        return (int) runAStar()
-                .getDistances().values().stream()
-                .filter(v -> v <= 50)
-                .count();
+    public Integer solvePart2(final Dijkstra.Result<Cell> input) {
+        return (int) input.getDistances().values().stream().filter(v -> v <= 50).count();
+    }
+
+    @Override
+    protected void samples() {
+        final AoC2016_13 test = createDebug();
+        final Dijkstra.Result<Cell> input = test.parseInput(StringOps.splitLines(TEST));
+        assert test.getDistance(input, Cell.at(1, 1)) == 0;
+        assert test.getDistance(input, Cell.at(7, 4)) == 11;
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_13.createDebug(TEST).getDistance(Cell.at(1, 1)) == 0;
-        assert AoC2016_13.createDebug(TEST).getDistance(Cell.at(7, 4)) == 11;
-        
-        final Puzzle puzzle = Aocd.puzzle(2016, 13);
-        final List<String> input = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", create(input)::solvePart1),
-            () -> lap("Part 2", create(input)::solvePart2)
-        );
+        create().run();
     }
-    
-    private static final List<String> TEST = splitLines("10");
+
+    private static final String TEST = "10";
 }

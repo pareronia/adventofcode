@@ -1,122 +1,123 @@
 import static com.github.pareronia.aoc.Utils.asCharacterStream;
-import static com.github.pareronia.aoc.Utils.toAString;
-import static java.util.stream.Collectors.toList;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import static java.util.stream.Collectors.toMap;
 
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.geometry.Position;
 import com.github.pareronia.aoc.navigation.Heading;
 import com.github.pareronia.aoc.navigation.NavigationWithHeading;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
-public class AoC2016_02 extends AoCBase {
-    
-    private static final Map<Position, Character> LAYOUT1 = Map.of(
-            Position.of(-1, 1), '1',
-            Position.of(0, 1), '2',
-            Position.of(1, 1), '3',
-            Position.of(-1, 0), '4',
-            Position.of(0, 0), '5',
-            Position.of(1, 0), '6',
-            Position.of(-1, -1), '7',
-            Position.of(0, -1), '8',
-            Position.of(1, -1), '9'
-    );
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+@SuppressWarnings({"PMD.NoPackage", "PMD.ClassNamingConventions"})
+public final class AoC2016_02 extends SolutionBase<List<List<Direction>>, String, String> {
+
+    private static final List<Key> LAYOUT1 =
+            List.of(
+                    new Key(Position.of(-1, 1), '1'),
+                    new Key(Position.of(0, 1), '2'),
+                    new Key(Position.of(1, 1), '3'),
+                    new Key(Position.of(-1, 0), '4'),
+                    new Key(Position.of(0, 0), '5'),
+                    new Key(Position.of(1, 0), '6'),
+                    new Key(Position.of(-1, -1), '7'),
+                    new Key(Position.of(0, -1), '8'),
+                    new Key(Position.of(1, -1), '9'));
+
     @SuppressWarnings("serial")
-    private static final Map<Position, Character> LAYOUT2
-        = Collections.unmodifiableMap(new HashMap<>() {{
-            put(Position.of(2, 2), '1');
-            put(Position.of(1, 1), '2');
-            put(Position.of(2, 1), '3');
-            put(Position.of(3, 1), '4');
-            put(Position.of(0, 0), '5');
-            put(Position.of(1, 0), '6');
-            put(Position.of(2, 0), '7');
-            put(Position.of(3, 0), '8');
-            put(Position.of(4, 0), '9');
-            put(Position.of(1, -1), 'A');
-            put(Position.of(2, -1), 'B');
-            put(Position.of(3, -1), 'C');
-            put(Position.of(2, -2), 'D');
-    }});
+    private static final List<Key> LAYOUT2 =
+            new ArrayList<>() {
+                {
+                    add(new Key(Position.of(2, 2), '1'));
+                    add(new Key(Position.of(1, 1), '2'));
+                    add(new Key(Position.of(2, 1), '3'));
+                    add(new Key(Position.of(3, 1), '4'));
+                    add(new Key(Position.of(0, 0), '5'));
+                    add(new Key(Position.of(1, 0), '6'));
+                    add(new Key(Position.of(2, 0), '7'));
+                    add(new Key(Position.of(3, 0), '8'));
+                    add(new Key(Position.of(4, 0), '9'));
+                    add(new Key(Position.of(1, -1), 'A'));
+                    add(new Key(Position.of(2, -1), 'B'));
+                    add(new Key(Position.of(3, -1), 'C'));
+                    add(new Key(Position.of(2, -2), 'D'));
+                }
+            };
 
-    private final List<List<Direction>> inputs;
-
-    private AoC2016_02(final List<String> inputs, final boolean debug) {
+    private AoC2016_02(final boolean debug) {
         super(debug);
-        this.inputs = inputs.stream()
-            .map(s -> asCharacterStream(s).map(Direction::fromChar).collect(toList()))
-            .collect(toList());
     }
 
-    public static final AoC2016_02 create(final List<String> input) {
-        return new AoC2016_02(input, false);
+    public static AoC2016_02 create() {
+        return new AoC2016_02(false);
     }
 
-    public static final AoC2016_02 createDebug(final List<String> input) {
-        return new AoC2016_02(input, true);
+    public static AoC2016_02 createDebug() {
+        return new AoC2016_02(true);
     }
-    
+
     @Override
-    public String solvePart1() {
-        return Keypad.fromLayout(LAYOUT1).executeInstructions(this.inputs);
-    }
-    
-    @Override
-    public String solvePart2() {
-        return Keypad.fromLayout(LAYOUT2).executeInstructions(this.inputs);
+    protected List<List<Direction>> parseInput(final List<String> inputs) {
+        return inputs.stream()
+                .map(s -> asCharacterStream(s).map(Direction::fromChar).toList())
+                .toList();
     }
 
+    @Override
+    public String solvePart1(final List<List<Direction>> inputs) {
+        return Keypad.fromLayout(LAYOUT1).executeInstructions(inputs);
+    }
+
+    @Override
+    public String solvePart2(final List<List<Direction>> inputs) {
+        return Keypad.fromLayout(LAYOUT2).executeInstructions(inputs);
+    }
+
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "1985"),
+        @Sample(method = "part2", input = TEST, expected = "5DB3"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_02.createDebug(TEST).solvePart1().equals("1985");
-        assert AoC2016_02.createDebug(TEST).solvePart2().equals("5DB3");
-
-        final Puzzle puzzle = Aocd.puzzle(2016, 2);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2016_02.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2016_02.create(inputData)::solvePart2)
-        );
+        create().run();
     }
 
-    private static final List<String> TEST = splitLines(
-            "ULL\n" +
-            "RRDDD\n" +
-            "LURDL\n" +
-            "UUUUD"
-    );
-    
-    private static final class Keypad {
-        private final Map<Position, Character> positions;
-        private Position current = Position.ORIGIN;
-        
-        private Keypad(final Map<Position, Character> positions) {
-            this.positions = positions;
-        }
-        
-        public static Keypad fromLayout(final Map<Position, Character> positions) {
-            return new Keypad(positions);
+    private static final String TEST =
+            """
+            ULL
+            RRDDD
+            LURDL
+            UUUUD
+            """;
+
+    record Keypad(Map<Position, Key> keys) {
+
+        public static Keypad fromLayout(final List<Key> positions) {
+            return new Keypad(positions.stream().collect(toMap(Key::position, k -> k)));
         }
 
         public String executeInstructions(final List<List<Direction>> directions) {
-            return directions.stream()
-                .map(this::executeInstruction)
-                .collect(toAString());
+            final StringBuilder sb = new StringBuilder();
+            Key current = keys.get(Position.ORIGIN);
+            for (final List<Direction> d : directions) {
+                current = this.executeInstruction(current, d);
+                sb.append(current.character);
+            }
+            return sb.toString();
         }
-        
-        private Character executeInstruction(final List<Direction> directions) {
-            final NavigationWithHeading nav = new NavigationWithHeading(
-                this.current,
-                Heading.NORTH,
-                this.positions.keySet()::contains);
+
+        private Key executeInstruction(final Key start, final List<Direction> directions) {
+            final NavigationWithHeading nav =
+                    new NavigationWithHeading(
+                            start.position, Heading.NORTH, this.keys.keySet()::contains);
             directions.forEach(step -> nav.navigate(Heading.fromDirection(step), 1));
-            this.current = nav.getPosition();
-            return this.positions.get(this.current);
+            return keys.get(nav.getPosition());
         }
     }
+
+    record Key(Position position, Character character) {}
 }

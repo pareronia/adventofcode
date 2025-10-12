@@ -1,40 +1,49 @@
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 
+import com.github.pareronia.aoc.RangeInclusive;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.github.pareronia.aoc.RangeInclusive;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.NoPackage", "PMD.ClassNamingConventions"})
+public final class AoC2016_20 extends SolutionBase<List<RangeInclusive<Long>>, Long, Long> {
 
-public class AoC2016_20 extends AoCBase {
-    
-    private static final long TOTAL_IPS = 4294967296L;
-    
-    private final List<RangeInclusive<Long>> ranges;
-	
-	private AoC2016_20(final List<String> input, final boolean debug) {
-		super(debug);
-		this.ranges = input.stream()
-		        .map(s -> s.split("-"))
-		        .map(sp -> RangeInclusive.between(Long.valueOf(sp[0]), Long.valueOf(sp[1])))
-		        .collect(toList());
-	}
-	
-	public static AoC2016_20 create(final List<String> input) {
-		return new AoC2016_20(input, false);
-	}
+    private static final long TOTAL_IPS = 4_294_967_296L;
 
-	public static AoC2016_20 createDebug(final List<String> input) {
-		return new AoC2016_20(input, true);
-	}
-	
-    private List<RangeInclusive<Long>> combineRanges() {
+    private AoC2016_20(final boolean debug) {
+        super(debug);
+    }
+
+    public static AoC2016_20 create() {
+        return new AoC2016_20(false);
+    }
+
+    public static AoC2016_20 createDebug() {
+        return new AoC2016_20(true);
+    }
+
+    @Override
+    protected List<RangeInclusive<Long>> parseInput(final List<String> inputs) {
+        final List<RangeInclusive<Long>> ranges =
+                inputs.stream()
+                        .map(s -> s.split("-"))
+                        .map(sp -> RangeInclusive.between(Long.valueOf(sp[0]), Long.valueOf(sp[1])))
+                        .collect(toList());
+        return combineRanges(ranges);
+    }
+
+    // TODO: unduplicate w/ RangeInclusive.mergeRanges
+    private List<RangeInclusive<Long>> combineRanges(final List<RangeInclusive<Long>> ranges) {
         final List<RangeInclusive<Long>> combines = new ArrayList<>();
-        this.ranges.sort(comparing(RangeInclusive::getMinimum)); // why doesn't this work without sorting?
-	    combines.add(this.ranges.get(0));
-	    for (int i = 1; i < ranges.size(); i++) {
+        // why doesn't this work without sorting?
+        ranges.sort(comparing(RangeInclusive::getMinimum));
+        combines.add(ranges.get(0));
+        for (int i = 1; i < ranges.size(); i++) {
             final RangeInclusive<Long> r = ranges.get(i);
             boolean combined = false;
             for (int j = 0; j < combines.size(); j++) {
@@ -56,48 +65,42 @@ public class AoC2016_20 extends AoCBase {
                 combines.add(r);
             }
         }
-        return combines;
+        return Collections.unmodifiableList(combines);
     }
-	 
-	@Override
-	public Long solvePart1() {
-	    return combineRanges().stream()
-	            .sorted(comparing(RangeInclusive::getMinimum))
-	            .findFirst()
-	            .map(c -> c.getMaximum() + 1)
-	            .orElseThrow();
-	}
 
-	@Override
-	public Long solvePart2() {
-	    return combineRanges().stream()
-	            .map(c -> c.getMaximum() - c.getMinimum() + 1)
-	            .reduce(TOTAL_IPS, (a, b) -> a - b);
-	}
+    @Override
+    public Long solvePart1(final List<RangeInclusive<Long>> ranges) {
+        return ranges.stream().findFirst().map(c -> c.getMaximum() + 1).orElseThrow();
+    }
 
-	public static void main(final String[] args) throws Exception {
-		assert AoC2016_20.createDebug(TEST1).solvePart1() == 3;
-		assert AoC2016_20.createDebug(TEST2).solvePart1() == 90000101;
-		assert AoC2016_20.createDebug(TEST1).solvePart2() == 4294967288L;
-		assert AoC2016_20.createDebug(TEST2).solvePart2() == 4194967190L;
+    @Override
+    public Long solvePart2(final List<RangeInclusive<Long>> ranges) {
+        return ranges.stream()
+                .map(c -> c.getMaximum() - c.getMinimum() + 1)
+                .reduce(TOTAL_IPS, (a, b) -> a - b);
+    }
 
-        final Puzzle puzzle = Aocd.puzzle(2016, 20);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2016_20.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2016_20.create(inputData)::solvePart2)
-        );
-	}
-	
-	private static final List<String> TEST1 = splitLines(
-	        "5-8\r\n" +
-	        "0-2\r\n" +
-	        "4-7"
-	);
-	private static final List<String> TEST2 = splitLines(
-	        "0-90000000\r\n" +
-	        "100000005-110000005\r\n" +
-	        "90000001-90000100\r\n" +
-	        "1000000054-1000000057"
-	);
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "3"),
+        @Sample(method = "part1", input = TEST2, expected = "90000101"),
+        @Sample(method = "part2", input = TEST1, expected = "4294967288"),
+        @Sample(method = "part2", input = TEST2, expected = "4194967190"),
+    })
+    public static void main(final String[] args) throws Exception {
+        create().run();
+    }
+
+    private static final String TEST1 =
+            """
+            5-8
+            0-2
+            4-7
+            """;
+    private static final String TEST2 =
+            """
+            0-90000000
+            100000005-110000005
+            90000001-90000100
+            1000000054-1000000057
+            """;
 }

@@ -1,145 +1,121 @@
-import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toMap;
+
+import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.IntegerSequence.Range;
+import com.github.pareronia.aoc.codec.MD5;
+import com.github.pareronia.aoc.geometry.Direction;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
-import java.util.function.Function;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.codec.MD5;
-import com.github.pareronia.aoc.geometry.Direction;
-import com.github.pareronia.aoc.geometry.Point;
-import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.NoPackage", "PMD.ClassNamingConventions"})
+public final class AoC2016_17 extends SolutionBase<List<AoC2016_17.Path>, String, Integer> {
 
-public final class AoC2016_17 extends AoCBase {
-
-    private static final Position START = Position.of(0, 0);
-    private static final Position DESTINATION = Position.of(3, 3);
-    
-    private final transient String input;
-
-    private AoC2016_17(final List<String> inputs, final boolean debug) {
+    private AoC2016_17(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = inputs.get(0);
     }
 
-    public static AoC2016_17 create(final List<String> input) {
-        return new AoC2016_17(input, false);
+    public static AoC2016_17 create() {
+        return new AoC2016_17(false);
     }
 
-    public static AoC2016_17 createDebug(final List<String> input) {
-        return new AoC2016_17(input, true);
+    public static AoC2016_17 createDebug() {
+        return new AoC2016_17(true);
     }
-    
+
     @Override
-    public String solvePart1() {
-        final List<Path> paths = new ArrayList<>();
-        new PathFinder(START, DESTINATION, this.input).findPaths(path -> {
-            if (path.isAt(DESTINATION)) {
-                paths.add(path);
-                return true;
-            }
-            return false;
-        });
-        return paths.stream()
-                .findFirst()
-                .map(Path::path)
-                .orElseThrow();
-    }
-    
-    @Override
-    public Integer solvePart2() {
-        final List<Path> paths = new ArrayList<>();
-        new PathFinder(START, DESTINATION, this.input).findPaths(path -> {
-            if (path.isAt(DESTINATION)) {
-                paths.add(path);
-            }
-            return false;
-        });
-        return paths.stream()
-                .map(Path::length)
-                .max(comparing(Integer::intValue))
-                .orElseThrow();
+    protected List<Path> parseInput(final List<String> inputs) {
+        return new PathFinder(inputs.get(0)).findPaths();
     }
 
+    @Override
+    public String solvePart1(final List<Path> paths) {
+        return paths.stream().findFirst().map(Path::path).orElseThrow();
+    }
+
+    @Override
+    public Integer solvePart2(final List<Path> paths) {
+        return paths.stream().mapToInt(Path::length).max().getAsInt();
+    }
+
+    @Samples({
+        @Sample(method = "part1", input = "ihgpwlah", expected = "DDRRRD"),
+        @Sample(method = "part1", input = "kglvqrro", expected = "DDUDRLRRUDRD"),
+        @Sample(method = "part1", input = "ulqzkmiv", expected = "DRURDRUDDLLDLUURRDULRLDUUDDDRR"),
+        @Sample(method = "part2", input = "ihgpwlah", expected = "370"),
+        @Sample(method = "part2", input = "kglvqrro", expected = "492"),
+        @Sample(method = "part2", input = "ulqzkmiv", expected = "830"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2016_17.createDebug(splitLines("ihgpwlah")).solvePart1().equals("DDRRRD");
-        assert AoC2016_17.createDebug(splitLines("kglvqrro")).solvePart1().equals("DDUDRLRRUDRD");
-        assert AoC2016_17.createDebug(splitLines("ulqzkmiv")).solvePart1().equals("DRURDRUDDLLDLUURRDULRLDUUDDDRR");
-        assert AoC2016_17.createDebug(splitLines("ihgpwlah")).solvePart2() == 370;
-        assert AoC2016_17.createDebug(splitLines("kglvqrro")).solvePart2() == 492;
-        assert AoC2016_17.createDebug(splitLines("ulqzkmiv")).solvePart2() == 830;
-
-        final Puzzle puzzle = Aocd.puzzle(2016, 17);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2016_17.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2016_17.create(inputData)::solvePart2)
-        );
+        create().run();
     }
-    
-    record Path(String path, Position position) {
-        
+
+    record Path(String path, Cell position) {
+
         public int length() {
             return this.path.length();
         }
-        
-        public boolean isAt(final Position position) {
+
+        public boolean isAt(final Cell position) {
             return this.position.equals(position);
         }
     }
 
-    record PathFinder(Position start, Position destination, String salt) {
-        private static final List<Character> OPEN_CHARS = List.of('b', 'c', 'd', 'e', 'f');
-        private static final List<Direction> DIRECTIONS = List.of(
-                Direction.DOWN, Direction.UP, Direction.LEFT, Direction.RIGHT);
-        private static final char[] DOORS = { 'U', 'D', 'L', 'R' };
-    
-        public void findPaths(final Function<Path, Boolean> stop) {
-            final Deque<Path> paths = new ArrayDeque<>();
-            Path path = new Path("", this.start);
-            paths.add(path);
-            while (!stop.apply(path) && !paths.isEmpty()) {
-                path = paths.removeFirst();
-                if (path.isAt(this.destination)) {
+    record PathFinder(String salt) {
+        private static final Cell START = Cell.at(0, 0);
+        private static final Cell DESTINATION = Cell.at(3, 3);
+        private static final Set<Character> OPEN_CHARS = Set.of('b', 'c', 'd', 'e', 'f');
+        private static final List<Direction> DIRECTIONS =
+                List.of(Direction.UP, Direction.DOWN, Direction.LEFT, Direction.RIGHT);
+
+        public List<Path> findPaths() {
+            final List<Path> paths = new ArrayList<>();
+            final Deque<Path> q = new ArrayDeque<>();
+            q.add(new Path("", START));
+            while (!q.isEmpty()) {
+                final Path path = q.pollFirst();
+                if (path.isAt(DESTINATION)) {
+                    paths.add(path);
                     continue;
                 }
-                final boolean[] doors = areDoorsOpen(path);
-                for (final Direction direction : DIRECTIONS) {
-                    final Path newPath = buildNewPath(path, direction);
-                    if (doors[DIRECTIONS.indexOf(direction)]
-                            && isInBounds(newPath.position())) {
-                        paths.add(newPath);
-                    }
-                }
+                adjacent(path).forEach(q::addLast);
             }
+            return paths;
         }
-        
-        private boolean[] areDoorsOpen(final Path path) {
-            final String data = new StringBuilder().append(this.salt)
-                    .append(path.path()).toString();
+
+        private Stream<Path> adjacent(final Path path) {
+            final Map<Direction, Boolean> openDoors = openDoors(path);
+            return DIRECTIONS.stream()
+                    .filter(openDoors::get)
+                    .map(
+                            direction ->
+                                    new Path(
+                                            path.path() + direction.getLetter().get(),
+                                            path.position().at(direction)))
+                    .filter(n -> isInBounds(n.position()));
+        }
+
+        private Map<Direction, Boolean> openDoors(final Path path) {
+            final String data =
+                    new StringBuilder().append(this.salt).append(path.path()).toString();
             final String md5Hex = MD5.md5Hex(data);
-            final boolean[] doors = new boolean[DOORS.length];
-            for (int d = 0; d < DIRECTIONS.size(); d++) {
-                doors[d] = OPEN_CHARS.contains(md5Hex.charAt(d));
-            }
-            return doors;
+            return Range.range(DIRECTIONS.size()).stream()
+                    .collect(toMap(DIRECTIONS::get, i -> OPEN_CHARS.contains(md5Hex.charAt(i))));
         }
-    
-        private Path buildNewPath(final Path path, final Direction direction) {
-            return new Path(
-                    path.path() + DOORS[DIRECTIONS.indexOf(direction)],
-                    path.position().translate(direction));
-        }
-    
-        private boolean isInBounds(final Point position) {
-            return position.getX() >= this.start.getX()
-                    && position.getY() >= this.start.getY()
-                    && position.getX() <= this.destination.getX()
-                    && position.getY() <= this.destination.getY();
+
+        private boolean isInBounds(final Cell position) {
+            return position.getCol() >= START.getCol()
+                    && position.getRow() >= START.getRow()
+                    && position.getCol() <= DESTINATION.getCol()
+                    && position.getRow() <= DESTINATION.getRow();
         }
     }
 }
