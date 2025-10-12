@@ -175,6 +175,7 @@ bin-test/
 .project
 .classpath
 .pydevproject
+.pmd
 
 ##
 ## Java

@@ -152,7 +152,7 @@ pmd-html-dir:
 # Linting: PMD
 [group("linting")]
 pmd: pmd-cache-dir
-    @{{ pmd }} check --rulesets "rulesets/java/quickstart.xml" --cache "{{ pmd_cache_dir }}/cache" \
+    @{{ pmd }} check --rulesets "pmd-ruleset.xml" --cache "{{ pmd_cache_dir }}/cache" \
         --dir "{{ java_source_dir }}" --format textcolor
 
 # Linting: PMD (HTML report)
