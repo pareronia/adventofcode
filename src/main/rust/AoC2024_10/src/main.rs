@@ -11,7 +11,7 @@ enum Grading {
 }
 
 impl Grading {
-    fn get(&self, trails: &Vec<Vec<Cell>>) -> usize {
+    fn get(&self, trails: &[Vec<Cell>]) -> usize {
         match self {
             Grading::Score => {
                 trails.iter().map(|trail| trail.last()).unique().count()
@@ -36,9 +36,9 @@ impl AoC2024_10 {
                     trails.push(trail);
                     continue;
                 }
-                grid.capital_neighbours(&trail.last().unwrap())
+                grid.capital_neighbours(trail.last().unwrap())
                     .into_iter()
-                    .filter(|n| grid.get(&n) == nxt)
+                    .filter(|n| grid.get(n) == nxt)
                     .for_each(|n| {
                         let mut new_trail = trail.to_vec();
                         new_trail.push(n);

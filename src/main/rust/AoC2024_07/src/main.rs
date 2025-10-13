@@ -25,7 +25,7 @@ impl AoC2024_07 {
             let last = terms.last().unwrap();
             let prev_terms = &terms[..terms.len() - 1];
             if ops.contains(&Op::Multiply)
-                && sol % last == 0
+                && sol.is_multiple_of(*last)
                 && can_obtain(sol.div_euclid(*last), prev_terms, ops)
             {
                 return true;

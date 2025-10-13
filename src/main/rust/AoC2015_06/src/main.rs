@@ -37,57 +37,29 @@ impl Action {
         mode: &Mode,
     ) {
         let rr = (start.row * 1_000..=end.row * 1_000).step_by(1_000);
-        match self {
-            Action::TurnOn => match mode {
-                Mode::Mode1 => {
-                    for r in rr {
-                        for i in r + start.col..=r + end.col {
-                            lights[i] = 1;
-                        }
-                    }
-                }
-                Mode::Mode2 => {
-                    for r in rr {
-                        for i in r + start.col..=r + end.col {
-                            lights[i] += 1;
-                        }
-                    }
-                }
-            },
-            Action::TurnOff => match mode {
-                Mode::Mode1 => {
-                    for r in rr {
-                        for i in r + start.col..=r + end.col {
-                            lights[i] = 0;
-                        }
-                    }
-                }
-                Mode::Mode2 => {
-                    for r in rr {
-                        for i in r + start.col..=r + end.col {
-                            if lights[i] > 0 {
-                                lights[i] -= 1;
+        for r in rr {
+            for light in
+                lights.iter_mut().take(r + end.col + 1).skip(r + start.col)
+            {
+                match self {
+                    Action::TurnOn => match mode {
+                        Mode::Mode1 => *light = 1,
+                        Mode::Mode2 => *light += 1,
+                    },
+                    Action::TurnOff => match mode {
+                        Mode::Mode1 => *light = 0,
+                        Mode::Mode2 => {
+                            if *light > 0 {
+                                *light -= 1
                             }
                         }
-                    }
+                    },
+                    Action::Toggle => match mode {
+                        Mode::Mode1 => *light = if *light == 0 { 1 } else { 0 },
+                        Mode::Mode2 => *light += 2,
+                    },
                 }
-            },
-            Action::Toggle => match mode {
-                Mode::Mode1 => {
-                    for r in rr {
-                        for i in r + start.col..=r + end.col {
-                            lights[i] = if lights[i] == 0 { 1 } else { 0 };
-                        }
-                    }
-                }
-                Mode::Mode2 => {
-                    for r in rr {
-                        for i in r + start.col..=r + end.col {
-                            lights[i] += 2;
-                        }
-                    }
-                }
-            },
+            }
         }
     }
 }

@@ -69,7 +69,7 @@ impl aoc::Puzzle for AoC2022_09 {
                 let splits: Vec<&str> = line.split_whitespace().collect();
                 let n = splits[1].parse::<usize>().unwrap();
                 let direction = Direction::from_str(splits[0]).unwrap();
-                std::iter::repeat(direction).take(n)
+                std::iter::repeat_n(direction, n)
             })
             .collect::<Vec<Direction>>()
     }

@@ -34,7 +34,7 @@ impl Regions {
         }
     }
 
-    fn iter(&self) -> RegionIterator {
+    fn iter(&self) -> RegionIterator<'_> {
         RegionIterator {
             all_plots_with_plant: self.plots_by_plant.values().collect(),
             index: 0,

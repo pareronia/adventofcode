@@ -55,11 +55,11 @@ impl Mode {
 struct AoC2024_08;
 
 impl AoC2024_08 {
-    fn solve<'a>(
+    fn solve(
         &self,
         h: usize,
         w: usize,
-        antennae: &'a [HashSet<XY>],
+        antennae: &[HashSet<XY>],
         mode: Mode,
     ) -> usize {
         antennae

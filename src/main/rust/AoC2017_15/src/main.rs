@@ -17,8 +17,8 @@ impl Criteria {
     fn apply(&self, val: u64) -> bool {
         match self {
             Self::A1 | Self::B1 => true,
-            Self::A2 => val % 4 == 0,
-            Self::B2 => val % 8 == 0,
+            Self::A2 => val.is_multiple_of(4),
+            Self::B2 => val.is_multiple_of(8),
         }
     }
 }

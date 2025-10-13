@@ -20,11 +20,9 @@ impl AoC2024_03 {
                 enabled = true;
             } else if &cap[0] == "don't()" {
                 enabled = false;
-            } else {
-                if !use_conditionals || enabled {
-                    ans += &cap[3].parse::<u32>().unwrap()
-                        * &cap[4].parse::<u32>().unwrap();
-                }
+            } else if !use_conditionals || enabled {
+                ans += cap[3].parse::<u32>().unwrap()
+                    * cap[4].parse::<u32>().unwrap();
             }
         }
         ans
@@ -43,11 +41,11 @@ impl aoc::Puzzle for AoC2024_03 {
     }
 
     fn part_1(&self, input: &Self::Input) -> Self::Output1 {
-        self.solve(&input, false)
+        self.solve(input, false)
     }
 
     fn part_2(&self, input: &Self::Input) -> Self::Output2 {
-        self.solve(&input, true)
+        self.solve(input, true)
     }
 
     fn samples(&self) {

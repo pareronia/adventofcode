@@ -20,11 +20,11 @@ impl AoC2024_18 {
     ) -> Vec<Cell> {
         cell.capital_neighbours()
             .into_iter()
-            .filter(|n| n.row < size && n.col < size && !occupied.contains(&n))
+            .filter(|n| n.row < size && n.col < size && !occupied.contains(n))
             .collect()
     }
 
-    fn solve_1(&self, cells: &Vec<Cell>, size: usize, time: usize) -> usize {
+    fn solve_1(&self, cells: &[Cell], size: usize, time: usize) -> usize {
         let end = Cell::at(size - 1, size - 1);
         let mut occupied: HashSet<Cell> = HashSet::new();
         cells[..time].iter().for_each(|cell| {
@@ -37,11 +37,11 @@ impl AoC2024_18 {
         )
     }
 
-    fn sample_part_1(&self, cells: &Vec<Cell>) -> usize {
+    fn sample_part_1(&self, cells: &[Cell]) -> usize {
         self.solve_1(cells, 7, 12)
     }
 
-    fn solve_2(&self, cells: &Vec<Cell>, size: usize, time: usize) -> String {
+    fn solve_2(&self, cells: &[Cell], size: usize, time: usize) -> String {
         let free = |time: usize| {
             let mut occupied: HashSet<Cell> = HashSet::new();
             cells[..time].iter().for_each(|cell| {
@@ -62,7 +62,7 @@ impl AoC2024_18 {
         format!("{},{}", cells[lo - 1].col, cells[lo - 1].row)
     }
 
-    fn sample_part_2(&self, cells: &Vec<Cell>) -> String {
+    fn sample_part_2(&self, cells: &[Cell]) -> String {
         self.solve_2(cells, 7, 12)
     }
 }

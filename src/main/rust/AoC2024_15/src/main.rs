@@ -119,7 +119,7 @@ impl AoC2024_15 {
             .grid
             .cells()
             .filter(|cell| warehouse.grid.get(cell) == warehouse.get_box())
-            .map(|cell| (cell.row * 100 + cell.col))
+            .map(|cell| cell.row * 100 + cell.col)
             .sum()
     }
 }

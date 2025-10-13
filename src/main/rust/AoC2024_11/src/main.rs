@@ -17,7 +17,7 @@ impl AoC2024_11 {
             }
             let ss = s.to_string();
             let size = ss.len();
-            if size % 2 == 0 {
+            if size.is_multiple_of(2) {
                 let s1 = ss[..size / 2].parse::<u64>().unwrap();
                 let s2 = ss[size / 2..].parse::<u64>().unwrap();
                 return count(s1, cnt - 1) + count(s2, cnt - 1);

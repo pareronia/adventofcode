@@ -92,7 +92,7 @@ impl AoC2022_15 {
             .filter(|p| 0 < p.x() && p.x() < max)
             .filter(|p| 0 < p.y() && p.y() < max)
             .filter(|p| {
-                sensors.iter().all(|(s, md)| p.manhattan_distance(&s) > *md)
+                sensors.iter().all(|(s, md)| p.manhattan_distance(s) > *md)
             })
             .map(|p| 4_000_000_u64 * p.x() as u64 + p.y() as u64)
             .next()
