@@ -77,7 +77,8 @@ class Puzzle(NamedTuple):
         input_data = self.puzzle.input_data
         if input_data is None or str(input_data) == "":
             raise RuntimeError(
-                f"Missing input data for {self.puzzle.year}/{self.puzzle.day}"
+                f"Missing input data for "
+                f"{self.token}/{self.puzzle.year}/{self.puzzle.day}"
             )
         return str(input_data)
 
