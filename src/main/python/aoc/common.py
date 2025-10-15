@@ -14,6 +14,7 @@ from typing import TypeVar
 from typing import cast
 
 import aocd
+import prettyprinter
 from aoc import my_aocd
 from prettyprinter import cpprint
 from termcolor import colored
@@ -168,6 +169,7 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
             puzzle = aocd.models.Puzzle(self.year, self.day)
             my_aocd.print_header(puzzle.year, puzzle.day)
             if __debug__:
+                prettyprinter.install_extras(include=["dataclasses"])
                 self.samples()
             exec_input = execute_part(
                 self.Part.INPUT,

@@ -4,43 +4,10 @@
 #
 
 import itertools
-from aoc import my_aocd
+import sys
 
-
-def _parse(inputs: tuple[str]) -> tuple[int]:
-    return tuple([int(input_) for input_ in inputs])
-
-
-def _get_cocos(containers: tuple[int], eggnog_volume: int) -> list[tuple[int]]:
-    containers = list(containers)
-    containers.sort(reverse=True)
-    minimal_containers = []
-    j = 0
-    while sum([sum(minimal_containers), containers[j]]) > eggnog_volume:
-        minimal_containers.append(containers[j])
-        j += 1
-    return [c for i in range(len(minimal_containers), len(containers) + 1)
-            for c in itertools.combinations(containers, i)
-            if sum(c) == eggnog_volume]
-
-
-def _do_part_1(inputs: tuple[str], eggnog_volume: int) -> int:
-    return len(_get_cocos(_parse(inputs), eggnog_volume))
-
-
-def part_1(inputs: tuple[str]) -> int:
-    return _do_part_1(inputs, 150)
-
-
-def _do_part_2(inputs: tuple[str], eggnog_volume: int) -> int:
-    cocos = _get_cocos(_parse(inputs), eggnog_volume)
-    min_cont = min([len(coco) for coco in cocos])
-    return sum([1 for coco in cocos if len(coco) == min_cont])
-
-
-def part_2(inputs: tuple[str]) -> int:
-    return _do_part_2(inputs, 150)
-
+from aoc.common import InputData
+from aoc.common import SolutionBase
 
 TEST = """\
 20
@@ -48,21 +15,58 @@ TEST = """\
 10
 5
 5
-""".splitlines()
+"""
+
+
+Input = list[int]
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return [int(line) for line in input_data]
+
+    def get_cocos(
+        self, containers: list[int], eggnog_volume: int
+    ) -> list[tuple[int, ...]]:
+        containers.sort(reverse=True)
+        minimal_containers = list[int]()
+        for c in containers:
+            if sum(minimal_containers) + c > eggnog_volume:
+                minimal_containers.append(c)
+        return [
+            c
+            for i in range(len(minimal_containers), len(containers) + 1)
+            for c in itertools.combinations(containers, i)
+            if sum(c) == eggnog_volume
+        ]
+
+    def solve_1(self, containers: list[int], eggnog_volume: int) -> int:
+        return len(self.get_cocos(containers, eggnog_volume))
+
+    def part_1(self, containers: Input) -> Output1:
+        return self.solve_1(containers, 150)
+
+    def solve_2(self, containers: list[int], eggnog_volume: int) -> int:
+        cocos = self.get_cocos(containers, eggnog_volume)
+        min_cont = min(len(coco) for coco in cocos)
+        return sum(1 for coco in cocos if len(coco) == min_cont)
+
+    def part_2(self, containers: Input) -> Output2:
+        return self.solve_2(containers, 150)
+
+    def samples(self) -> None:
+        assert self.solve_1(self.parse_input(TEST.splitlines()), 25) == 4
+        assert self.solve_2(self.parse_input(TEST.splitlines()), 25) == 3
+
+
+solution = Solution(2015, 17)
 
 
 def main() -> None:
-    my_aocd.print_header(2015, 17)
-
-    assert _do_part_1(TEST, 25) == 4
-    assert _do_part_2(TEST, 25) == 3
-
-    inputs = my_aocd.get_input(2015, 17, 20)
-    result1 = part_1(inputs)
-    print(f"Part 1: {result1}")
-    result2 = part_2(inputs)
-    print(f"Part 2: {result2}")
+    solution.run(sys.argv)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
