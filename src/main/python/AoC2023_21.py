@@ -36,7 +36,7 @@ STEPS = 26_501_365
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return CharGrid.from_strings([_ for _ in input_data])
+        return CharGrid.from_strings(list(input_data))
 
     def solve(self, grid: CharGrid, steps: list[int]) -> list[int]:
         w = grid.get_width()

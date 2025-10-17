@@ -18,7 +18,7 @@ Output2 = int
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return list(input_data)[0]
+        return next(iter(input_data))
 
     def find_md5_starting_with_zeroes(self, seed: str, zeroes: int) -> int:
         i = 0
@@ -28,7 +28,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             i += 1
             spinner(i)
             str2hash = seed + str(i)
-            val = md5(str2hash.encode()).hexdigest()  # nosec
+            val = md5(str2hash.encode()).hexdigest()  # noqa: S324
         return i
 
     def part_1(self, seed: Input) -> Output1:

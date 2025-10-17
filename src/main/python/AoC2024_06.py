@@ -7,7 +7,11 @@ from __future__ import annotations
 
 import sys
 from collections import OrderedDict
-from typing import Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 from typing import NamedTuple
 
 from aoc.common import InputData
@@ -44,7 +48,7 @@ class Obstacles(NamedTuple):
 
     @classmethod
     def _obstacles(
-        cls, grid: CharGrid, starts: Iterator[Cell], dir: Direction
+        cls, grid: CharGrid, starts: Iterator[Cell], direction: Direction
     ) -> list[list[Cell | None]]:
         h, w = grid.get_height(), grid.get_width()
         obs: list[list[Cell | None]] = [
@@ -58,7 +62,7 @@ class Obstacles(NamedTuple):
                 obs[r][c] = last
                 if grid.values[r][c] == "#":
                     last = cell
-                nr, nc = r - dir[1], c + dir[0]
+                nr, nc = r - direction[1], c + direction[0]
                 if not (0 <= nr < h and 0 <= nc < w):
                     break
                 cell = (nr, nc)
@@ -82,81 +86,84 @@ class Obstacles(NamedTuple):
         return Obstacles(obs)
 
     def get_next(
-        self, start: Cell, dir: Direction, extra: Cell
+        self, start: Cell, direction: Direction, extra: Cell
     ) -> Cell | None:
-        obs = self.obs[dir][start[0]][start[1]]
+        obs = self.obs[direction][start[0]][start[1]]
         if obs is None:
-            return (
-                extra
-                if (
-                    dir[1] == 0
-                    and start[0] == extra[0]
-                    and dir == (RIGHT if start[1] < extra[1] else LEFT)
-                    or dir[0] == 0
-                    and start[1] == extra[1]
-                    and dir == (DOWN if start[0] < extra[0] else UP)
-                )
-                else None
-            )
-        else:
             if (
-                dir[1] == 0
-                and obs[0] == extra[0]
-                and dir == (RIGHT if start[1] < extra[1] else LEFT)
+                direction[1] == 0
+                and start[0] == extra[0]
+                and direction == (RIGHT if start[1] < extra[1] else LEFT)
+            ) or (
+                direction[0] == 0
+                and start[1] == extra[1]
+                and direction == (DOWN if start[0] < extra[0] else UP)
             ):
-                dextra = abs(extra[1] - start[1])
-                dobs = abs(obs[1] - start[1])
-                return obs if dobs < dextra else extra
-            elif (
-                dir[0] == 0
-                and obs[1] == extra[1]
-                and dir == (DOWN if start[0] < extra[0] else UP)
-            ):
-                dextra = abs(extra[0] - start[0])
-                dobs = abs(obs[0] - start[0])
-                return obs if dobs < dextra else extra
-            return obs
+                return extra
+            return None
+
+        if (
+            direction[1] == 0
+            and obs[0] == extra[0]
+            and direction == (RIGHT if start[1] < extra[1] else LEFT)
+        ):
+            dextra = abs(extra[1] - start[1])
+            dobs = abs(obs[1] - start[1])
+            return obs if dobs < dextra else extra
+
+        if (
+            direction[0] == 0
+            and obs[1] == extra[1]
+            and direction == (DOWN if start[0] < extra[0] else UP)
+        ):
+            dextra = abs(extra[0] - start[0])
+            dobs = abs(obs[0] - start[0])
+            return obs if dobs < dextra else extra
+
+        return obs
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
-
     def parse_input(self, input_data: InputData) -> Input:
         return CharGrid.from_strings(list(input_data))
 
     def visited(
         self,
         grid: CharGrid,
-        dir: int,
+        direction: int,
     ) -> OrderedDict[Cell, list[int]]:
         start = next(grid.get_all_equal_to("^"))
         pos = (start.row, start.col)
         h, w = grid.get_height(), grid.get_width()
         seen = OrderedDict[Cell, list[int]]()
-        seen.setdefault(pos, list()).append(dir)
+        seen.setdefault(pos, []).append(direction)
         while True:
-            nxt = (pos[0] - DIRS[dir][1], pos[1] + DIRS[dir][0])
+            nxt = (pos[0] - DIRS[direction][1], pos[1] + DIRS[direction][0])
             if not (0 <= nxt[0] < h and 0 <= nxt[1] < w):
                 return seen
             if grid.values[nxt[0]][nxt[1]] == "#":
-                dir = (dir + 1) % len(DIRS)
+                direction = (direction + 1) % len(DIRS)
             else:
                 pos = nxt
-            seen.setdefault(pos, list()).append(dir)
+            seen.setdefault(pos, []).append(direction)
 
     def is_loop(
-        self, pos: Cell, dir: int, obs: Obstacles, extra: Cell
+        self, pos: Cell, direction: int, obs: Obstacles, extra: Cell
     ) -> bool:
         seen = dict[Cell, int]()
-        seen[pos] = 1 << dir
+        seen[pos] = 1 << direction
         while True:
-            nxt_obs = obs.get_next(pos, DIRS[dir], extra)
+            nxt_obs = obs.get_next(pos, DIRS[direction], extra)
             if nxt_obs is None:
                 return False
-            pos = (nxt_obs[0] + DIRS[dir][1], nxt_obs[1] - DIRS[dir][0])
-            dir = (dir + 1) % len(DIRS)
-            if pos in seen and seen[pos] & (1 << dir) != 0:
+            pos = (
+                nxt_obs[0] + DIRS[direction][1],
+                nxt_obs[1] - DIRS[direction][0],
+            )
+            direction = (direction + 1) % len(DIRS)
+            if pos in seen and seen[pos] & (1 << direction) != 0:
                 return True
-            seen[pos] = seen.get(pos, 0) | (1 << dir)
+            seen[pos] = seen.get(pos, 0) | (1 << direction)
 
     def part_1(self, grid: Input) -> Output1:
         return len(self.visited(grid, 0))

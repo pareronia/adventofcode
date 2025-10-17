@@ -37,11 +37,11 @@ class Graph(NamedTuple):
     edges: dict[str, list[str]]
 
     @classmethod
-    def from_input(cls, input: InputData) -> Graph:
+    def from_input(cls, wiring_diagram: InputData) -> Graph:
         edges = defaultdict[str, list[str]](list)
-        for line in input:
+        for line in wiring_diagram:
             key, values = line.split(": ")
-            edges[key] += [_ for _ in values.split()]
+            edges[key] += values.split()
             for v in values.split():
                 edges[v].append(key)
         return Graph(edges)
@@ -74,7 +74,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def part_1(self, graph: Input) -> Output1:
         while True:
             g = deepcopy(graph)
-            counts = {node: 1 for node in g.edges.keys()}
+            counts = dict.fromkeys(g.edges.keys(), 1)
             while len(g.edges) > 2:
                 a = random.sample(list(g.edges.keys()), 1)[0]
                 b = random.sample(list(g.edges[a]), 1)[0]
@@ -87,7 +87,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             if len(g.edges[a]) == 3:
                 return counts[a] * counts[b]
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, _graph: Input) -> Output2:
         return "🎄"
 
     @aoc_samples((("part_1", TEST, 54),))

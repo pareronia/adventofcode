@@ -3,6 +3,7 @@
 # Advent of Code 2023 Day 9
 #
 
+import itertools
 import sys
 
 from aoc.common import InputData
@@ -28,15 +29,15 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def solve(self, line: list[int]) -> int:
         tails = [line[-1]]
         while not all(_ == tails[-1] for _ in line):
-            line = [b - a for a, b in zip(line, line[1:])]
+            line = [b - a for a, b in itertools.pairwise(line)]
             tails.append(line[-1])
         return sum(tails)
 
-    def part_1(self, input: Input) -> Output1:
-        return sum(self.solve(line) for line in input)
+    def part_1(self, report: Input) -> Output1:
+        return sum(self.solve(line) for line in report)
 
-    def part_2(self, input: Input) -> Output2:
-        return sum(self.solve(line[::-1]) for line in input)
+    def part_2(self, report: Input) -> Output2:
+        return sum(self.solve(line[::-1]) for line in report)
 
     @aoc_samples(
         (

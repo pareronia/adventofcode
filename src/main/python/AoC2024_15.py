@@ -9,7 +9,11 @@ import sys
 from enum import Enum
 from enum import auto
 from enum import unique
-from typing import Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 from typing import NamedTuple
 
 from aoc import my_aocd
@@ -77,8 +81,8 @@ class Warehouse(NamedTuple):
     grid: CharGrid
 
     @classmethod
-    def create(cls, type: WarehouseType, grid_in: list[str]) -> Warehouse:
-        match type:
+    def create(cls, type_: WarehouseType, grid_in: list[str]) -> Warehouse:
+        match type_:
             case WarehouseType.WAREHOUSE_1:
                 grid = CharGrid.from_strings(grid_in)
             case WarehouseType.WAREHOUSE_2:
@@ -86,12 +90,12 @@ class Warehouse(NamedTuple):
                     "".join(SCALE_UP[ch] for ch in line) for line in grid_in
                 ]
                 grid = CharGrid.from_strings(strings)
-        return Warehouse(type, grid)
+        return Warehouse(type_, grid)
 
-    def get_to_move(self, robot: Cell, dir: Direction) -> list[Cell]:
+    def get_to_move(self, robot: Cell, direction: Direction) -> list[Cell]:
         to_move = [robot]
         for cell in to_move:
-            nxt = cell.at(dir)
+            nxt = cell.at(direction)
             if nxt in to_move:
                 continue
             nxt_val = self.grid.get_value(nxt)
@@ -133,26 +137,26 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
     def solve(self, warehouse: Warehouse, dirs: list[Direction]) -> int:
         robot = next(warehouse.grid.get_all_equal_to(ROBOT))
-        for dir in dirs:
-            to_move = warehouse.get_to_move(robot, dir)
+        for direction in dirs:
+            to_move = warehouse.get_to_move(robot, direction)
             if len(to_move) == 0:
                 continue
             vals = {tm: warehouse.grid.get_value(tm) for tm in to_move}
-            robot = robot.at(dir)
+            robot = robot.at(direction)
             for cell in to_move:
                 warehouse.grid.set_value(cell, FLOOR)
             for cell in to_move:
-                warehouse.grid.set_value(cell.at(dir), vals[cell])
+                warehouse.grid.set_value(cell.at(direction), vals[cell])
         return sum(cell.row * 100 + cell.col for cell in warehouse.get_boxes())
 
-    def part_1(self, input: Input) -> Output1:
-        grid, dirs = input
+    def part_1(self, m_m: Input) -> Output1:
+        grid, dirs = m_m
         return self.solve(
             Warehouse.create(WarehouseType.WAREHOUSE_1, grid), dirs
         )
 
-    def part_2(self, input: Input) -> Output2:
-        grid, dirs = input
+    def part_2(self, m_m: Input) -> Output2:
+        grid, dirs = m_m
         return self.solve(
             Warehouse.create(WarehouseType.WAREHOUSE_2, grid), dirs
         )

@@ -37,7 +37,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     width: int
 
     def parse_input(self, input_data: InputData) -> Input:
-        return CharGrid.from_strings([line for line in input_data])
+        return CharGrid.from_strings(list(input_data))
 
     def tilt_up(self) -> set[tuple[int, int]]:
         os = set[tuple[int, int]]()
@@ -156,7 +156,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 left = 1_000_000_000 - (i + loops * period)
                 log(f"{i=}, {d[key]=}, {period=}, {loops=}, {left=}")
                 assert i + loops * period + left == 1_000_000_000
-                for i in range(left):
+                for _ in range(left):
                     os = self.spin_cycle()
                 return self.calc_load(os)
 

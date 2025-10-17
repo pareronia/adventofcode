@@ -4,9 +4,9 @@
 #
 
 import sys
+from collections.abc import Callable
 from functools import cache
 from itertools import product
-from typing import Callable
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -39,9 +39,8 @@ def _count(s: str, counts: tuple[int, ...], idx: int) -> int:
         if len(counts) == 0 and idx == 0:
             # no more groups required and not in group -> OK
             return 1
-        else:
-            # still group(s) required or still in group -> NOK
-            return 0
+        # still group(s) required or still in group -> NOK
+        return 0
     # otherwise:
     ans = 0
     # '?' can be '.' or '#'
@@ -62,7 +61,7 @@ def _count(s: str, counts: tuple[int, ...], idx: int) -> int:
                 ans += _count(s[1:], counts, 0)
         else:
             # should not happen
-            assert False
+            raise AssertionError
     return ans
 
 
@@ -86,25 +85,25 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return ans
 
     def solve(
-        self, input: Input, f: Callable[[str], tuple[str, tuple[int, ...]]]
+        self, records: Input, f: Callable[[str], tuple[str, tuple[int, ...]]]
     ) -> int:
-        return sum(count(*f(line)) for line in input)
+        return sum(count(*f(line)) for line in records)
 
-    def part_1(self, input: Input) -> Output1:
+    def part_1(self, records: Input) -> Output1:
         def parse(line: str) -> tuple[str, tuple[int, ...]]:
             s, w = line.split()
             counts = tuple(int(_) for _ in w.split(","))
             return s + ".", counts
 
-        return self.solve(input, parse)
+        return self.solve(records, parse)
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, records: Input) -> Output2:
         def parse(line: str) -> tuple[str, tuple[int, ...]]:
             s, w = line.split()
             counts = tuple(int(_) for _ in w.split(","))
             return "?".join([s] * 5) + ".", counts * 5
 
-        return self.solve(input, parse)
+        return self.solve(records, parse)
 
     @aoc_samples(
         (

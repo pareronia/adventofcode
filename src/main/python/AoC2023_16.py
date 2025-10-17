@@ -5,7 +5,7 @@
 
 import itertools
 import sys
-from typing import Iterator
+from collections.abc import Iterator
 from typing import NamedTuple
 
 from aoc.common import InputData
@@ -51,10 +51,9 @@ class Contraption(NamedTuple):
             elif val == "/" and beam.dir.is_horizontal:
                 new_dir = beam.dir.turn(Turn.LEFT)
                 yield Beam(beam.cell.at(new_dir), new_dir)
-            elif val == "/" and beam.dir.is_vertical:
-                new_dir = beam.dir.turn(Turn.RIGHT)
-                yield Beam(beam.cell.at(new_dir), new_dir)
-            elif val == "\\" and beam.dir.is_horizontal:
+            elif (val == "/" and beam.dir.is_vertical) or (
+                val == "\\" and beam.dir.is_horizontal
+            ):
                 new_dir = beam.dir.turn(Turn.RIGHT)
                 yield Beam(beam.cell.at(new_dir), new_dir)
             elif val == "\\" and beam.dir.is_vertical:
@@ -67,7 +66,7 @@ class Contraption(NamedTuple):
                 yield Beam(beam.cell.at(Direction.LEFT), Direction.LEFT)
                 yield Beam(beam.cell.at(Direction.RIGHT), Direction.RIGHT)
             else:
-                raise RuntimeError("unsolvable")
+                raise AssertionError
 
         energised = flood_fill(
             initial_beam,
@@ -111,9 +110,7 @@ Output2 = int
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return Contraption(
-            CharGrid.from_strings([line for line in input_data])
-        )
+        return Contraption(CharGrid.from_strings(list(input_data)))
 
     def part_1(self, contraption: Input) -> Output1:
         return contraption.get_initial_energy()

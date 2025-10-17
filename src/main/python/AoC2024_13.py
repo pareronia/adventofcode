@@ -68,8 +68,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             ans_b = (px * machine.ay - py * machine.ax) / div
             if int(ans_a) == ans_a and int(ans_b) == ans_b:
                 return int(ans_a) * 3 + int(ans_b)
-            else:
-                return None
+            return None
 
         return sum(
             tokens

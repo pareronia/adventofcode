@@ -7,7 +7,11 @@ from __future__ import annotations
 
 import itertools
 import sys
-from typing import Callable
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Callable
+
 from typing import NamedTuple
 
 from aoc.common import InputData
@@ -34,12 +38,12 @@ class Stack(NamedTuple):
     bricks_by_z2: dict[int, list[Cuboid]]
 
     @classmethod
-    def from_input(cls, input: InputData) -> Stack:
+    def from_input(cls, snapshot: InputData) -> Stack:  # noqa: C901
         def overlap_xy(lhs: Cuboid, rhs: Cuboid) -> bool:
             return lhs.overlap_x(rhs) and lhs.overlap_y(rhs)
 
         def group_bricks_by(
-            f: Callable[[Cuboid], int]
+            f: Callable[[Cuboid], int],
         ) -> dict[int, list[Cuboid]]:
             return {
                 k: list(v)
@@ -47,7 +51,7 @@ class Stack(NamedTuple):
             }
 
         def group_by_touching(
-            f: Callable[[Cuboid], list[Cuboid]]
+            f: Callable[[Cuboid], list[Cuboid]],
         ) -> dict[Cuboid, set[Cuboid]]:
             return {
                 brick: set(
@@ -99,7 +103,7 @@ class Stack(NamedTuple):
                 bricks |= set(v)
 
         bricks = set[Cuboid]()
-        for line in input:
+        for line in snapshot:
             splits = line.split("~")
             x1, y1, z1 = map(int, splits[0].split(","))
             x2, y2, z2 = map(int, splits[1].split(","))
@@ -156,9 +160,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return len(stack.get_deletable())
 
     def part_2(self, stack: Input) -> Output2:
-        return sum(
-            map(lambda b: len(stack.delete(b)), stack.get_not_deletable())
-        )
+        return sum(len(stack.delete(b)) for b in stack.get_not_deletable())
 
     @aoc_samples(
         (

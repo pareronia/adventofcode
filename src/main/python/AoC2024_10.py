@@ -61,7 +61,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     continue
                 for n in grid.get_capital_neighbours(trail[-1]):
                     if grid.get_value(n) == nxt:
-                        q.append(trail + [n])
+                        q.append([*trail, n])
             return trails
 
         return sum(

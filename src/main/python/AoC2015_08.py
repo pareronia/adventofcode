@@ -47,14 +47,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def solve(self, input: Input, mode: Mode) -> int:
-        return sum(mode.overhead(s) for s in input)
+    def solve(self, inputs: Input, mode: Mode) -> int:
+        return sum(mode.overhead(s) for s in inputs)
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(input, Mode.DECODE)
+    def part_1(self, inputs: Input) -> Output1:
+        return self.solve(inputs, Mode.DECODE)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(input, Mode.ENCODE)
+    def part_2(self, inputs: Input) -> Output2:
+        return self.solve(inputs, Mode.ENCODE)
 
     @aoc_samples(
         (

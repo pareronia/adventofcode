@@ -39,7 +39,7 @@ Move = tuple[int, int, int, int]
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return IntGrid.from_strings([line for line in input_data])
+        return IntGrid.from_strings(list(input_data))
 
     def solve(self, grid: Input, min_moves: int, max_moves: int) -> int:
         max_r = grid.get_height() - 1
@@ -69,7 +69,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                         if new_heatloss < best[n]:
                             best[n] = new_heatloss
                             q.put((new_heatloss, n))
-        raise RuntimeError("unsolvable")
+        raise AssertionError
 
     def part_1(self, grid: Input) -> Output1:
         return self.solve(grid, 1, 3)

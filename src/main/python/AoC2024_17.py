@@ -42,7 +42,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         ops = list(map(int, lines[4][9:].split(",")))
         return a, b, c, ops
 
-    def create_instructions(self, ops: list[int]) -> list[Instruction]:
+    def create_instructions(self, ops: list[int]) -> list[Instruction]:  # noqa:C901
         def combo(operand: int) -> str:
             match operand:
                 case 0 | 1 | 2 | 3:
@@ -105,17 +105,17 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         VirtualMachine().run_program(program)
         return output
 
-    def part_1(self, input: Input) -> Output1:
-        a, b, c, ops = input
+    def part_1(self, program_info: Input) -> Output1:
+        a, b, c, ops = program_info
         ins = self.create_instructions(ops)
         return ",".join(self.run_program(ins, a, b, c))
 
-    def part_2(self, input: Input) -> Output2:
-        _, b, c, ops = input
+    def part_2(self, program_info: Input) -> Output2:
+        _, b, c, ops = program_info
         ins = self.create_instructions(ops)
-        wanted = list(str(_) for _ in ops)
+        wanted = [str(_) for _ in ops]
         log(f"{wanted=}")
-        seen = set([0])
+        seen = {0}
         q = deque([0])
         while q:
             cand_a = q.popleft() * 8
@@ -124,11 +124,12 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 res = self.run_program(ins, na, b, c)
                 if res == wanted:
                     return na
-                if res == wanted[-len(res) :] and na not in seen:  # noqa E203
+                if res == wanted[-len(res) :] and na not in seen:
                     seen.add(na)
                     log(na)
                     q.append(na)
-        raise RuntimeError("unsolvable")
+        msg = "unsolvable"
+        raise RuntimeError(msg)
 
     @aoc_samples(
         (

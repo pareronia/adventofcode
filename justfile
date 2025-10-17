@@ -17,6 +17,7 @@ java_unittest_cmd := "org.junit.platform.console.ConsoleLauncher"
 julia_source_dir := "src/main/julia"
 pmd_cache_dir := ".cache/pmd"
 pmd_html_dir := "htmlpmd"
+ruff_files := env("RUFF_FILES", "src/main/python")
 rust_source_dir := "src/main/rust"
 rust_srcs := "import pathlib; print(' '.join(map(str, list(pathlib.Path('src/main/rust').rglob('*.rs')))))"
 rust_dst := "build/rs"
@@ -117,7 +118,7 @@ vim-file-debug file *type:
 # Linting: ruff check
 [group("linting")]
 ruff-check: (msg-blue "Running ruff check")
-    @{{ ruff }} --quiet check "{{ source_dir }}"
+    @{{ ruff }} --quiet check {{ ruff_files }}
 
 # Linting: vulture - unused code
 [group("linting")]
@@ -127,7 +128,7 @@ vulture: (msg-blue "Running vulture")
 # Linting: ruff format check
 [group("linting")]
 ruff-format-check: (msg-blue "Running ruff format check")
-    @{{ ruff }} format --quiet --check "{{ source_dir }}"
+    @{{ ruff }} format --quiet --check {{ ruff_files }}
 
 # Linting: mypy
 [group("linting")]
@@ -168,7 +169,7 @@ rustfmt-check: (msg-blue "Running rustfmt check against rust source files...")
 
 # Linting: all
 [group("linting")]
-lint: vulture shellcheck rustfmt-check ruff-check
+lint: vulture shellcheck rustfmt-check ruff-check ruff-format-check
 
 # Run python
 [group("python")]

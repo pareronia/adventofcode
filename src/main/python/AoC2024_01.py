@@ -27,13 +27,19 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return tuple(
-            _ for _ in zip(*[map(int, line.split()) for line in input_data])
-        )
+        left, right = [], []
+        for line in input_data:
+            a, b = line.split()
+            left.append(int(a))
+            right.append(int(b))
+        return tuple(left), tuple(right)
 
     def part_1(self, lists: Input) -> Output1:
         left, right = lists
-        return sum(abs(n1 - n2) for n1, n2 in zip(sorted(left), sorted(right)))
+        return sum(
+            abs(n1 - n2)
+            for n1, n2 in zip(sorted(left), sorted(right), strict=True)
+        )
 
     def part_2(self, lists: Input) -> Output2:
         left, right = lists

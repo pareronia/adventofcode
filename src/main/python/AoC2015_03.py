@@ -26,10 +26,10 @@ TEST4 = "^v"
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return [Heading.from_str(ch) for ch in list(input_data)[0]]
+        return [Heading.from_str(ch) for ch in next(iter(input_data))]
 
     def count_unique_positions(self, positions: list[Position]) -> int:
-        return len({p for p in positions})
+        return len(set(positions))
 
     def add_navigation_instruction(
         self, navigation: Navigation, c: Heading
@@ -41,19 +41,19 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         for c in inputs:
             self.add_navigation_instruction(navigation, c)
         return self.count_unique_positions(
-            navigation.get_visited_positions(True)
+            navigation.get_visited_positions(include_start_position=True)
         )
 
     def part_2(self, inputs: Input) -> Output2:
-        santa_navigation = Navigation(START, Heading.NORTH)
-        robot_navigation = Navigation(START, Heading.NORTH)
+        santa_nav = Navigation(START, Heading.NORTH)
+        robot_nav = Navigation(START, Heading.NORTH)
         for i, c in enumerate(inputs):
             self.add_navigation_instruction(
-                robot_navigation if i % 2 else santa_navigation, c
+                robot_nav if i % 2 else santa_nav, c
             )
         return self.count_unique_positions(
-            santa_navigation.get_visited_positions(True)
-            + robot_navigation.get_visited_positions(True)
+            santa_nav.get_visited_positions(include_start_position=True)
+            + robot_nav.get_visited_positions(include_start_position=True)
         )
 
     @aoc_samples(

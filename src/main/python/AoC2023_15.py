@@ -20,7 +20,7 @@ rn=1,cm-,qp=3,cm=2,qp-,pc=4,ot=9,ab=5,pc-,pc=6,ot=7
 """
 
 
-def hash(s: str) -> int:
+def calc_hash(s: str) -> int:
     return reduce(
         lambda acc, ch: ((acc + ord(ch)) * 17) % 256, (ch for ch in s), 0
     )
@@ -31,10 +31,10 @@ class Boxes:
         self.boxes: list[dict[str, int]] = [{} for _ in range(256)]
 
     def add_lens(self, label: str, focal_length: int) -> None:
-        self.boxes[hash(label)][label] = focal_length
+        self.boxes[calc_hash(label)][label] = focal_length
 
     def remove_lens(self, label: str) -> None:
-        box = self.boxes[hash(label)]
+        box = self.boxes[calc_hash(label)]
         if label in box:
             del box[label]
 
@@ -48,10 +48,10 @@ class Boxes:
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return list(input_data)[0].split(",")
+        return next(iter(input_data)).split(",")
 
     def part_1(self, steps: Input) -> Output1:
-        return sum(hash(step) for step in steps)
+        return sum(calc_hash(step) for step in steps)
 
     def part_2(self, steps: Input) -> Output2:
         boxes = Boxes()

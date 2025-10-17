@@ -77,12 +77,12 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
     def part_2(self, robots: Input) -> Output2:
         def print_robots(
-            robots: list[tuple[Position, Vector]], w: int, h: int, round: int
+            robots: list[tuple[Position, Vector]], w: int, h: int, r0und: int
         ) -> None:
             if not __debug__:
                 return
             new_robots = [
-                ((pos[0] + round * vec[0]) % w, (pos[1] + round * vec[1]) % h)
+                ((pos[0] + r0und * vec[0]) % w, (pos[1] + r0und * vec[1]) % h)
                 for pos, vec in robots
             ]
             lines = [
@@ -92,28 +92,28 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             for line in lines:
                 print(line)
 
-        ans, best, round = 0, sys.maxsize, 1
+        ans, best, r0und = 0, sys.maxsize, 1
         sfs = list[int]()
-        while round < W + H:
-            safety_factor = self.safety_factor(robots, W, H, round)
+        while r0und < W + H:
+            safety_factor = self.safety_factor(robots, W, H, r0und)
             sfs.append(safety_factor)
             if safety_factor < best:
                 best = safety_factor
-                ans = round
-            round += 1
+                ans = r0und
+            r0und += 1
         mins = list[int]()
         for i in range(2, len(sfs) - 2):
             avg = sum(sfs[i + j] for j in (-2, -1, 1, 2)) // 4
             if sfs[i] < avg * 9 // 10:
                 mins.append(i + 1)
         period = mins[2] - mins[0]
-        round = mins[2] + period
-        while round <= W * H:
-            safety_factor = self.safety_factor(robots, W, H, round)
+        r0und = mins[2] + period
+        while r0und <= W * H:
+            safety_factor = self.safety_factor(robots, W, H, r0und)
             if safety_factor < best:
                 best = safety_factor
-                ans = round
-            round += period
+                ans = r0und
+            r0und += period
         print_robots(robots, W, H, ans)
         return ans
 

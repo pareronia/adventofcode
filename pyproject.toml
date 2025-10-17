@@ -29,8 +29,15 @@ force_single_line = true
 skip_gitignore = true
 include_trailing_comma = true
 
-[tool.black]
+[tool.ruff]
 line-length = 79
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["COM", "D1", "PLR2004", "PT", "S101", "T20"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
 
 [tool.mypy]
 strict = true

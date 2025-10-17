@@ -6,12 +6,12 @@
 import itertools
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from enum import Enum
 from enum import auto
 from enum import unique
 from functools import reduce
 from operator import ior
-from typing import Iterator
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -94,11 +94,11 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             )
         )
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(*input, Mode.MODE_1)
+    def part_1(self, antennae_map: Input) -> Output1:
+        return self.solve(*antennae_map, Mode.MODE_1)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(*input, Mode.MODE_2)
+    def part_2(self, antennae_map: Input) -> Output2:
+        return self.solve(*antennae_map, Mode.MODE_2)
 
     @aoc_samples(
         (

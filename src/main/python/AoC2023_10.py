@@ -5,7 +5,8 @@
 
 import sys
 from collections import deque
-from typing import Iterator
+from collections.abc import Iterator
+from typing import ClassVar
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -72,7 +73,7 @@ L7JLJL-JLJLJL--JLJ.L
 
 
 class LoopFinder:
-    TILES = {
+    TILES: ClassVar = {
         Direction.UP: {
             "|": Direction.UP,
             "7": Direction.LEFT,
@@ -101,34 +102,35 @@ class LoopFinder:
         q: deque[tuple[int, Cell, Direction]] = deque()
         seen = set[tuple[Cell, Direction]]()
         parent = dict[tuple[Cell, Direction], tuple[Cell, Direction]]()
-        for dir in Direction.capitals():
-            q.append((0, start, dir))
-            seen.add((start, dir))
-        while not len(q) == 0:
-            distance, curr, dir = q.popleft()
-            n = curr.at(dir)
+        for direction in Direction.capitals():
+            q.append((0, start, direction))
+            seen.add((start, direction))
+        while len(q) != 0:
+            distance, curr, direction = q.popleft()
+            n = curr.at(direction)
             if n == start:
                 path = {curr}
-                c = (curr, dir)
+                c = (curr, direction)
                 while c in parent:
                     c = parent[c]
                     path.add(c[0])
                 return path
             if grid.is_in_bounds(n):
                 val = grid.get_value(n)
-                if val in cls.TILES[dir]:
-                    new_dir = cls.TILES[dir][val]
+                if val in cls.TILES[direction]:
+                    new_dir = cls.TILES[direction][val]
                     _next = (n, new_dir)
                     if _next in seen:
                         continue
                     seen.add(_next)
-                    parent[(n, new_dir)] = (curr, dir)
+                    parent[(n, new_dir)] = (curr, direction)
                     q.append((distance + 1, *_next))
-        raise RuntimeError("unsolvable")
+        msg = "unsolvable"
+        raise RuntimeError(msg)
 
 
 class EnlargeGridInsideFinder:
-    XGRIDS = {
+    XGRIDS: ClassVar = {
         "|": CharGrid.from_strings([".#.", ".#.", ".#."]),
         "-": CharGrid.from_strings(["...", "###", "..."]),
         "L": CharGrid.from_strings([".#.", ".##", "..."]),
@@ -150,13 +152,10 @@ class EnlargeGridInsideFinder:
             ]
             for r in range(grid.get_height())
         ]
-        xgrid = CharGrid.merge(grids)  # type:ignore[arg-type]
-        new_loop = {
-            cell
-            for cell in xgrid.find_all_matching(
-                lambda c: xgrid.get_value(c) in "#S"
-            )
-        }
+        xgrid = CharGrid.merge(grids)
+        new_loop = set(
+            xgrid.find_all_matching(lambda c: xgrid.get_value(c) in "#S")
+        )
 
         def adjacent(cell: Cell) -> Iterator[Cell]:
             return (
@@ -165,8 +164,8 @@ class EnlargeGridInsideFinder:
                 if n not in new_loop
             )
 
-        outside = {_ for _ in flood_fill(Cell(0, 0), adjacent)}
-        inside = {cell for cell in xgrid.get_cells()} - outside - new_loop
+        outside = flood_fill(Cell(0, 0), adjacent)
+        inside = set(xgrid.get_cells()) - outside - new_loop
         return sum(
             all(
                 Cell(3 * r + rr, 3 * c + cc) in inside
@@ -179,7 +178,7 @@ class EnlargeGridInsideFinder:
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return CharGrid.from_strings([line for line in input_data])
+        return CharGrid.from_strings(list(input_data))
 
     def part_1(self, grid: Input) -> Output1:
         loop = LoopFinder.find_loop(grid)

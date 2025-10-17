@@ -64,7 +64,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         keys, locks = set(), set()
         blocks = my_aocd.to_blocks(input_data)
         for block in blocks:
-            rows = ["".join(x) for x in zip(*[line for line in block])]
+            rows = ["".join(x) for x in zip(*block, strict=True)]
             nums: Heights = tuple(
                 sum(1 for ch in row if ch == "#") - 1 for row in rows
             )
@@ -74,15 +74,15 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 keys.add(nums)
         return keys, locks
 
-    def part_1(self, input: Input) -> Output1:
-        keys, locks = input
+    def part_1(self, schematic: Input) -> Output1:
+        keys, locks = schematic
         return sum(
-            all(a + b <= 5 for a, b in zip(lock, key))
+            all(a + b <= 5 for a, b in zip(lock, key, strict=True))
             for lock in locks
             for key in keys
         )
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, _schematic: Input) -> Output2:
         return "🎄"
 
     @aoc_samples((("part_1", TEST, 3),))

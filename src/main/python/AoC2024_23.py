@@ -77,7 +77,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             for comp in edges:
                 if clique & edges[comp] == clique:
                     clique.add(comp)
-        return ",".join(sorted(max(cliques, key=len)))  # type:ignore
+        return ",".join(sorted(max(cliques, key=len)))  # type:ignore[arg-type]
 
     @aoc_samples(
         (

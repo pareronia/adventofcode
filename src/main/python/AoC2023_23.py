@@ -77,10 +77,8 @@ class PathFinder:
 
     def _find_forks(self) -> set[Cell]:
         def is_fork(cell: Cell) -> bool:
-            return (
-                cell == self.start
-                or cell == self.end
-                or self.grid.get_value(cell) != "#"
+            return (cell in {self.start, self.end}) or (
+                self.grid.get_value(cell) != "#"
                 and sum(
                     1
                     for n in self.grid.get_capital_neighbours(cell)
@@ -92,7 +90,7 @@ class PathFinder:
         return {cell for cell in self.grid.get_cells() if is_fork(cell)}
 
     def _build_graph(
-        self, forks: set[Cell], downward_slope_only: bool
+        self, forks: set[Cell], *, downward_slope_only: bool
     ) -> dict[Cell, set[Edge]]:
         graph = defaultdict[Cell, set[Edge]](set)
         for fork in forks:
@@ -142,7 +140,7 @@ class PathFinder:
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return CharGrid.from_strings([line for line in input_data])
+        return CharGrid.from_strings(list(input_data))
 
     def part_1(self, grid: Input) -> Output1:
         return PathFinder(

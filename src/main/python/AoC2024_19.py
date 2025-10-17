@@ -29,28 +29,29 @@ bbrgwb
 """
 
 
+@cache
+def count(design: str, towels: tuple[str]) -> int:
+    if len(design) == 0:
+        return 1
+    return sum(
+        count(design[len(towel) :], towels)
+        for towel in towels
+        if design.startswith(towel)
+    )
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         lines = list(input_data)
         return tuple(lines[0].split(", ")), lines[2:]
 
-    @cache
-    def count(self, design: str, towels: tuple[str]) -> int:
-        if len(design) == 0:
-            return 1
-        return sum(
-            self.count(design[len(towel) :], towels)  # noqa E203
-            for towel in towels
-            if design.startswith(towel)
-        )
+    def part_1(self, inputs: Input) -> Output1:
+        towels, designs = inputs
+        return sum(count(design, towels) > 0 for design in designs)
 
-    def part_1(self, input: Input) -> Output1:
-        towels, designs = input
-        return sum(self.count(design, towels) > 0 for design in designs)
-
-    def part_2(self, input: Input) -> Output2:
-        towels, designs = input
-        return sum(self.count(design, towels) for design in designs)
+    def part_2(self, inputs: Input) -> Output2:
+        towels, designs = inputs
+        return sum(count(design, towels) for design in designs)
 
     @aoc_samples(
         (

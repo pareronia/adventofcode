@@ -4,7 +4,7 @@
 #
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -35,18 +35,16 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def _solve(self, input: InputData, f: Callable[[str], list[int]]) -> int:
-        return sum(
-            map(lambda digits: digits[0] * 10 + digits[-1], map(f, input))
-        )
+    def _solve(self, lines: InputData, f: Callable[[str], list[int]]) -> int:
+        return sum(digits[0] * 10 + digits[-1] for digits in map(f, lines))
 
-    def part_1(self, input: InputData) -> Output1:
+    def part_1(self, lines: InputData) -> Output1:
         def get_digits(line: str) -> list[int]:
             return [int(c) for c in line if c.isdigit()]
 
-        return self._solve(input, get_digits)
+        return self._solve(lines, get_digits)
 
-    def part_2(self, input: InputData) -> Output2:
+    def part_2(self, lines: InputData) -> Output2:
         def get_digits(line: str) -> list[int]:
             nums = [
                 "one",
@@ -63,19 +61,18 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             def find_digit(s: str) -> int | None:
                 if s[0].isdigit():
                     return int(s[0])
-                else:
-                    for j, num in enumerate(nums):
-                        if s.startswith(num):
-                            return j + 1
+                for j, num in enumerate(nums):
+                    if s.startswith(num):
+                        return j + 1
                 return None
 
             return [
                 x
-                for x in map(lambda i: find_digit(line[i:]), range(len(line)))
+                for x in (find_digit(line[i:]) for i in range(len(line)))
                 if x is not None
             ]
 
-        return self._solve(input, get_digits)
+        return self._solve(lines, get_digits)
 
     @aoc_samples(
         (

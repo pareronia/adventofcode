@@ -28,18 +28,19 @@ TEST11 = "()())"
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return list(input_data)[0]
+        return next(iter(input_data))
 
-    def part_1(self, input: Input) -> Output1:
-        return len(input) - 2 * input.count(")")
+    def part_1(self, string: Input) -> Output1:
+        return len(string) - 2 * string.count(")")
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, string: Input) -> Output2:
         sum_ = 0
-        for i, c in enumerate(input):
+        for i, c in enumerate(string):
             sum_ += 1 if c == "(" else -1
             if sum_ == -1:
                 return i + 1
-        raise RuntimeError("Unreachable")
+        msg = "Unreachable"
+        raise RuntimeError(msg)
 
     @aoc_samples(
         (

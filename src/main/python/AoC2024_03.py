@@ -27,26 +27,25 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return "\n".join(line for line in input_data)
 
-    def solve(self, input: str, use_conditionals: bool) -> int:
+    def solve(self, memory: str, *, use_conditionals: bool) -> int:
         enabled = True
         ans = 0
         for do, _, a, b in re.findall(
-            r"(do(n't)?)\(\)|mul\((\d{1,3}),(\d{1,3})\)", input
+            r"(do(n't)?)\(\)|mul\((\d{1,3}),(\d{1,3})\)", memory
         ):
             if do == "do":
                 enabled = True
             elif do == "don't":
                 enabled = False
-            else:
-                if not use_conditionals or enabled:
-                    ans += int(a) * int(b)
+            elif not use_conditionals or enabled:
+                ans += int(a) * int(b)
         return ans
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(input, use_conditionals=False)
+    def part_1(self, memory: Input) -> Output1:
+        return self.solve(memory, use_conditionals=False)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(input, use_conditionals=True)
+    def part_2(self, memory: Input) -> Output2:
+        return self.solve(memory, use_conditionals=True)
 
     @aoc_samples(
         (

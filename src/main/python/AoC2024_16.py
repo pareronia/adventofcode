@@ -7,7 +7,11 @@ from __future__ import annotations
 
 import itertools
 import sys
-from typing import Iterator
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
+
 from typing import NamedTuple
 from typing import Self
 
@@ -83,21 +87,21 @@ class ReindeerMaze(NamedTuple):
 
     @classmethod
     def from_grid(cls, strings: list[str]) -> Self:
-        grid = [[ch for ch in line] for line in strings]
+        grid = [list(line) for line in strings]
         start = Cell(len(grid) - 2, 1)
         end = Cell(1, len(grid[0]) - 2)
         return cls(grid, start, end)
 
     def adjacent(self, state: State) -> Iterator[State]:
-        r, c, dir = state
-        direction = IDX_TO_DIR[dir]
+        r, c, d = state
+        direction = IDX_TO_DIR[d]
         states = (
             (r - d.y, c + d.x, DIR_TO_IDX[d])
             for d in [direction] + TURNS[direction]
         )
-        for state in states:
-            if self.grid[state[0]][state[1]] != "#":
-                yield state
+        for st in states:
+            if self.grid[st[0]][st[1]] != "#":
+                yield st
 
 
 Input = ReindeerMaze
@@ -107,7 +111,6 @@ State = tuple[int, int, int]
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
-
     def parse_input(self, input_data: InputData) -> Input:
         return ReindeerMaze.from_grid(list(input_data))
 
@@ -129,11 +132,11 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return len(
             {
                 (state[0], state[1])
-                for end, dir in itertools.product(
+                for end, direction in itertools.product(
                     [maze.end], Direction.capitals()
                 )
                 for paths in result.get_paths(
-                    (end.row, end.col, DIR_TO_IDX[dir])
+                    (end.row, end.col, DIR_TO_IDX[direction])
                 )
                 for state in paths
             }

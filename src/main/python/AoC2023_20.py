@@ -80,8 +80,8 @@ class Module:
     BUTTON = "button"
     SELF = "*self*"
 
-    def __init__(self, type: str, outputs: list[str]) -> None:
-        self.type = type
+    def __init__(self, type_: str, outputs: list[str]) -> None:
+        self.type = type_
         self.outputs = outputs
         self.state = dict[str, PulseType]()
 
@@ -102,7 +102,7 @@ class Module:
             return [
                 Pulse(Module.BROADCASTER, o, pulse.value) for o in self.outputs
             ]
-        elif self.is_flip_flop:
+        if self.is_flip_flop:
             if pulse.value == PulseType.LOW:
                 new_state = self.state[Module.SELF].flipped()
                 self.state[Module.SELF] = new_state
@@ -112,17 +112,13 @@ class Module:
                     else Pulse.high(pulse.dst, o)
                     for o in self.outputs
                 ]
-            else:
-                return []
-        else:
-            self.state[pulse.src] = pulse.value
-            all_high = all(v == PulseType.HIGH for v in self.state.values())
-            return [
-                Pulse.low(pulse.dst, o)
-                if all_high
-                else Pulse.high(pulse.dst, o)
-                for o in self.outputs
-            ]
+            return []
+        self.state[pulse.src] = pulse.value
+        all_high = all(v == PulseType.HIGH for v in self.state.values())
+        return [
+            Pulse.low(pulse.dst, o) if all_high else Pulse.high(pulse.dst, o)
+            for o in self.outputs
+        ]
 
 
 class Modules:
@@ -134,7 +130,7 @@ class Modules:
         modules = dict[str, Module]()
         for line in input_data:
             a, b = line.split(" -> ")
-            outputs = [_ for _ in b.split(", ")]
+            outputs = b.split(", ")
             if a == Module.BROADCASTER:
                 modules[Module.BROADCASTER] = Module(
                     Module.BROADCASTER, outputs
@@ -191,7 +187,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     self.hi += 1
 
         listener = Listener()
-        for i in range(1000):
+        for _ in range(1000):
             modules.push_button(listener)
         return listener.lo * listener.hi
 
@@ -205,12 +201,12 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         to_rx = modules.get_module_with_output_rx()
         pushes = 0
         listener = Listener()
-        for i in range(10_000):
+        for _ in range(10_000):
             pushes += 1
             modules.push_button(listener)
             if memo and all(len(v) > 1 for v in memo.values()):
                 return reduce(lcm, (v[1] - v[0] for v in memo.values()))
-        raise RuntimeError("unsolvable")
+        raise AssertionError
 
     @aoc_samples(
         (

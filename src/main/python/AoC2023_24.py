@@ -73,43 +73,49 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 p_b, v_b = hs_b
                 if v_a.x == v_b.x and v_a.x != 0:
                     dp_x = p_a.x - p_b.x
-                    tmp = set[int]()
-                    for v in range(-1000, 1000):
-                        if v != 0 and v != v_a.x and dp_x % (v - v_a.x) == 0:
-                            tmp.add(v)
+                    tmp = {
+                        v
+                        for v in range(-1000, 1000)
+                        if v not in (0, v_a.x) and dp_x % (v - v_a.x) == 0
+                    }
                     v_x = v_x | tmp if len(v_x) == 0 else v_x & tmp
                 if v_a.y == v_b.y and v_a.y != 0:
                     dp_y = p_a.y - p_b.y
-                    tmp = set[int]()
-                    for v in range(-1000, 1000):
-                        if v != 0 and v != v_a.y and dp_y % (v - v_a.y) == 0:
-                            tmp.add(v)
+                    tmp = {
+                        v
+                        for v in range(-1000, 1000)
+                        if v not in (0, v_a.y) and dp_y % (v - v_a.y) == 0
+                    }
                     v_y = v_y | tmp if len(v_y) == 0 else v_y & tmp
                 if v_a.z == v_b.z and v_a.z != 0:
                     dp_z = p_a.z - p_b.z
-                    tmp = set[int]()
-                    for v in range(-1000, 1000):
-                        if v != 0 and v != v_a.z and dp_z % (v - v_a.z) == 0:
-                            tmp.add(v)
+                    tmp = {
+                        v
+                        for v in range(-1000, 1000)
+                        if v not in (0, v_a.z) and dp_z % (v - v_a.z) == 0
+                    }
                     v_z = v_z | tmp if len(v_z) == 0 else v_z & tmp
             log((v_x, v_y, v_z))
             if not len(v_x) > 0 and len(v_y) > 0 and len(v_z) > 0:
-                raise RuntimeError()
+                raise RuntimeError
             return Vector3D(v_x.pop(), v_y.pop(), v_z.pop())
+
+        """
+        px1 + vx1*t = px2 + vx2*t
+        px1 - px2 = vx2*t - vx1*t
+        (px1-px2)/(vx2-vx1) = t
+
+        y = mx + b
+        m = vy/vx
+        b = py - m*px
+        m1x + b1 = m2x + b2
+        m1x - m2x = b2 - b1
+        x = (b2-b1)/(m1-m2)
+        """
 
         def find_rock_start_position(
             hailstones: Input, v_r: Vector3D
         ) -> Position3D:
-            # px1 + vx1*t = px2 + vx2*t
-            # px1 - px2 = vx2*t - vx1*t
-            # (px1-px2)/(vx2-vx1) = t
-            #
-            # y = mx + b
-            # m = vy/vx
-            # b = py - m*px
-            # m1x + b1 = m2x + b2
-            # m1x - m2x = b2 - b1
-            # x = (b2-b1)/(m1-m2)
             p_a, v_a = hailstones[0]
             p_b, v_b = hailstones[1]
             m_a = (v_a.y - v_r.y) / (v_a.x - v_r.x)
@@ -135,14 +141,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             hs.append((pos, vel))
         return hs
 
-    def sample_1(self, input: Input) -> int:
-        return self.solve_1(input, 7, 27)
+    def sample_1(self, hailstones: Input) -> int:
+        return self.solve_1(hailstones, 7, 27)
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve_1(input, 200000000000000, 400000000000000)
+    def part_1(self, hailstones: Input) -> Output1:
+        return self.solve_1(hailstones, 200000000000000, 400000000000000)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve_2(input)
+    def part_2(self, hailstones: Input) -> Output2:
+        return self.solve_2(hailstones)
 
     @aoc_samples(
         (

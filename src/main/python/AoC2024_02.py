@@ -40,7 +40,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def part_2(self, reports: Input) -> Output2:
         return sum(
             any(
-                self.safe(report[:i] + report[i + 1 :])  # noqa E203
+                self.safe(report[:i] + report[i + 1 :])
                 for i in range(len(report))
             )
             for report in reports

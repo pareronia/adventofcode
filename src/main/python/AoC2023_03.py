@@ -42,7 +42,7 @@ Output2 = int
 
 class Solution(SolutionBase[list[EnginePart], Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        grid = CharGrid([[c for c in line] for line in input_data])
+        grid = CharGrid([list(line) for line in input_data])
 
         def find_engine_part(
             row: int, col_span: tuple[int, int]
@@ -52,7 +52,7 @@ class Solution(SolutionBase[list[EnginePart], Output1, Output2]):
                     val = grid.get_value(n)
                     if not val.isdigit() and val != ".":
                         s = grid.get_row_as_string(row)[
-                            col_span[0] : col_span[1]  # noqa E203
+                            col_span[0] : col_span[1]
                         ]
                         return EnginePart(val, int(s), n)
             return None

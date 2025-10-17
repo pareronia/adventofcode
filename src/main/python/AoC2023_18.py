@@ -84,17 +84,17 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             )
         return Polygon(vertices).inside_area()
 
-    def part_1(self, input: Input) -> Output1:
+    def part_1(self, dig_plan: Input) -> Output1:
         instructions = [
             (Direction.from_str(d), int(a))
-            for d, a, _ in (line.split() for line in input)
+            for d, a, _ in (line.split() for line in dig_plan)
         ]
         return self.solve(instructions)
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, dig_plan: Input) -> Output2:
         instructions = [
             (DIRS[int(hx[7])], int(hx[2:7], 16))
-            for _, _, hx in (line.split() for line in input)
+            for _, _, hx in (line.split() for line in dig_plan)
         ]
         return self.solve(instructions)
 

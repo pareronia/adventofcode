@@ -45,39 +45,29 @@ class Action(Enum):
             case _:
                 return Action.TOGGLE
 
-    def apply(
+    def apply(  # noqa: C901
         self, lights: list[list[int]], start: Cell, end: Cell, mode: Mode
     ) -> None:
-        match self:
-            case Action.TURN_ON:
-                match mode:
-                    case Mode.MODE_1:
-                        for r in range(start.row, end.row + 1):
-                            for c in range(start.col, end.col + 1):
+        for r in range(start.row, end.row + 1):
+            for c in range(start.col, end.col + 1):
+                match self:
+                    case Action.TURN_ON:
+                        match mode:
+                            case Mode.MODE_1:
                                 lights[r][c] = 1
-                    case Mode.MODE_2:
-                        for r in range(start.row, end.row + 1):
-                            for c in range(start.col, end.col + 1):
+                            case Mode.MODE_2:
                                 lights[r][c] += 1
-            case Action.TURN_OFF:
-                match mode:
-                    case Mode.MODE_1:
-                        for r in range(start.row, end.row + 1):
-                            for c in range(start.col, end.col + 1):
+                    case Action.TURN_OFF:
+                        match mode:
+                            case Mode.MODE_1:
                                 lights[r][c] = 0
-                    case Mode.MODE_2:
-                        for r in range(start.row, end.row + 1):
-                            for c in range(start.col, end.col + 1):
+                            case Mode.MODE_2:
                                 lights[r][c] = max(lights[r][c] - 1, 0)
-            case Action.TOGGLE:
-                match mode:
-                    case Mode.MODE_1:
-                        for r in range(start.row, end.row + 1):
-                            for c in range(start.col, end.col + 1):
+                    case Action.TOGGLE:
+                        match mode:
+                            case Mode.MODE_1:
                                 lights[r][c] = 0 if lights[r][c] == 1 else 1
-                    case Mode.MODE_2:
-                        for r in range(start.row, end.row + 1):
-                            for c in range(start.col, end.col + 1):
+                            case Mode.MODE_2:
                                 lights[r][c] += 2
 
 

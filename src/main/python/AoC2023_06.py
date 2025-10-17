@@ -30,7 +30,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         times, distances = [
             list(map(int, line.split(":")[1].split())) for line in input_data
         ]
-        return list(zip(times, distances))
+        return list(zip(times, distances, strict=True))
 
     def _brute_force(self, time: int, distance: int) -> int:
         ans = sum(t * (time - t) > distance for t in range(time))

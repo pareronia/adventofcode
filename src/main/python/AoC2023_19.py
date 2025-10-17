@@ -108,29 +108,27 @@ class Rule(NamedTuple):
         if ":" in string:
             op, res = string.split(":")
             return Rule(op[0], op[1], int(op[2:]), res)
-        else:
-            return Rule(None, CATCHALL, None, string)
+        return Rule(None, CATCHALL, None, string)
 
-    def eval(self, range: PartRange) -> list[tuple[PartRange, str]]:
+    def eval(self, part_range: PartRange) -> list[tuple[PartRange, str]]:
         if self.operation == CATCHALL:
-            return [(range.copy(), self.result)]
+            return [(part_range.copy(), self.result)]
+        assert self.operand1 is not None and self.operand2 is not None
+        lo, hi = getattr(part_range, self.operand1)
+        if self.operation == "<":
+            match = (lo, self.operand2 - 1)
+            nomatch = (self.operand2, hi)
         else:
-            assert self.operand1 is not None and self.operand2 is not None
-            lo, hi = getattr(range, self.operand1)
-            if self.operation == "<":
-                match = (lo, self.operand2 - 1)
-                nomatch = (self.operand2, hi)
-            else:
-                match = (self.operand2 + 1, hi)
-                nomatch = (lo, self.operand2)
-            ans = list[tuple[PartRange, str]]()
-            if match[0] <= match[1]:
-                nr = range.copy_with(self.operand1, match)
-                ans.append((nr, self.result))
-            if nomatch[0] <= nomatch[1]:
-                nr = range.copy_with(self.operand1, nomatch)
-                ans.append((nr, CONTINUE))
-            return ans
+            match = (self.operand2 + 1, hi)
+            nomatch = (lo, self.operand2)
+        ans = list[tuple[PartRange, str]]()
+        if match[0] <= match[1]:
+            nr = part_range.copy_with(self.operand1, match)
+            ans.append((nr, self.result))
+        if nomatch[0] <= nomatch[1]:
+            nr = part_range.copy_with(self.operand1, nomatch)
+            ans.append((nr, CONTINUE))
+        return ans
 
 
 class Workflow(NamedTuple):
@@ -147,9 +145,9 @@ class Workflow(NamedTuple):
         ]
         return Workflow(name, rules)
 
-    def eval(self, range: PartRange) -> list[tuple[PartRange, str]]:
+    def eval(self, part_range: PartRange) -> list[tuple[PartRange, str]]:
         ans = list[tuple[PartRange, str]]()
-        ranges = [range]
+        ranges = [part_range]
         for rule in self.rules:
             new_ranges = list[PartRange]()
             for r in ranges:
@@ -161,8 +159,8 @@ class Workflow(NamedTuple):
                         new_ranges.append(res[0])
                 clog(
                     lambda: f"eval [{self.name}: "
-                    f"{rule.operand1}{rule.operation}{rule.operand2}]"
-                    f" on {r} -> {ress}"
+                    f"{rule.operand1}{rule.operation}{rule.operand2}]"  # noqa:B023
+                    f" on {r} -> {ress}"  # noqa:B023
                 )
             ranges = new_ranges
         return ans
@@ -219,7 +217,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         )
         rej, acc = [
             sum(
-                sum(range.score() for range in ranges)
+                sum(part_range.score() for part_range in ranges)
                 for k, ranges in solution.items()
                 if k == kk
             )

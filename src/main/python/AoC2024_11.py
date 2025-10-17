@@ -22,7 +22,7 @@ TEST = """\
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return list(map(int, list(input_data)[0].split()))
+        return list(map(int, next(iter(input_data)).split()))
 
     def solve(self, stones: list[int], blinks: int) -> int:
         @cache
@@ -35,7 +35,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             size = len(ss)
             if size % 2 == 0:
                 s1 = int(ss[: size // 2])
-                s2 = int(ss[size // 2 :])  # noqa E203
+                s2 = int(ss[size // 2 :])
                 return count(s1, cnt - 1) + count(s2, cnt - 1)
             return count(s * 2024, cnt - 1)
 

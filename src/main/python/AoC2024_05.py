@@ -68,8 +68,8 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         updates = [list(map(int, line.split(","))) for line in blocks[1]]
         return order, updates
 
-    def solve(self, input: Input, mode: Mode) -> int:
-        order, updates = input
+    def solve(self, inputs: Input, mode: Mode) -> int:
+        order, updates = inputs
 
         def cmp(a: int, b: int) -> int:
             return -1 if b in order[a] else 1
@@ -82,11 +82,11 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 ans += correct[len(correct) // 2]
         return ans
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(input, Mode.USE_CORRECT)
+    def part_1(self, inputs: Input) -> Output1:
+        return self.solve(inputs, Mode.USE_CORRECT)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(input, Mode.USE_INCORRECT)
+    def part_2(self, inputs: Input) -> Output2:
+        return self.solve(inputs, Mode.USE_INCORRECT)
 
     @aoc_samples(
         (

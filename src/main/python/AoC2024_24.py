@@ -102,13 +102,13 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 gates.append((in1, op, in2, out))
         return wires, gates
 
-    def part_1(self, input: Input) -> Output1:
-        wires, gates = input
+    def part_1(self, system: Input) -> Output1:
+        wires, gates = system
         q = deque(gates)
         while q:
             in1, op, in2, out = q.popleft()
             if in1 in wires and in2 in wires:
-                wires[out] = cast(int, OPS[op](wires[in1], wires[in2]))
+                wires[out] = cast("int", OPS[op](wires[in1], wires[in2]))
             else:
                 q.append((in1, op, in2, out))
         max_z = max(
@@ -116,7 +116,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         )
         return sum((1 << i) * wires[f"z{i:0>2}"] for i in range(max_z, -1, -1))
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, system: Input) -> Output2:
         def is_swapped(gate: Gate) -> bool:
             def outputs_to_z_except_first_one_and_not_xor(gate: Gate) -> bool:
                 _, op, _, out = gate
@@ -157,7 +157,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 or is_xor_with_output_to_or(gate)
             )
 
-        _, gates = input
+        _, gates = system
         return ",".join(sorted(gate[3] for gate in gates if is_swapped(gate)))
 
     @aoc_samples(

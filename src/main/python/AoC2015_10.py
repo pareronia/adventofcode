@@ -111,7 +111,7 @@ Output2 = int
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
-    """https://github.com/maneatingape/advent-of-code-rust/blob/3a95adb336f4e9af3ca509b17aa60d6360510290/src/year2015/day10.rs"""  # noqa E501
+    """https://github.com/maneatingape/advent-of-code-rust/blob/3a95adb336f4e9af3ca509b17aa60d6360510290/src/year2015/day10.rs."""
 
     def parse_input(self, input_data: InputData) -> Input:
         elements = [line.split() for line in ELEMENTS.splitlines()]
@@ -121,7 +121,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         for i, sp in enumerate(elements):
             sequence[i] = sp[0]
             decays[i] = [indices[x] for x in sp[4:]]
-        return sequence, decays, list(input_data)[0]
+        return sequence, decays, next(iter(input_data))
 
     def _solve(self, string: str, iterations: int) -> str:
         current = string
@@ -139,9 +139,9 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return current
 
     def solve(self, inputs: Input, iterations: int) -> int:
-        sequence, decays, input = inputs
+        sequence, decays, input_ = inputs
         current = [0 for _ in range(N)]
-        current[sequence.index(input)] = 1
+        current[sequence.index(input_)] = 1
         for _ in range(iterations):
             nxt = [0 for _ in range(N)]
             for i, c in enumerate(current):
@@ -149,7 +149,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     for d in decays[i]:
                         nxt[d] += c
             current = nxt
-        return sum(c * len(s) for c, s in zip(current, sequence))
+        return sum(c * len(s) for c, s in zip(current, sequence, strict=True))
 
     def part_1(self, inputs: Input) -> Output1:
         return self.solve(inputs, iterations=40)

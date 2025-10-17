@@ -3,10 +3,11 @@
 # Advent of Code 2024 Day 21
 #
 
+import itertools
 import sys
+from collections.abc import Iterator
 from dataclasses import dataclass
 from functools import cache
-from typing import Iterator
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -50,7 +51,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def solve(self, input: Input, levels: int) -> int:
+    def solve(self, codes: Input, levels: int) -> int:
         def path(keypad: Keypad, from_: str, to: str) -> str:
             from_x, from_y = keypad.get_position(from_)
             to_x, to_y = keypad.get_position(to)
@@ -69,7 +70,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
 
             return min(
                 paths(from_x, from_y, ""),
-                key=lambda p: sum(a != b for a, b in zip(p, p[1:])),
+                key=lambda p: sum(a != b for a, b in itertools.pairwise(p)),
             )
 
         @cache
@@ -79,18 +80,18 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             keypad = DIRECTIONAL if level else NUMERIC
             return sum(
                 count(path(keypad, from_, to), level + 1, max_level)
-                for from_, to in zip("A" + s, s)
+                for from_, to in itertools.pairwise("A" + s)
             )
 
         return sum(
-            int(combo[:-1]) * count(combo, 0, levels) for combo in input
+            int(combo[:-1]) * count(combo, 0, levels) for combo in codes
         )
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(input, 2)
+    def part_1(self, codes: Input) -> Output1:
+        return self.solve(codes, 2)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(input, 25)
+    def part_2(self, codes: Input) -> Output2:
+        return self.solve(codes, 25)
 
     @aoc_samples((("part_1", TEST, 126384),))
     def samples(self) -> None:

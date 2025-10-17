@@ -38,7 +38,7 @@ TEST = """\
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return [
-            CharGrid.from_strings([line for line in block])
+            CharGrid.from_strings(block)
             for block in my_aocd.to_blocks(input_data)
         ]
 
@@ -53,9 +53,11 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     right = c + dc + 1
                     if not 0 <= left < right < w:
                         continue
-                    for r in range(h):
-                        if grid.values[r][left] != grid.values[r][right]:
-                            err += 1
+                    err += sum(
+                        1
+                        for r in range(h)
+                        if grid.values[r][left] != grid.values[r][right]
+                    )
                 if err == smudge:
                     return (0, c + 1)
             for r in range(h - 1):
@@ -65,12 +67,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     down = r + dr + 1
                     if not 0 <= up < down < h:
                         continue
-                    for c in range(w):
-                        if grid.values[up][c] != grid.values[down][c]:
-                            err += 1
+                    err += sum(
+                        1
+                        for c in range(w)
+                        if grid.values[up][c] != grid.values[down][c]
+                    )
                 if err == smudge:
                     return (r + 1, 0)
-            assert False
+            raise AssertionError
 
         return sum(
             (100 * r) + c

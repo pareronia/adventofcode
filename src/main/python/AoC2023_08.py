@@ -82,16 +82,13 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Map:
         return Map.from_input(input_data)
 
-    def part_1(self, map: Map) -> Output1:
-        return map.steps("AAA")
+    def part_1(self, the_map: Map) -> Output1:
+        return the_map.steps("AAA")
 
-    def part_2(self, map: Map) -> Output2:
+    def part_2(self, the_map: Map) -> Output2:
         return reduce(
             lcm,
-            (
-                map.steps(key)
-                for key in [k for k in map.network if k[-1] == "A"]
-            ),
+            (the_map.steps(key) for key in the_map.network if key[-1] == "A"),
         )
 
     @aoc_samples(

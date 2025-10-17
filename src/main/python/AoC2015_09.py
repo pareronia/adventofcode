@@ -8,8 +8,11 @@ from __future__ import annotations
 import itertools
 import sys
 from collections import defaultdict
-from typing import Iterator
+from typing import TYPE_CHECKING
 from typing import NamedTuple
+
+if TYPE_CHECKING:
+    from collections.abc import Iterator
 
 from aoc.common import InputData
 from aoc.common import SolutionBase

@@ -4,7 +4,7 @@
 #
 
 import sys
-from typing import Iterator
+from collections.abc import Iterator
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -101,9 +101,9 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         return self.solve_2(cells)
 
     def samples(self) -> None:
-        input = self.parse_input(TEST.splitlines())
-        assert self.solve_1(input, 7, 12) == 22
-        assert self.solve_2(input, 7, 12) == "6,1"
+        inputs = self.parse_input(TEST.splitlines())
+        assert self.solve_1(inputs, 7, 12) == 22
+        assert self.solve_2(inputs, 7, 12) == "6,1"
 
 
 solution = Solution(2024, 18)

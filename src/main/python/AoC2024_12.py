@@ -5,10 +5,11 @@
 
 import sys
 from collections import defaultdict
+from collections.abc import Iterator
 from enum import Enum
 from enum import auto
 from enum import unique
-from typing import Iterator
+from typing import Self
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -91,40 +92,60 @@ class Pricing(Enum):
                 )
 
 
+class RegionIterator(Iterator[set[Cell]]):
+    def __init__(self, plots_by_plant: dict[str, set[Cell]]) -> None:
+        self.plots_by_plant = plots_by_plant
+        self.keys = iter(plots_by_plant.keys())
+        self.key: str | None = next(self.keys)
+        self.all_plots_with_plant = plots_by_plant[self.key]
+
+    def __iter__(self) -> Self:
+        return self
+
+    def has_next(self) -> bool:
+        if len(self.all_plots_with_plant) > 0:
+            return True
+        self.key = next(self.keys, None)
+        return self.key is not None
+
+    def __next__(self) -> set[Cell]:
+        if not self.has_next():
+            raise StopIteration
+        assert self.key is not None
+        if len(self.all_plots_with_plant) == 0:
+            self.all_plots_with_plant = self.plots_by_plant[self.key]
+        region = flood_fill(
+            next(iter(self.all_plots_with_plant)),
+            lambda cell: (
+                n
+                for n in cell.get_capital_neighbours()
+                if n in self.all_plots_with_plant
+            ),
+        )
+        self.all_plots_with_plant -= region
+        return region
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def solve(self, input: Input, pricing: Pricing) -> int:
-        def get_regions(input: Input) -> Iterator[set[Cell]]:
-            plots_by_plant = defaultdict[str, set[Cell]](set)
-            for r, row in enumerate(input):
-                for c, plant in enumerate(row):
-                    plots_by_plant[plant].add(Cell(r, c))
-            for all_plots_with_plant in plots_by_plant.values():
-                while all_plots_with_plant:
-                    region = flood_fill(
-                        next(iter(all_plots_with_plant)),
-                        lambda cell: (
-                            n
-                            for n in cell.get_capital_neighbours()
-                            if n in all_plots_with_plant
-                        ),
-                    )
-                    yield region
-                    all_plots_with_plant -= region
-
+    def solve(self, garden_map: Input, pricing: Pricing) -> int:
+        plots_by_plant = defaultdict[str, set[Cell]](set)
+        for r, row in enumerate(garden_map):
+            for c, plant in enumerate(row):
+                plots_by_plant[plant].add(Cell(r, c))
         return sum(
             sum(pricing.calculate(plot, region) for plot in region)
             * len(region)
-            for region in get_regions(input)
+            for region in RegionIterator(plots_by_plant)
         )
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(input, Pricing.PERIMETER)
+    def part_1(self, garden_map: Input) -> Output1:
+        return self.solve(garden_map, Pricing.PERIMETER)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(input, Pricing.NUMBER_OF_SIDES)
+    def part_2(self, garden_map: Input) -> Output2:
+        return self.solve(garden_map, Pricing.NUMBER_OF_SIDES)
 
     @aoc_samples(
         (

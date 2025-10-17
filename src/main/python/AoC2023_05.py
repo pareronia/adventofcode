@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 import sys
+from collections import deque
 from typing import NamedTuple
 
 import aoc.range
@@ -63,14 +64,15 @@ class Mapping(NamedTuple):
 
     def map(self, inps: list[Range]) -> list[Range]:
         ans = list[Range]()
-        while inps:
-            inp = inps.pop()
+        q = deque(inps)
+        while q:
+            inp = q.pop()
             for r in self.ranges:
                 new, other = aoc.range.Range.left_join(inp, r.range)
                 if new:
                     ans.append((new[0] + r.diff, new[1] + r.diff))
                     for o in other:
-                        inps.append(o)
+                        q.append(o)
                     break
             else:
                 ans.append(inp)

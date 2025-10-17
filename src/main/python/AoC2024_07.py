@@ -43,7 +43,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             ans.append((sol, terms))
         return ans
 
-    def solve(self, input: Input, ops: int) -> int:
+    def solve(self, equations: Input, ops: int) -> int:
         def can_obtain(sol: int, terms: list[int], ops: int) -> bool:
             if len(terms) == 1:
                 return sol == terms[0]
@@ -69,13 +69,15 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     return True
             return False
 
-        return sum(sol for sol, terms in input if can_obtain(sol, terms, ops))
+        return sum(
+            sol for sol, terms in equations if can_obtain(sol, terms, ops)
+        )
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve(input, ADD | MULTIPLY)
+    def part_1(self, equations: Input) -> Output1:
+        return self.solve(equations, ADD | MULTIPLY)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve(input, ADD | MULTIPLY | CONCATENATE)
+    def part_2(self, equations: Input) -> Output2:
+        return self.solve(equations, ADD | MULTIPLY | CONCATENATE)
 
     @aoc_samples(
         (

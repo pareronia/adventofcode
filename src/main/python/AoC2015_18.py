@@ -6,7 +6,7 @@
 import functools
 import sys
 from collections import Counter
-from typing import Iterable
+from collections.abc import Iterable
 from typing import cast
 
 from aoc.common import InputData
@@ -15,10 +15,28 @@ from aoc.game_of_life import ClassicRules
 from aoc.game_of_life import GameOfLife
 from aoc.grid import Cell
 
+TEST = """\
+.#.#.#
+...##.
+#....#
+..#...
+#.#..#
+####..
+"""
+
+
+@functools.cache
+def neighbours(cell: Cell, height: int, width: int) -> set[Cell]:
+    return {
+        n
+        for n in cell.get_all_neighbours()
+        if n.row >= 0 and n.row < height and n.col >= 0 and n.col < width
+    }
+
 
 class FixedGrid(GameOfLife.Universe[Cell]):
-    def __init__(self, input: InputData):
-        lines = list(input)
+    def __init__(self, inputs: InputData) -> None:
+        lines = list(inputs)
         self.height = len(lines)
         self.width = len(lines[0])
         self.initial_alive = {
@@ -35,18 +53,10 @@ class FixedGrid(GameOfLife.Universe[Cell]):
         }
 
     def neighbour_count(self, alive: Iterable[Cell]) -> dict[Cell, int]:
-        return Counter(n for cell in alive for n in self._neighbours(cell))
+        return Counter(n for cell in alive for n in self.neighbours(cell))
 
-    @functools.cache
-    def _neighbours(self, cell: Cell) -> set[Cell]:
-        return {
-            n
-            for n in cell.get_all_neighbours()
-            if n.row >= 0
-            and n.row < self.height
-            and n.col >= 0
-            and n.col < self.width
-        }
+    def neighbours(self, cell: Cell) -> set[Cell]:
+        return neighbours(cell, self.height, self.width)
 
 
 Input = FixedGrid
@@ -54,46 +64,32 @@ Output1 = int
 Output2 = int
 
 
-TEST = """\
-.#.#.#
-...##.
-#....#
-..#...
-#.#..#
-####..
-"""
-
-
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return FixedGrid(input_data)
 
-    def solve_1(self, grid: Input, generations: int) -> Output1:
-        game_of_life = GameOfLife(
-            grid.initial_alive, grid, ClassicRules()
-        )  # type:ignore[misc]
+    def solve_1(self, grid: FixedGrid, generations: int) -> Output1:
+        game_of_life = GameOfLife(grid.initial_alive, grid, ClassicRules())  # type:ignore[misc]
         for _ in range(generations):
             game_of_life.next_generation()
         return len(set(game_of_life.alive))
 
-    def solve_2(self, grid: Input, generations: int) -> Output2:
+    def solve_2(self, grid: FixedGrid, generations: int) -> Output2:
         game_of_life = GameOfLife(
             grid.initial_alive | grid.stuck_positions, grid, ClassicRules()
         )  # type:ignore[misc]
         for _ in range(generations):
             game_of_life.next_generation()
-            alive = set(cast(Iterable[Cell], game_of_life.alive))
+            alive = set(cast("Iterable[Cell]", game_of_life.alive))
             alive |= grid.stuck_positions
-            game_of_life = GameOfLife(
-                alive, grid, ClassicRules()
-            )  # type:ignore[misc]
+            game_of_life = GameOfLife(alive, grid, ClassicRules())  # type:ignore[misc]
         return len(set(game_of_life.alive))
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve_1(input, 100)
+    def part_1(self, grid: Input) -> Output1:
+        return self.solve_1(grid, 100)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve_2(input, 100)
+    def part_2(self, grid: Input) -> Output2:
+        return self.solve_2(grid, 100)
 
     def samples(self) -> None:
         assert self.solve_1(self.parse_input(TEST.splitlines()), 4) == 4

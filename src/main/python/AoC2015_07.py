@@ -39,8 +39,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 if first.isnumeric():
                     wires[second] = int(first)
                     continue
-                else:
-                    in1, op, in2 = splits[0], "SET", None
+                in1, op, in2 = splits[0], "SET", None
             elif len(splits) == 2:
                 in1, op, in2 = splits[1], "NOT", None
             else:
@@ -48,7 +47,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             gates.append((in1, op, in2, second))
         return wires, gates
 
-    def solve(self, wires: Wires, gates: list[Gate], wire: str) -> int:
+    def solve(self, wires: Wires, gates: list[Gate], wire: str) -> int:  # noqa: C901
         def exec_op(in1: str, op: str, in2: str | None, out: str) -> None:
             match op:
                 case "SET":
@@ -84,12 +83,12 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 q.append((in1, op, in2, out))
         return wires[wire]
 
-    def part_1(self, input: Input) -> Output1:
-        wires, gates = input
+    def part_1(self, inputs: Input) -> Output1:
+        wires, gates = inputs
         return self.solve(wires.copy(), gates, "a")
 
-    def part_2(self, input: Input) -> Output2:
-        wires, gates = input
+    def part_2(self, inputs: Input) -> Output2:
+        wires, gates = inputs
         wires_2 = wires.copy()
         wires_2["b"] = self.solve(wires.copy(), gates, "a")
         return self.solve(wires_2, gates, "a")

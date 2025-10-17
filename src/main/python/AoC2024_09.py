@@ -27,43 +27,43 @@ TEST = """\
 
 @unique
 class Mode(Enum):
-    MODE_1 = (auto(),)
-    MODE_2 = (auto(),)
+    MODE_1 = auto()
+    MODE_2 = auto()
 
-    def create_files(self, id: int, pos: int, sz: int) -> list[File]:
+    def create_files(self, fid: int, pos: int, sz: int) -> list[File]:
         match self:
             case Mode.MODE_1:
-                return [(id, pos + i, 1) for i in range(sz)]
+                return [(fid, pos + i, 1) for i in range(sz)]
             case Mode.MODE_2:
-                return [(id, pos, sz)]
+                return [(fid, pos, sz)]
 
     def checksum(self, f: File) -> int:
-        id, pos, sz = f
+        fid, pos, sz = f
         match self:
             case Mode.MODE_1:
-                return id * pos
+                return fid * pos
             case Mode.MODE_2:
-                return id * (pos * sz + TRIANGLE[sz])
+                return fid * (pos * sz + TRIANGLE[sz])
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return list(map(int, list(input_data)[0]))
+        return list(map(int, next(iter(input_data))))
 
     def solve(self, disk: Input, mode: Mode) -> int:
         files = list[File]()
         free_by_sz: list[list[int]] = [[] for _ in range(10)]
-        is_free, id, pos = False, 0, 0
+        is_free, fid, pos = False, 0, 0
         for n in disk:
             if is_free:
                 heapq.heappush(free_by_sz[n], pos)
             else:
-                files.extend(mode.create_files(id, pos, n))
-                id += 1
+                files.extend(mode.create_files(fid, pos, n))
+                fid += 1
             pos += n
             is_free = not is_free
         ans = 0
-        for id, pos, sz in reversed(files):
+        for fid, pos, sz in reversed(files):
             earliest = min(
                 (
                     (i, free)
@@ -73,15 +73,16 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 key=lambda e: e[1][0],
                 default=None,
             )
+            new_pos = pos
             if earliest is not None:
                 free_sz, free = earliest
                 free_pos = free[0]
                 if free_pos < pos:
                     heapq.heappop(free_by_sz[free_sz])
-                    pos = free_pos
+                    new_pos = free_pos
                     if sz < free_sz:
-                        heapq.heappush(free_by_sz[free_sz - sz], pos + sz)
-            ans += mode.checksum((id, pos, sz))
+                        heapq.heappush(free_by_sz[free_sz - sz], new_pos + sz)
+            ans += mode.checksum((fid, new_pos, sz))
         return ans
 
     def part_1(self, disk: Input) -> Output1:
