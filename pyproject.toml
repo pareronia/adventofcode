@@ -34,7 +34,7 @@ line-length = 79
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["COM", "D1", "PLR2004", "PT", "S101", "T20"]
+ignore = ["COM", "D1", "FIX002", "PLR2004", "PT", "S101", "T20", "TD"]
 
 [tool.ruff.lint.isort]
 force-single-line = true
