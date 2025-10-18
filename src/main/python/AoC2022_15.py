@@ -46,8 +46,8 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             beacons.add(b)
         return sensors, beacons
 
-    def solve_1(self, input: Input, y: int) -> Output1:
-        sensors, beacons = input
+    def solve_1(self, inputs: Input, y: int) -> Output1:
+        sensors, beacons = inputs
 
         def get_ranges(y: int) -> list[RangeInclusive]:
             ranges = list[RangeInclusive]()
@@ -65,9 +65,9 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             for r in get_ranges(y)
         )
 
-    def solve_2(self, input: Input, the_max: int) -> Output2:
-        """https://old.reddit.com/r/adventofcode/comments/zmcn64/2022_day_15_solutions/j0b90nr/"""  # noqa E501
-        sensors, _ = input
+    def solve_2(self, inputs: Input, the_max: int) -> Output2:
+        """https://old.reddit.com/r/adventofcode/comments/zmcn64/2022_day_15_solutions/j0b90nr/."""
+        sensors, _ = inputs
         a_coeffs, b_coeffs = set(), set()
         for s, md in sensors.items():
             a_coeffs.add(s.y - s.x + md + 1)
@@ -86,16 +86,16 @@ class Solution(SolutionBase[Input, Output1, Output2]):
             and all(p.manhattan_distance(s) > sensors[s] for s in sensors)
         )
 
-    def part_1(self, input: Input) -> Output1:
-        return self.solve_1(input, 2_000_000)
+    def part_1(self, inputs: Input) -> Output1:
+        return self.solve_1(inputs, 2_000_000)
 
-    def part_2(self, input: Input) -> Output2:
-        return self.solve_2(input, 4_000_000)
+    def part_2(self, inputs: Input) -> Output2:
+        return self.solve_2(inputs, 4_000_000)
 
     def samples(self) -> None:
-        input = self.parse_input(TEST.splitlines())
-        assert self.solve_1(input, 10) == 26
-        assert self.solve_2(input, 20) == 56_000_011
+        inputs = self.parse_input(TEST.splitlines())
+        assert self.solve_1(inputs, 10) == 26
+        assert self.solve_2(inputs, 20) == 56_000_011
 
 
 solution = Solution(2022, 15)

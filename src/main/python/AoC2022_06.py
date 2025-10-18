@@ -4,44 +4,64 @@
 #
 
 
-from aoc.common import aoc_main
+import sys
+
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
+
+TEST1 = "mjqjpqmgbljsphdztnvjfqwrcgsmlb"
+TEST2 = "bvwbjplbgvbhsrlpgdmjqwftvncz"
+TEST3 = "nppdvjthqldpwncqszvftbrmjlhg"
+TEST4 = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg"
+TEST5 = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw"
 
 
-def solve(buffer: str, size: int) -> int:
-    for i in range(size, len(buffer)):
-        test = buffer[i - size : i]  # noqa
-        if len(set(test)) == size:
-            return i
-    raise RuntimeError
+Input = str
+Output1 = int
+Output2 = int
 
 
-def part_1(inputs: tuple[str, ...]) -> int:
-    return solve(inputs[0], 4)
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return next(iter(input_data))
+
+    def solve(self, buffer: str, size: int) -> int:
+        for i in range(size, len(buffer)):
+            test = buffer[i - size : i]
+            if len(set(test)) == size:
+                return i
+        raise AssertionError
+
+    def part_1(self, buffer: Input) -> Output1:
+        return self.solve(buffer, 4)
+
+    def part_2(self, buffer: Input) -> Output2:
+        return self.solve(buffer, 14)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 7),
+            ("part_1", TEST2, 5),
+            ("part_1", TEST3, 6),
+            ("part_1", TEST4, 10),
+            ("part_1", TEST5, 11),
+            ("part_2", TEST1, 19),
+            ("part_2", TEST2, 23),
+            ("part_2", TEST3, 23),
+            ("part_2", TEST4, 29),
+            ("part_2", TEST5, 26),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def part_2(inputs: tuple[str, ...]) -> int:
-    return solve(inputs[0], 14)
+solution = Solution(2022, 6)
 
 
-TEST1 = "mjqjpqmgbljsphdztnvjfqwrcgsmlb".splitlines()
-TEST2 = "bvwbjplbgvbhsrlpgdmjqwftvncz".splitlines()
-TEST3 = "nppdvjthqldpwncqszvftbrmjlhg".splitlines()
-TEST4 = "nznrnfrfntjfmvfwmzdfjlvtqnbhcprsg".splitlines()
-TEST5 = "zcfzfwzzqfrljwzlrfnpqdbhtmscgvjw".splitlines()
-
-
-@aoc_main(2022, 6, part_1, part_2)
 def main() -> None:
-    assert part_1(TEST1) == 7  # type:ignore[arg-type]
-    assert part_1(TEST2) == 5  # type:ignore[arg-type]
-    assert part_1(TEST3) == 6  # type:ignore[arg-type]
-    assert part_1(TEST4) == 10  # type:ignore[arg-type]
-    assert part_1(TEST5) == 11  # type:ignore[arg-type]
-    assert part_2(TEST1) == 19  # type:ignore[arg-type]
-    assert part_2(TEST2) == 23  # type:ignore[arg-type]
-    assert part_2(TEST3) == 23  # type:ignore[arg-type]
-    assert part_2(TEST4) == 29  # type:ignore[arg-type]
-    assert part_2(TEST5) == 26  # type:ignore[arg-type]
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

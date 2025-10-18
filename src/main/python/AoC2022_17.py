@@ -55,7 +55,7 @@ SHAPES = [
     {Position(0, 0), Position(0, 1), Position(1, 0), Position(1, 1)},
 ]
 WIDTH = 7
-FLOOR = set(map(lambda x: Position(x, -1), range(WIDTH)))
+FLOOR = {Position(x, -1) for x in range(WIDTH)}
 KEEP_ROWS = 55
 LOOP_TRESHOLD = 3_000
 OFFSET_X = 2
@@ -67,7 +67,7 @@ class Rock(NamedTuple):
     shape: set[Position]
 
     def move(self, vector: Vector) -> Rock:
-        new_shape = set(map(lambda p: p.translate(vector), self.shape))
+        new_shape = {p.translate(vector) for p in self.shape}
         return Rock(self.idx, new_shape)
 
     def inside_x(self, start_inclusive: int, end_exclusive: int) -> bool:
@@ -87,7 +87,7 @@ class Cycle(NamedTuple):
 
 class Stack:
     def __init__(self, positions: set[Position]) -> None:
-        self.positions = {_ for _ in positions}
+        self.positions = set(positions)
         self.tops = Stack.get_tops(positions)
         self.top = 0
 
@@ -101,7 +101,7 @@ class Stack:
         }
 
     def get_tops_normalized(self) -> tuple[int, ...]:
-        return tuple(map(lambda i: self.top - self.tops[i], range(WIDTH)))
+        return tuple(self.top - self.tops[i] for i in range(WIDTH))
 
     def overlapped_by(self, rock: Rock) -> bool:
         return any(p in self.positions for p in rock.shape)
@@ -119,7 +119,7 @@ class Stack:
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return [Direction.from_str(s) for s in list(input_data)[0]]
+        return [Direction.from_str(s) for s in next(iter(input_data))]
 
     def solve(self, jets: Input, requested_drops: int) -> int:
         stack = Stack(FLOOR)
@@ -164,7 +164,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                 diff = cycles[1].top - cycles[0].top
                 loops = (requested_drops - drops) // loop_size
                 left = requested_drops - (drops + loops * loop_size)
-                for i in range(left):
+                for _ in range(left):
                     drop(drops)
                     drops += 1
                 return stack.top + loops * diff

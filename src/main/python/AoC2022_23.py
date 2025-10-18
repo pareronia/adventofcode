@@ -4,10 +4,24 @@
 #
 
 
+import sys
 from collections import defaultdict
 
-from aoc.common import aoc_main
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 from aoc.common import log
+
+TEST = """\
+....#..
+..###.#
+#...#.#
+.#...##
+#.###..
+##.#.##
+.#..#..
+"""
+
 
 ELF = "#"
 GROUND = "."
@@ -24,105 +38,104 @@ E = (0, 1)
 ALL_DIRS = {N, NE, E, SE, S, SW, W, NW}
 DIRS = {N: {N, NE, NW}, S: {S, SE, SW}, W: {W, NW, SW}, E: {E, NE, SE}}
 
-
-def _parse(inputs: tuple[str, ...]) -> set[Tile]:
-    return {
-        (r, c)
-        for r, line in enumerate(inputs)
-        for c, ch in enumerate(line)
-        if ch == ELF
-    }
+Input = InputData
+Output1 = int
+Output2 = int
 
 
-def _bounds(elves: set[Tile]) -> tuple[int, int, int, int]:
-    min_r = min(r for r, _ in elves)
-    min_c = min(c for _, c in elves)
-    max_r = max(r for r, _ in elves)
-    max_c = max(c for _, c in elves)
-    return min_r, min_c, max_r, max_c
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return input_data
+
+    def get_elves(self, inputs: InputData) -> set[Tile]:
+        return {
+            (r, c)
+            for r, line in enumerate(inputs)
+            for c, ch in enumerate(line)
+            if ch == ELF
+        }
+
+    def calculate_moves(
+        self, elves: set[Tile], order: list[Direction]
+    ) -> dict[Tile, list[Tile]]:
+        moves: dict[Tile, list[Tile]] = defaultdict(list[Tile])
+        for r, c in elves:
+            if all((r + dr, c + dc) not in elves for dr, dc in ALL_DIRS):
+                continue
+            for d in order:
+                if all((r + dr, c + dc) not in elves for dr, dc in DIRS[d]):
+                    moves[(r + d[0], c + d[1])].append((r, c))
+                    break
+        return moves
+
+    def execute_moves(
+        self, elves: set[Tile], moves: dict[Tile, list[Tile]]
+    ) -> set[Tile]:
+        for move, candidates in moves.items():
+            if len(candidates) > 1:
+                continue
+            elves.remove(candidates[0])
+            elves.add(move)
+        return elves
+
+    def part_1(self, inputs: Input) -> Output1:
+        def bounds(elves: set[Tile]) -> tuple[int, int, int, int]:
+            min_r = min(r for r, _ in elves)
+            min_c = min(c for _, c in elves)
+            max_r = max(r for r, _ in elves)
+            max_c = max(c for _, c in elves)
+            return min_r, min_c, max_r, max_c
+
+        def draw(elves: set[Tile]) -> None:
+            if not __debug__:
+                return
+            min_r, min_c, max_r, max_c = bounds(elves)
+            for r in range(min_r, max_r + 1):
+                [
+                    print(ELF if (r, c) in elves else GROUND, end="")
+                    for c in range(min_c, max_c + 1)
+                ]
+                print()
+
+        elves = self.get_elves(inputs)
+        order = [N, S, W, E]
+        for i in range(10):
+            log(f"Round {i + 1}:")
+            moves = self.calculate_moves(elves, order)
+            elves = self.execute_moves(elves, moves)
+            order.append(order.pop(0))
+            draw(elves)
+            log(order)
+        min_r, min_c, max_r, max_c = bounds(elves)
+        return (max_r - min_r + 1) * (max_c - min_c + 1) - len(elves)
+
+    def part_2(self, inputs: Input) -> Output2:
+        elves = self.get_elves(inputs)
+        order = [N, S, W, E]
+        for i in range(1000):
+            log(f"Round {i + 1}:")
+            moves = self.calculate_moves(elves, order)
+            if len(moves) == 0:
+                return i + 1
+            elves = self.execute_moves(elves, moves)
+            order.append(order.pop(0))
+        raise AssertionError
+
+    @aoc_samples(
+        (
+            ("part_1", TEST, 110),
+            ("part_2", TEST, 20),
+        )
+    )
+    def samples(self) -> None:
+        pass
 
 
-def _draw(elves: set[Tile]) -> None:
-    if not __debug__:
-        return
-    min_r, min_c, max_r, max_c = _bounds(elves)
-    for r in range(min_r, max_r + 1):
-        [
-            print(ELF if (r, c) in elves else GROUND, end="")
-            for c in range(min_c, max_c + 1)
-        ]
-        print()
+solution = Solution(2022, 23)
 
 
-def _calculate_moves(
-    elves: set[Tile], order: list[Direction]
-) -> dict[Tile, list[Tile]]:
-    moves: dict[Tile, list[Tile]] = defaultdict(list[Tile])
-    for r, c in elves:
-        if all((r + dr, c + dc) not in elves for dr, dc in ALL_DIRS):
-            continue
-        for d in order:
-            if all((r + dr, c + dc) not in elves for dr, dc in DIRS[d]):
-                moves[(r + d[0], c + d[1])].append((r, c))
-                break
-    return moves
-
-
-def _execute_moves(
-    elves: set[Tile], moves: dict[Tile, list[Tile]]
-) -> set[Tile]:
-    for move, candidates in moves.items():
-        if len(candidates) > 1:
-            continue
-        elves.remove(candidates[0])
-        elves.add(move)
-    return elves
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    elves = _parse(inputs)
-    order = [N, S, W, E]
-    for i in range(10):
-        log(f"Round {i + 1}:")
-        moves = _calculate_moves(elves, order)
-        elves = _execute_moves(elves, moves)
-        order.append(order.pop(0))
-        _draw(elves)
-        log(order)
-    min_r, min_c, max_r, max_c = _bounds(elves)
-    return (max_r - min_r + 1) * (max_c - min_c + 1) - len(elves)
-
-
-def part_2(inputs: tuple[str, ...]) -> int:
-    elves = _parse(inputs)
-    order = [N, S, W, E]
-    for i in range(1000):
-        log(f"Round {i + 1}:")
-        moves = _calculate_moves(elves, order)
-        if len(moves) == 0:
-            return i + 1
-        elves = _execute_moves(elves, moves)
-        order.append(order.pop(0))
-    raise RuntimeError("unsolvable")
-
-
-TEST = tuple(
-    """\
-....#..
-..###.#
-#...#.#
-.#...##
-#.###..
-##.#.##
-.#..#..
-""".splitlines()
-)
-
-
-@aoc_main(2022, 23, part_1, part_2)
 def main() -> None:
-    assert part_1(TEST) == 110
-    assert part_2(TEST) == 20
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

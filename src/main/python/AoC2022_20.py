@@ -4,36 +4,13 @@
 #
 
 
-from __future__ import annotations
+import sys
 
-from aoc.common import aoc_main
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 
-
-def _solve(inputs: tuple[str, ...], rounds: int, factor: int = 1) -> int:
-    nums = [int(line) * factor for line in inputs]
-    idxs = [i for i in range(len(nums))]
-    for _ in range(rounds):
-        for i, num in enumerate(nums):
-            idx = idxs.index(i)
-            idxs.remove(i)
-            new_idx = (idx + num) % len(idxs)
-            idxs.insert(new_idx, i)
-    zero_idx = idxs.index(nums.index(0))
-    return sum(
-        nums[idxs[(zero_idx + i) % len(idxs)]] for i in [1000, 2000, 3000]
-    )
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    return _solve(inputs, rounds=1)
-
-
-def part_2(inputs: tuple[str, ...]) -> int:
-    return _solve(inputs, rounds=10, factor=811_589_153)
-
-
-TEST1 = tuple(
-    """\
+TEST1 = """\
 1
 2
 -3
@@ -41,22 +18,58 @@ TEST1 = tuple(
 -2
 0
 4
-""".splitlines()
-)
-TEST2 = tuple(
-    """\
+"""
+TEST2 = """\
 3
 1
 0
-""".splitlines()
-)
+"""
+
+Input = InputData
+Output1 = int
+Output2 = int
 
 
-@aoc_main(2022, 20, part_1, part_2)
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return input_data
+
+    def solve(self, inputs: Input, rounds: int, factor: int = 1) -> int:
+        nums = [int(line) * factor for line in inputs]
+        idxs = list(range(len(nums)))
+        for _ in range(rounds):
+            for i, num in enumerate(nums):
+                idx = idxs.index(i)
+                idxs.remove(i)
+                new_idx = (idx + num) % len(idxs)
+                idxs.insert(new_idx, i)
+        zero_idx = idxs.index(nums.index(0))
+        return sum(
+            nums[idxs[(zero_idx + i) % len(idxs)]] for i in [1000, 2000, 3000]
+        )
+
+    def part_1(self, inputs: Input) -> Output1:
+        return self.solve(inputs, rounds=1)
+
+    def part_2(self, inputs: Input) -> Output2:
+        return self.solve(inputs, rounds=10, factor=811_589_153)
+
+    @aoc_samples(
+        (
+            ("part_1", TEST1, 3),
+            ("part_1", TEST2, 4),
+            ("part_2", TEST1, 1_623_178_306),
+        )
+    )
+    def samples(self) -> None:
+        pass
+
+
+solution = Solution(2022, 20)
+
+
 def main() -> None:
-    assert part_1(TEST1) == 3
-    assert part_1(TEST2) == 4
-    assert part_2(TEST1) == 1_623_178_306
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":

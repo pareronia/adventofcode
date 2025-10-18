@@ -3,12 +3,12 @@ from __future__ import annotations
 import time
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Callable
+from collections.abc import Iterable
 from enum import Enum
 from enum import unique
+from pathlib import Path
 from typing import Any
-from typing import Callable
-from typing import Generic
-from typing import Iterable
 from typing import NamedTuple
 from typing import TypeVar
 from typing import cast
@@ -48,42 +48,14 @@ def spinner(num: int, period: int = 1000) -> None:
     print(ch, end="\r", flush=True)
 
 
-F = TypeVar("F", bound=Callable[..., Any])
-
-
-def aoc_main(
-    year: int,
-    day: int,
-    part_1: Callable[[tuple[str, ...]], str | int],
-    part_2: Callable[[tuple[str, ...]], str | int],
-) -> Callable[[F], F]:
-    def decorator(func: F) -> F:
-        def wrapper(*args: Any) -> Any:
-            puzzle = aocd.models.Puzzle(year, day)
-            my_aocd.print_header(puzzle.year, puzzle.day)
-            func(*args)
-            inputs = my_aocd.get_input_data(puzzle)
-            result1 = part_1(inputs)
-            print(f"Part 1: {result1}")
-            result2 = part_2(inputs)
-            print(f"Part 2: {result2}")
-            my_aocd.check_results(puzzle, result1, result2)
-
-        return cast(F, wrapper)
-
-    return decorator
-
-
 InputData = Iterable[str]
+type OUTPUT = str | int | None
 INPUT = TypeVar("INPUT")
-OUTPUT1 = TypeVar("OUTPUT1", bound=str | int)
-OUTPUT2 = TypeVar("OUTPUT2", bound=str | int)
 
 
-class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
+class SolutionBase[INPUT, OUTPUT1: OUTPUT, OUTPUT2: OUTPUT](ABC):
     @unique
     class Part(Enum):
-
         INPUT = "Input"
         PART_1 = "1"
         PART_2 = "2"
@@ -93,7 +65,8 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
             for v in SolutionBase.Part:
                 if v._value_ == string:
                     return v
-            raise ValueError("Part should be 'Input', '1' or '2'")
+            msg = "Part should be 'Input', '1' or '2'"
+            raise ValueError(msg)
 
         def __str__(self) -> str:
             return str(self._value_)
@@ -123,7 +96,7 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
                 f'"duration": {self.duration}}}}}'
             )
 
-    def __init__(self, year: int, day: int):
+    def __init__(self, year: int, day: int) -> None:
         self.year = year
         self.day = day
 
@@ -136,11 +109,11 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
         pass
 
     @abstractmethod
-    def part_1(self, input: INPUT) -> OUTPUT1:
+    def part_1(self, inputs: INPUT) -> OUTPUT1:
         pass
 
     @abstractmethod
-    def part_2(self, input: INPUT) -> OUTPUT2:
+    def part_2(self, inputs: INPUT) -> OUTPUT2:
         pass
 
     def run(self, args: list[str]) -> None:
@@ -155,14 +128,14 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
 
         if len(args) == 3:
             part = self.Part.from_str(args[1])
-            with open(args[2], "r", encoding="utf-8") as f:
-                input: INPUT = self.parse_input(
+            with Path(args[2]).open(encoding="utf-8") as f:
+                inputs: INPUT = self.parse_input(
                     line for line in f.read().rstrip("\r\n").splitlines()
                 )
             if part == self.Part.PART_1:
-                exec_part = execute_part(part, lambda: self.part_1(input))
+                exec_part = execute_part(part, lambda: self.part_1(inputs))
             elif part == self.Part.PART_2:
-                exec_part = execute_part(part, lambda: self.part_2(input))
+                exec_part = execute_part(part, lambda: self.part_2(inputs))
             print(exec_part.to_json())
         else:
             aocd.utils.blocker(until=(self.year, self.day))
@@ -187,20 +160,24 @@ class SolutionBase(ABC, Generic[INPUT, OUTPUT1, OUTPUT2]):
             my_aocd.check_results(puzzle, exec_part1.answer, exec_part2.answer)
 
 
-def aoc_samples(tests: tuple[tuple[str, str, Any], ...]) -> Callable[[F], F]:
-    def decorator(func: F) -> F:
-        def wrapper(*args: Any) -> Any:
-            _self = args[0]
+F = TypeVar("F", bound=Callable[..., Any])
+
+
+def aoc_samples(
+    tests: tuple[tuple[str, str, OUTPUT], ...],
+) -> Callable[[F], F]:
+    def decorator(_: F) -> F:
+        def wrapper(_self: SolutionBase[INPUT, OUTPUT, OUTPUT]) -> None:
             for test in tests:
                 func, _, expected = test
-                input_data = tuple(_ for _ in test[1].splitlines())
-                input = _self.parse_input(input_data)
-                actual = getattr(_self, func)(input)
+                input_data = tuple(test[1].splitlines())
+                inputs = _self.parse_input(input_data)
+                actual = getattr(_self, func)(inputs)
                 message = (
                     f"FAILED '{func}'. Expected: '{expected}', was: '{actual}'"
                 )
                 assert actual == expected, message
 
-        return cast(F, wrapper)
+        return cast("F", wrapper)
 
     return decorator

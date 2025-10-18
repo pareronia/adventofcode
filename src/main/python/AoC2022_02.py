@@ -4,7 +4,7 @@
 #
 
 import sys
-from typing import Callable
+from collections.abc import Callable
 
 from aoc.common import InputData
 from aoc.common import SolutionBase

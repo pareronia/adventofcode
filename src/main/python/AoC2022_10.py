@@ -4,56 +4,13 @@
 #
 
 
-from typing import Iterator
+import sys
 
 import advent_of_code_ocr as ocr
-from aoc.common import aoc_main
+from aoc.common import InputData
+from aoc.common import SolutionBase
+from aoc.common import aoc_samples
 from aoc.common import log
-
-FILL = "▒"
-EMPTY = " "
-
-
-def _run_program(inputs: tuple[str, ...]) -> Iterator[tuple[int, int]]:
-    x = 1
-    cycles = 0
-    for line in inputs:
-        splits = line.split()
-        if splits[0] == "noop":
-            yield cycles, x
-            cycles += 1
-        elif splits[0] == "addx":
-            yield cycles, x
-            cycles += 1
-            yield cycles, x
-            cycles += 1
-            x += int(splits[1])
-
-
-def _check(cycles: int, x: int) -> int:
-    return x * cycles if cycles % 40 == 20 else 0
-
-
-def _draw(cycles: int, x: int) -> str:
-    return FILL if cycles % 40 in set(range(x - 1, x + 2)) else EMPTY
-
-
-def _get_pixels(inputs: tuple[str, ...]) -> list[str]:
-    pixels = "".join(_draw(cycles, x) for cycles, x in _run_program(inputs))
-    return [pixels[i * 40 : i * 40 + 40] for i in range(6)]  # noqa
-
-
-def part_1(inputs: tuple[str, ...]) -> int:
-    return sum(_check(cycles + 1, x) for cycles, x in _run_program(inputs))
-
-
-def part_2(inputs: tuple[str, ...]) -> str:
-    pixels = _get_pixels(inputs)
-    log(pixels)
-    return str(
-        ocr.convert_6("\n".join(pixels), fill_pixel=FILL, empty_pixel=EMPTY)
-    )
-
 
 TEST = """\
 addx 15
@@ -202,20 +159,69 @@ addx -11
 noop
 noop
 noop
-""".splitlines()
+"""
+
+FILL = "▒"
+EMPTY = " "
+
+Input = tuple[int, ...]
+Output1 = int
+Output2 = str
 
 
-@aoc_main(2022, 10, part_1, part_2)
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        ans = list[int]()
+        x = 1
+        for line in input_data:
+            splits = line.split()
+            if splits[0] == "noop":
+                ans.append(x)
+            elif splits[0] == "addx":
+                ans.append(x)
+                ans.append(x)
+                x += int(splits[1])
+        return tuple(ans)
+
+    def get_pixels(self, xs: tuple[int, ...]) -> tuple[str, ...]:
+        pixels = "".join(
+            FILL if i % 40 in range(x - 1, x + 2) else EMPTY
+            for i, x in enumerate(xs)
+        )
+        return tuple(pixels[i * 40 : i * 40 + 40] for i in range(6))
+
+    def part_1(self, xs: Input) -> Output1:
+        return sum(
+            x * i if i % 40 == 20 else 0 for i, x in enumerate(xs, start=1)
+        )
+
+    def part_2(self, xs: Input) -> Output2:
+        pixels = self.get_pixels(xs)
+        log(pixels)
+        return str(
+            ocr.convert_6(
+                "\n".join(pixels), fill_pixel=FILL, empty_pixel=EMPTY
+            )
+        )
+
+    @aoc_samples((("part_1", TEST, 13_140),))
+    def samples(self) -> None:
+        xs = self.parse_input(TEST.splitlines())
+        assert self.get_pixels(xs) == (
+            "▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ",
+            "▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒ ",
+            "▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ",
+            "▒▒▒▒▒     ▒▒▒▒▒     ▒▒▒▒▒     ▒▒▒▒▒     ",
+            "▒▒▒▒▒▒      ▒▒▒▒▒▒      ▒▒▒▒▒▒      ▒▒▒▒",
+            "▒▒▒▒▒▒▒       ▒▒▒▒▒▒▒       ▒▒▒▒▒▒▒     ",
+        )
+
+
+solution = Solution(2022, 10)
+
+
 def main() -> None:
-    assert part_1(TEST) == 13_140  # type:ignore[arg-type]
-    assert _get_pixels(TEST) == [  # type:ignore[arg-type]
-        "▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ▒▒  ",
-        "▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒   ▒▒▒ ",
-        "▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ▒▒▒▒    ",
-        "▒▒▒▒▒     ▒▒▒▒▒     ▒▒▒▒▒     ▒▒▒▒▒     ",
-        "▒▒▒▒▒▒      ▒▒▒▒▒▒      ▒▒▒▒▒▒      ▒▒▒▒",
-        "▒▒▒▒▒▒▒       ▒▒▒▒▒▒▒       ▒▒▒▒▒▒▒     ",
-    ]
+    solution.run(sys.argv)
 
 
 if __name__ == "__main__":
