@@ -1,3 +1,10 @@
+import com.github.pareronia.aoc.AssertUtils;
+import com.github.pareronia.aoc.geometry.Direction;
+import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -5,29 +12,25 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.github.pareronia.aoc.geometry.Direction;
-import com.github.pareronia.aoc.geometry.Position;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+public final class AoC2017_03 extends SolutionBase<Integer, Integer, Integer> {
 
-public final class AoC2017_03 extends AoCBase {
-
-    private final transient Integer input;
-
-    private AoC2017_03(final List<String> inputs, final boolean debug) {
+    private AoC2017_03(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = Integer.valueOf(inputs.get(0));
     }
 
-    public static AoC2017_03 create(final List<String> input) {
-        return new AoC2017_03(input, false);
+    public static AoC2017_03 create() {
+        return new AoC2017_03(false);
     }
 
-    public static AoC2017_03 createDebug(final List<String> input) {
-        return new AoC2017_03(input, true);
+    public static AoC2017_03 createDebug() {
+        return new AoC2017_03(true);
     }
-    
+
+    @Override
+    protected Integer parseInput(final List<String> inputs) {
+        return Integer.valueOf(inputs.getFirst());
+    }
+
     record DirectionAndPeriod(Direction direction, int period) {
         public static DirectionAndPeriod of(final Direction direction, final int period) {
             return new DirectionAndPeriod(direction, period);
@@ -35,12 +38,13 @@ public final class AoC2017_03 extends AoCBase {
     }
 
     private static class CoordinateSupplier implements Supplier<Position> {
-        private final Function<Integer, DirectionAndPeriod>
-                directionsAndPeriods = new Function<>() {
-                    private final List<Direction> directions = List.of(
-                            Direction.RIGHT, Direction.UP,
-                            Direction.LEFT, Direction.DOWN);
-                    private final int[] periods = { 1, 1, 2, 2 };
+        private final Function<Integer, DirectionAndPeriod> directionsAndPeriods =
+                new Function<>() {
+                    private final List<Direction> directions =
+                            List.of(
+                                    Direction.RIGHT, Direction.UP,
+                                    Direction.LEFT, Direction.DOWN);
+                    private final int[] periods = {1, 1, 2, 2};
 
                     @Override
                     public DirectionAndPeriod apply(final Integer t) {
@@ -50,12 +54,11 @@ public final class AoC2017_03 extends AoCBase {
                         final Direction direction = directions.get(idx);
                         return DirectionAndPeriod.of(direction, period);
                     }
-        };
+                };
         private int x;
         private int y;
         private int k;
-        private DirectionAndPeriod directionAndPeriod
-                = directionsAndPeriods.apply(k);
+        private DirectionAndPeriod directionAndPeriod = directionsAndPeriods.apply(k);
         private int j;
 
         @Override
@@ -68,35 +71,35 @@ public final class AoC2017_03 extends AoCBase {
             x += directionAndPeriod.direction.getX();
             y += directionAndPeriod.direction.getY();
             j++;
-            return Position.of(x,  y);
+            return Position.of(x, y);
         }
     }
 
     @Override
-    public Integer solvePart1() {
-        if (this.input == 1) {
+    public Integer solvePart1(final Integer input) {
+        if (input == 1) {
             return 0;
         }
-        
+
         final CoordinateSupplier supplier = new CoordinateSupplier();
         int i = 1;
-        while (i < this.input) {
+        while (i < input) {
             i++;
             final Position position = supplier.get();
-            if (i == this.input) {
+            if (i == input) {
                 return position.manhattanDistance();
             }
         }
-        
-        throw new IllegalStateException("Unsolvable");
+
+        throw AssertUtils.unreachable();
     }
 
     @Override
-    public Integer solvePart2() {
-        if (this.input == 1) {
+    public Integer solvePart2(final Integer input) {
+        if (input == 1) {
             return 1;
         }
-        
+
         final Map<Position, Integer> squares = new HashMap<>();
         squares.put(Position.of(0, 0), 1);
         final CoordinateSupplier supplier = new CoordinateSupplier();
@@ -108,28 +111,24 @@ public final class AoC2017_03 extends AoCBase {
                 value += squares.getOrDefault(it.next(), 0);
             }
             squares.put(position, value);
-            if (value > this.input) {
+            if (value > input) {
                 return value;
             }
         }
     }
 
+    @Samples({
+        @Sample(method = "part1", input = "1", expected = "0"),
+        @Sample(method = "part1", input = "12", expected = "3"),
+        @Sample(method = "part1", input = "23", expected = "2"),
+        @Sample(method = "part1", input = "1024", expected = "31"),
+        @Sample(method = "part2", input = "1", expected = "1"),
+        @Sample(method = "part2", input = "2", expected = "4"),
+        @Sample(method = "part2", input = "3", expected = "4"),
+        @Sample(method = "part2", input = "4", expected = "5"),
+        @Sample(method = "part2", input = "5", expected = "10"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_03.createDebug(splitLines("1")).solvePart1() == 0;
-        assert AoC2017_03.createDebug(splitLines("12")).solvePart1() == 3;
-        assert AoC2017_03.createDebug(splitLines("23")).solvePart1() == 2;
-        assert AoC2017_03.createDebug(splitLines("1024")).solvePart1() == 31;
-        assert AoC2017_03.createDebug(splitLines("1")).solvePart2() == 1;
-        assert AoC2017_03.createDebug(splitLines("2")).solvePart2() == 4;
-        assert AoC2017_03.createDebug(splitLines("3")).solvePart2() == 4;
-        assert AoC2017_03.createDebug(splitLines("4")).solvePart2() == 5;
-        assert AoC2017_03.createDebug(splitLines("5")).solvePart2() == 10;
-
-        final Puzzle puzzle = Aocd.puzzle(2017, 3);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2017_03.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2017_03.create(inputData)::solvePart2)
-        );
+        create().run();
     }
 }
