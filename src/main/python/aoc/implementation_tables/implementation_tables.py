@@ -1,9 +1,9 @@
 #! /usr/bin/env python3
 
 import logging
-import os
 import sys
 from datetime import datetime
+from pathlib import Path
 from typing import IO
 
 if __name__ == "__main__":
@@ -14,11 +14,12 @@ else:
     from aoc.implementation_tables.config import config
 
 log = logging.getLogger(__name__)
+logging.basicConfig(format="%(message)s", level=logging.INFO)
 
 
 def _build_link(base_dir: str, pattern: str, year: int, day: int) -> str:
-    path = base_dir + "/" + pattern.format(year=year, day=day)
-    return f"[✓]({path})" if os.path.exists(path) else ""
+    path = Path(base_dir) / pattern.format(year=year, day=day)
+    return f"[✓]({path})" if path.exists() else ""
 
 
 def _build_row(days: list[str]) -> str:
@@ -26,19 +27,20 @@ def _build_row(days: list[str]) -> str:
 
 
 def _print_year(year: int, rows: list[Row], f: IO[str]) -> None:
-    log.debug(f"Adding {year}")
-    print("| " + _build_row([str(day) for day in range(1, 26)]), file=f)
-    print("| ---" + _build_row(["---" for day in range(1, 26)]), file=f)
+    log.debug("Adding %s", year)
+    days = 12 if year >= 2025 else 25
+    print("| " + _build_row([str(day) for day in range(1, days + 1)]), file=f)
+    print("| ---" + _build_row(["---" for day in range(1, days + 1)]), file=f)
     for row in rows:
-        log.debug(f"Adding {row.language}")
-        days = [
+        log.debug("Adding %s", row.language)
+        day_links = [
             _build_link(row.base_dir, row.pattern + row.ext, year, day)
-            for day in range(1, 26)
+            for day in range(1, days + 1)
         ]
-        if len("".join(days)) == 0:
+        if len("".join(day_links)) == 0:
             continue
         print(
-            "| " + row.language + " " + _build_row(days),
+            "| " + row.language + " " + _build_row(day_links),
             file=f,
         )
 
@@ -50,11 +52,11 @@ def _get_rows() -> list[Row]:
 
 
 def main(file_name: str) -> None:
-    log.debug(f"file: {file_name}")
+    log.debug("file: %s", file_name)
     rows = _get_rows()
-    with open(file_name, "r", encoding="utf-8") as f:
+    with Path(file_name).open("r", encoding="utf-8") as f:
         tmp = f.read()
-    with open(file_name, "w", encoding="utf-8") as f:
+    with Path(file_name).open("w", encoding="utf-8") as f:
         in_table = False
         for line in tmp.splitlines():
             if line.startswith("<!-- @BEGIN:ImplementationsTable"):
@@ -65,13 +67,12 @@ def main(file_name: str) -> None:
             elif line.startswith("<!-- @END:ImplementationsTable"):
                 print(line, file=f)
                 in_table = False
-            else:
-                if not in_table:
-                    print(line, file=f)
+            elif not in_table:
+                print(line, file=f)
 
 
 if __name__ == "__main__":
-    now = datetime.now()
+    now = datetime.now()  # noqa:DTZ005
     for year in range(2015, now.year + int(now.month == 12)):
         _print_year(year, _get_rows(), sys.stdout)
     main("README.md")

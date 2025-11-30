@@ -1,9 +1,19 @@
 [Advent of Code](https://adventofcode.com)
 
+## 2025
+
+![](https://img.shields.io/badge/stars%20⭐-0-yellow)
+![](https://img.shields.io/badge/days%20completed-0-red)
+
+<!-- @BEGIN:ImplementationsTable:2025@ -->
+| | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
+| ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+<!-- @END:ImplementationsTable:2025@ -->
+
 ## 2024
 
-![](https://img.shields.io/badge/stars%20⭐-50-yellow)
-![](https://img.shields.io/badge/days%20completed-25-red)
+![](https://img.shields.io/badge/2024%20stars%20⭐-50-yellow)
+![](https://img.shields.io/badge/2024%20days%20completed-25-red)
 
 ![2024 Calendar](doc/aoc2024.jpg "2024 Calendar")
 
