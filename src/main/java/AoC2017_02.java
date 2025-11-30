@@ -1,42 +1,42 @@
 import static com.github.pareronia.aoc.IterTools.combinations;
-import static java.util.stream.Collectors.toList;
+
+import com.github.pareronia.aoc.AssertUtils;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.Arrays;
 import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.function.ToIntFunction;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+public final class AoC2017_02 extends SolutionBase<List<List<Integer>>, Integer, Integer> {
 
-public final class AoC2017_02 extends AoCBase {
-
-    private final transient List<List<Integer>> input;
-    
-    private AoC2017_02(final List<String> inputs, final boolean debug) {
+    private AoC2017_02(final boolean debug) {
         super(debug);
-        this.input = inputs.stream()
-                .map(s -> Arrays.stream(s.split("\\s+"))
-                            .map(Integer::valueOf).collect(toList()))
-                .collect(toList());
-        log(this.input);
     }
 
-    public static AoC2017_02 create(final List<String> input) {
-        return new AoC2017_02(input, false);
+    public static AoC2017_02 create() {
+        return new AoC2017_02(false);
     }
 
-    public static AoC2017_02 createDebug(final List<String> input) {
-        return new AoC2017_02(input, true);
+    public static AoC2017_02 createDebug() {
+        return new AoC2017_02(true);
     }
-    
+
+    @Override
+    protected List<List<Integer>> parseInput(final List<String> inputs) {
+        return inputs.stream()
+                .map(s -> Arrays.stream(s.split("\\s+")).map(Integer::valueOf).toList())
+                .toList();
+    }
+
     private int differenceHighestLowest(final List<Integer> numbers) {
-        final IntSummaryStatistics stats = numbers.stream()
-                .mapToInt(Integer::intValue)
-                .summaryStatistics();
+        final IntSummaryStatistics stats =
+                numbers.stream().mapToInt(Integer::intValue).summaryStatistics();
         return stats.getMax() - stats.getMin();
     }
-    
+
     private int evenlyDivisibleQuotient(final List<Integer> numbers) {
         for (final int[] c : combinations(numbers.size(), 2).iterable()) {
             final int n1 = numbers.get(c[0]);
@@ -49,45 +49,41 @@ public final class AoC2017_02 extends AoCBase {
                 return n2 / n1;
             }
         }
-        throw new IllegalStateException("Unsolvable");
+        throw AssertUtils.unreachable();
     }
-    
-    private int sum(final ToIntFunction<List<Integer>> mapper) {
-        return this.input.stream().mapToInt(mapper).sum();
+
+    private int sum(final List<List<Integer>> input, final ToIntFunction<List<Integer>> mapper) {
+        return input.stream().mapToInt(mapper).sum();
     }
 
     @Override
-    public Integer solvePart1() {
-        return sum(this::differenceHighestLowest);
-    }
-    
-    @Override
-    public Integer solvePart2() {
-        return sum(this::evenlyDivisibleQuotient);
+    public Integer solvePart1(final List<List<Integer>> input) {
+        return sum(input, this::differenceHighestLowest);
     }
 
+    @Override
+    public Integer solvePart2(final List<List<Integer>> input) {
+        return sum(input, this::evenlyDivisibleQuotient);
+    }
+
+    @Samples({
+        @Sample(method = "part1", input = TEST1, expected = "18"),
+        @Sample(method = "part2", input = TEST2, expected = "9"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_02.createDebug(TEST1).solvePart1() == 18;
-        assert AoC2017_02.createDebug(TEST2).solvePart2() == 9;
-
-        final Puzzle puzzle = Aocd.puzzle(2017, 2);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2017_02.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2017_02.create(inputData)::solvePart2)
-        );
+        create().run();
     }
-    
-    private static final List<String> TEST1 = splitLines(
+
+    private static final String TEST1 =
             """
-                5 1 9 5
-                7 5 3
-                2 4 6 8"""
-    );
-    private static final List<String> TEST2 = splitLines(
+            5 1 9 5
+            7 5 3
+            2 4 6 8
+            """;
+    private static final String TEST2 =
             """
-                5 9 2 8
-                9 4 7 3
-                3 8 6 5"""
-    );
+            5 9 2 8
+            9 4 7 3
+            3 8 6 5
+            """;
 }
