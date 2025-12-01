@@ -23,10 +23,10 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
-    def part_1(self, input: Input) -> Output1:
+    def part_1(self, inputs: Input) -> Output1:  # noqa:ARG002
         return 0
 
-    def part_2(self, input: Input) -> Output2:
+    def part_2(self, inputs: Input) -> Output2:  # noqa:ARG002
         return 0
 
     @aoc_samples(
