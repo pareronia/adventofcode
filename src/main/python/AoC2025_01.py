@@ -8,9 +8,8 @@ import sys
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
-Input = InputData
+Input = list[int]
 Output1 = int
 Output2 = int
 
@@ -28,31 +27,37 @@ R14
 L82
 """
 
+START = 50
+
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return [
+            (1 if line[0] == "R" else -1) * int(line[1:])
+            for line in input_data
+        ]
 
-    def part_1(self, inputs: Input) -> Output1:
+    def part_1(self, rotations: Input) -> Output1:
+        pos = START
         ans = 0
-        pos = 50
-        for line in inputs:
-            d, amt = line[0], int(line[1:])
-            pos = (pos + 100 + ((1 if d == "R" else -1) * amt)) % 100
-            log(pos)
-            if pos == 0:
+        for r in rotations:
+            pos += r
+            if pos % 100 == 0:
                 ans += 1
         return ans
 
-    def part_2(self, inputs: Input) -> Output2:
+    def part_2(self, rotations: Input) -> Output2:
+        pos = START
         ans = 0
-        pos = 50
-        for line in inputs:
-            d, amt = line[0], int(line[1:])
-            for _ in range(amt):
-                pos = (pos + 100 + (1 if d == "R" else -1)) % 100
-                if pos == 0:
+        for r in rotations:
+            npos = pos + r
+            ans += abs(npos // 100 - pos // 100)
+            if npos < pos:
+                if npos % 100 == 0:
                     ans += 1
+                if pos % 100 == 0:
+                    ans -= 1
+            pos = npos
         return ans
 
     @aoc_samples(
