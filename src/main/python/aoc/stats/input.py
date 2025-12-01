@@ -112,10 +112,12 @@ def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
 
 
 def get_leaderboard(year: int) -> dict[int, LeaderBoard]:
-    try:
-        return _get_aocd_leaderboard(year)
-    except (AttributeError, ValueError):
-        return _scrape_leaderboard(year)
+    if year < 2025:
+        try:
+            return _get_aocd_leaderboard(year)
+        except AttributeError:
+            pass
+    return _scrape_leaderboard(year)
 
 
 def get_summary() -> Summary:
