@@ -17,7 +17,7 @@ def _get_url(url: str) -> requests.Response:
 
 def get_user_stats(year: int) -> AocdUserStats:
     user = aocd.models.default_user()
-    return cast(AocdUserStats, user.get_stats(year))
+    return cast("AocdUserStats", user.get_stats(year))
 
 
 def get_leaderboard_page(year: int) -> requests.Response:

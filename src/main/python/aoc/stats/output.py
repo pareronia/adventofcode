@@ -13,28 +13,17 @@ def print_stats(
             time = time[:-3]
         if time[0] == "0":
             time = time[1:]
-        time = time.rjust(5)
-        return time
+        return time.rjust(5)
 
-    first_only_fmt = (
+    fmt = (
         "{day:3d} {title} :  "
-        + "{time_first}  {rank_first:6d}"
-        + " / {first:6d} = {pct_first:5.2f}"
-        + "  |  "
-        + "{time_both}  {rank_both:6d}"
-        + " / {both:6d} = {pct_both:5.2f}"
-        + "  |  "
-        + "{stars}"
-    )
-    both_fmt = (
-        "{day:3d} {title} :  "
-        + "{time_first}  {rank_first:6d}"
-        + " / {first:6d} = {pct_first:5.2f}"
-        + "  |  "
-        + "{time_both}  {rank_both}"
-        + " / {both:6d} = {pct_both}"
-        + "  |  "
-        + "{stars}"
+        "{time_first}  {rank_first}"
+        " / {first:6d} = {pct_first}"
+        "  |  "
+        "{time_both}  {rank_both}"
+        " / {both:6d} = {pct_both}"
+        "  |  "
+        "{stars}"
     )
     lines = []
     lines.append(
@@ -51,31 +40,46 @@ def print_stats(
         if i not in leaderboard:
             continue
         rank_first = leaderboard[i].rank_first
-        assert rank_first is not None
         time_first = format_time(leaderboard[i].time_first)
         first = stats[i].first_only + stats[i].both
-        pct_first = (rank_first - 1) / first * 100 // 0.01 / 100
+        if rank_first is not None:
+            pct_first = (rank_first - 1) / first * 100 // 0.01 / 100
+        else:
+            pct_first = None
         rank_both = leaderboard[i].rank_both
-        if rank_both is not None:
+        if leaderboard[i].time_both is not None:
             time_both = format_time(leaderboard[i].time_both)
-            pct_both = (rank_both - 1) / stats[i].both * 100 // 0.01 / 100
+            if rank_both is not None:
+                pct_both = (rank_both - 1) / stats[i].both * 100 // 0.01 / 100
+            else:
+                pct_both = None
             stars = "**"
-            fmt = first_only_fmt
         else:
             time_both = "-:--".rjust(5)
             stars = "*"
-            fmt = both_fmt
+        f_rank_first = (
+            f"{rank_first:6d}" if rank_first is not None else "--".rjust(6)
+        )
+        f_rank_both = (
+            f"{rank_both:6d}" if rank_both is not None else "--".rjust(6)
+        )
+        f_pct_first = (
+            f"{pct_first:5.2f}" if pct_first is not None else "--".rjust(5)
+        )
+        f_pct_both = (
+            f"{pct_both:5.2f}" if pct_both is not None else "--".rjust(5)
+        )
         output = fmt.format(
             day=i,
             title=title,
             time_first=time_first,
-            rank_first=rank_first,
             first=first,
-            pct_first=pct_first,
+            rank_first=f_rank_first,
+            pct_first=f_pct_first,
             time_both=time_both,
-            rank_both=rank_both or "--".rjust(6),
+            rank_both=f_rank_both,
             both=stats[i].both,
-            pct_both=pct_both or "--:--",
+            pct_both=f_pct_both,
             stars=stars,
         )
         lines.append(output)

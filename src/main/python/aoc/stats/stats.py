@@ -1,14 +1,17 @@
+import datetime
 import sys
-from datetime import date
 
-from . import input
-from . import output
+import dateutil
+
+from . import input as stats_input
+from . import output as stats_output
 
 
 def main(args: list[str]) -> None:
+    now = datetime.datetime.now(tz=dateutil.tz.gettz("America/New_York"))
     if len(args) == 0:
-        if date.today().month == 12:
-            print_year(date.today().year)
+        if now.month == 12:
+            print_year(now.year)
     elif args[0] == "all":
         print_summary()
     else:
@@ -16,11 +19,11 @@ def main(args: list[str]) -> None:
 
 
 def print_year(year: int) -> None:
-    stats = input.get_stats(year)
-    leaderboard = input.get_leaderboard(year)
-    lines = output.print_stats(year, stats, leaderboard)
+    stats = stats_input.get_stats(year)
+    leaderboard = stats_input.get_leaderboard(year)
+    lines = stats_output.print_stats(year, stats, leaderboard)
     [print(_, file=sys.stdout) for _ in lines]
 
 
 def print_summary() -> None:
-    print(input.get_summary())
+    print(stats_input.get_summary())

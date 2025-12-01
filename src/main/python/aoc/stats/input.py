@@ -41,13 +41,12 @@ def _get_aocd_leaderboard(year: int) -> dict[int, LeaderBoard]:
         assert type(t) is timedelta
         if t.days > 0:
             return ">24h"
-        else:
-            hours = t.seconds // 3600
-            minutes = (t.seconds - hours * 3600) // 60
-            seconds = t.seconds - hours * 3600 - minutes * 60
-            return ":".join(
-                str(_).rjust(2, "0") for _ in [hours, minutes, seconds]
-            )
+        hours = t.seconds // 3600
+        minutes = (t.seconds - hours * 3600) // 60
+        seconds = t.seconds - hours * 3600 - minutes * 60
+        return ":".join(
+            str(_).rjust(2, "0") for _ in [hours, minutes, seconds]
+        )
 
     def as_int(n: timedelta | int) -> int:
         assert type(n) is int
@@ -87,12 +86,20 @@ def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
             continue
         splits = line.split()
         day = int(splits[0])
-        time_first = html.unescape(splits[1]) if splits[1] != "-" else None
-        rank_first = int(splits[2]) if splits[2] != "-" else None
-        score_first = int(splits[3]) if splits[3] != "-" else None
-        time_both = html.unescape(splits[4]) if splits[4] != "-" else None
-        rank_both = int(splits[5]) if splits[5] != "-" else None
-        score_both = int(splits[6]) if splits[6] != "-" else None
+        if year >= 2025:
+            time_first = html.unescape(splits[1]) if splits[1] != "-" else None
+            rank_first = None
+            score_first = None
+            time_both = html.unescape(splits[2]) if splits[2] != "-" else None
+            rank_both = None
+            score_both = None
+        else:
+            time_first = html.unescape(splits[1]) if splits[1] != "-" else None
+            rank_first = int(splits[2]) if splits[2] != "-" else None
+            score_first = int(splits[3]) if splits[3] != "-" else None
+            time_both = html.unescape(splits[4]) if splits[4] != "-" else None
+            rank_both = int(splits[5]) if splits[5] != "-" else None
+            score_both = int(splits[6]) if splits[6] != "-" else None
         leaderboards[day] = LeaderBoard(
             time_first,
             rank_first,
@@ -107,7 +114,7 @@ def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
 def get_leaderboard(year: int) -> dict[int, LeaderBoard]:
     try:
         return _get_aocd_leaderboard(year)
-    except AttributeError:
+    except (AttributeError, ValueError):
         return _scrape_leaderboard(year)
 
 
