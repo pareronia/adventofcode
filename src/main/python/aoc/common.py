@@ -15,6 +15,7 @@ from typing import cast
 
 import aocd
 import prettyprinter
+import pyperclip
 from aoc import my_aocd
 from prettyprinter import cpprint
 from termcolor import colored
@@ -153,10 +154,14 @@ class SolutionBase[INPUT, OUTPUT1: OUTPUT, OUTPUT2: OUTPUT](ABC):
                 self.Part.PART_1, lambda: self.part_1(exec_input.answer)
             )
             print(exec_part1)
+            if str(exec_part1.answer) not in ("0", ""):
+                pyperclip.copy(exec_part1.answer)
             exec_part2 = execute_part(
                 self.Part.PART_2, lambda: self.part_2(exec_input.answer)
             )
             print(exec_part2)
+            if str(exec_part2.answer) not in ("0", ""):
+                pyperclip.copy(exec_part2.answer)
             my_aocd.check_results(puzzle, exec_part1.answer, exec_part2.answer)
 
 

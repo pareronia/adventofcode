@@ -9,6 +9,7 @@ dependencies = [
     "advent-of-code-ocr>=1.1.0",
     "junitparser==3.2",
     "prettyprinter>=0.18.0",
+    "pyperclip>=1.11.0",
     "pyyaml>=6.0.2",
     "setuptools==80",
     "tqdm>=4.67.1",
