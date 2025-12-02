@@ -8,7 +8,7 @@
 <!-- @BEGIN:ImplementationsTable:2025@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| python3 | [✓](src/main/python/AoC2025_01.py) |  |  |  |  |  |  |  |  |  |  |  |
+| python3 | [✓](src/main/python/AoC2025_01.py) | [✓](src/main/python/AoC2025_02.py) |  |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2025@ -->
 
 ## 2024
