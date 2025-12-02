@@ -28,6 +28,7 @@ L82
 """
 
 START = 50
+TOTAL = 100
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
@@ -38,26 +39,21 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         ]
 
     def part_1(self, rotations: Input) -> Output1:
-        pos = START
-        ans = 0
-        for r in rotations:
-            pos += r
-            if pos % 100 == 0:
-                ans += 1
-        return ans
+        dial = START
+        pos = (dial := (dial + r) % TOTAL for r in rotations)
+        return sum(p == 0 for p in pos)
 
     def part_2(self, rotations: Input) -> Output2:
-        pos = START
+        dial = START
         ans = 0
         for r in rotations:
-            npos = pos + r
-            ans += abs(npos // 100 - pos // 100)
-            if npos < pos:
-                if npos % 100 == 0:
-                    ans += 1
-                if pos % 100 == 0:
-                    ans -= 1
-            pos = npos
+            div, mod = divmod(r, TOTAL if r > 0 else -TOTAL)
+            ans += div
+            if (r < 0 and dial != 0 and dial + mod <= 0) or (
+                r > 0 and dial + mod >= TOTAL
+            ):
+                ans += 1
+            dial = (dial + r) % TOTAL
         return ans
 
     @aoc_samples(
