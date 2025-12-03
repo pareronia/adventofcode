@@ -1,5 +1,4 @@
-"""
-Copyright (c) 2016 wim glenn
+"""Copyright (c) 2016 wim glenn.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,12 +27,12 @@ import tempfile
 import time
 from argparse import ArgumentParser
 from collections import OrderedDict
+from collections.abc import Callable
+from collections.abc import Generator
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
 from typing import Any
-from typing import Callable
-from typing import Generator
 
 import pebble
 from dateutil.tz import gettz
@@ -190,7 +189,7 @@ def main() -> None:
 
     if "slowest" in args:
         print()
-        by_time = [_ for _ in bench.get_by_time()]
+        by_time = list(bench.get_by_time())
         by_time.reverse()
         for i in range(args.slowest):
             print(
@@ -203,7 +202,7 @@ def main() -> None:
 
 
 def run_with_timeout(
-    callable: Callable[[int, int, str], tuple[Result, Result]],
+    callable_: Callable[[int, int, str], tuple[Result, Result]],
     args: dict[str, Any],
     timeout: int,
     listener: Listener,
@@ -212,7 +211,7 @@ def run_with_timeout(
     elapsed = 0
     t0 = time.time_ns()
     future = pebble.concurrent.process(daemon=False, timeout=timeout)(
-        callable
+        callable_
     )(**args)
     while not future.done():
         listener.run_elapsed(elapsed)
@@ -222,7 +221,7 @@ def run_with_timeout(
     try:
         result_a, result_b = future.result()
     except Exception as err:
-        log.error(err)
+        log.exception("Exception in run_with_timeout")
         result_a = Result.ok("")
         result_b = Result.ok("")
         error = repr(err)
@@ -233,22 +232,22 @@ def run_with_timeout(
 
 
 @contextmanager
-def use_plugins(plugins: dict[str, Plugin]) -> Generator[None, None, None]:
-    for p in plugins:
-        plugins[p].start()
+def use_plugins(plugins: dict[str, Plugin]) -> Generator[None]:
+    for plugin in plugins.values():
+        plugin.start()
     try:
         yield
     finally:
-        for p in plugins:
-            plugins[p].stop()
+        for plugin in plugins.values():
+            plugin.stop()
 
 
 @contextmanager
 def scratch_file(
     name: str, year: int, day: int, input_data: str
-) -> Generator[None, None, None]:
-    prev = os.getcwd()
-    scratch = tempfile.mkdtemp(prefix=f"{year}-{day:02d}-")
+) -> Generator[None]:
+    prev = Path.cwd()
+    scratch = Path(tempfile.mkdtemp(prefix=f"{year}-{day:02d}-"))
     os.chdir(scratch)
     input_path = Path(name)
     assert not input_path.exists()
@@ -259,8 +258,8 @@ def scratch_file(
         input_path.unlink(missing_ok=True)
         os.chdir(prev)
         try:
-            os.rmdir(scratch)
-        except Exception as err:
+            scratch.rmdir()
+        except Exception as err:  # noqa:BLE001
             log.warning(
                 "failed to remove scratch %s (%s: %s)", scratch, type(err), err
             )
@@ -296,7 +295,7 @@ def run_for(
         else:
             with scratch_file(config.scratch_file, year, day, input_data):
                 result_a, result_b, walltime, error = run_with_timeout(
-                    callable=plugin[1].run,
+                    callable_=plugin[1].run,
                     args={"year": year, "day": day, "data": input_data},
                     timeout=timeout,
                     listener=listener,
@@ -309,7 +308,7 @@ def run_for(
             n_incorrect += 1
             listener.puzzle_finished_with_error(time, walltime, error)
         else:
-            for result, part in zip((result_a, result_b), "ab"):
+            for result, part in zip((result_a, result_b), "ab", strict=True):
                 if day == 25 and part == "b":
                     # there's no part b on christmas day, skip
                     continue

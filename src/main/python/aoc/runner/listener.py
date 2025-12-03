@@ -3,10 +3,11 @@ import socket
 import sys
 from abc import ABC
 from abc import abstractmethod
+from collections.abc import Iterable
+from collections.abc import Iterator
 from datetime import datetime
-from typing import Iterable
-from typing import Iterator
 from typing import NamedTuple
+from typing import cast
 
 from dateutil import tz
 from junitparser import Attr
@@ -214,7 +215,7 @@ class CLIListener(Listener):
     ) -> None:
         if answer and correct:
             icon = colored("✅", "green")
-            string = f"{answer[:CLIListener.cutoff]}"
+            string = f"{answer[: CLIListener.cutoff]}"
         elif answer and not correct:
             if expected is None:
                 icon = colored("?", "magenta")
@@ -222,7 +223,7 @@ class CLIListener(Listener):
             else:
                 icon = colored("❌", "red")
                 correction = f"(expected: {expected})"
-            string = f"{answer[:CLIListener.cutoff]} {correction}"
+            string = f"{answer[: CLIListener.cutoff]} {correction}"
         if time is not None:
             self.times.append(time)
         self._update_part(sum(self.times), part, string, icon)
@@ -230,14 +231,13 @@ class CLIListener(Listener):
     def stop(self) -> None:
         print()
         print(
-            "Total run time: {:8.4f}s\nTook: {:8.4f}s".format(
-                self.total_time / 1e9, self.total_walltime
-            )
+            f"Total run time: {self.total_time / 1e9:8.4f}s\n"
+            f"Took: {self.total_walltime:8.4f}s"
         )
 
     def _init_line(self, time: int) -> None:
         runtime = self._format_time(time, self.timeout)
-        self.line = "   ".join([runtime, self.progress])
+        self.line = f"{runtime}   {self.progress}"
 
     def _update_part(
         self, time: int, part: str, answer: str, icon: str
@@ -245,12 +245,12 @@ class CLIListener(Listener):
         if part == "a":
             self._init_line(time)
             answer = answer.ljust(30)
-            self.line_a = f"   {icon} part {part}: {answer}"
+            self.line_a = f"   {icon} {part}: {answer}"
             self.line += self.line_a
         else:
             self._init_line(time)
             self.line += self.line_a
-            self.line += f"   {icon} part {part}: {answer}"
+            self.line += f"   {icon} {part}: {answer}"
 
     def _format_time(self, time: int, timeout: float) -> str:
         t = time / 1e9
@@ -261,10 +261,10 @@ class CLIListener(Listener):
         else:
             color = "red"
         if t < 0.001:
-            runtime = colored("{: 7.3f}ms".format(t * 1000), color)
+            runtime = colored(f"{t * 1000:7.3f}ms", color)
         else:
-            runtime = colored("{: 8.4f}s".format(t), color)
-        return runtime
+            runtime = colored("{t:8.4f}s", color)
+        return cast("str", runtime)
 
 
 class JUnitXmlListener(Listener):
@@ -298,7 +298,7 @@ class JUnitXmlListener(Listener):
         pass
 
     def puzzle_finished_with_error(
-        self, time: int, walltime: float, error: str
+        self, _time: int, walltime: float, error: str
     ) -> None:
         case = TestCase(
             name=f"{self.year}/{self.day:02}/{self.plugin}/{self.user_id}"
@@ -314,9 +314,9 @@ class JUnitXmlListener(Listener):
     def part_missing(self, time: int, part: str) -> None:
         pass
 
-    def part_skipped(self, time: int, part: str) -> None:
+    def part_skipped(self, _time: int, part: str) -> None:
         case = TestCase(
-            name=f"{self.year}/{self.day:02}/{part}/{self.plugin}/{self.user_id}"  # noqa E501
+            name=f"{self.year}/{self.day:02}/{part}/{self.plugin}/{self.user_id}"
         )
         case.year = self.year
         case.day = self.day
@@ -335,14 +335,15 @@ class JUnitXmlListener(Listener):
         correct: bool,
     ) -> None:
         case = TestCase(
-            name=f"{self.year}/{self.day:02}/{part}/{self.plugin}/{self.user_id}"  # noqa E501
+            name=f"{self.year}/{self.day:02}/{part}/{self.plugin}/{self.user_id}"
         )
         case.year = self.year
         case.day = self.day
         case.part = part
         case.plugin = self.plugin
         case.user_id = self.user_id
-        case.time = time / 1e9
+        if time is not None:
+            case.time = time / 1e9
         if not correct:
             case.result = [Failure(f"Expected '{expected}', was: '{answer}'")]
         self.suite.add_testcase(case)
@@ -366,7 +367,7 @@ class BenchmarkListener(Listener):
         self.part_runs = list[BenchmarkListener.PartRun]()
 
     def puzzle_started(
-        self, year: int, day: int, title: str, plugin: str, user_id: str
+        self, year: int, day: int, _title: str, plugin: str, user_id: str
     ) -> None:
         self.year = year
         self.day = day
@@ -397,9 +398,9 @@ class BenchmarkListener(Listener):
         self,
         time: int | None,
         part: str,
-        answer: str | None,
-        expected: str | None,
-        correct: bool,
+        _answer: str | None,
+        _expected: str | None,
+        _correct: bool,
     ) -> None:
         if time is None:
             return
