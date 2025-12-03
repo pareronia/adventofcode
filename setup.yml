@@ -123,3 +123,7 @@ generator:
               destination: src/main/rust/AoC{year}_{day:0>2}/src/main.rs
             - source: src/main/resources/generator/Cargo.toml
               destination: src/main/rust/AoC{year}_{day:0>2}/Cargo.toml
+        - language: bash
+          templates:
+            - source: src/main/resources/generator/template.sh
+              destination: src/main/bash/AoC{year}_{day:0>2}.sh
