@@ -9,7 +9,6 @@ from functools import cache
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
 
 Input = InputData
 Output1 = int
@@ -28,62 +27,27 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
         return input_data
 
+    def solve_line(self, line: str, digits: int) -> int:
+        @cache
+        def dfs(start: int, left: int) -> int:
+            if left == 0:
+                return 0
+            if len(line) - start == left:
+                return int(line[start:])
+            a = int(line[start]) * 10 ** (left - 1) + dfs(start + 1, left - 1)
+            b = dfs(start + 1, left)
+            return max(int(a), b)
+
+        return dfs(0, digits)
+
+    def solve(self, inputs: Input, digits: int) -> int:
+        return sum(self.solve_line(line, digits) for line in inputs)
+
     def part_1(self, inputs: Input) -> Output1:
-        ans = 0
-        for line in inputs:
-            first = max(enumerate(line[:-1]), key=lambda e: (e[1], -e[0]))
-            second = max(
-                enumerate(line[first[0] + 1 :]), key=lambda e: (e[1], -e[0])
-            )
-            ans += int(first[1] + second[1])
-        return ans
+        return self.solve(inputs, digits=2)
 
     def part_2(self, inputs: Input) -> Output2:
-        @cache
-        def dfs(left: int, start: int) -> int:
-            if start >= len(line):
-                return 0
-            if left == 1:
-                if start == len(line) - 1:
-                    return int(line[-1])
-                return max(int(line[start]), dfs(1, start + 1))
-            cur = dfs(left - 1, start + 1)
-            nxt = dfs(left, start + 1)
-            if cur > 0:
-                return max(int(line[start] + str(cur)), nxt)
-            return nxt
-
-        dfs.cache_clear()
-        line = "1"
-        test = dfs(1, 0)
-        assert test == 1, test
-        dfs.cache_clear()
-        line = "21"
-        test = dfs(1, 0)
-        assert test == 2, test
-        dfs.cache_clear()
-        line = "12"
-        test = dfs(1, 0)
-        assert test == 2, test
-        dfs.cache_clear()
-        line = "12"
-        test = dfs(2, 0)
-        assert test == 12, test
-        dfs.cache_clear()
-        line = "123"
-        test = dfs(2, 0)
-        assert test == 23, test
-        dfs.cache_clear()
-        line = "321"
-        test = dfs(2, 0)
-        assert test == 32, test
-        ans = 0
-        for line in inputs:  # noqa:B007
-            dfs.cache_clear()
-            best = dfs(12, 0)
-            log(best)
-            ans += best
-        return ans
+        return self.solve(inputs, digits=12)
 
     @aoc_samples(
         (
