@@ -10,7 +10,7 @@
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | python3 | [✓](src/main/python/AoC2025_01.py) | [✓](src/main/python/AoC2025_02.py) | [✓](src/main/python/AoC2025_03.py) |  |  |  |  |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2025_01.java) | [✓](src/main/java/AoC2025_02.java) |  |  |  |  |  |  |  |  |  |  |
-| bash | [✓](src/main/bash/AoC2025_01.sh) | [✓](src/main/bash/AoC2025_02.sh) |  |  |  |  |  |  |  |  |  |  |
+| bash | [✓](src/main/bash/AoC2025_01.sh) | [✓](src/main/bash/AoC2025_02.sh) | [✓](src/main/bash/AoC2025_03.sh) |  |  |  |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2025@ -->
 
 ## 2024
