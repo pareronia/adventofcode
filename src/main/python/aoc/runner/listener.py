@@ -263,7 +263,7 @@ class CLIListener(Listener):
         if t < 0.001:
             runtime = colored(f"{t * 1000:7.3f}ms", color)
         else:
-            runtime = colored("{t:8.4f}s", color)
+            runtime = colored(f"{t:8.4f}s", color)
         return cast("str", runtime)
 
 
