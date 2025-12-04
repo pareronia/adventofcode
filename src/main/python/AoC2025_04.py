@@ -4,17 +4,13 @@
 #
 
 import sys
+from collections import deque
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.geometry import Direction
 from aoc.grid import Cell
-
-Input = InputData
-Output1 = int
-Output2 = int
-
+from aoc.grid import CharGrid
 
 TEST = """\
 ..@@.@@@@.
@@ -29,56 +25,44 @@ TEST = """\
 @.@.@@@.@.
 """
 
+Input = CharGrid
+Output1 = int
+Output2 = int
+ROLL, EMPTY = "@", "."
+
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return CharGrid.from_strings(list(input_data))
 
-    def part_1(self, inputs: Input) -> Output1:
-        grid = list(inputs)
-        ans = 0
-        for r, row in enumerate(grid):
-            for c, ch in enumerate(row):
-                if ch == "@":
-                    cnt = 0
-                    cell = Cell(r, c)
-                    for d in Direction.octants():
-                        n = cell.at(d)
-                        if (
-                            0 <= n[0] < len(grid)
-                            and 0 <= n[1] < len(row)
-                            and grid[n[0]][n[1]] == "@"
-                        ):
-                            cnt += 1
-                    if cnt < 4:
-                        ans += 1
-        return ans
+    def is_removable(self, grid: CharGrid, cell: Cell) -> bool:
+        return (
+            grid.get_value(cell) == ROLL
+            and sum(
+                grid.get_value(n) == ROLL
+                for n in grid.get_all_neighbours(cell)
+            )
+            < 4
+        )
 
-    def part_2(self, inputs: Input) -> Output2:
-        grid = [list(row) for row in inputs]
-        ans = 0
-        while True:
-            new_grid = [list(row) for row in grid]
-            for r, row in enumerate(grid):
-                for c, ch in enumerate(row):
-                    if ch == "@":
-                        cnt = 0
-                        cell = Cell(r, c)
-                        for d in Direction.octants():
-                            n = cell.at(d)
-                            if (
-                                0 <= n[0] < len(grid)
-                                and 0 <= n[1] < len(row)
-                                and grid[n[0]][n[1]] == "@"
-                            ):
-                                cnt += 1
-                        if cnt < 4:
-                            new_grid[r][c] = "."
-                            ans += 1
-            if new_grid == grid:
-                break
-            grid = new_grid
-        return ans
+    def part_1(self, grid: Input) -> Output1:
+        return sum(self.is_removable(grid, cell) for cell in grid.get_cells())
+
+    def part_2(self, grid: Input) -> Output2:
+        q = deque(
+            cell for cell in grid.get_cells() if self.is_removable(grid, cell)
+        )
+        seen = set[Cell]()
+        while len(q) != 0:
+            cell = q.popleft()
+            if cell in seen:
+                continue
+            seen.add(cell)
+            grid.set_value(cell, EMPTY)
+            for n in grid.get_all_neighbours(cell):
+                if self.is_removable(grid, n):
+                    q.append(n)
+        return len(seen)
 
     @aoc_samples(
         (
