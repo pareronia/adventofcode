@@ -30,12 +30,12 @@ from collections import OrderedDict
 from collections.abc import Callable
 from collections.abc import Generator
 from contextlib import contextmanager
-from datetime import datetime
 from pathlib import Path
 from typing import Any
 
 import pebble
-from dateutil.tz import gettz
+
+from aoc import calendar
 
 from . import Result
 from .aocd import AocdHelper
@@ -55,7 +55,6 @@ from .py import Py
 from .rust import Rust
 
 DEFAULT_TIMEOUT = config.default_timeout
-AOC_TZ = gettz("America/New_York")
 log = logging.getLogger(__name__)
 all_plugins = OrderedDict(
     {
@@ -70,8 +69,7 @@ all_plugins = OrderedDict(
 
 
 def main() -> None:
-    aoc_now = datetime.now(tz=AOC_TZ)
-    years = range(2015, aoc_now.year + int(aoc_now.month == 12))
+    years = calendar.valid_years()
     days = range(1, 26)
     users = AocdHelper.load_users()
     parser = ArgumentParser(description="AoC runner")
@@ -102,7 +100,7 @@ def main() -> None:
         nargs="+",
         choices=days,
         default=days,
-        help="AoC days to run. Runs all 1-25 by default.",
+        help="AoC days to run. Runs all days by default.",
     )
     parser.add_argument(
         "-u",
@@ -274,11 +272,10 @@ def run_for(
     autosubmit: bool,
     listener: Listener,
 ) -> int:
-    aoc_now = datetime.now(tz=AOC_TZ)
     it = itertools.product(years, days, plugins.items(), datasets)
     n_incorrect = 0
     for year, day, plugin, user_id in it:
-        if year == aoc_now.year and day > aoc_now.day:
+        if not calendar.is_valid_day(year, day):
             continue
         token = datasets[user_id]
         puzzle = Puzzle.create(token, year, day, autosubmit)

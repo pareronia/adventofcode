@@ -5,11 +5,10 @@ from abc import ABC
 from abc import abstractmethod
 from collections.abc import Iterable
 from collections.abc import Iterator
-from datetime import datetime
 from typing import NamedTuple
 from typing import cast
 
-from dateutil import tz
+from aoc import calendar
 from junitparser import Attr
 from junitparser import Error
 from junitparser import Failure
@@ -270,7 +269,7 @@ class CLIListener(Listener):
 class JUnitXmlListener(Listener):
     def __init__(self) -> None:
         self.suite = TestSuite("Advent of Code")
-        self.suite.timestamp = datetime.now(tz.UTC)
+        self.suite.timestamp = calendar.get_now_utc()
         self.suite.hostname = socket.gethostname()
         TestCase.year = IntAttr("year")
         TestCase.day = IntAttr("day")

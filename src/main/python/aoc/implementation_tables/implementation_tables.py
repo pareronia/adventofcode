@@ -6,6 +6,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import IO
 
+import aoc.calendar as calendar
+
 if __name__ == "__main__":
     from config import Row  # type:ignore[import-not-found]
     from config import config
@@ -28,7 +30,7 @@ def _build_row(days: list[str]) -> str:
 
 def _print_year(year: int, rows: list[Row], f: IO[str]) -> None:
     log.debug("Adding %s", year)
-    days = 12 if year >= 2025 else 25
+    days = calendar.get_days(year)
     print("| " + _build_row([str(day) for day in range(1, days + 1)]), file=f)
     print("| ---" + _build_row(["---" for day in range(1, days + 1)]), file=f)
     for row in rows:

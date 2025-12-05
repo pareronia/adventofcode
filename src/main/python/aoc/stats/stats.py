@@ -1,16 +1,15 @@
-import datetime
 import sys
 
-import dateutil
+from aoc import calendar
 
 from . import input as stats_input
 from . import output as stats_output
 
 
 def main(args: list[str]) -> None:
-    now = datetime.datetime.now(tz=dateutil.tz.gettz("America/New_York"))
     if len(args) == 0:
-        if now.month == 12:
+        now = calendar.get_now_aoc()
+        if calendar.is_valid_year(now.year):
             print_year(now.year)
     elif args[0] == "all":
         print_summary()

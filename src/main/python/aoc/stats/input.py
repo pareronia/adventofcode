@@ -3,6 +3,7 @@ import logging
 import re
 from datetime import timedelta
 
+from aoc import calendar
 from tqdm import tqdm
 
 from . import LeaderBoard
@@ -86,7 +87,7 @@ def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
             continue
         splits = line.split()
         day = int(splits[0])
-        if year >= 2025:
+        if not calendar.is_ranked_year(year):
             time_first = html.unescape(splits[1]) if splits[1] != "-" else None
             rank_first = None
             score_first = None
@@ -112,7 +113,7 @@ def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
 
 
 def get_leaderboard(year: int) -> dict[int, LeaderBoard]:
-    if year < 2025:
+    if calendar.is_ranked_year(year):
         try:
             return _get_aocd_leaderboard(year)
         except AttributeError:
