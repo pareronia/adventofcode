@@ -23,14 +23,16 @@ public final class RangeInclusive<T> {
     private final T minimum;
     private final T maximum;
     private final Comparator<T> comparator;
-    private String toString;
-    
-    @SuppressWarnings({ "unchecked" })
+    private String asString;
+
+    @SuppressWarnings({"unchecked", "PMD.AvoidLiteralsInIfCondition"})
     private RangeInclusive(final T element1, final T element2) {
         AssertUtils.assertTrue(
                 element1 != null && element2 != null,
-                () -> String.format("Elements in a range must not be null: element1=%s, element2=%s",
-                        element1, element2));
+                () ->
+                        String.format(
+                                "Elements in a range must not be null: element1=%s, element2=%s",
+                                element1, element2));
         this.comparator = ComparableComparator.INSTANCE;
         if (comparator.compare(element1, element2) < 1) {
             this.minimum = element1;
@@ -45,18 +47,21 @@ public final class RangeInclusive<T> {
         return new RangeInclusive<>(fromInclusive, toInclusive);
     }
 
-    public static List<RangeInclusive<Integer>> mergeRanges(
-            final Collection<RangeInclusive<Integer>> ranges
-    ) {
-        final var merged = new ArrayDeque<RangeInclusive<Integer>>();
+    @SuppressWarnings({"PMD.UseExplicitTypes", "PMD.LawOfDemeter"})
+    public static <T> List<RangeInclusive<T>> mergeRanges(
+            final Collection<RangeInclusive<T>> ranges) {
+        final var comparator = ComparableComparator.INSTANCE;
+        final var merged = new ArrayDeque<RangeInclusive<T>>();
         final var sorted = new ArrayList<>(ranges);
-        Collections.sort(sorted, (r1, r2) -> {
-            final int first = Integer.compare(r1.getMinimum(), r2.getMinimum());
-            if (first == 0) {
-                return Integer.compare(r1.getMaximum(), r2.getMaximum());
-            }
-            return first;
-        });
+        Collections.sort(
+                sorted,
+                (r1, r2) -> {
+                    final int first = comparator.compare(r1.getMinimum(), r2.getMinimum());
+                    if (first == 0) {
+                        return comparator.compare(r1.getMaximum(), r2.getMaximum());
+                    }
+                    return first;
+                });
         for (final var range : sorted) {
             if (merged.isEmpty()) {
                 merged.addLast(range);
@@ -65,9 +70,11 @@ public final class RangeInclusive<T> {
             final var last = merged.peekLast();
             if (range.isOverlappedBy(last)) {
                 merged.removeLast();
-                merged.add(RangeInclusive.between(
-                    last.getMinimum(),
-                    Math.max(last.getMaximum(), range.getMaximum())));
+                final T newMaximum =
+                        comparator.compare(last.getMaximum(), range.getMaximum()) > 0
+                                ? last.getMaximum()
+                                : range.getMaximum();
+                merged.add(between(last.getMinimum(), newMaximum));
             } else {
                 merged.addLast(range);
             }
@@ -84,41 +91,27 @@ public final class RangeInclusive<T> {
     }
 
     public boolean isBefore(final T element) {
-        if (element == null) {
-            return false;
-        }
-        return comparator.compare(element, maximum) > 0;
+        return element != null && comparator.compare(element, maximum) > 0;
     }
 
     public boolean isAfter(final T element) {
-        if (element == null) {
-            return false;
-        }
-        return comparator.compare(element, minimum) < 0;
+        return element != null && comparator.compare(element, minimum) < 0;
     }
 
     public boolean contains(final T element) {
-        if (element == null) {
-            return false;
-        }
-        return comparator.compare(element, minimum) > -1
+        return element != null
+                && comparator.compare(element, minimum) > -1
                 && comparator.compare(element, maximum) < 1;
     }
 
     public boolean containsRange(final RangeInclusive<T> otherRange) {
-        if (otherRange == null) {
-            return false;
-        }
-        return contains(otherRange.minimum) && contains(otherRange.maximum);
+        return otherRange != null && contains(otherRange.minimum) && contains(otherRange.maximum);
     }
 
     public boolean isOverlappedBy(final RangeInclusive<T> otherRange) {
-        if (otherRange == null) {
-            return false;
-        }
-        return otherRange.contains(minimum)
-            || otherRange.contains(maximum)
-            || contains(otherRange.minimum);
+        return otherRange != null && otherRange.contains(minimum)
+                || otherRange.contains(maximum)
+                || contains(otherRange.minimum);
     }
 
     @Override
@@ -128,25 +121,19 @@ public final class RangeInclusive<T> {
 
     @Override
     public boolean equals(final Object obj) {
-        if (this == obj) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (getClass() != obj.getClass()) {
-            return false;
-        }
-        final RangeInclusive<?> other = (RangeInclusive<?>) obj;
-        return Objects.equals(maximum, other.maximum)
-            && Objects.equals(minimum, other.minimum);
+        return switch (obj) {
+            case final RangeInclusive<?> other when other != null ->
+                    Objects.equals(maximum, other.maximum)
+                            && Objects.equals(minimum, other.minimum);
+            default -> false;
+        };
     }
-    
+
     @Override
     public String toString() {
-        if (toString == null) {
-            toString = String.format("[%s..%s]", minimum, maximum);
+        if (asString == null) {
+            asString = String.format("[%s..%s]", minimum, maximum);
         }
-        return toString;
+        return asString;
     }
 }
