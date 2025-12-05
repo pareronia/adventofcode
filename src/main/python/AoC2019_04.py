@@ -5,7 +5,7 @@
 
 import sys
 from collections import Counter
-from typing import Callable
+from collections.abc import Callable
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
@@ -18,7 +18,7 @@ Output2 = int
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        a, b = list(input_data)[0].split("-")
+        a, b = next(iter(input_data)).split("-")
         return RangeInclusive.between(int(a), int(b))
 
     def does_not_decrease(self, passw: str) -> bool:
@@ -30,14 +30,14 @@ class Solution(SolutionBase[Input, Output1, Output2]):
     def is_valid_2(self, passw: str) -> bool:
         return self.does_not_decrease(passw) and 2 in Counter(passw).values()
 
-    def count_valid(self, range: Input, check: Callable[[str], bool]) -> int:
-        return sum(check(str(i)) for i in range.iterator())
+    def count_valid(self, rng: Input, check: Callable[[str], bool]) -> int:
+        return sum(check(str(i)) for i in rng.iterator())
 
-    def part_1(self, range: Input) -> int:
-        return self.count_valid(range, self.is_valid_1)
+    def part_1(self, rng: Input) -> int:
+        return self.count_valid(rng, self.is_valid_1)
 
-    def part_2(self, range: Input) -> int:
-        return self.count_valid(range, self.is_valid_2)
+    def part_2(self, rng: Input) -> int:
+        return self.count_valid(rng, self.is_valid_2)
 
     def samples(self) -> None:
         assert self.is_valid_1("122345")

@@ -1,8 +1,7 @@
-from __future__ import annotations
-
-from typing import Iterable
-from typing import Iterator
+from collections.abc import Iterable
+from collections.abc import Iterator
 from typing import NamedTuple
+from typing import Self
 
 
 class Range:
@@ -30,19 +29,19 @@ class RangeInclusive(NamedTuple):
     maximum: int
 
     @classmethod
-    def between(cls, minimum: int, maximum: int) -> RangeInclusive:
-        return RangeInclusive(minimum, maximum)
+    def between(cls, minimum: int, maximum: int) -> Self:
+        return cls(minimum, maximum)
 
     @classmethod
-    def merge(cls, ranges: Iterable[RangeInclusive]) -> list[RangeInclusive]:
-        merged = list[RangeInclusive]()
+    def merge(cls, ranges: Iterable[Self]) -> list[Self]:
+        merged = list[Self]()
         for rng in sorted(ranges):
             if len(merged) == 0:
                 merged.append(rng)
                 continue
             last = merged[-1]
             if last.is_overlapped_by(rng):
-                merged[-1] = RangeInclusive.between(
+                merged[-1] = cls.between(
                     last.minimum, max(last.maximum, rng.maximum)
                 )
             else:
@@ -56,7 +55,7 @@ class RangeInclusive(NamedTuple):
     def contains(self, element: int) -> bool:
         return self.minimum <= element <= self.maximum
 
-    def is_overlapped_by(self, other: RangeInclusive) -> bool:
+    def is_overlapped_by(self, other: Self) -> bool:
         return (
             other.contains(self.minimum)
             or other.contains(self.maximum)

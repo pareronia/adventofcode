@@ -4,17 +4,14 @@
 #
 
 import sys
+from dataclasses import dataclass
+from typing import Self
 
 from aoc import my_aocd
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
 from aoc.range import RangeInclusive
-
-Input = InputData
-Output1 = int
-Output2 = int
-
 
 TEST = """\
 3-5
@@ -31,33 +28,39 @@ TEST = """\
 """
 
 
-class Solution(SolutionBase[Input, Output1, Output2]):
-    def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+@dataclass(frozen=True)
+class Database:
+    id_ranges: set[RangeInclusive]
+    available_ids: list[int]
 
-    def part_1(self, inputs: Input) -> Output1:
-        blocks = my_aocd.to_blocks(list(inputs))
-        ranges = set[range]()
-        for line in blocks[0]:
-            lo, hi = map(int, line.split("-"))
-            ranges.add(range(lo, hi + 1))
-        ans = 0
-        for line in blocks[1]:
-            if any(int(line) in rng for rng in ranges):
-                ans += 1
-        return ans
-
-    def part_2(self, inputs: Input) -> Output2:
-        blocks = my_aocd.to_blocks(list(inputs))
+    @classmethod
+    def from_input(cls, input_data: InputData) -> Self:
+        blocks = my_aocd.to_blocks(input_data)
         ranges = set[RangeInclusive]()
         for line in blocks[0]:
             lo, hi = map(int, line.split("-"))
             ranges.add(RangeInclusive.between(lo, hi))
-        merged = RangeInclusive.merge(ranges)
-        ans = 0
-        for rng in merged:
-            ans += rng.len
-        return ans
+        pids = [int(line) for line in blocks[1]]
+        return cls(ranges, pids)
+
+
+Input = Database
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Database.from_input(input_data)
+
+    def part_1(self, database: Input) -> Output1:
+        return sum(
+            any(rng.contains(pid) for rng in database.id_ranges)
+            for pid in database.available_ids
+        )
+
+    def part_2(self, database: Input) -> Output2:
+        return sum(rng.len for rng in RangeInclusive.merge(database.id_ranges))
 
     @aoc_samples(
         (
