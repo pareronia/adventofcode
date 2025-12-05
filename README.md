@@ -2,8 +2,8 @@
 
 ## 2025
 
-![](https://img.shields.io/badge/stars%20⭐-8-yellow)
-![](https://img.shields.io/badge/days%20completed-4-red)
+![](https://img.shields.io/badge/stars%20⭐-10-yellow)
+![](https://img.shields.io/badge/days%20completed-5-red)
 
 <!-- @BEGIN:ImplementationsTable:2025@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
