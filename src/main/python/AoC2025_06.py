@@ -4,70 +4,100 @@
 #
 
 import sys
+from dataclasses import dataclass
+from enum import Enum
+from enum import auto
+from enum import unique
 from math import prod
+from typing import Self
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.geometry import Direction
-from aoc.grid import Cell
 from aoc.grid import CharGrid
-
-Input = InputData
-Output1 = int
-Output2 = int
-
 
 TEST = "123 328  51 64 \n 45 64  387 23 \n  6 98  215 314\n*   +   *   +  "
 
 
-class Solution(SolutionBase[Input, Output1, Output2]):
-    def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+@unique
+class Mode(Enum):
+    BY_ROWS = auto()
+    BY_COLUMNS = auto()
 
-    def part_1(self, inputs: Input) -> Output1:
-        nums = list[list[int]]()
-        ops = list[str]()
-        for line in inputs:
-            items = line.strip().split()
-            if items[0].isnumeric():
-                nums.append([int(n) for n in items])
-            else:
-                ops = items
-        ans = 0
-        for i in range(len(nums[0])):
-            if ops[i] == "+":
-                ans += sum(nums[j][i] for j in range(len(nums)))
-            else:
-                ans += prod(nums[j][i] for j in range(len(nums)))
-        return ans
 
-    def part_2(self, inputs: Input) -> Output2:
-        lines = list(inputs)
-        grid = CharGrid.from_strings(lines[:-1])
-        ops = lines[-1].strip().split()
-        pos = Cell(0, 0)
-        nums = list[int]()
-        ans = 0
-        j = 0
-        for i in range(grid.get_width() + 1):
-            if i < grid.get_width():
-                s = grid.get_value(pos) + "".join(
-                    grid.get_value(c) for c in grid.get_cells_s(pos)
+@unique
+class Operation(Enum):
+    ADD = auto()
+    MULTIPLY = auto()
+
+    @classmethod
+    def from_string(cls, s: str) -> Self:
+        match s:
+            case "+":
+                return Operation.ADD
+            case "*":
+                return Operation.MULTIPLY
+            case _:
+                raise ValueError
+
+
+@dataclass(frozen=True)
+class Problem:
+    nums: list[int]
+    operation: Operation
+
+
+@dataclass(frozen=True)
+class Worksheet:
+    strings: list[str]
+
+    def get_problems(self, mode: Mode) -> list[Problem]:
+        grid = CharGrid.from_strings([s + " " for s in self.strings[:-1]])
+        ops = [
+            Operation.from_string(s) for s in self.strings[-1].strip().split()
+        ]
+        problems, ns, j = list[Problem](), list[str](), 0
+        for col in grid.get_cols_as_strings():
+            if col.strip() == "":
+                match mode:
+                    case Mode.BY_ROWS:
+                        rows = CharGrid.from_strings(ns).get_cols_as_strings()
+                    case Mode.BY_COLUMNS:
+                        rows = CharGrid.from_strings(ns).get_rows_as_strings()
+                problems.append(
+                    Problem([int(row.strip()) for row in rows], ops[j])
                 )
-            else:
-                s = ""
-            if s.strip() == "":
-                if ops[j] == "+":
-                    ans += sum(nums)
-                else:
-                    ans += prod(nums)
-                nums = []
+                ns = []
                 j += 1
             else:
-                nums.append(int(s.strip()))
-            pos = pos.at(Direction.RIGHT)
-        return ans
+                ns.append(col)
+        return problems
+
+
+Input = Worksheet
+Output1 = int
+Output2 = int
+
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Worksheet(list(input_data))
+
+    def solve(self, worksheet: Worksheet, mode: Mode) -> int:
+        def solve_problem(problem: Problem) -> int:
+            match problem.operation:
+                case Operation.ADD:
+                    return sum(problem.nums)
+                case Operation.MULTIPLY:
+                    return prod(problem.nums)
+
+        return sum(solve_problem(p) for p in worksheet.get_problems(mode))
+
+    def part_1(self, worksheet: Input) -> Output1:
+        return self.solve(worksheet, Mode.BY_ROWS)
+
+    def part_2(self, worksheet: Input) -> Output2:
+        return self.solve(worksheet, Mode.BY_COLUMNS)
 
     @aoc_samples(
         (
