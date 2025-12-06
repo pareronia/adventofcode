@@ -17,8 +17,8 @@ import aocd
 import prettyprinter
 import pyperclip
 from aoc import my_aocd
+from aoc.termcolor import colored
 from prettyprinter import cpprint
-from termcolor import colored
 
 
 def clog(c: Callable[[], object]) -> None:

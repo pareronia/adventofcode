@@ -9,6 +9,7 @@ from typing import NamedTuple
 from typing import cast
 
 from aoc import calendar
+from aoc.termcolor import colored
 from junitparser import Attr
 from junitparser import Error
 from junitparser import Failure
@@ -17,7 +18,6 @@ from junitparser import JUnitXml
 from junitparser import Skipped
 from junitparser import TestCase
 from junitparser import TestSuite
-from termcolor import colored
 
 from .config import config
 
