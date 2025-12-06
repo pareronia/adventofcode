@@ -46,14 +46,15 @@ dependencies = [
     { name = "pyyaml" },
     { name = "setuptools" },
     { name = "tqdm" },
+    { name = "urllib3" },
 ]
 
 [package.dev-dependencies]
 dev = [
     { name = "types-pyperclip" },
     { name = "types-pyyaml" },
-    { name = "types-requests" },
     { name = "types-tqdm" },
+    { name = "types-urllib3" },
 ]
 
 [package.metadata]
@@ -67,14 +68,15 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "setuptools", specifier = "==80" },
     { name = "tqdm", specifier = ">=4.67.1" },
+    { name = "urllib3", specifier = ">=2.5.0" },
 ]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "types-pyperclip", specifier = ">=1.9.0.20250801" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
-    { name = "types-requests", specifier = ">=2.32.4.20250913" },
     { name = "types-tqdm", specifier = ">=4.67.0.20250809" },
+    { name = "types-urllib3", specifier = ">=1.26.25.14" },
 ]
 
 [[package]]
@@ -377,6 +379,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fb/d0/cf498fc630d9fdaf2428b93e60b0e67b08008fec22b78716b8323cf644dc/types_tqdm-4.67.0.20250809.tar.gz", hash = "sha256:02bf7ab91256080b9c4c63f9f11b519c27baaf52718e5fdab9e9606da168d500", size = 17200, upload-time = "2025-08-09T03:17:43.489Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/3f/13/3ff0781445d7c12730befce0fddbbc7a76e56eb0e7029446f2853238360a/types_tqdm-4.67.0.20250809-py3-none-any.whl", hash = "sha256:1a73053b31fcabf3c1f3e2a9d5ecdba0f301bde47a418cd0e0bdf774827c5c57", size = 24020, upload-time = "2025-08-09T03:17:42.453Z" },
+]
+
+[[package]]
+name = "types-urllib3"
+version = "1.26.25.14"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/73/de/b9d7a68ad39092368fb21dd6194b362b98a1daeea5dcfef5e1adb5031c7e/types-urllib3-1.26.25.14.tar.gz", hash = "sha256:229b7f577c951b8c1b92c1bc2b2fdb0b49847bd2af6d1cc2a2e3dd340f3bda8f", size = 11239, upload-time = "2023-07-20T15:19:31.307Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/11/7b/3fc711b2efea5e85a7a0bbfe269ea944aa767bbba5ec52f9ee45d362ccf3/types_urllib3-1.26.25.14-py3-none-any.whl", hash = "sha256:9683bbb7fb72e32bfe9d2be6e04875fbe1b3eeec3cbb4ea231435aa7fd6b4f0e", size = 15377, upload-time = "2023-07-20T15:19:30.379Z" },
 ]
 
 [[package]]

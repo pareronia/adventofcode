@@ -19,7 +19,7 @@ log = logging.getLogger("aoc.stats")
 def get_stats(year: int) -> dict[int, Stats]:
     stats = dict[int, Stats]()
     r = get_stats_page(year)
-    lines = re.findall(r'<a.*<span class="stats-both">.*</span>.*</a>', r.text)
+    lines = re.findall(r'<a.*<span class="stats-both">.*</span>.*</a>', r)
     for line in lines:
         m = re.search(r'<a href="/[0-9]{4}/day/([0-9]+)">', line)
         if m is None:
@@ -69,11 +69,11 @@ def _get_aocd_leaderboard(year: int) -> dict[int, LeaderBoard]:
 def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
     r = get_leaderboard_page(year)
     leaderboards = dict[int, LeaderBoard]()
-    if r.text.find("<pre>") == -1:
+    if r.find("<pre>") == -1:
         return leaderboards
-    begin = r.text.index("<pre>")
-    end = r.text.index("</pre>")
-    to_parse = r.text[begin:end]
+    begin = r.index("<pre>")
+    end = r.index("</pre>")
+    to_parse = r[begin:end]
     start = 0
     idx = to_parse.find("</span>")
     while idx != -1:
