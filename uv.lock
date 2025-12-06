@@ -51,7 +51,6 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "types-pyperclip" },
-    { name = "types-python-dateutil" },
     { name = "types-pyyaml" },
     { name = "types-requests" },
     { name = "types-tqdm" },
@@ -73,7 +72,6 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "types-pyperclip", specifier = ">=1.9.0.20250801" },
-    { name = "types-python-dateutil", specifier = ">=2.9.0.20251115" },
     { name = "types-pyyaml", specifier = ">=6.0.12.20250915" },
     { name = "types-requests", specifier = ">=2.32.4.20250913" },
     { name = "types-tqdm", specifier = ">=4.67.0.20250809" },
@@ -346,15 +344,6 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/5b/7d/144cc18484621f31b1c04f2b4e6b1cd925a25573f72f00770f0030061cd4/types_pyperclip-1.9.0.20250801.tar.gz", hash = "sha256:37eb1b8f6989ccc1ec2f80e2984316f74ccd2aedb385331c210252928ffc3a1f", size = 7202, upload-time = "2025-08-01T03:47:43.071Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/38/6e/af02c7af8178f2d3933b26560b5428236fcfa78966dbb4a52220f1b2253b/types_pyperclip-1.9.0.20250801-py3-none-any.whl", hash = "sha256:73ad08721a2380506549027d5b13a8b360db909a2480649e728a37d836c36456", size = 7606, upload-time = "2025-08-01T03:47:42.115Z" },
-]
-
-[[package]]
-name = "types-python-dateutil"
-version = "2.9.0.20251115"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/6a/36/06d01fb52c0d57e9ad0c237654990920fa41195e4b3d640830dabf9eeb2f/types_python_dateutil-2.9.0.20251115.tar.gz", hash = "sha256:8a47f2c3920f52a994056b8786309b43143faa5a64d4cbb2722d6addabdf1a58", size = 16363, upload-time = "2025-11-15T03:00:13.717Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/0b/56961d3ba517ed0df9b3a27bfda6514f3d01b28d499d1bce9068cfe4edd1/types_python_dateutil-2.9.0.20251115-py3-none-any.whl", hash = "sha256:9cf9c1c582019753b8639a081deefd7e044b9fa36bd8217f565c6c4e36ee0624", size = 18251, upload-time = "2025-11-15T03:00:12.317Z" },
 ]
 
 [[package]]

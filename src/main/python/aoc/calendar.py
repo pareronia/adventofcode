@@ -1,8 +1,8 @@
+from datetime import UTC
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
-from dateutil import tz
-
-AOC_TZ = tz.gettz("America/New_York")
+AOC_TZ = ZoneInfo("America/New_York")
 
 
 def get_now_aoc() -> datetime:
@@ -10,7 +10,7 @@ def get_now_aoc() -> datetime:
 
 
 def get_now_utc() -> datetime:
-    return datetime.now(tz=tz.UTC)
+    return datetime.now(tz=UTC)
 
 
 def valid_years() -> range:
