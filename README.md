@@ -2,13 +2,13 @@
 
 ## 2025
 
-![](https://img.shields.io/badge/stars%20⭐-13-yellow)
-![](https://img.shields.io/badge/days%20completed-6-red)
+![](https://img.shields.io/badge/stars%20⭐-14-yellow)
+![](https://img.shields.io/badge/days%20completed-7-red)
 
 <!-- @BEGIN:ImplementationsTable:2025@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| python3 | [✓](src/main/python/AoC2025_01.py) | [✓](src/main/python/AoC2025_02.py) | [✓](src/main/python/AoC2025_03.py) | [✓](src/main/python/AoC2025_04.py) | [✓](src/main/python/AoC2025_05.py) | [✓](src/main/python/AoC2025_06.py) |  |  |  |  |  |  |
+| python3 | [✓](src/main/python/AoC2025_01.py) | [✓](src/main/python/AoC2025_02.py) | [✓](src/main/python/AoC2025_03.py) | [✓](src/main/python/AoC2025_04.py) | [✓](src/main/python/AoC2025_05.py) | [✓](src/main/python/AoC2025_06.py) | [✓](src/main/python/AoC2025_07.py) |  |  |  |  |  |
 | java | [✓](src/main/java/AoC2025_01.java) | [✓](src/main/java/AoC2025_02.java) | [✓](src/main/java/AoC2025_03.java) | [✓](src/main/java/AoC2025_04.java) | [✓](src/main/java/AoC2025_05.java) | [✓](src/main/java/AoC2025_06.java) |  |  |  |  |  |  |
 | bash | [✓](src/main/bash/AoC2025_01.sh) | [✓](src/main/bash/AoC2025_02.sh) | [✓](src/main/bash/AoC2025_03.sh) | [✓](src/main/bash/AoC2025_04.sh) | [✓](src/main/bash/AoC2025_05.sh) | [✓](src/main/bash/AoC2025_06.sh) |  |  |  |  |  |  |
 <!-- @END:ImplementationsTable:2025@ -->
