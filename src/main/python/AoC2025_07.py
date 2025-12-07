@@ -3,6 +3,7 @@
 # Advent of Code 2025 Day 7
 #
 
+import itertools
 import sys
 from functools import cache
 
@@ -13,7 +14,7 @@ from aoc.geometry import Direction
 from aoc.grid import Cell
 from aoc.grid import CharGrid
 
-Input = InputData
+Input = CharGrid
 Output1 = int
 Output2 = int
 
@@ -37,16 +38,18 @@ TEST = """\
 ...............
 """
 
+SPLITTER = "^"
+START = "S"
+
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return CharGrid.from_strings(list(input_data))
 
-    def part_1(self, inputs: Input) -> Output1:
-        grid = CharGrid.from_strings(list(inputs))
-        beams = {next(grid.get_all_equal_to("S")).col}
+    def part_1(self, grid: Input) -> Output1:
+        beams = {next(grid.get_all_equal_to(START)).col}
         ans = 0
-        for sp in grid.get_all_equal_to("^"):
+        for sp in grid.get_all_equal_to(SPLITTER):
             if sp.col in beams:
                 ans += 1
                 beams.remove(sp.col)
@@ -54,24 +57,25 @@ class Solution(SolutionBase[Input, Output1, Output2]):
                     beams.add(sp.at(d).col)
         return ans
 
-    def part_2(self, inputs: Input) -> Output2:
-        grid = CharGrid.from_strings(list(inputs))
-        start = next(grid.get_all_equal_to("^"))
-        splitters = set(grid.get_all_equal_to("^")) | {start}
+    def part_2(self, grid: Input) -> Output2:
+        start = next(grid.get_all_equal_to(SPLITTER))
+        splitters = {start} | set(grid.get_all_equal_to(SPLITTER))
 
         @cache
         def dfs(cell: Cell) -> int:
             if cell == start:
                 return 1
-            ans = 0
-            for n in grid.get_cells_n(cell):
-                if n in splitters:
-                    break
-                for d in (Direction.LEFT, Direction.RIGHT):
-                    nxt = n.at(d)
-                    if nxt in splitters:
-                        ans += dfs(nxt)
-            return ans
+            return sum(
+                dfs(nxt)
+                for nxt in (
+                    n.at(d)
+                    for d in (Direction.LEFT, Direction.RIGHT)
+                    for n in itertools.takewhile(
+                        lambda n: n not in splitters, grid.get_cells_n(cell)
+                    )
+                )
+                if nxt in splitters
+            )
 
         bottom_left = Cell(grid.get_max_row_index(), 0)
         return dfs(bottom_left) + sum(
