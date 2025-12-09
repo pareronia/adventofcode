@@ -5,13 +5,15 @@ E_ASSERT_FAILED=99
 RED='\033[1;31m'
 NC='\033[0m' # No Color
 
+source "$(dirname "$0")/vardump.bash"
+
 # assert
 # If condition false, exit from script with appropriate error message.
 # https://tldp.org/LDP/abs/html/debugging.html#ASSERT
 #
-assert () {
-    if [ -z "$2" ]; then  #  Not enough parameters passed to assert() function.
-        return "$E_PARAM_ERR"   #  No damage done.
+assert() {
+    if [ -z "$2" ]; then      #  Not enough parameters passed to assert() function.
+        return "$E_PARAM_ERR" #  No damage done.
     fi
 
     local lineno=$2
@@ -23,7 +25,7 @@ assert () {
         local msg="$1"
     fi
     cmd+=" echo \"Assertion failed: \"$msg\"\" >&2;"
-    cmd+=" echo \"File \"$0\", line $lineno\" >&2;"  # Give name of file and line number.
+    cmd+=" echo \"File \"$0\", line $lineno\" >&2;" # Give name of file and line number.
     cmd+=" exit $E_ASSERT_FAILED;"
     # else
     #   return
@@ -47,6 +49,20 @@ _debug() {
     return 0
 }
 
+_vardump() {
+    if [ -n "$DEBUG" ]; then
+        vardump "$*" >&2
+    fi
+    return 0
+}
+
+_vvardump() {
+    if [ -n "$DEBUG" ]; then
+        vardump -v "$*" >&2
+    fi
+    return 0
+}
+
 _info() {
     if [ -n "$DEBUG" ]; then
         echo "**** INFO: $*" >&2
@@ -62,7 +78,9 @@ fatal() {
 }
 
 TEST() {
-    OLDIFS="$IFS"; IFS=' ' read -ra cmd <<< "$1"; IFS="$OLDIFS"
+    OLDIFS="$IFS"
+    IFS=' ' read -ra cmd <<< "$1"
+    IFS="$OLDIFS"
     local arg="$2[@]"
     local lines=("${!arg}")
     local expected="$3"
@@ -70,6 +88,6 @@ TEST() {
     actual="$("${cmd[0]}" "${cmd[@]:1}" \
         <(for line in "${lines[@]}"; do echo "$line"; done))"
     local msg="FAILED ${cmd[*]} SAMPLE $2: expected '$expected', got '$actual'"
-    [ "$actual" != "$expected" ] \
-        && fatal "$E_ASSERT_FAILED" "$msg" >&2
+    [ "$actual" != "$expected" ] &&
+        fatal "$E_ASSERT_FAILED" "$msg" >&2
 }
