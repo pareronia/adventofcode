@@ -3,17 +3,12 @@
 # Advent of Code 2025 Day 8
 #
 
-import itertools
 import sys
-from collections import defaultdict
-from collections import deque
-from collections.abc import Callable
-from collections.abc import Iterator
-from functools import cmp_to_key
 from math import prod
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
+from aoc.geometry3d import Position3D
 
 TEST = """\
 162,817,812
@@ -38,113 +33,75 @@ TEST = """\
 425,690,689
 """
 
-Box = tuple[int, int, int]
-Input = tuple[int, list[tuple[Box, Box]]]
+Input = tuple[list[Position3D], list[tuple[int, int, int]]]
 Output1 = int
 Output2 = int
 
 
-def connected_components(
-    nodes: set[Box], adjacent: Callable[[Box], Iterator[Box]]
-) -> list[set[Box]]:
-    components = list[set[Box]]()
-    todo = set(nodes)
-    while len(todo) != 0:
-        node = todo.pop()
-        component = {node}
-        q = deque[Box]([node])
-        while len(q) != 0:
-            node = q.popleft()
-            for n in adjacent(node):
-                if n not in component:
-                    q.append(n)
-                component.add(n)
-        components.append(component)
-    return components
+class DSU:
+    def __init__(self, size: int) -> None:
+        self.ids = list(range(size))
+        self.sz = [1 for _ in range(size)]
+        self.num_components = size
+
+    def find(self, p: int) -> int:
+        if self.ids[p] != p:
+            self.ids[p] = self.find(self.ids[p])
+        return self.ids[p]
+
+    def unify(self, p: int, q: int) -> None:
+        root_p, root_q = self.find(p), self.find(q)
+        if root_p != root_q:
+            if self.sz[root_p] < self.sz[root_q]:
+                self.sz[root_q] += self.sz[root_p]
+                self.ids[root_p] = root_q
+                self.sz[root_p] = 0
+            else:
+                self.sz[root_p] += self.sz[root_q]
+                self.ids[root_q] = root_p
+                self.sz[root_q] = 0
+            self.num_components -= 1
 
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        def cmp(p1: tuple[Box, Box], p2: tuple[Box, Box]) -> int:
-            def distance(a: Box, b: Box) -> float:
-                x1, y1, z1 = a
-                x2, y2, z2 = b
-                dx, dy, dz = x1 - x2, y1 - y2, z1 - z2
-                return dx * dx + dy * dy + dz * dz
-
-            dp1 = distance(p1[0], p1[1])
-            dp2 = distance(p2[0], p2[1])
-            if dp1 > dp2:
-                return 1
-            if dp1 < dp2:
-                return -1
-            return 0
-
-        boxes = list[Box]()
-        for line in input_data:
-            x, y, z = map(int, line.split(","))
-            boxes.append((x, y, z))
-        return len(boxes), sorted(
-            itertools.combinations(boxes, 2), key=cmp_to_key(cmp)
+        boxes = [
+            Position3D.of(int(x), int(y), int(z))
+            for x, y, z in (line.split(",") for line in input_data)
+        ]
+        pairs = sorted(
+            (
+                (i, j, boxes[i].squared_distance(boxes[j]))
+                for i in range(len(boxes))
+                for j in range(i + 1, len(boxes))
+            ),
+            key=lambda pair: pair[2],
         )
+        return boxes, pairs
 
-    def get_components(
-        self, edges: dict[Box, set[Box]]
-    ) -> set[frozenset[Box]]:
-        return {
-            frozenset(c)
-            for c in connected_components(
-                set(edges.keys()), lambda n: (nxt for nxt in edges[n])
-            )
-        }
-
-    def solve_1(self, inputs: Input, num_pairs: int) -> int:
-        _, pairs = inputs
-        edges = defaultdict[Box, set[Box]](set)
-        for i in range(num_pairs):
-            a, b = pairs[i]
-            edges[a].add(b)
-            edges[b].add(a)
-        components = self.get_components(edges)
-        best = sorted(components, key=len, reverse=True)
-        return prod(len(c) for c in best[:3])
+    def solve_1(self, inputs: Input, num_pairs: int = 1000) -> int:
+        boxes, pairs = inputs
+        dsu = DSU(len(boxes))
+        for pair in pairs[:num_pairs]:
+            dsu.unify(pair[0], pair[1])
+        return prod(sorted(dsu.sz)[-3:])
 
     def part_1(self, pairs: Input) -> Output1:
-        return self.solve_1(pairs, 1000)
+        return self.solve_1(pairs)
 
-    def solve_2(self, inputs: Input, start: int) -> int:
-        num_boxes, pairs = inputs
-        edges = defaultdict[Box, set[Box]](set)
-        edges = defaultdict[Box, set[Box]](set)
-        for i in range(start):
-            a, b = pairs[i]
-            edges[a].add(b)
-            edges[b].add(a)
-        components = self.get_components(edges)
-        while i < len(pairs) - 1:
-            i += 1
-            a, b = pairs[i]
-            for c in components:
-                if a in c and b in c:
-                    break
-            else:
-                edges[a].add(b)
-                edges[b].add(a)
-                components = self.get_components(edges)
-                if (
-                    len(components) == 1
-                    and len(next(_ for _ in components)) == num_boxes
-                ):
-                    return pairs[i][0][0] * pairs[i][1][0]
+    def part_2(self, inputs: Input) -> Output2:
+        boxes, pairs = inputs
+        dsu = DSU(len(boxes))
+        for pair in pairs:
+            dsu.unify(pair[0], pair[1])
+            if dsu.num_components == 1 and dsu.sz[dsu.find(0)] == len(boxes):
+                return boxes[pair[0]].x * boxes[pair[1]].x
         raise AssertionError
 
-    def part_2(self, pairs: Input) -> Output2:
-        return self.solve_2(pairs, 1000)
-
     def samples(self) -> None:
-        pairs = self.parse_input(TEST.splitlines())
-        assert self.solve_1(pairs, 10) == 40
-        assert self.solve_2(pairs, 10) == 25272
+        inputs = self.parse_input(TEST.splitlines())
+        assert self.solve_1(inputs, 10) == 40
+        assert self.part_2(inputs) == 25272
 
 
 solution = Solution(2025, 8)
