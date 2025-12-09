@@ -2,6 +2,8 @@ package com.github.pareronia.aoc;
 
 import static java.util.stream.Collectors.toList;
 
+import org.apache.commons.math3.util.CombinatoricsUtils;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -10,8 +12,6 @@ import java.util.NoSuchElementException;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
-import org.apache.commons.math3.util.CombinatoricsUtils;
-
 public class IterTools {
     
     // TODO potentially huge storage cost -> make iterative version
@@ -19,6 +19,10 @@ public class IterTools {
         final Stream.Builder<List<T>> builder = Stream.builder();
         IterTools.permutations(iterable, builder::add);
         return builder.build();
+    }
+   
+    public static <T> IterToolsIterator<Pairwise.Pair<T>> pairwise(final Stream<T> stream) {
+        return asIterToolsIterator(Pairwise.pairwise(stream.iterator()));
     }
 
     @SuppressWarnings("unchecked")
@@ -261,5 +265,20 @@ public class IterTools {
         default Iterable<T> iterable() {
             return () -> this;
         }
+    }
+
+    private static <T> IterToolsIterator<T> asIterToolsIterator(final Iterator<T> iterator) {
+        return new IterToolsIterator<>() {
+
+            @Override
+            public boolean hasNext() {
+                return iterator.hasNext();
+            }
+
+            @Override
+            public T next() {
+                return iterator.next();
+            }
+        };
     }
 }

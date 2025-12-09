@@ -1,7 +1,5 @@
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.IterTools;
-import com.github.pareronia.aoc.Pairwise;
-import com.github.pareronia.aoc.Pairwise.Pair;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
 import com.github.pareronia.aoc.Utils;
@@ -9,8 +7,8 @@ import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 @SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
 public final class AoC2025_09 extends SolutionBase<List<Cell>, Long, Long> {
@@ -42,57 +40,21 @@ public final class AoC2025_09 extends SolutionBase<List<Cell>, Long, Long> {
 
     @Override
     public Long solvePart1(final List<Cell> reds) {
-        return Utils.stream(IterTools.combinations(reds.size(), 2))
-                .mapToLong(
-                        c -> {
-                            final long dr =
-                                    Math.abs(reds.get(c[0]).getRow() - reds.get(c[1]).getRow()) + 1;
-                            final long dc =
-                                    Math.abs(reds.get(c[0]).getCol() - reds.get(c[1]).getCol()) + 1;
-                            return dr * dc;
-                        })
-                .max()
-                .getAsLong();
+        return rectangles(reds).mapToLong(Rectangle::getArea).max().getAsLong();
     }
 
     @Override
     public Long solvePart2(final List<Cell> reds) {
-        final List<Pair<Cell>> borderSegments = new ArrayList<>();
-        Pairwise.pairwise(reds.iterator()).forEachRemaining(borderSegments::add);
-        borderSegments.add(Pair.of(reds.getLast(), reds.getFirst()));
-        long ans = 0;
-        for (int i = 0; i < reds.size(); i++) {
-            for (int j = i + 1; j < reds.size(); j++) {
-                final Cell celli = reds.get(i);
-                final Cell cellj = reds.get(j);
-                final int minRow = Math.min(celli.getRow(), cellj.getRow());
-                final int maxRow = Math.max(celli.getRow(), cellj.getRow());
-                final int minCol = Math.min(celli.getCol(), cellj.getCol());
-                final int maxCol = Math.max(celli.getCol(), cellj.getCol());
-                if (borderSegments.stream()
-                        .allMatch(
-                                pair ->
-                                        Math.max(pair.first().getCol(), pair.second().getCol())
-                                                        <= minCol
-                                                || Math.min(
-                                                                pair.first().getCol(),
-                                                                pair.second().getCol())
-                                                        >= maxCol
-                                                || Math.max(
-                                                                pair.first().getRow(),
-                                                                pair.second().getRow())
-                                                        <= minRow
-                                                || Math.min(
-                                                                pair.first().getRow(),
-                                                                pair.second().getRow())
-                                                        >= maxRow)) {
-                    final long dc = maxCol - minCol + 1;
-                    final long dr = maxRow - minRow + 1;
-                    ans = Math.max(dc * dr, ans);
-                }
-            }
-        }
-        return ans;
+        final List<Rectangle> borderSegments =
+                IterTools.pairwise(Stream.concat(reds.stream(), Stream.of(reds.getFirst())))
+                        .stream()
+                        .map(pair -> Rectangle.from(pair.first(), pair.second()))
+                        .toList();
+        return rectangles(reds)
+                .filter(rect -> borderSegments.stream().noneMatch(rect::intersects))
+                .mapToLong(Rectangle::getArea)
+                .max()
+                .getAsLong();
     }
 
     @Samples({
@@ -114,4 +76,31 @@ public final class AoC2025_09 extends SolutionBase<List<Cell>, Long, Long> {
             2,3
             7,3
             """;
+
+    record Rectangle(int minRow, int minCol, int maxRow, int maxCol) {
+
+        public static Rectangle from(final Cell first, final Cell second) {
+            final int minRow = Math.min(first.getRow(), second.getRow());
+            final int maxRow = Math.max(first.getRow(), second.getRow());
+            final int minCol = Math.min(first.getCol(), second.getCol());
+            final int maxCol = Math.max(first.getCol(), second.getCol());
+            return new Rectangle(minRow, minCol, maxRow, maxCol);
+        }
+
+        public boolean intersects(final Rectangle other) {
+            return !(this.maxCol <= other.minCol
+                    || this.minCol >= other.maxCol
+                    || this.maxRow <= other.minRow
+                    || this.minRow >= other.maxRow);
+        }
+
+        public long getArea() {
+            return (long) (maxRow - minRow + 1) * (maxCol - minCol + 1);
+        }
+    }
+
+    private Stream<Rectangle> rectangles(final List<Cell> reds) {
+        return Utils.stream(IterTools.combinations(reds.size(), 2))
+                .map(combo -> Rectangle.from(reds.get(combo[0]), reds.get(combo[1])));
+    }
 }
