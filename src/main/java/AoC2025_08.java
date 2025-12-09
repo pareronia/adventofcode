@@ -1,15 +1,12 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 
 import static java.util.Comparator.comparing;
-import static java.util.Comparator.reverseOrder;
-import static java.util.stream.Collectors.toMap;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.geometry3d.Position3D;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 @SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
@@ -29,39 +26,30 @@ public final class AoC2025_08 extends SolutionBase<AoC2025_08.Input, Long, Long>
 
     @Override
     protected Input parseInput(final List<String> inputs) {
-        final List<Position3D> boxes =
-                inputs.stream()
-                        .map(
-                                s -> {
-                                    final String[] splits = s.split(",");
-                                    return Position3D.of(
-                                            Integer.parseInt(splits[0]),
-                                            Integer.parseInt(splits[1]),
-                                            Integer.parseInt(splits[2]));
-                                })
+        final List<Box> boxes =
+                range(inputs.size()).stream().map(i -> Box.fromInput(i, inputs.get(i))).toList();
+        final List<Pair> pairs =
+                range(boxes.size()).stream()
+                        .flatMap(
+                                i ->
+                                        range(i + 1, boxes.size(), 1).stream()
+                                                .map(j -> Pair.of(boxes.get(i), boxes.get(j))))
+                        .sorted(comparing(Pair::distance))
                         .toList();
-        final List<Pair> pairs = new ArrayList<>();
-        for (int i = 0; i < boxes.size(); i++) {
-            for (int j = i + 1; j < boxes.size(); j++) {
-                pairs.add(new Pair(i, j, boxes.get(i).squaredDistance(boxes.get(j))));
-            }
-        }
-        Collections.sort(pairs, comparing(Pair::distance));
         return new Input(boxes, pairs);
     }
 
+    @SuppressWarnings("PMD.LawOfDemeter")
     private long solve1(final Input input, final int size) {
         final DSU dsu = new DSU(input.boxes().size());
-        input.pairs().stream().limit(size).forEach(pair -> dsu.unify(pair.first(), pair.second()));
-        return range(input.boxes().size()).stream()
-                .collect(toMap(i -> i, dsu::componentSize))
-                .values()
-                .stream()
-                .distinct()
-                .sorted(reverseOrder())
-                .limit(3)
+        input.pairs().stream()
+                .limit(size)
+                .forEach(pair -> dsu.unify(pair.first().idx(), pair.second().idx()));
+        return Arrays.stream(dsu.sz)
+                .sorted()
+                .skip(dsu.sz.length - 3)
                 .reduce((acc, sz) -> acc * sz)
-                .get();
+                .getAsInt();
     }
 
     @Override
@@ -70,16 +58,20 @@ public final class AoC2025_08 extends SolutionBase<AoC2025_08.Input, Long, Long>
     }
 
     @Override
+    @SuppressWarnings("PMD.LawOfDemeter")
     public Long solvePart2(final Input input) {
         final DSU dsu = new DSU(input.boxes().size());
-        for (final Pair pair : input.pairs()) {
-            dsu.unify(pair.first(), pair.second());
-            if (dsu.components() == 1 && dsu.componentSize(0) == input.boxes().size()) {
-                return ((long) input.boxes().get(pair.first()).getX())
-                        * input.boxes().get(pair.second()).getX();
-            }
-        }
-        throw new IllegalStateException("Unsolvable");
+        return input.pairs().stream()
+                .mapToLong(
+                        pair -> {
+                            dsu.unify(pair.first().idx(), pair.second().idx());
+                            return ((long) pair.first().position().getX())
+                                    * pair.second().position().getX();
+                        })
+                .dropWhile(
+                        x -> dsu.numComponents != 1 || dsu.sz[dsu.find(0)] != input.boxes().size())
+                .findFirst()
+                .orElseThrow();
     }
 
     @Override
@@ -118,9 +110,27 @@ public final class AoC2025_08 extends SolutionBase<AoC2025_08.Input, Long, Long>
             425,690,689
             """;
 
-    record Pair(int first, int second, long distance) {}
+    record Box(int idx, Position3D position) {
 
-    record Input(List<Position3D> boxes, List<Pair> pairs) {}
+        public static Box fromInput(final int idx, final String input) {
+            final String[] splits = input.split(",");
+            return new Box(
+                    idx,
+                    Position3D.of(
+                            Integer.parseInt(splits[0]),
+                            Integer.parseInt(splits[1]),
+                            Integer.parseInt(splits[2])));
+        }
+    }
+
+    record Pair(Box first, Box second, long distance) {
+
+        public static Pair of(final Box first, final Box second) {
+            return new Pair(first, second, first.position().squaredDistance(second.position()));
+        }
+    }
+
+    record Input(List<Box> boxes, List<Pair> pairs) {}
 
     private static class DSU {
 
@@ -140,48 +150,27 @@ public final class AoC2025_08 extends SolutionBase<AoC2025_08.Input, Long, Long>
         }
 
         public int find(final int p) {
-            int target = p;
-            int root = target;
+            int root = p;
             while (root != id[root]) {
                 root = id[root];
             }
-
-            while (target != root) {
-                final int next = id[target];
-                id[target] = root;
-                target = next;
-            }
-
             return root;
         }
 
-        public int componentSize(final int p) {
-            return sz[find(p)];
-        }
-
-        public int components() {
-            return numComponents;
-        }
-
-        @SuppressWarnings("PMD.OnlyOneReturn")
-        public int unify(final int p, final int q) {
-            if (find(p) == find(q)) {
-                return 0;
-            }
+        public void unify(final int p, final int q) {
             final int root1 = find(p);
             final int root2 = find(q);
-            if (sz[root1] < sz[root2]) {
-                sz[root2] += sz[root1];
-                id[root1] = root2;
-                sz[root1] = 0;
+            if (root1 != root2) {
+                if (sz[root1] < sz[root2]) {
+                    sz[root2] += sz[root1];
+                    id[root1] = root2;
+                    sz[root1] = 0;
+                } else {
+                    sz[root1] += sz[root2];
+                    id[root2] = root1;
+                    sz[root2] = 0;
+                }
                 numComponents--;
-                return root2;
-            } else {
-                sz[root1] += sz[root2];
-                id[root2] = root1;
-                sz[root2] = 0;
-                numComponents--;
-                return root1;
             }
         }
     }
