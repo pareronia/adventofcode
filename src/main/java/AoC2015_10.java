@@ -1,13 +1,13 @@
-import static com.github.pareronia.aoc.IterTools.enumerate;
 import static com.github.pareronia.aoc.StringOps.splitLines;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 import static java.util.stream.Collectors.toMap;
+
+import com.github.pareronia.aoc.itertools.Enumerated;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import com.github.pareronia.aoc.IterTools.Enumerated;
-import com.github.pareronia.aoc.solution.SolutionBase;
 
 public class AoC2015_10 extends SolutionBase<AoC2015_10.Input, Integer, Integer> {
     
@@ -28,11 +28,11 @@ public class AoC2015_10 extends SolutionBase<AoC2015_10.Input, Integer, Integer>
         final List<String[]> elements = splitLines(ELEMENTS).stream()
             .map(s -> s.split(" "))
             .toList();
-        final Map<String, Integer> indices = enumerate(elements.stream())
+        final Map<String, Integer> indices = enumerate(elements).stream()
             .collect(toMap(e -> e.value()[2], Enumerated::index));
         final String[] sequence = new String[N];
         final int[][] decays = new int[N][];
-        enumerate(elements.stream()).forEach(e -> {
+        enumerate(elements.stream()).stream().forEach(e -> {
             sequence[e.index()] = e.value()[0];
             decays[e.index()] = Arrays.stream(e.value())
                     .skip(4).mapToInt(indices::get).toArray();

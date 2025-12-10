@@ -9,9 +9,9 @@ import java.util.Map;
 import java.util.Set;
 
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.IterTools.IterToolsIterator;
 import com.github.pareronia.aoc.geometry.Direction;
 import com.github.pareronia.aoc.graph.BFS;
+import com.github.pareronia.aoc.itertools.IterTools.IterToolsIterator;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;

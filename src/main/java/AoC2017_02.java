@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.IterTools.combinations;
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 
 import com.github.pareronia.aoc.AssertUtils;
 import com.github.pareronia.aoc.solution.Sample;

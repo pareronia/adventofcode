@@ -1,5 +1,5 @@
-import static com.github.pareronia.aoc.IterTools.combinations;
 import static com.github.pareronia.aoc.StringOps.splitLines;
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 import static java.util.Comparator.reverseOrder;
 import static java.util.stream.Collectors.toList;
 

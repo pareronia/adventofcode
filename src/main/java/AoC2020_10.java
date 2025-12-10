@@ -1,17 +1,17 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.enumerate;
 import static com.github.pareronia.aoc.Utils.last;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 import static java.util.stream.Collectors.toCollection;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import com.github.pareronia.aoc.Counter;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class AoC2020_10 extends SolutionBase<List<Integer>, Long, Long> {
 	
@@ -51,7 +51,7 @@ public class AoC2020_10 extends SolutionBase<List<Integer>, Long, Long> {
 	public Long solvePart2(final List<Integer> numbers) {
 	    final Map<Integer, Long> map = new HashMap<>();
 	    map.put(0, 1L);
-	    enumerate(numbers.stream().skip(1)).forEach(e -> {
+	    enumerate(numbers.stream().skip(1)).stream().forEach(e -> {
 	        range(e.index(), -1, -1).intStream()
 	                .map(numbers::get)
 	                .filter(j -> e.value() - j <= 3)

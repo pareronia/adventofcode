@@ -1,10 +1,6 @@
-import static com.github.pareronia.aoc.IterTools.enumerateFrom;
 import static com.github.pareronia.aoc.Utils.toAString;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerateFrom;
 import static java.util.Comparator.comparing;
-
-import java.util.Comparator;
-import java.util.List;
-import java.util.function.Function;
 
 import com.github.pareronia.aoc.Counter;
 import com.github.pareronia.aoc.StringOps;
@@ -13,6 +9,10 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.Function;
 
 public final class AoC2023_07
         extends SolutionBase<List<AoC2023_07.Hand>, Integer, Integer> {
@@ -35,7 +35,7 @@ public final class AoC2023_07
     }
     
     private int solve(final List<Hand> hands, final Comparator<Hand> order) {
-        return enumerateFrom(1, hands.stream().sorted(order))
+        return enumerateFrom(1, hands.stream().sorted(order)).stream()
             .mapToInt(e -> e.index() * e.value().bid())
             .sum();
     }

@@ -1,18 +1,18 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.rangeClosed;
-import static com.github.pareronia.aoc.IterTools.enumerate;
 import static com.github.pareronia.aoc.Utils.toAString;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-import java.util.stream.Stream.Builder;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.MutableInt;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aocd.Aocd;
 import com.github.pareronia.aocd.Puzzle;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+import java.util.stream.Stream.Builder;
 
 public class AoC2022_10 extends AoCBase {
     private static final int PERIOD = 40;
@@ -57,7 +57,7 @@ public class AoC2022_10 extends AoCBase {
     }
     
     private List<String> getPixels() {
-        final String pixels = enumerate(getXValues())
+        final String pixels = enumerate(getXValues()).stream()
                 .map(e -> draw(e.index(), e.value()))
                 .collect(toAString());
         return rangeClosed(0, MAX, PERIOD).stream()

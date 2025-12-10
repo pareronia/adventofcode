@@ -1,5 +1,5 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.product;
+import static com.github.pareronia.aoc.itertools.IterTools.product;
 
 import java.util.ArrayList;
 import java.util.List;

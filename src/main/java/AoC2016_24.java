@@ -1,11 +1,10 @@
-import static com.github.pareronia.aoc.IterTools.combinations;
-
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.IterTools;
+import com.github.pareronia.aoc.itertools.IterTools;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;

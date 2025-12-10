@@ -1,9 +1,4 @@
-import static com.github.pareronia.aoc.IterTools.enumerateFrom;
-
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerateFrom;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
@@ -11,6 +6,11 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class AoC2023_15
         extends SolutionBase<List<String>, Integer, Integer> {
@@ -94,8 +94,8 @@ public final class AoC2023_15
         }
         
         public int getTotalFocusingPower() {
-            return enumerateFrom(1, Arrays.stream(boxes))
-                .flatMapToInt(box -> enumerateFrom(1, box.value().values().stream())
+            return enumerateFrom(1, Arrays.stream(boxes)).stream()
+                .flatMapToInt(box -> enumerateFrom(1, box.value().values()).stream()
                 .mapToInt(e -> box.index() * e.index() * e.value()))
                 .sum();
         }

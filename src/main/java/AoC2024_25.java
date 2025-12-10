@@ -1,5 +1,5 @@
-import static com.github.pareronia.aoc.IterTools.enumerate;
-import static com.github.pareronia.aoc.IterTools.product;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
+import static com.github.pareronia.aoc.itertools.IterTools.product;
 
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
@@ -103,12 +103,12 @@ public class AoC2024_25 extends SolutionBase<AoC2024_25.Input, Long, String> {
             for (final List<String> block : StringOps.toBlocks(inputs)) {
                 final int h = block.size();
                 final long n =
-                        enumerate(block.stream().skip(1))
+                        enumerate(block.stream().skip(1)).stream()
                                 .flatMapToLong(
                                         e -> {
                                             final int r = e.index();
                                             final String line = e.value();
-                                            return enumerate(Utils.asCharacterStream(line))
+                                            return enumerate(Utils.asCharacterStream(line)).stream()
                                                     .filter(ee -> ee.value() == '#')
                                                     .mapToLong(ee -> 1L << ((h * ee.index()) + r));
                                         })

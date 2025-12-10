@@ -5,9 +5,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.itertools.IterTools;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;

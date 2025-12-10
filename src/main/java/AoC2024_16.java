@@ -1,8 +1,8 @@
-import static com.github.pareronia.aoc.IterTools.product;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import static com.github.pareronia.aoc.itertools.IterTools.product;
 
 import com.github.pareronia.aoc.Grid.Cell;
 import com.github.pareronia.aoc.geometry.Direction;

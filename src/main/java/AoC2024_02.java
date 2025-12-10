@@ -1,13 +1,13 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.windows;
+
+import com.github.pareronia.aoc.itertools.IterTools;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import com.github.pareronia.aoc.solution.Sample;
-import com.github.pareronia.aoc.solution.Samples;
-import com.github.pareronia.aoc.solution.SolutionBase;
 
 public final class AoC2024_02
         extends SolutionBase<List<List<Integer>>, Integer, Integer> {
@@ -34,7 +34,7 @@ public final class AoC2024_02
     }
     
     private boolean safe(final List<Integer> levels) {
-        final List<Integer> diffs = windows(levels).stream()
+        final List<Integer> diffs = IterTools.pairwise(levels.iterator()).stream()
             .map(w -> w.second() - w.first())
             .toList();
         return diffs.stream().allMatch(diff -> 1 <= diff && diff <= 3)

@@ -1,8 +1,8 @@
-package com.github.pareronia.aoc;
+package com.github.pareronia.aoc.itertools;
 
 import java.util.Iterator;
 
-public final class Pairwise {
+final class Pairwise {
 
     private Pairwise() {}
 
@@ -23,12 +23,5 @@ public final class Pairwise {
                 return pair;
             }
         };
-    }
-
-    public record Pair<T>(T first, T second) {
-        @SuppressWarnings("PMD.ShortMethodName")
-        public static <T> Pair<T> of(final T first, final T second) {
-            return new Pair<>(first, second);
-        }
     }
 }

@@ -1,6 +1,6 @@
-import static com.github.pareronia.aoc.IterTools.combinations;
-import static com.github.pareronia.aoc.IterTools.product;
 import static com.github.pareronia.aoc.SetUtils.difference;
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
+import static com.github.pareronia.aoc.itertools.IterTools.product;
 
 import java.util.ArrayList;
 import java.util.HashMap;

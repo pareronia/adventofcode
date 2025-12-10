@@ -1,5 +1,5 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.combinations;
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 
 import java.math.BigInteger;
 import java.util.Arrays;

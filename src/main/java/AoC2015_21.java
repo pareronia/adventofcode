@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.IterTools.combinations;
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 import static java.util.Collections.singleton;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;

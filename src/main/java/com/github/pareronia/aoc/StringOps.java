@@ -5,13 +5,14 @@ import static com.github.pareronia.aoc.CharArrayUtils.subarray;
 import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toList;
 
+import com.github.pareronia.aoc.itertools.IterTools;
+import com.github.pareronia.aoc.itertools.IterTools.IterToolsIterator;
+import com.github.pareronia.aoc.itertools.ZippedPair;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-
-import com.github.pareronia.aoc.IterTools.IterToolsIterator;
-import com.github.pareronia.aoc.IterTools.ZippedPair;
 
 public class StringOps {
     

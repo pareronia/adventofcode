@@ -1,15 +1,15 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.enumerate;
 import static com.github.pareronia.aoc.StringOps.splitLines;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 import static java.util.stream.Collectors.toSet;
-
-import java.util.List;
-import java.util.Set;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.IterTools.Enumerated;
+import com.github.pareronia.aoc.itertools.Enumerated;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.List;
+import java.util.Set;
 
 public final class AoC2023_11
         extends SolutionBase<AoC2023_11.Observations, Long, Long> {
@@ -30,11 +30,11 @@ public final class AoC2023_11
     protected Observations parseInput(final List<String> inputs) {
         final CharGrid grid = CharGrid.from(inputs);
         final List<Cell> galaxies = grid.getAllEqualTo('#').toList();
-        final Set<Integer> emptyRows = enumerate(grid.getRowsAsStrings())
+        final Set<Integer> emptyRows = enumerate(grid.getRowsAsStrings()).stream()
             .filter(e -> !e.value().contains("#"))
             .map(Enumerated::index)
             .collect(toSet());
-        final Set<Integer> emptyCols = enumerate(grid.getColumnsAsStrings())
+        final Set<Integer> emptyCols = enumerate(grid.getColumnsAsStrings()).stream()
             .filter(e -> !e.value().contains("#"))
             .map(Enumerated::index)
             .collect(toSet());
@@ -42,7 +42,7 @@ public final class AoC2023_11
     }
     
     private long solve(final Observations observations, final int factor) {
-        return enumerate(observations.galaxies().stream()).flatMapToLong(e -> {
+        return enumerate(observations.galaxies()).stream().flatMapToLong(e -> {
             final Cell g1 = e.value();
             return observations.galaxies().subList(
                     e.index(), observations.galaxies().size()).stream()

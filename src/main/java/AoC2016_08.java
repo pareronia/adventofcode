@@ -8,9 +8,9 @@ import java.util.Set;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.OCR;
 import com.github.pareronia.aoc.StringOps.StringSplit;
+import com.github.pareronia.aoc.itertools.IterTools;
 import com.github.pareronia.aoc.StringUtils;
 import com.github.pareronia.aoc.solution.SolutionBase;
 

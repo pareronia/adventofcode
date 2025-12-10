@@ -1,9 +1,9 @@
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 
-import com.github.pareronia.aoc.IterTools.ProductPair;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.StringOps.StringSplit;
+import com.github.pareronia.aoc.itertools.ProductPair;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;

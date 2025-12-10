@@ -1,5 +1,5 @@
 import static com.github.pareronia.aoc.AssertUtils.unreachable;
-import static com.github.pareronia.aoc.IterTools.combinations;
+import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;

@@ -1,5 +1,5 @@
-import static com.github.pareronia.aoc.IterTools.zip;
 import static com.github.pareronia.aoc.ListUtils.sorted;
+import static com.github.pareronia.aoc.itertools.IterTools.zip;
 
 import java.util.List;
 

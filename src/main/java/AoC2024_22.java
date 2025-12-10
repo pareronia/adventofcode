@@ -1,13 +1,13 @@
-import static com.github.pareronia.aoc.IterTools.enumerate;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
+
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.github.pareronia.aoc.solution.Sample;
-import com.github.pareronia.aoc.solution.Samples;
-import com.github.pareronia.aoc.solution.SolutionBase;
 
 public final class AoC2024_22 extends SolutionBase<List<Integer>, Long, Integer> {
 
@@ -53,7 +53,7 @@ public final class AoC2024_22 extends SolutionBase<List<Integer>, Long, Integer>
         final Map<Integer, Integer> p = new HashMap<>();
         final int[] seen = new int[19 * 19 * 19 * 19];
         Arrays.fill(seen, -1);
-        enumerate(seeds.stream())
+        enumerate(seeds).stream()
                 .forEach(
                         e -> {
                             final int i = e.index();

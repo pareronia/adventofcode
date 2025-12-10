@@ -1,4 +1,4 @@
-import static com.github.pareronia.aoc.IterTools.zip;
+import static com.github.pareronia.aoc.itertools.IterTools.zip;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Arrays;

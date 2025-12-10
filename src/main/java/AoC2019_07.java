@@ -1,5 +1,5 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.permutations;
+import static com.github.pareronia.aoc.itertools.IterTools.permutations;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;

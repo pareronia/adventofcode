@@ -1,12 +1,12 @@
-import static com.github.pareronia.aoc.IterTools.enumerate;
-
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Stream;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public class AoC2020_13 extends SolutionBase<AoC2020_13.Notes, Integer, Long> {
 
@@ -93,7 +93,7 @@ public class AoC2020_13 extends SolutionBase<AoC2020_13.Notes, Integer, Long> {
 
         public static Notes fromInput(final List<String> inputs) {
             final int target = Integer.parseInt(inputs.get(0));
-            final List<Bus> buses = enumerate(Arrays.stream(inputs.get(1).split(",")))
+            final List<Bus> buses = enumerate(Arrays.stream(inputs.get(1).split(","))).stream()
                 .filter(e -> !"x".equals(e.value()))
                 .map(e -> new Bus(Integer.parseInt(e.value()), e.index()))
                 .toList();

@@ -1,13 +1,13 @@
-import static com.github.pareronia.aoc.IterTools.enumerate;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
+
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
-
-import com.github.pareronia.aoc.solution.Sample;
-import com.github.pareronia.aoc.solution.Samples;
-import com.github.pareronia.aoc.solution.SolutionBase;
 
 public final class AoC2023_02
         extends SolutionBase<List<AoC2023_02.Game>, Integer, Integer> {
@@ -41,7 +41,7 @@ public final class AoC2023_02
             }
             return new Draw(red, green, blue);
         };
-        return enumerate(inputs.stream())
+        return enumerate(inputs).stream()
             .map(e -> new Game(
                 e.index() + 1,
                 Arrays.stream(e.value().split(":")[1].split(";"))

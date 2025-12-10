@@ -1,10 +1,5 @@
-import static com.github.pareronia.aoc.IterTools.enumerate;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 import static java.util.stream.Collectors.groupingBy;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.IntStream;
 
 import com.github.pareronia.aoc.CharGrid;
 import com.github.pareronia.aoc.Grid.Cell;
@@ -12,6 +7,11 @@ import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.regex.Pattern;
+import java.util.stream.IntStream;
 
 public final class AoC2023_03
         extends SolutionBase<List<AoC2023_03.EnginePart>, Integer, Integer> {
@@ -32,7 +32,7 @@ public final class AoC2023_03
     protected List<EnginePart> parseInput(final List<String> inputs) {
         final Pattern regex = Pattern.compile("[0-9]+");
         final CharGrid grid = CharGrid.from(inputs);
-        return enumerate(grid.getRowsAsStrings())
+        return enumerate(grid.getRowsAsStrings()).stream()
             .flatMap(e -> regex.matcher(e.value()).results()
                 .map(m -> findEnginePart(grid, e.index(),
                                          RangeInclusive.between(m.start(), m.end()))))

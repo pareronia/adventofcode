@@ -3,8 +3,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.MutableInt;
+import com.github.pareronia.aoc.itertools.IterTools;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;

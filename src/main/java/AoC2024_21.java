@@ -8,9 +8,9 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.function.ToLongFunction;
 
-import com.github.pareronia.aoc.IterTools;
-import com.github.pareronia.aoc.IterTools.ZippedPair;
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.itertools.IterTools;
+import com.github.pareronia.aoc.itertools.ZippedPair;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;

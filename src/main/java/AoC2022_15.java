@@ -6,11 +6,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.github.pareronia.aoc.IterTools;
 import com.github.pareronia.aoc.RangeInclusive;
 import com.github.pareronia.aoc.StringOps;
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.geometry.Position;
+import com.github.pareronia.aoc.itertools.IterTools;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
 public class AoC2022_15 extends SolutionBase<AoC2022_15.Input, Integer, Long> {

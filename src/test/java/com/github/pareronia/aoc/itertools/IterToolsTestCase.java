@@ -1,19 +1,17 @@
-package com.github.pareronia.aoc;
+package com.github.pareronia.aoc.itertools;
 
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.Test;
+
+import com.github.pareronia.aoc.Utils;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
-
-import org.junit.jupiter.api.Test;
-
-import com.github.pareronia.aoc.IterTools.ProductPair;
-import com.github.pareronia.aoc.IterTools.WindowPair;
-import com.github.pareronia.aoc.IterTools.ZippedPair;
 
 public class IterToolsTestCase {
 
@@ -117,13 +115,13 @@ public class IterToolsTestCase {
    }
     
     @Test
-    public void windows() {
-        final Iterator<WindowPair<Integer>> windows
-                = IterTools.windows(List.of(1, 2, 3, 4));
-        assertThat(windows.next()).isEqualTo(new WindowPair<>(1, 2));
-        assertThat(windows.next()).isEqualTo(new WindowPair<>(2, 3));
-        assertThat(windows.next()).isEqualTo(new WindowPair<>(3, 4));
-        assertThat(windows.hasNext()).isFalse();
+    public void pairwise() {
+    	final Iterator<Pair<Integer>> windows
+    			= IterTools.pairwise(List.of(1, 2, 3, 4).stream());
+    	assertThat(windows.next()).isEqualTo(new Pair<>(1, 2));
+    	assertThat(windows.next()).isEqualTo(new Pair<>(2, 3));
+    	assertThat(windows.next()).isEqualTo(new Pair<>(3, 4));
+    	assertThat(windows.hasNext()).isFalse();
     }
     
     @Test

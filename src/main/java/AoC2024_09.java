@@ -1,14 +1,14 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.IterTools.enumerateFrom;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.PriorityQueue;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerateFrom;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.PriorityQueue;
 
 public final class AoC2024_09
         extends SolutionBase<int[], Long, Long> {
@@ -56,7 +56,7 @@ public final class AoC2024_09
         long ans = 0;
         for (int j = files.size() - 1; j >= 0; j--) {
             final File file = files.get(j);
-            enumerateFrom(file.size, freeBySize.stream().skip(file.size))
+            enumerateFrom(file.size, freeBySize.stream().skip(file.size)).stream()
                 .filter(e -> !e.value().isEmpty())
                 .min((e1, e2) -> Integer.compare(e1.value().peek(), e2.value().peek()))
                 .filter(e -> e.value().peek() < file.pos)

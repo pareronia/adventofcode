@@ -1,16 +1,16 @@
 import static com.github.pareronia.aoc.AssertUtils.unreachable;
-import static com.github.pareronia.aoc.IterTools.enumerate;
+import static com.github.pareronia.aoc.itertools.IterTools.enumerate;
 import static java.util.stream.Collectors.toList;
-
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
 public final class AoC2015_01
         extends SolutionBase<List<AoC2015_01.Direction>, Integer, Integer> {
@@ -51,7 +51,7 @@ public final class AoC2015_01
                 return sum != -1;
             }
         };
-        return enumerate(input.stream())
+        return enumerate(input).stream()
             .dropWhile(e -> dropCondition.test(e.value()))
             .map(e -> e.index() + 1)
             .findFirst().orElseThrow();
