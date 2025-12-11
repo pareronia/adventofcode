@@ -1,3 +1,4 @@
+import static com.github.pareronia.aoc.IntegerSequence.Range.range;
 import static com.github.pareronia.aoc.Utils.toAString;
 import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 
@@ -8,6 +9,11 @@ import com.github.pareronia.aoc.Utils;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
+
+import org.ojalgo.optimisation.Expression;
+import org.ojalgo.optimisation.ExpressionsBasedModel;
+import org.ojalgo.optimisation.Optimisation.Result;
+import org.ojalgo.optimisation.Variable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,13 +56,49 @@ public final class AoC2025_10 extends SolutionBase<List<AoC2025_10.Machine>, Lon
     }
 
     @Override
+    @SuppressWarnings({
+        "PMD.AssignmentInOperand",
+        "PMD.AvoidInstantiatingObjectsInLoops",
+        "PMD.AvoidLiteralsInIfCondition"
+    })
     public Long solvePart2(final List<Machine> machines) {
-        return 0L;
+        long ans = 0L;
+        for (final Machine machine : machines) {
+            final int vars = machine.presses().size();
+            final int targets = machine.joltages().length;
+            final double[][] a = new double[targets][vars];
+            range(vars).stream()
+                    .forEach(
+                            c -> Arrays.stream(machine.presses().get(c)).forEach(p -> a[p][c] = 1));
+            final ExpressionsBasedModel model = new ExpressionsBasedModel();
+            final List<Variable> variables =
+                    range(vars).stream()
+                            .map(c -> model.newVariable("x" + c).lower(0).integer().weight(1))
+                            .toList();
+            range(targets).stream()
+                    .forEach(
+                            r -> {
+                                final Expression constraint =
+                                        model.newExpression("c" + r).level(machine.joltages()[r]);
+                                for (int c = 0; c < vars; c++) {
+                                    if (a[r][c] != 0d) {
+                                        constraint.set(variables.get(c), a[r][c]);
+                                    }
+                                }
+                            });
+            final Result result = model.minimise();
+            ans +=
+                    range(vars)
+                            .intStream()
+                            .mapToLong(c -> Math.round(result.get(c).doubleValue()))
+                            .sum();
+        }
+        return ans;
     }
 
     @Samples({
         @Sample(method = "part1", input = TEST, expected = "7"),
-        @Sample(method = "part2", input = TEST, expected = "0"),
+        @Sample(method = "part2", input = TEST, expected = "33"),
     })
     public static void main(final String[] args) throws Exception {
         create().run();
