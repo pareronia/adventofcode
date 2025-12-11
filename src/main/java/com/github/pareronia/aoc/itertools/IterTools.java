@@ -47,6 +47,10 @@ public final class IterTools {
         return pairwise(stream.iterator());
     }
 
+    public static <T> IterToolsIterator<Pair<T>> pairwise(final Iterable<T> iterable) {
+        return asIterToolsIterator(Pairwise.pairwise(iterable.iterator()));
+    }
+
     public static <T> IterToolsIterator<Pair<T>> pairwise(final Iterator<T> iterator) {
         return asIterToolsIterator(Pairwise.pairwise(iterator));
     }
