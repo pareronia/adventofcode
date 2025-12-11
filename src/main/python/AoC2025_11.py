@@ -3,20 +3,17 @@
 # Advent of Code 2025 Day 11
 #
 
+import itertools
 import sys
-from collections import defaultdict
-from collections import deque
+from dataclasses import dataclass
 from functools import cache
+from math import prod
 from pathlib import Path
+from typing import Self
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-
-Input = InputData
-Output1 = int
-Output2 = int
-
 
 TEST1 = """\
 aaa: you hhh
@@ -47,53 +44,60 @@ hhh: out
 """
 
 
-class Solution(SolutionBase[Input, Output1, Output2]):
-    def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+@dataclass(frozen=True)
+class Graph:
+    edges: dict[str, set[str]]
 
-    def part_1(self, inputs: Input) -> Output1:
-        edges = defaultdict[str, set[str]](set)
-        for line in inputs:
-            from_, *to = line.split()
-            edges[from_[:-1]] |= set(to)
-        paths = set[tuple[str, ...]]()
-        q = deque([["you"]])
-        while q:
-            path = q.pop()
-            if path[-1] == "out":
-                paths.add(tuple(path))
-            for nxt in edges[path[-1]]:
-                q.append([*path, nxt])
-        return len(paths)
+    @classmethod
+    def from_input(cls, inputs: InputData) -> Self:
+        return cls(
+            {
+                from_[:-1]: set(to)
+                for from_, *to in (line.split() for line in inputs)
+            }
+        )
 
-    def output_graph(self, edges: dict[str, set[str]]) -> None:
+    def count_all_paths_along(self, along: list[str]) -> int:
+        def count_all_paths(start: str, end: str) -> int:
+            @cache
+            def dfs(node: str) -> int:
+                if node == end:
+                    return 1
+                return sum(dfs(nxt) for nxt in self.edges.get(node, set()))
+
+            return dfs(start)
+
+        return prod(
+            count_all_paths(n1, n2) for n1, n2 in itertools.pairwise(along)
+        )
+
+    def output_graph(self) -> None:
         with Path("~/tmp/2025_11.dot").open("w") as f:
             f.write("digraph G {\n")
             f.write('fft [style="filled" fillcolor=red]\n')
             f.write('dac [style="filled" fillcolor=red]\n')
-            for k, vv in edges.items():
+            for k, vv in self.edges.items():
                 for v in vv:  # noqa:FURB122
                     f.write(f"{k} -> {v}\n")
             f.write("}\n")
 
-    def part_2(self, inputs: Input) -> Output2:
-        edges = defaultdict[str, set[str]](set)
-        for line in inputs:
-            from_, *to = line.split()
-            edges[from_[:-1]] |= set(to)
 
-        @cache
-        def dfs(state: tuple[str, bool, bool]) -> int:
-            if state == ("out", True, True):
-                return 1
-            node, seen_fft, seen_dac = state
-            if node == "fft":
-                return sum(dfs((nxt, True, seen_dac)) for nxt in edges[node])
-            if node == "dac":
-                return sum(dfs((nxt, seen_fft, True)) for nxt in edges[node])
-            return sum(dfs((nxt, seen_fft, seen_dac)) for nxt in edges[node])
+Input = Graph
+Output1 = int
+Output2 = int
 
-        return dfs(("svr", False, False))
+
+class Solution(SolutionBase[Input, Output1, Output2]):
+    def parse_input(self, input_data: InputData) -> Input:
+        return Graph.from_input(input_data)
+
+    def part_1(self, graph: Graph) -> Output1:
+        return graph.count_all_paths_along(["you", "out"])
+
+    def part_2(self, graph: Graph) -> Output2:
+        return graph.count_all_paths_along(
+            ["svr", "dac", "fft", "out"]
+        ) + graph.count_all_paths_along(["svr", "fft", "dac", "out"])
 
     @aoc_samples(
         (
