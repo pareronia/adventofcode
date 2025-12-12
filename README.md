@@ -2,14 +2,14 @@
 
 ## 2025
 
-![](https://img.shields.io/badge/stars%20⭐-22-yellow)
-![](https://img.shields.io/badge/days%20completed-11-red)
+![](https://img.shields.io/badge/stars%20⭐-24-yellow)
+![](https://img.shields.io/badge/days%20completed-12-red)
 
 <!-- @BEGIN:ImplementationsTable:2025@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | python3 | [✓](src/main/python/AoC2025_01.py) | [✓](src/main/python/AoC2025_02.py) | [✓](src/main/python/AoC2025_03.py) | [✓](src/main/python/AoC2025_04.py) | [✓](src/main/python/AoC2025_05.py) | [✓](src/main/python/AoC2025_06.py) | [✓](src/main/python/AoC2025_07.py) | [✓](src/main/python/AoC2025_08.py) | [✓](src/main/python/AoC2025_09.py) | [✓](src/main/python/AoC2025_10.py) | [✓](src/main/python/AoC2025_11.py) |  |
-| java | [✓](src/main/java/AoC2025_01.java) | [✓](src/main/java/AoC2025_02.java) | [✓](src/main/java/AoC2025_03.java) | [✓](src/main/java/AoC2025_04.java) | [✓](src/main/java/AoC2025_05.java) | [✓](src/main/java/AoC2025_06.java) | [✓](src/main/java/AoC2025_07.java) | [✓](src/main/java/AoC2025_08.java) | [✓](src/main/java/AoC2025_09.java) | [✓](src/main/java/AoC2025_10.java) | [✓](src/main/java/AoC2025_11.java) |  |
+| java | [✓](src/main/java/AoC2025_01.java) | [✓](src/main/java/AoC2025_02.java) | [✓](src/main/java/AoC2025_03.java) | [✓](src/main/java/AoC2025_04.java) | [✓](src/main/java/AoC2025_05.java) | [✓](src/main/java/AoC2025_06.java) | [✓](src/main/java/AoC2025_07.java) | [✓](src/main/java/AoC2025_08.java) | [✓](src/main/java/AoC2025_09.java) | [✓](src/main/java/AoC2025_10.java) | [✓](src/main/java/AoC2025_11.java) | [✓](src/main/java/AoC2025_12.java) |
 | bash | [✓](src/main/bash/AoC2025_01.sh) | [✓](src/main/bash/AoC2025_02.sh) | [✓](src/main/bash/AoC2025_03.sh) | [✓](src/main/bash/AoC2025_04.sh) | [✓](src/main/bash/AoC2025_05.sh) | [✓](src/main/bash/AoC2025_06.sh) | [✓](src/main/bash/AoC2025_07.sh) |  |  |  | [✓](src/main/bash/AoC2025_11.sh) |  |
 <!-- @END:ImplementationsTable:2025@ -->
 
