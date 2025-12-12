@@ -40,3 +40,6 @@ def is_valid_day(year: int, day: int) -> bool:
     if year == aoc_now.year:
         return valid_day and day <= aoc_now.day
     return valid_day
+
+def competitive_years() -> list[int]:
+    return [2020, 2021, 2022, 2023, 2024, 2025]

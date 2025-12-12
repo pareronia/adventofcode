@@ -147,7 +147,8 @@ def get_summary() -> Summary:
         return stats.rank_both
 
     leaderboards = {
-        year: get_leaderboard(year) for year in tqdm([2020, 2021, 2022, 2023])
+        year: get_leaderboard(year)
+        for year in tqdm(calendar.competitive_years())
     }
     for year, leaderboard in leaderboards.items():
         for day, stats in leaderboard.items():
@@ -173,6 +174,7 @@ def get_summary() -> Summary:
             (year, day, stats)
             for year, leaderboard in leaderboards.items()
             for day, stats in leaderboard.items()
+            if calendar.is_ranked_year(year)
         ),
         key=lambda x: rank_first(x[2]),
     )
@@ -181,8 +183,31 @@ def get_summary() -> Summary:
             (year, day, stats)
             for year, leaderboard in leaderboards.items()
             for day, stats in leaderboard.items()
+            if calendar.is_ranked_year(year)
         ),
         key=lambda x: rank_both(x[2]),
+    )
+    best_avg_time_first = min(
+        (
+            (
+                year,
+                sum(time_first(stats) for stats in leaderboard.values())
+                // calendar.get_days(year),
+            )
+            for year, leaderboard in leaderboards.items()
+        ),
+        key=lambda x: x[1],
+    )
+    best_avg_time_both = min(
+        (
+            (
+                year,
+                sum(time_both(stats) for stats in leaderboard.values())
+                // calendar.get_days(year),
+            )
+            for year, leaderboard in leaderboards.items()
+        ),
+        key=lambda x: x[1],
     )
     return Summary(
         (
@@ -205,4 +230,6 @@ def get_summary() -> Summary:
             best_rank_both[1],
             rank_both(best_rank_both[2]),
         ),
+        best_avg_time_first,
+        best_avg_time_both
     )

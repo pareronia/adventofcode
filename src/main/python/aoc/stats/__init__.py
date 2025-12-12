@@ -26,3 +26,5 @@ class Summary(NamedTuple):
     best_rank_first: tuple[int, int, int]
     best_time_both: tuple[int, int, int]
     best_rank_both: tuple[int, int, int]
+    best_avg_time_first: tuple[int, int]
+    best_avg_time_both: tuple[int, int]
