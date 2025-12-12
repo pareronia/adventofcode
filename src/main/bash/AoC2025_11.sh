@@ -53,15 +53,17 @@ part1() {
 
 part2() {
     create_graph "$1"
-    local -i ans1=1
-    ((ans1 *= $(count_all_paths "svr" "dac")))
-    ((ans1 *= $(count_all_paths "dac" "fft")))
-    ((ans1 *= $(count_all_paths "fft" "out")))
-    local -i ans2=1
-    ((ans2 *= $(count_all_paths "svr" "fft")))
-    ((ans2 *= $(count_all_paths "fft" "dac")))
-    ((ans2 *= $(count_all_paths "dac" "out")))
-    echo $((ans1 + ans2))
+    local -i dac2fft
+    dac2fft=$(count_all_paths "dac" "fft")
+    if ((dac2fft == 0)); then
+        echo $(($(count_all_paths "svr" "fft") * \
+        $(count_all_paths "fft" "dac") * \
+        $(count_all_paths "dac" "out")))
+    else
+        echo $(($(count_all_paths "svr" "dac") * \
+        dac2fft * \
+        $(count_all_paths "fft" "out")))
+    fi
     return 0
 }
 
