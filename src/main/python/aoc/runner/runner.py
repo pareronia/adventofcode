@@ -306,7 +306,7 @@ def run_for(
             listener.puzzle_finished_with_error(time, walltime, error)
         else:
             for result, part in zip((result_a, result_b), "ab", strict=True):
-                if day == 25 and part == "b":
+                if day == calendar.get_days(year) and part == "b":
                     # there's no part b on christmas day, skip
                     continue
                 if result.is_missing:
