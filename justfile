@@ -27,6 +27,7 @@ test_source_dir := "src/test/python"
 
 # commands
 
+bash := "bash"
 bazel := "bazel"
 cargo := "RUSTFLAGS='-C target-cpu=native' cargo"
 grep := "grep"
@@ -65,7 +66,7 @@ vim-file-run-dev file *type:
             LOGLEVEL="DEBUG" {{ python_debug }} "{{ file }}"
             ;;
         "sh")
-            DEBUG=1 "{{ file }}"
+            DEBUG=1 {{ bash }} "{{ file }}"
             ;;
         "julia")
             JULIA_DEBUG="{{ file_stem(file) }}" {{ julia }} "{{ file }}"
@@ -88,7 +89,7 @@ vim-file-run file *type:
             {{ python }} "{{ file }}"
             ;;
         "sh")
-            "{{ file }}"
+            {{ bash }} "{{ file }}"
             ;;
         "julia")
             {{ julia }} "{{ file }}"
@@ -185,7 +186,7 @@ java year day:
 # Run bash
 [group("bash")]
 bash year day:
-    @./$({{ python }} -c 'year={{ year }};day={{ day }};print(f"{{ bash_source_dir }}/AoC{year}_{day:0>2}.sh")')
+    @{{ bash }} $({{ python }} -c 'year={{ year }};day={{ day }};print(f"{{ bash_source_dir }}/AoC{year}_{day:0>2}.sh")')
 
 # Run c++
 [group("c++")]
