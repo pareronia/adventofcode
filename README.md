@@ -5,6 +5,8 @@
 ![](https://img.shields.io/badge/stars%20⭐-24-yellow)
 ![](https://img.shields.io/badge/days%20completed-12-red)
 
+![2025 Calendar](doc/aoc2025.jpg "2025 Calendar")
+
 <!-- @BEGIN:ImplementationsTable:2025@ -->
 | | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 |
 | ---| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
