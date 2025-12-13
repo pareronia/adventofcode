@@ -1,77 +1,74 @@
-import static java.util.stream.Collectors.toList;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
-import com.github.pareronia.aoc.Utils;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
+public final class AoC2020_15 extends SolutionBase<List<Integer>, Integer, Integer> {
 
-public class AoC2020_15 extends AoCBase {
-	
-	private final List<Integer> numbers;
-	
-	private AoC2020_15(final List<String> input, final boolean debug) {
-		super(debug);
-		assert input.size() == 1;
-		this.numbers = Stream.of(input.get(0).split(",")).map(Integer::valueOf).collect(toList());
-	}
-	
-	public static AoC2020_15 create(final List<String> input) {
-		return new AoC2020_15(input, false);
-	}
+    private AoC2020_15(final boolean debug) {
+        super(debug);
+    }
 
-	public static AoC2020_15 createDebug(final List<String> input) {
-		return new AoC2020_15(input, true);
-	}
-	
-	private int play(final int numberOfTurns) {
-	    final int[] last = new int[numberOfTurns];
-	    Arrays.fill(last, -1);
-	    for (int i = 0; i < this.numbers.size() - 1; i++) {
-	        last[this.numbers.get(i)] = i + 1;
-	    }
-	    int prev = Utils.last(this.numbers);
-	    for (int i = this.numbers.size(); i < numberOfTurns; i++) {
-	        final int prevPrev = last[prev];
-	        last[prev] = i;
-	        prev = prevPrev == -1 ? 0 : i - prevPrev;
-	    }
-	    return prev;
-	}
-	
-	@Override
-	public Integer solvePart1() {
-		return play(2020);
-	}
-	
-	@Override
-	public Integer solvePart2() {
-		return play(30_000_000);
-	}
+    public static AoC2020_15 create() {
+        return new AoC2020_15(false);
+    }
 
-	public static void main(final String[] args) throws Exception {
-		assert AoC2020_15.createDebug(splitLines("0,3,6")).solvePart1() == 436;
-		assert AoC2020_15.createDebug(splitLines("1,3,2")).solvePart1() == 1;
-		assert AoC2020_15.createDebug(splitLines("2,1,3")).solvePart1() == 10;
-		assert AoC2020_15.createDebug(splitLines("1,2,3")).solvePart1() == 27;
-		assert AoC2020_15.createDebug(splitLines("2,3,1")).solvePart1() == 78;
-		assert AoC2020_15.createDebug(splitLines("3,2,1")).solvePart1() == 438;
-		assert AoC2020_15.createDebug(splitLines("3,1,2")).solvePart1() == 1836;
-		assert AoC2020_15.createDebug(splitLines("0,3,6")).solvePart2() == 175594;
-		assert AoC2020_15.createDebug(splitLines("1,3,2")).solvePart2() == 2578;
-		assert AoC2020_15.createDebug(splitLines("2,1,3")).solvePart2() == 3544142;
-		assert AoC2020_15.createDebug(splitLines("1,2,3")).solvePart2() == 261214;
-		assert AoC2020_15.createDebug(splitLines("2,3,1")).solvePart2() == 6895259;
-		assert AoC2020_15.createDebug(splitLines("3,2,1")).solvePart2() == 18;
-		assert AoC2020_15.createDebug(splitLines("3,1,2")).solvePart2() == 362;
+    public static AoC2020_15 createDebug() {
+        return new AoC2020_15(true);
+    }
 
-        final Puzzle puzzle = Aocd.puzzle(2020, 15);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", () -> AoC2020_15.create(inputData).solvePart1()),
-            () -> lap("Part 2", () -> AoC2020_15.create(inputData).solvePart2())
-        );
-	}
+    @Override
+    protected List<Integer> parseInput(final List<String> inputs) {
+        return Stream.of(inputs.getFirst().split(",")).map(Integer::valueOf).toList();
+    }
+
+    private int play(final List<Integer> numbers, final int numberOfTurns) {
+        final int[] last = new int[numberOfTurns];
+        Arrays.fill(last, -1);
+        for (int i = 0; i < numbers.size() - 1; i++) {
+            last[numbers.get(i)] = i + 1;
+        }
+        int prev = numbers.getLast();
+        for (int i = numbers.size(); i < numberOfTurns; i++) {
+            final int prevPrev = last[prev];
+            last[prev] = i;
+            prev = prevPrev == -1 ? 0 : i - prevPrev;
+        }
+        return prev;
+    }
+
+    @Override
+    public Integer solvePart1(final List<Integer> numbers) {
+        return play(numbers, 2020);
+    }
+
+    @Override
+    public Integer solvePart2(final List<Integer> numbers) {
+        return play(numbers, 30_000_000);
+    }
+
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
+    @Samples({
+        @Sample(method = "part1", input = "0,3,6", expected = "436"),
+        @Sample(method = "part1", input = "1,3,2", expected = "1"),
+        @Sample(method = "part1", input = "2,1,3", expected = "10"),
+        @Sample(method = "part1", input = "1,2,3", expected = "27"),
+        @Sample(method = "part1", input = "2,3,1", expected = "78"),
+        @Sample(method = "part1", input = "3,2,1", expected = "438"),
+        @Sample(method = "part1", input = "3,1,2", expected = "1836"),
+        @Sample(method = "part2", input = "0,3,6", expected = "175594"),
+        @Sample(method = "part2", input = "1,3,2", expected = "2578"),
+        @Sample(method = "part2", input = "2,1,3", expected = "3544142"),
+        @Sample(method = "part2", input = "1,2,3", expected = "261214"),
+        @Sample(method = "part2", input = "2,3,1", expected = "6895259"),
+        @Sample(method = "part2", input = "3,2,1", expected = "18"),
+        @Sample(method = "part2", input = "3,1,2", expected = "362"),
+    })
+    public static void main(final String[] args) throws Exception {
+        create().run();
+    }
 }

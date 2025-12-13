@@ -1,6 +1,12 @@
+import static com.github.pareronia.aoc.StringOps.toBlocks;
 import static com.github.pareronia.aoc.Utils.asCharacterStream;
-import static com.github.pareronia.aoc.Utils.last;
-import static java.util.stream.Collectors.toList;
+
+import com.github.pareronia.aoc.Grid.Cell;
+import com.github.pareronia.aoc.geometry.Direction;
+import com.github.pareronia.aoc.geometry.Turn;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
 
 import java.util.HashMap;
 import java.util.List;
@@ -8,91 +14,89 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
-import com.github.pareronia.aoc.Grid.Cell;
-import com.github.pareronia.aoc.geometry.Direction;
-import com.github.pareronia.aoc.geometry.Turn;
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage", "PMD.GodClass"})
+public final class AoC2022_22 extends SolutionBase<AoC2022_22.Input, Integer, Integer> {
 
-public class AoC2022_22 extends AoCBase {
-
-    private static final Pattern REGEX = Pattern.compile("([LR])([0-9]+)");
     private static final char WALL = '#';
-    
-    private final List<String> grid;
-    private final List<Move> moves;
-    private final Cell start;
-    
-    private AoC2022_22(final List<String> input, final boolean debug) {
+
+    private AoC2022_22(final boolean debug) {
         super(debug);
-        final List<List<String>> blocks = toBlocks(input);
-        this.grid = blocks.get(0);
-        this.moves = REGEX.matcher("R" + blocks.get(1).get(0)).results()
-            .map(r -> new Move(
-                    Turn.fromString(r.group(1)), Integer.parseInt(r.group(2))))
-            .collect(toList());
-        trace(this.moves);
-        this.start = Cell.at(
-            0,
-            IntStream.range(0, this.grid.get(0).length())
-                .filter(i -> this.grid.get(0).charAt(i) != ' ')
-                .findFirst().orElseThrow());
-    }
-    
-    public static final AoC2022_22 create(final List<String> input) {
-        return new AoC2022_22(input, false);
     }
 
-    public static final AoC2022_22 createDebug(final List<String> input) {
-        return new AoC2022_22(input, true);
+    public static AoC2022_22 create() {
+        return new AoC2022_22(false);
     }
-    
+
+    public static AoC2022_22 createDebug() {
+        return new AoC2022_22(true);
+    }
+
+    @Override
+    protected Input parseInput(final List<String> inputs) {
+        return Input.fromInput(inputs);
+    }
+
     private int ans(final int row, final int col, final Direction facing) {
         return 1000 * (row + 1)
                 + 4 * (col + 1)
-                + List.of(Direction.RIGHT, Direction.DOWN,
-                          Direction.LEFT, Direction.UP).indexOf(facing);
+                + List.of(
+                                Direction.RIGHT, Direction.DOWN,
+                                Direction.LEFT, Direction.UP)
+                        .indexOf(facing);
     }
-    
+
     @Override
-    public Integer solvePart1() {
-        int row = this.start.getRow();
-        int col = this.start.getCol();
+    @SuppressWarnings({"PMD.CognitiveComplexity", "PMD.GuardLogStatement"})
+    public Integer solvePart1(final Input input) {
+        int row = input.start().getRow();
+        int col = input.start().getCol();
         trace(Cell.at(row, col));
         Direction facing = Direction.UP;
         final Map<Integer, List<Integer>> rowsCache = new HashMap<>();
         final Map<Integer, List<Integer>> colsCache = new HashMap<>();
-        for (final Move move : this.moves) {
+        for (final Move move : input.moves()) {
             facing = facing.turn(move.turn);
             for (int i = 0; i < move.steps; i++) {
                 final Cell moved = Cell.at(row, col).at(facing);
                 int rr = moved.getRow();
                 int cc = moved.getCol();
                 if (facing == Direction.UP || facing == Direction.DOWN) {
-                    final List<Integer> rows = rowsCache.computeIfAbsent(
-                            col ,
-                            c -> IntStream.range(0, this.grid.size())
-                                .filter(r -> c < this.grid.get(r).length())
-                                .filter(r -> this.grid.get(r).charAt(c) != ' ')
-                                .boxed().collect(toList()));
+                    final List<Integer> rows =
+                            rowsCache.computeIfAbsent(
+                                    col,
+                                    c ->
+                                            IntStream.range(0, input.grid().size())
+                                                    .filter(r -> c < input.grid().get(r).length())
+                                                    .filter(
+                                                            r ->
+                                                                    input.grid().get(r).charAt(c)
+                                                                            != ' ')
+                                                    .boxed()
+                                                    .toList());
                     if (rr < rows.get(0)) {
-                        rr = last(rows);
-                    } else if (rr > last(rows)) {
+                        rr = rows.getLast();
+                    } else if (rr > rows.getLast()) {
                         rr = rows.get(0);
                     }
                 } else {
-                    final List<Integer> cols = colsCache.computeIfAbsent(
-                            row,
-                            r -> IntStream.range(0, this.grid.get(r).length())
-                                .filter(c -> this.grid.get(r).charAt(c) != ' ')
-                                .boxed().collect(toList()));
+                    final List<Integer> cols =
+                            colsCache.computeIfAbsent(
+                                    row,
+                                    r ->
+                                            IntStream.range(0, input.grid().get(r).length())
+                                                    .filter(
+                                                            c ->
+                                                                    input.grid().get(r).charAt(c)
+                                                                            != ' ')
+                                                    .boxed()
+                                                    .toList());
                     if (cc < cols.get(0)) {
-                        cc = last(cols);
-                    } else if (cc > last(cols)) {
+                        cc = cols.getLast();
+                    } else if (cc > cols.getLast()) {
                         cc = cols.get(0);
                     }
                 }
-                if (this.grid.get(rr).charAt(cc) == WALL) {
+                if (input.grid().get(rr).charAt(cc) == WALL) {
                     break;
                 } else {
                     row = rr;
@@ -103,21 +107,28 @@ public class AoC2022_22 extends AoCBase {
         }
         return ans(row, col, facing);
     }
-    
+
     //  cube layout:  |1|2|
     //                |3|
     //              |4|5|
     //              |6|
     @Override
-    public Integer solvePart2() {
-        final long area = this.grid.stream()
-            .flatMap(line -> asCharacterStream(line).filter(ch -> ch != ' '))
-            .count();
+    @SuppressWarnings({
+        "PMD.NcssCount",
+        "PMD.NPathComplexity",
+        "PMD.CyclomaticComplexity",
+        "PMD.CognitiveComplexity"
+    })
+    public Integer solvePart2(final Input input) {
+        final long area =
+                input.grid().stream()
+                        .flatMap(line -> asCharacterStream(line).filter(ch -> ch != ' '))
+                        .count();
         final int size = (int) Math.sqrt(area / 6);
-        int row = this.start.getRow();
-        int col = this.start.getCol();
+        int row = input.start().getRow();
+        int col = input.start().getCol();
         Direction facing = Direction.UP;
-        for (final Move move : this.moves) {
+        for (final Move move : input.moves()) {
             facing = facing.turn(move.turn);
             for (int i = 0; i < move.steps; i++) {
                 final Cell moved = Cell.at(row, col).at(facing);
@@ -164,12 +175,15 @@ public class AoC2022_22 extends AoCBase {
                     rr = 3 * size - 1 - rr;
                     cc = size;
                     ff = Direction.RIGHT;
-                } else if (rr < 2 * size && 0 <= cc && cc < size && ff ==  Direction.UP) {
+                } else if (rr < 2 * size && 0 <= cc && cc < size && ff == Direction.UP) {
                     // top edge 4
                     rr = cc + size;
                     cc = size;
                     ff = Direction.RIGHT;
-                } else if (cc == 2 * size && 2 * size <= rr && rr < 3 * size && ff == Direction.RIGHT) {
+                } else if (cc == 2 * size
+                        && 2 * size <= rr
+                        && rr < 3 * size
+                        && ff == Direction.RIGHT) {
                     // right edge 5
                     rr = 3 * size - 1 - rr;
                     cc = 3 * size - 1;
@@ -195,7 +209,7 @@ public class AoC2022_22 extends AoCBase {
                     cc += 2 * size;
                     ff = Direction.DOWN;
                 }
-                if (this.grid.get(rr).charAt(cc) == WALL) {
+                if (input.grid().get(rr).charAt(cc) == WALL) {
                     break;
                 } else {
                     row = rr;
@@ -207,34 +221,58 @@ public class AoC2022_22 extends AoCBase {
         return ans(row, col, facing);
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "6032"),
+        //    	@Sample(method = "part2",input=TEST,expected = "0"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2022_22.createDebug(TEST).solvePart1() == 6032;
-//        assert AoC2022_22.createDebug(TEST).solvePart2() == 0;
-
-        final Puzzle puzzle = Aocd.puzzle(2022, 22);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2022_22.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2022_22.create(inputData)::solvePart2)
-        );
+        create().run();
     }
 
-    private static final List<String> TEST = splitLines(
-        "        ...#\r\n" +
-        "        .#..\r\n" +
-        "        #...\r\n" +
-        "        ....\r\n" +
-        "...#.......#\r\n" +
-        "........#...\r\n" +
-        "..#....#....\r\n" +
-        "..........#.\r\n" +
-        "        ...#....\r\n" +
-        "        .....#..\r\n" +
-        "        .#......\r\n" +
-        "        ......#.\r\n" +
-        "\r\n" +
-        "10R5L5R10L4R5L5"
-    );
-    
+    private static final String TEST =
+            """
+                    ...#
+                    .#..
+                    #...
+                    ....
+            ...#.......#
+            ........#...
+            ..#....#....
+            ..........#.
+                    ...#....
+                    .....#..
+                    .#......
+                    ......#.
+
+            10R5L5R10L4R5L5
+            """;
+
     record Move(Turn turn, int steps) {}
+
+    record Input(List<String> grid, List<Move> moves, Cell start) {
+
+        private static final Pattern REGEX = Pattern.compile("([LR])([0-9]+)");
+
+        public static Input fromInput(final List<String> input) {
+            final List<List<String>> blocks = toBlocks(input);
+            final List<String> grid = blocks.get(0);
+            final List<Move> moves =
+                    REGEX.matcher("R" + blocks.get(1).get(0))
+                            .results()
+                            .map(
+                                    r ->
+                                            new Move(
+                                                    Turn.fromString(r.group(1)),
+                                                    Integer.parseInt(r.group(2))))
+                            .toList();
+            final Cell start =
+                    Cell.at(
+                            0,
+                            IntStream.range(0, grid.get(0).length())
+                                    .filter(i -> grid.get(0).charAt(i) != ' ')
+                                    .findFirst()
+                                    .orElseThrow());
+            return new Input(grid, moves, start);
+        }
+    }
 }

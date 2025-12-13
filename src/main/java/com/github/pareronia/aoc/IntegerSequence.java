@@ -9,15 +9,19 @@ import java.util.List;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-public class IntegerSequence {
-    
-    public static class Range implements Iterable<Integer> {
+@SuppressWarnings("PMD.MissingStaticMethodInNonInstantiatableClass")
+public final class IntegerSequence {
+
+    private IntegerSequence() {}
+
+    public static final class Range implements Iterable<Integer> {
         private final int from;
         private final int to;
         private final int step;
         private int minimum;
         private int maximum;
-        
+
+        @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
         private Range(final int from, final int to, final int step) {
             assertTrue(step != 0, () -> "step should be != 0");
             assertFalse(from < to && step < 0, () -> "step should be > 0");
@@ -28,12 +32,12 @@ public class IntegerSequence {
             if (from != to) {
                 if (Math.abs(step) == 1) {
                     this.minimum = from < to ? from : to + 1;
-                    this.maximum = from < to ? to - 1: from;
+                    this.maximum = from < to ? to - 1 : from;
                 } else {
-                    //FIXME too slow
+                    // FIXME too slow
                     final List<Integer> list = this.stream().collect(toList());
-                    this.minimum = from < to ? list.get(0) : Utils.last(list);
-                    this.maximum = from < to ? Utils.last(list) : list.get(0);
+                    this.minimum = from < to ? list.get(0) : list.getLast();
+                    this.maximum = from < to ? list.getLast() : list.get(0);
                 }
             }
         }
@@ -42,37 +46,37 @@ public class IntegerSequence {
             assertTrue(to > 0, () -> "to should be > 0");
             return new Range(0, to, 1);
         }
-        
+
         public static Range rangeClosed(final int to) {
             assertTrue(to > 0, () -> "to should be > 0");
             return new Range(0, to + 1, 1);
         }
-        
+
         public static Range range(final int from, final int to, final int step) {
             return new Range(from, to, step);
         }
-        
+
         public static Range rangeClosed(final int from, final int to, final int step) {
-            return new Range(from, from == to ? to + 1 : (from < to ? to + 1 : to - 1), step);
+            return new Range(from, from == to ? to + 1 : from < to ? to + 1 : to - 1, step);
         }
-        
+
         public static Range between(final int fromInclusive, final int toInclusive) {
             final int step = fromInclusive > toInclusive ? -1 : 1;
-            return Range.rangeClosed(fromInclusive, toInclusive, step);
+            return rangeClosed(fromInclusive, toInclusive, step);
         }
-        
+
         public int getMinimum() {
             return minimum;
         }
-        
+
         public int getMaximum() {
             return maximum;
         }
-        
+
         public Stream<Integer> stream() {
             return Utils.stream(iterator());
         }
-        
+
         public IntStream intStream() {
             final Iterator<Integer> iterator = iterator();
             return IntStream.generate(() -> 0)
@@ -84,14 +88,10 @@ public class IntegerSequence {
         public Iterator<Integer> iterator() {
             return new Iterator<>() {
                 int n = from;
-                
+
                 @Override
                 public boolean hasNext() {
-                    if (from < to) {
-                        return to > n;
-                    } else {
-                        return to < n;
-                    }
+                    return from < to ? to > n : to < n;
                 }
 
                 @Override
@@ -105,9 +105,14 @@ public class IntegerSequence {
 
         @Override
         public String toString() {
-            final StringBuilder builder = new StringBuilder();
-            builder.append("Range [from=").append(from).append(", to=")
-                    .append(to).append(", step=").append(step).append("]");
+            final StringBuilder builder = new StringBuilder(50);
+            builder.append("Range [from=")
+                    .append(from)
+                    .append(", to=")
+                    .append(to)
+                    .append(", step=")
+                    .append(step)
+                    .append(']');
             return builder.toString();
         }
     }

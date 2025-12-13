@@ -34,10 +34,6 @@ public class Utils {
                 .map(n -> iterator.next());
     }
 	
-    public static <T> T last(final List<T> list) {
-        return Utils.last(list, 1);
-    }
-    
     public static <T> T last(final List<T> list, final int index) {
         return Objects.requireNonNull(list).get(list.size() - index);
     }
