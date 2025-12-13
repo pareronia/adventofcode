@@ -2,15 +2,15 @@ package com.github.pareronia.aocd;
 
 import static java.util.Comparator.comparing;
 
+import com.github.pareronia.aocd.Puzzle.FailDecider.Status;
+import com.github.pareronia.aocd.Runner.Request;
+import com.github.pareronia.aocd.Runner.Response.Part;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-
-import com.github.pareronia.aocd.Puzzle.FailDecider.Status;
-import com.github.pareronia.aocd.Runner.Request;
-import com.github.pareronia.aocd.Runner.Response.Part;
 
 public class MultipleDaysRunner {
     
@@ -21,7 +21,8 @@ public class MultipleDaysRunner {
             Day.at(2021, 2),
             Day.at(2021, 3),
             Day.at(2021, 23),
-            Day.at(2021, 25)
+            Day.at(2021, 25),
+            Day.at(2025, 12)
     );
     
     private final SystemUtils systemUtils = new SystemUtils();
@@ -64,7 +65,7 @@ public class MultipleDaysRunner {
 	    final String result1 = Optional.ofNullable(response.getPart1())
 	            .map(Part::getAnswer).orElse(null);
 	    listener.result(puzzle, 1, puzzle.answer1(), result1);
-	    if (puzzle.day() == 25) {
+	    if (puzzle.day() == 25 || puzzle.year() >= 2025 && puzzle.day() == 12) {
 	        return;
 	    }
 	    final String result2 = Optional.ofNullable(response.getPart2())
