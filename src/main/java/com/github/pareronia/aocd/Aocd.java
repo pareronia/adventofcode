@@ -24,20 +24,11 @@ SOFTWARE.
 package com.github.pareronia.aocd;
 
 import java.time.ZoneId;
-import java.util.List;
 
 public class Aocd {
 	
 	public static final ZoneId AOC_TZ = ZoneId.of("America/New_York");
 	
-	@Deprecated
-	public static List<String> getData(final Integer year, final Integer day) {
-	    return Puzzle.builder()
-	            .year(year).day(day).user(User.getDefaultUser())
-	            .build()
-	            .inputData();
-	}
-
 	@Deprecated
 	public static Puzzle puzzle(final Integer year, final Integer day) {
 		return Puzzle.builder()
