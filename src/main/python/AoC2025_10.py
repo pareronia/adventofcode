@@ -5,16 +5,14 @@
 
 import itertools
 import sys
+from collections.abc import Iterable
+from dataclasses import dataclass
+from functools import cache
+from typing import Self
 
 from aoc.common import InputData
 from aoc.common import SolutionBase
 from aoc.common import aoc_samples
-from aoc.common import log
-
-Input = InputData
-Output1 = int
-Output2 = int
-
 
 TEST = """\
 [.##.] (3) (1,3) (2) (2,3) (0,2) (0,1) {3,5,4,7}
@@ -23,56 +21,99 @@ TEST = """\
 """
 
 
+def parity(nums: Iterable[int]) -> tuple[int, ...]:
+    return tuple(n % 2 for n in nums)
+
+
+@dataclass
+class Machine:
+    lights: tuple[int, ...]
+    joltages: tuple[int, ...]
+    patterns: dict[tuple[int, ...], dict[tuple[int, ...], int]]
+
+    @classmethod
+    def from_input(cls, line: str) -> Self:
+        ll, *pp, jj = line.split()
+        lights = tuple(1 if ch == "#" else 0 for ch in ll[1:-1])
+        presses = tuple(tuple(int(x) for x in p[1:-1].split(",")) for p in pp)
+        joltages = tuple(int(j) for j in jj[1:-1].split(","))
+        return cls(
+            lights, joltages, cls.create_patterns(lights, joltages, presses)
+        )
+
+    @classmethod
+    def create_patterns(
+        cls,
+        lights: tuple[int, ...],
+        joltages: tuple[int, ...],
+        presses: tuple[tuple[int, ...], ...],
+    ) -> dict[tuple[int, ...], dict[tuple[int, ...], int]]:
+        num_buttons = len(presses)
+        num_variables = len(joltages)
+        assert num_variables == len(lights)
+        patterns: dict[tuple[int, ...], dict[tuple[int, ...], int]] = {
+            parity_pattern: {}
+            for parity_pattern in itertools.product(
+                range(2), repeat=num_variables
+            )
+        }
+        for n in range(num_buttons + 1):
+            for combo in itertools.combinations(range(num_buttons), n):
+                pattern = [0] * num_variables
+                for idx in combo:
+                    for p in presses[idx]:
+                        pattern[p] += 1
+                key = tuple(pattern)
+                parity_pattern = parity(key)
+                if key not in patterns[parity_pattern]:
+                    patterns[parity_pattern][key] = n
+        return patterns
+
+    def button_presses_for_lights(self) -> int:
+        return min(self.patterns[self.lights].values())
+
+    def button_presses_for_joltages(self) -> int:
+        @cache
+        def dfs(joltages: tuple[int, ...]) -> int:
+            if all(j == 0 for j in joltages):
+                return 0
+            return min(
+                (
+                    dfs(
+                        tuple(
+                            (j - p) // 2
+                            for p, j in zip(pattern, joltages, strict=True)
+                        )
+                    )
+                    * 2
+                    + n
+                    for pattern, n in self.patterns[parity(joltages)].items()
+                    if all(
+                        p <= j for p, j in zip(pattern, joltages, strict=True)
+                    )
+                ),
+                default=sys.maxsize,
+            )
+
+        return dfs(self.joltages)
+
+
+Input = tuple[Machine, ...]
+Output1 = int
+Output2 = int
+
+
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return input_data
+        return tuple(Machine.from_input(line) for line in input_data)
 
-    def part_1(self, inputs: Input) -> Output1:
-        machines = list[tuple[int, list[int]]]()
-        for line in inputs:
-            ll, *presses, _ = line.split()
-            ll = ll[1:-1]
-            ll = ll.translate(str.maketrans(".#", "01"))
-            light = int(ll, base=2)
-            log((ll, light))
-            buttons = list[int]()
-            for press in presses:
-                press = press[1:-1]  # noqa:PLW2901
-                pp = press.split(",")
-                m = sum(2 ** (len(ll) - 1 - int(p)) for p in pp)
-                log((f"-> {m:b}", m))
-                buttons.append(m)
-            machines.append((light, buttons))
-        ans = 0
-        for machine in machines:
-            log(f"{machine=}")
-            for n in range(1, len(machine[1]) + 1):
-                log(f"{n=}")
-                for c in itertools.combinations(machine[1], n):
-                    v = 0
-                    for cc in c:
-                        v = v ^ cc
-                    log(f"{c} -> {v}")
-                    if v == machine[0]:
-                        log("yes")
-                        ans += n
-                        break
-                else:
-                    continue
-                break
-        return ans
+    def part_1(self, machines: Input) -> Output1:
+        return sum(machine.button_presses_for_lights() for machine in machines)
 
-    def part_2(self, inputs: Input) -> Output2:
-        machines = list[tuple[list[int], list[list[int]]]]()
-        for line in inputs:
-            _, *presses, joltages = line.split()
-            jj = list(map(int, joltages[1:-1].split(",")))
-            pp = list[list[int]]()
-            for press in presses:
-                press = press[1:-1]  # noqa:PLW2901
-                pp.append(list(map(int, press.split(","))))
-            machines.append((jj, pp))
-        return 0
+    def part_2(self, machines: Input) -> Output2:
+        return sum(
+            machine.button_presses_for_joltages() for machine in machines
+        )
 
     @aoc_samples(
         (
