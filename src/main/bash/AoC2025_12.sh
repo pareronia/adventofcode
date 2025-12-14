@@ -9,7 +9,7 @@ day=12
 part1() {
     declare -a regions shapes
     local -i area=0
-    while read -r line; do
+    while read -r line || [ -n "$line" ]; do
         if [[ "$line" =~ ^([0-9]): ]]; then
             ((area = 0))
         elif [[ "$line" =~ ^([0-9]+)x([0-9]+):([[:space:]0-9]+)$ ]]; then
