@@ -1,27 +1,22 @@
 import static com.github.pareronia.aoc.IntegerSequence.Range.range;
-import static com.github.pareronia.aoc.Utils.toAString;
-import static com.github.pareronia.aoc.itertools.IterTools.combinations;
 
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toMap;
 
-import com.github.pareronia.aoc.IntegerSequence.Range;
 import com.github.pareronia.aoc.Utils;
+import com.github.pareronia.aoc.itertools.IterTools;
 import com.github.pareronia.aoc.solution.Sample;
 import com.github.pareronia.aoc.solution.Samples;
 import com.github.pareronia.aoc.solution.SolutionBase;
 
-import org.ojalgo.optimisation.Expression;
-import org.ojalgo.optimisation.ExpressionsBasedModel;
-import org.ojalgo.optimisation.Optimisation.Result;
-import org.ojalgo.optimisation.Variable;
-
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.function.ToLongFunction;
+import java.util.Map;
+import java.util.Map.Entry;
 
 @SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
-public final class AoC2025_10 extends SolutionBase<List<AoC2025_10.Machine>, Long, Long> {
+public final class AoC2025_10 extends SolutionBase<List<AoC2025_10.Machine>, Integer, Integer> {
 
     private AoC2025_10(final boolean debug) {
         super(debug);
@@ -37,63 +32,17 @@ public final class AoC2025_10 extends SolutionBase<List<AoC2025_10.Machine>, Lon
 
     @Override
     protected List<Machine> parseInput(final List<String> inputs) {
-        return inputs.stream().map(Machine::fromInput).toList();
+        return inputs.parallelStream().map(Machine::fromInput).toList();
     }
 
     @Override
-    public Long solvePart1(final List<Machine> machines) {
-        final ToLongFunction<Machine> buttonPressesForLights =
-                machine ->
-                        Range.between(1, machine.presses().size())
-                                .intStream()
-                                .filter(
-                                        n ->
-                                                combinations(machine.presses().size(), n).stream()
-                                                        .anyMatch(machine::pressesMatchLights))
-                                .findFirst()
-                                .orElseThrow();
-        return machines.stream().mapToLong(buttonPressesForLights).sum();
+    public Integer solvePart1(final List<Machine> machines) {
+        return machines.stream().mapToInt(Machine::buttonPressesForLights).sum();
     }
 
     @Override
-    @SuppressWarnings({
-        "PMD.AssignmentInOperand",
-        "PMD.AvoidInstantiatingObjectsInLoops",
-        "PMD.AvoidLiteralsInIfCondition"
-    })
-    public Long solvePart2(final List<Machine> machines) {
-        long ans = 0L;
-        for (final Machine machine : machines) {
-            final int vars = machine.presses().size();
-            final int targets = machine.joltages().length;
-            final double[][] a = new double[targets][vars];
-            range(vars).stream()
-                    .forEach(
-                            c -> Arrays.stream(machine.presses().get(c)).forEach(p -> a[p][c] = 1));
-            final ExpressionsBasedModel model = new ExpressionsBasedModel();
-            final List<Variable> variables =
-                    range(vars).stream()
-                            .map(c -> model.newVariable("x" + c).lower(0).integer().weight(1))
-                            .toList();
-            range(targets).stream()
-                    .forEach(
-                            r -> {
-                                final Expression constraint =
-                                        model.newExpression("c" + r).level(machine.joltages()[r]);
-                                for (int c = 0; c < vars; c++) {
-                                    if (a[r][c] != 0d) {
-                                        constraint.set(variables.get(c), a[r][c]);
-                                    }
-                                }
-                            });
-            final Result result = model.minimise();
-            ans +=
-                    range(vars)
-                            .intStream()
-                            .mapToLong(c -> Math.round(result.get(c).doubleValue()))
-                            .sum();
-        }
-        return ans;
+    public Integer solvePart2(final List<Machine> machines) {
+        return machines.stream().mapToInt(Machine::buttonPressesForJoltages).sum();
     }
 
     @Samples({
@@ -111,14 +60,21 @@ public final class AoC2025_10 extends SolutionBase<List<AoC2025_10.Machine>, Lon
             [.###.#] (0,1,2,3,4) (0,3,4) (0,1,2,4,5) (1,2) {10,11,11,5,10,5}
             """;
 
-    record Machine(String lights, int[] joltages, List<int[]> presses) {
+    private static List<Integer> parity(final List<Integer> lst) {
+        return lst.stream().map(i -> i % 2).toList();
+    }
+
+    record Machine(
+            List<Integer> lights,
+            List<Integer> joltages,
+            Map<List<Integer>, Map<List<Integer>, Integer>> patterns) {
 
         public static Machine fromInput(final String input) {
             final String[] splits = input.split(" ");
-            final String lights =
+            final List<Integer> lights =
                     Utils.asCharacterStream(splits[0].substring(1, splits[0].length() - 1))
-                            .map(ch -> (char) ('0' + ".#".indexOf(ch)))
-                            .collect(toAString());
+                            .map(ch -> ch == '#' ? 1 : 0)
+                            .toList();
             final List<int[]> presses = new ArrayList<>();
             for (int i = 1; i < splits.length - 1; i++) {
                 presses.add(
@@ -127,35 +83,88 @@ public final class AoC2025_10 extends SolutionBase<List<AoC2025_10.Machine>, Lon
                                 .toArray());
             }
             final String sj = splits[splits.length - 1];
-            final int[] joltages =
+            final List<Integer> joltages =
                     Arrays.stream(sj.substring(1, sj.length() - 1).split(","))
-                            .mapToInt(Integer::parseInt)
-                            .toArray();
-            return new Machine(lights, joltages, presses);
+                            .map(Integer::valueOf)
+                            .toList();
+            return new Machine(lights, joltages, createPatterns(lights, joltages, presses));
         }
 
-        private int pressAsBinary(final int idx) {
-            return Arrays.stream(this.presses.get(idx))
-                    .map(i -> 1 << (this.lights.length() - 1 - i))
-                    .sum();
+        private static Map<List<Integer>, Map<List<Integer>, Integer>> createPatterns(
+                final List<Integer> lights,
+                final List<Integer> joltages,
+                final List<int[]> presses) {
+            final int numButtons = presses.size();
+            final int numVariables = joltages.size();
+            assert lights.size() == numVariables;
+            final Map<List<Integer>, Map<List<Integer>, Integer>> patterns =
+                    IterTools.product(List.of(0, 1).iterator(), numVariables).stream()
+                            .collect(toMap(p -> p, p -> new HashMap<>()));
+            for (int n = 0; n <= numButtons; n++) {
+                final Iterable<int[]> combos = IterTools.combinations(numButtons, n).iterable();
+                for (final int[] combo : combos) {
+                    final int[] pattern = new int[joltages.size()];
+                    for (final int idx : combo) {
+                        for (final int p : presses.get(idx)) {
+                            pattern[p] += 1;
+                        }
+                    }
+                    final List<Integer> key = Arrays.stream(pattern).boxed().toList();
+                    final List<Integer> parityPattern = parity(key);
+                    if (!patterns.get(parityPattern).containsKey(key)) {
+                        patterns.get(parityPattern).put(key, n);
+                    }
+                }
+            }
+            return patterns;
         }
 
-        public boolean pressesMatchLights(final int... idxs) {
-            return Arrays.stream(idxs).map(this::pressAsBinary).reduce(0, (acc, c) -> acc ^ c)
-                    == Integer.parseInt(this.lights, 2);
+        public int buttonPressesForLights() {
+            return this.patterns.get(this.lights()).values().stream()
+                    .mapToInt(Integer::intValue)
+                    .min()
+                    .orElseThrow();
         }
 
-        @Override
-        public String toString() {
-            final StringBuilder builder = new StringBuilder(100);
-            builder.append("Machine [lights=")
-                    .append(lights)
-                    .append(", joltages=")
-                    .append(Arrays.toString(joltages))
-                    .append(", presses=[")
-                    .append(presses.stream().map(Arrays::toString).collect(joining(", ")))
-                    .append("]]");
-            return builder.toString();
+        public int buttonPressesForJoltages() {
+            class DFS {
+                private final Map<List<Integer>, Integer> cache;
+
+                public DFS() {
+                    this.cache = new HashMap<>();
+                }
+
+                public int dfs(final List<Integer> joltages) {
+                    if (this.cache.containsKey(joltages)) {
+                        return this.cache.get(joltages);
+                    }
+                    int ans;
+                    if (joltages.stream().allMatch(j -> j == 0)) {
+                        ans = 0;
+                    } else {
+                        ans = 10_000_000;
+                        final List<Integer> parityPattern = parity(joltages);
+                        for (final Entry<List<Integer>, Integer> e :
+                                Machine.this.patterns.get(parityPattern).entrySet()) {
+                            final List<Integer> pattern = e.getKey();
+                            if (!range(pattern.size())
+                                    .intStream()
+                                    .allMatch(i -> pattern.get(i) <= joltages.get(i))) {
+                                continue;
+                            }
+                            final List<Integer> newJoltages =
+                                    range(pattern.size()).stream()
+                                            .map(i -> (joltages.get(i) - pattern.get(i)) / 2)
+                                            .toList();
+                            ans = Math.min(ans, 2 * dfs(newJoltages) + e.getValue());
+                        }
+                    }
+                    this.cache.put(joltages, ans);
+                    return ans;
+                }
+            }
+
+            return new DFS().dfs(this.joltages());
         }
     }
 }

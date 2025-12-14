@@ -15,8 +15,23 @@ import java.util.Set;
 
 public class IterToolsTestCase {
 
+	@Test
+	public void product() {
+		final List<List<Integer>> ans = IterTools.product(List.of(0, 1).iterator(), 3).stream().toList();
+        assertThat(ans).containsExactlyInAnyOrder(
+            List.of(0, 0, 0),
+            List.of(0, 0, 1),
+            List.of(0, 1, 0),
+            List.of(0, 1, 1),
+            List.of(1, 0, 0),
+            List.of(1, 0, 1),
+            List.of(1, 1, 0),
+            List.of(1, 1, 1)
+        );
+	}
+
     @Test
-    public void product() {
+    public void productPair() {
         final Iterator<ProductPair<Integer, Integer>> product1
                 = IterTools.product(List.of(0, 1), Set.of(0, 1));
         final List<ProductPair<Integer, Integer>> ans = new ArrayList<>();

@@ -15,7 +15,7 @@ import java.util.stream.Stream;
 @SuppressWarnings({"PMD.CouplingBetweenObjects", "PMD.TooManyMethods"})
 public final class IterTools {
 
-	private IterTools() {}
+    private IterTools() {}
 
     // TODO potentially huge storage cost -> make iterative version
     public static <T> Stream<List<T>> permutations(final Iterable<T> iterable) {
@@ -93,6 +93,12 @@ public final class IterTools {
             final Iterable<T> first, final Iterable<U> second) {
 
         return product(first.iterator(), second.iterator());
+    }
+
+    public static <T> IterToolsIterator<List<T>> product(
+            final Iterator<T> iterator, final int repeat) {
+
+    	return asIterToolsIterator(Product.product(iterator, repeat));
     }
 
     public static <T, U> IterToolsIterator<ProductPair<T, U>> product(
