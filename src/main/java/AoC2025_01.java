@@ -29,33 +29,24 @@ public final class AoC2025_01 extends SolutionBase<List<Long>, Long, Long> {
                 .toList();
     }
 
-    @Override
-    public Long solvePart1(final List<Long> rotations) {
+    private long solve(final List<Long> rotations, final Count count) {
         long ans = 0L;
         long dial = START;
-        for (final long rot : rotations) {
-            dial = (dial + rot) % TOTAL;
-            if (dial == 0) {
-                ans++;
-            }
+        for (final long rotation : rotations) {
+            ans += count.count(dial, rotation);
+            dial = Math.floorMod(dial + rotation, TOTAL);
         }
         return ans;
     }
 
     @Override
+    public Long solvePart1(final List<Long> rotations) {
+        return this.solve(rotations, Count.LANDED_ON_ZERO);
+    }
+
+    @Override
     public Long solvePart2(final List<Long> rotations) {
-        long ans = 0L;
-        long dial = START;
-        for (final long rot : rotations) {
-            final long div = rot / (rot < 0 ? -TOTAL : TOTAL);
-            final long mod = rot % (rot < 0 ? -TOTAL : TOTAL);
-            ans += div;
-            if ((rot < 0 && dial != 0 && dial + mod <= 0) || (rot > 0 && dial + mod >= TOTAL)) {
-                ans++;
-            }
-            dial = Math.floorMod(dial + rot, TOTAL);
-        }
-        return ans;
+        return this.solve(rotations, Count.PASSED_BY_ZERO);
     }
 
     @Samples({
@@ -80,5 +71,21 @@ public final class AoC2025_01 extends SolutionBase<List<Long>, Long, Long> {
             L82
             """;
 
-    record Lists(List<Integer> left, List<Integer> right) {}
+    private enum Count {
+        LANDED_ON_ZERO,
+        PASSED_BY_ZERO;
+
+        long count(final long dial, final long rotation) {
+            return switch (this) {
+                case LANDED_ON_ZERO -> (dial + rotation) % TOTAL == 0 ? 1 : 0;
+                case PASSED_BY_ZERO -> {
+                    if (rotation >= 0) {
+                        yield (dial + rotation) / TOTAL;
+                    } else {
+                        yield ((TOTAL - dial) % TOTAL - rotation) / TOTAL;
+                    }
+                }
+            };
+        }
+    }
 }
