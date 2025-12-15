@@ -6,59 +6,48 @@
 year=2025
 day=01
 
-total=100
+TOTAL=100
+LANDED_ON_ZERO=0
+PASSED_BY_ZERO=1
 
-part1() {
+solve() {
+    local -i mode="$2"
     local -i dial=50
     local -i ans=0
     while read -r line || [ -n "$line" ]; do
-        d=${line:0:1}
-        amt=${line:1}
-        if [ "$d" = 'R' ]; then
-            ((dial += amt))
-            while ((dial >= total)); do
-                ((dial -= total))
-            done
-        else
-            ((dial -= amt))
-            while ((dial < 0)); do
-                ((dial += total))
-            done
+        local d=${line:0:1}
+        local -i rotation=${line:1}
+        if [ "$d" = 'L' ]; then
+            rotation=-rotation
         fi
-        ((dial == 0)) && ((ans++))
+        if ((mode == LANDED_ON_ZERO)); then
+            (((dial + rotation) % TOTAL == 0)) && ((ans += 1))
+        elif ((mode == PASSED_BY_ZERO)); then
+            if ((rotation >= 0)); then
+                ((ans += (dial + rotation) / TOTAL))
+            else
+                ((ans += ((TOTAL - dial) % TOTAL - rotation) / TOTAL))
+            fi
+        fi
+        ((dial += rotation))
+        while ((dial < 0)); do
+            ((dial += TOTAL))
+        done
+        while ((dial >= TOTAL)); do
+            ((dial -= TOTAL))
+        done
     done < "$1"
     echo "$ans"
     return 0
 }
 
+part1() {
+    solve "$1" LANDED_ON_ZERO
+    return 0
+}
+
 part2() {
-    local -i dial=50
-    local -i ans=0
-    while read -r line || [ -n "$line" ]; do
-        d=${line:0:1}
-        amt=${line:1}
-        if [ "$d" = 'R' ]; then
-            div=$((amt / total))
-            mod=$((amt % total))
-            ((ans += div))
-            ((dial + mod >= total)) && ((ans++))
-            ((dial += amt))
-            while ((dial >= total)); do
-                ((dial -= total))
-            done
-        else
-            div=$((-amt / -total))
-            mod=$((-amt % -total))
-            ((ans += div))
-            ((dial != 0 && dial + mod <= 0)) && ((ans++))
-            ((dial -= amt))
-            while ((dial < 0)); do
-                ((dial += total))
-            done
-        fi
-        _debug "$line $dial $ans"
-    done < "$1"
-    echo "$ans"
+    solve "$1" PASSED_BY_ZERO
     return 0
 }
 
