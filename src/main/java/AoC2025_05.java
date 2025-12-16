@@ -38,7 +38,7 @@ public final class AoC2025_05 extends SolutionBase<AoC2025_05.Database, Long, Lo
 
     @Override
     public Long solvePart2(final Database database) {
-        return RangeInclusive.mergeRanges(database.idRanges()).stream()
+        return database.idRanges().stream()
                 .mapToLong(rng -> rng.getMaximum() - rng.getMinimum() + 1)
                 .sum();
     }
@@ -66,7 +66,7 @@ public final class AoC2025_05 extends SolutionBase<AoC2025_05.Database, Long, Lo
             32
             """;
 
-    record Database(Set<RangeInclusive<Long>> idRanges, List<Long> availableIds) {
+    record Database(List<RangeInclusive<Long>> idRanges, List<Long> availableIds) {
 
         public static Database fromInput(final List<String> inputs) {
             final List<List<String>> blocks = StringOps.toBlocks(inputs);
@@ -78,7 +78,7 @@ public final class AoC2025_05 extends SolutionBase<AoC2025_05.Database, Long, Lo
                                 Long.parseLong(split.left()), Long.parseLong(split.right())));
             }
             final List<Long> availableIds = blocks.getLast().stream().map(Long::parseLong).toList();
-            return new Database(idRanges, availableIds);
+            return new Database(RangeInclusive.mergeRanges(idRanges), availableIds);
         }
     }
 }
