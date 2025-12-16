@@ -49,15 +49,12 @@ class Problem:
 
 @dataclass(frozen=True)
 class Worksheet:
-    strings: list[str]
+    grid: CharGrid
+    ops: list[Operation]
 
     def get_problems(self, mode: Mode) -> list[Problem]:
-        grid = CharGrid.from_strings([s + " " for s in self.strings[:-1]])
-        ops = [
-            Operation.from_string(s) for s in self.strings[-1].strip().split()
-        ]
         problems, ns, j = list[Problem](), list[str](), 0
-        for col in grid.get_cols_as_strings():
+        for col in self.grid.get_cols_as_strings():
             if col.strip() == "":
                 match mode:
                     case Mode.BY_ROWS:
@@ -65,7 +62,7 @@ class Worksheet:
                     case Mode.BY_COLUMNS:
                         rows = CharGrid.from_strings(ns).get_rows_as_strings()
                 problems.append(
-                    Problem([int(row.strip()) for row in rows], ops[j])
+                    Problem([int(row.strip()) for row in rows], self.ops[j])
                 )
                 ns = []
                 j += 1
@@ -81,7 +78,10 @@ Output2 = int
 
 class Solution(SolutionBase[Input, Output1, Output2]):
     def parse_input(self, input_data: InputData) -> Input:
-        return Worksheet(list(input_data))
+        lines = list(input_data)
+        grid = CharGrid.from_strings([s + " " for s in lines[:-1]])
+        ops = [Operation.from_string(s) for s in lines[-1].strip().split()]
+        return Worksheet(grid, ops)
 
     def solve(self, worksheet: Worksheet, mode: Mode) -> int:
         def solve_problem(problem: Problem) -> int:
