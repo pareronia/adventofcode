@@ -30,7 +30,7 @@ TEST = """\
 
 @dataclass(frozen=True)
 class Database:
-    id_ranges: set[RangeInclusive]
+    id_ranges: list[RangeInclusive]
     available_ids: list[int]
 
     @classmethod
@@ -41,7 +41,7 @@ class Database:
             lo, hi = map(int, line.split("-"))
             ranges.add(RangeInclusive.between(lo, hi))
         pids = [int(line) for line in blocks[1]]
-        return cls(ranges, pids)
+        return cls(RangeInclusive.merge(ranges), pids)
 
 
 Input = Database
@@ -60,7 +60,7 @@ class Solution(SolutionBase[Input, Output1, Output2]):
         )
 
     def part_2(self, database: Input) -> Output2:
-        return sum(rng.len for rng in RangeInclusive.merge(database.id_ranges))
+        return sum(rng.len for rng in database.id_ranges)
 
     @aoc_samples(
         (
