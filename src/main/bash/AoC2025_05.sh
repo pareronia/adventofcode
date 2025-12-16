@@ -6,50 +6,25 @@
 year=2025
 day=05
 
-part1() {
-    declare -a ranges
-    local -i split=0
-    local -i ans=0
-    while read -r line || [ -n "$line" ]; do
-        [ -z "$line" ] && {
-            split=1
-            continue
-        }
-        ((split == 0)) && {
-            ranges+=("$line")
-            continue
-        }
-        local -i val="$line"
-        for rng in "${ranges[@]}"; do
-            local -i lo="${rng%%-*}"
-            local -i hi="${rng:${#lo}+1}"
-            ((lo <= val && val <= hi)) && {
-                ((ans++))
-                break
-            }
-        done
-    done < "$1"
-    echo "$ans"
-    return 0
-}
+declare -a merged
+declare -a ids
 
-part2() {
+parse_input() {
     declare -a ranges
     local -i split=0
     while read -r line || [ -n "$line" ]; do
         [ -z "$line" ] && {
             split=1
-            break
+            continue
         }
         ((split == 0)) && {
             ranges+=("$line")
             continue
         }
+        ids+=("$line")
     done < "$1"
-    local -i ans=0
     # shellcheck disable=SC2207
     IFS=$'\n' sorted=($(sort --numeric-sort <<< "${ranges[*]}"))
-    declare -a merged
     for rng in "${sorted[@]}"; do
         local -i lo="${rng%%-*}"
         local -i hi="${rng:${#lo}+1}"
@@ -75,6 +50,29 @@ part2() {
             merged+=("$rng")
         fi
     done
+    return 0
+}
+
+part1() {
+    parse_input "$1"
+    local -i ans=0
+    for val in "${ids[@]}"; do
+        for rng in "${merged[@]}"; do
+            local -i lo="${rng%%-*}"
+            local -i hi="${rng:${#lo}+1}"
+            ((lo <= val && val <= hi)) && {
+                ((ans++))
+                break
+            }
+        done
+    done
+    echo "$ans"
+    return 0
+}
+
+part2() {
+    parse_input "$1"
+    local -i ans=0
     for rng in "${merged[@]}"; do
         local -i lo="${rng%%-*}"
         local -i hi="${rng:${#lo}+1}"
