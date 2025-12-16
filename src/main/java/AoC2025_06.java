@@ -103,27 +103,27 @@ public final class AoC2025_06 extends SolutionBase<AoC2025_06.WorkSheet, Long, L
         BY_COLUMNS
     }
 
-    record WorkSheet(List<String> strings) {
+    record WorkSheet(CharGrid grid, List<Problem.Operation> ops) {
 
         public static WorkSheet fromInput(final List<String> inputs) {
-            return new WorkSheet(inputs);
+            final CharGrid grid =
+                    CharGrid.from(
+                            range(inputs.size() - 1).stream()
+                                    .map(i -> inputs.get(i) + " ")
+                                    .toList());
+            final List<Problem.Operation> ops =
+                    Arrays.stream(inputs.getLast().strip().split("\\s+"))
+                            .map(Problem.Operation::fromString)
+                            .toList();
+            return new WorkSheet(grid, ops);
         }
 
         public Set<Problem> getProblems(final Mode mode) {
             final Set<Problem> problems = new HashSet<>();
-            final CharGrid grid =
-                    CharGrid.from(
-                            range(this.strings.size() - 1).stream()
-                                    .map(i -> this.strings.get(i) + " ")
-                                    .toList());
-            final List<Problem.Operation> ops =
-                    Arrays.stream(this.strings.getLast().strip().split("\\s+"))
-                            .map(Problem.Operation::fromString)
-                            .toList();
             final List<String> nums = new ArrayList<>();
             int j = 0;
-            for (int col = 0; col < grid.getWidth(); col++) {
-                final String s = grid.getColumnAsString(col);
+            for (int col = 0; col < this.grid.getWidth(); col++) {
+                final String s = this.grid.getColumnAsString(col);
                 if (s.isBlank()) {
                     final Stream<String> rows =
                             switch (mode) {
@@ -133,7 +133,7 @@ public final class AoC2025_06 extends SolutionBase<AoC2025_06.WorkSheet, Long, L
                     problems.add(
                             new Problem(
                                     rows.mapToLong(row -> Long.parseLong(row.strip())).toArray(),
-                                    ops.get(j)));
+                                    this.ops.get(j)));
                     nums.clear();
                     j++;
                 } else {
