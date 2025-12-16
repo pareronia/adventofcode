@@ -13,6 +13,7 @@ pub mod graph;
 pub mod grid;
 pub mod navigation;
 pub mod ocr;
+pub mod range;
 
 static PART_NUMS: [&str; 3] = ["", "1", "2"];
 

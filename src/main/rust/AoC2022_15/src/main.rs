@@ -1,23 +1,11 @@
 #![allow(non_snake_case)]
 
 use aoc::geometry::XY;
+use aoc::range::merge;
 use aoc::Puzzle;
 use itertools::Itertools;
-use std::cmp::Ordering;
 use std::collections::{HashMap, HashSet};
 use std::ops::RangeInclusive;
-
-trait IsOverlappedBy {
-    fn is_overlapped_by(&self, other: &RangeInclusive<i32>) -> bool;
-}
-
-impl IsOverlappedBy for RangeInclusive<i32> {
-    fn is_overlapped_by(&self, other: &RangeInclusive<i32>) -> bool {
-        other.contains(self.start())
-            || other.contains(self.end())
-            || self.contains(other.start())
-    }
-}
 
 struct AoC2022_15;
 
@@ -27,50 +15,29 @@ impl AoC2022_15 {
         sensors: &HashMap<XY, u32>,
         beacons: &HashSet<XY>,
         y: i32,
-    ) -> i32 {
-        let mut ranges: Vec<RangeInclusive<i32>> = Vec::new();
+    ) -> isize {
+        let mut ranges: Vec<RangeInclusive<isize>> = Vec::new();
         for (s, md) in sensors {
-            let md = *md as i32;
-            let dy = (s.y() - y).abs();
+            let md = *md as isize;
+            let dy = (s.y() - y).abs() as isize;
             if dy > md {
                 continue;
             }
-            ranges.push(s.x() - md + dy..=s.x() + md - dy);
+            ranges.push(s.x() as isize - md + dy..=s.x() as isize + md - dy);
         }
-        let mut merged: Vec<RangeInclusive<i32>> = Vec::new();
-        ranges.sort_unstable_by(|s, o| {
-            let ans = s.start().cmp(o.start());
-            match ans {
-                Ordering::Equal => s.end().cmp(o.end()),
-                _ => ans,
-            }
-        });
-        for range in ranges {
-            if merged.is_empty() {
-                merged.push(range);
-                continue;
-            }
-            let last = merged.last().unwrap().clone();
-            if last.is_overlapped_by(&range) {
-                merged.pop();
-                merged.push(*last.start()..=*last.end().max(range.end()));
-            } else {
-                merged.push(range);
-            }
-        }
-        merged
+        merge(&ranges)
             .iter()
             .map(|r| {
                 r.end() - r.start() + 1
                     - beacons
                         .iter()
-                        .filter(|b| b.y() == y && r.contains(&b.x()))
-                        .count() as i32
+                        .filter(|b| b.y() == y && r.contains(&(b.x() as isize)))
+                        .count() as isize
             })
             .sum()
     }
 
-    fn sample_part_1(&self, input: &(HashMap<XY, u32>, HashSet<XY>)) -> i32 {
+    fn sample_part_1(&self, input: &(HashMap<XY, u32>, HashSet<XY>)) -> isize {
         let (sensors, beacons) = input;
         self.solve_1(sensors, beacons, 10)
     }
@@ -107,7 +74,7 @@ impl AoC2022_15 {
 
 impl aoc::Puzzle for AoC2022_15 {
     type Input = (HashMap<XY, u32>, HashSet<XY>);
-    type Output1 = i32;
+    type Output1 = isize;
     type Output2 = u64;
 
     aoc::puzzle_year_day!(2022, 15);
