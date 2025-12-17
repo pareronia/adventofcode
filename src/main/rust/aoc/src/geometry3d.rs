@@ -39,6 +39,12 @@ impl XYZ {
         .map(|h| XYZ::try_from(h).unwrap())
         .map(|xyz| self.translate(&xyz, 1))
     }
+
+    pub fn squared_distance(&self, other: &XYZ) -> u64 {
+        ((self.x - other.x) as i64 * (self.x - other.x) as i64) as u64
+            + ((self.y - other.y) as i64 * (self.y - other.y) as i64) as u64
+            + ((self.z - other.z) as i64 * (self.z - other.z) as i64) as u64
+    }
 }
 
 impl FromIterator<u32> for XYZ {
