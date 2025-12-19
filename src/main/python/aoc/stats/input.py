@@ -39,7 +39,8 @@ def get_stats(year: int) -> dict[int, Stats]:
 
 def _get_aocd_leaderboard(year: int) -> dict[int, LeaderBoard]:
     def as_str(t: timedelta | int) -> str:
-        assert type(t) is timedelta
+        if type(t) is not timedelta:
+            raise AssertionError
         if t.days > 0:
             return ">24h"
         hours = t.seconds // 3600
@@ -50,17 +51,26 @@ def _get_aocd_leaderboard(year: int) -> dict[int, LeaderBoard]:
         )
 
     def as_int(n: timedelta | int) -> int:
-        assert type(n) is int
+        if type(n) is not int:
+            raise AssertionError
         return int(n)
 
     return {
-        k[1]: LeaderBoard(
+        int(k.split("/")[1]): LeaderBoard(
             time_first=as_str(v["a"]["time"]),
-            rank_first=as_int(v["a"]["rank"]),
-            score_first=as_int(v["a"]["score"]),
+            rank_first=as_int(v["a"]["rank"]) if "rank" in v["a"] else None,
+            score_first=as_int(v["a"]["score"]) if "score" in v["a"] else None,
             time_both=as_str(v["b"]["time"]) if "b" in v else None,
-            rank_both=as_int(v["b"]["rank"]) if "b" in v else None,
-            score_both=as_int(v["b"]["score"]) if "b" in v else None,
+            rank_both=(
+                as_int(v["b"]["rank"])
+                if "b" in v and "rank" in v["b"]
+                else None
+            ),
+            score_both=(
+                as_int(v["b"]["score"])
+                if "b" in v and "score" in v["b"]
+                else None
+            ),
         )
         for k, v in get_user_stats(year).items()
     }
@@ -113,12 +123,11 @@ def _scrape_leaderboard(year: int) -> dict[int, LeaderBoard]:
 
 
 def get_leaderboard(year: int) -> dict[int, LeaderBoard]:
-    if calendar.is_ranked_year(year):
-        try:
-            return _get_aocd_leaderboard(year)
-        except AttributeError:
-            pass
-    return _scrape_leaderboard(year)
+    try:
+        return _get_aocd_leaderboard(year)
+    except:  # noqa:E722
+        log.debug("Problem getting leaderboard from aocd", exc_info=True)
+        return _scrape_leaderboard(year)
 
 
 def get_summary() -> Summary:
@@ -231,5 +240,5 @@ def get_summary() -> Summary:
             rank_both(best_rank_both[2]),
         ),
         best_avg_time_first,
-        best_avg_time_both
+        best_avg_time_both,
     )

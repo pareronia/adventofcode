@@ -1,16 +1,16 @@
-from __future__ import annotations
-
-import json
 import logging
-import os
+from typing import TYPE_CHECKING
 from typing import Any
 from typing import NamedTuple
+from typing import Self
+from typing import cast
+
+if TYPE_CHECKING:
+    from pathlib import Path
 
 import aocd
 from aocd.exceptions import AocdError
-from aocd.models import AOCD_CONFIG_DIR
 from aocd.models import User
-from aocd.models import default_user
 
 log = logging.getLogger(__name__)
 
@@ -20,12 +20,10 @@ class Puzzle(NamedTuple):
     autosubmit: bool
 
     @classmethod
-    def create(
-        cls, token: str, year: int, day: int, autosubmit: bool
-    ) -> Puzzle:
+    def create(cls, token: str, year: int, day: int, autosubmit: bool) -> Self:
         puzzle = aocd.models.Puzzle(year, day, User(token))
-        ans = Puzzle(puzzle, autosubmit)
-        log.debug(f"Created Puzzle {ans}")
+        ans = cls(puzzle, autosubmit)
+        log.debug("Created Puzzle %s", ans)
         return ans
 
     def __repr__(self) -> str:
@@ -42,11 +40,12 @@ class Puzzle(NamedTuple):
         return self.token.startswith("offline|")
 
     def _input_data_file_exists(self) -> bool:
-        return os.path.exists(self.puzzle.input_data_fname)
+        input_data_path = cast("Path", self.puzzle.input_data_path)
+        return input_data_path.exists()
 
     def _answer_file_exists(self, part: str) -> bool:
-        answer_fname = getattr(self.puzzle, f"answer_{part}_fname")
-        return os.path.exists(answer_fname)
+        answer_path = cast("Path", getattr(self.puzzle, f"answer_{part}_path"))
+        return answer_path.exists()
 
     def _get_answer(self, part: str) -> str | None:
         return getattr(self.puzzle, "answer_" + part, None)
@@ -58,7 +57,7 @@ class Puzzle(NamedTuple):
 
     def _post_answer(self, part: str, answer: str) -> None:
         try:
-            self.puzzle._submit(answer, part, reopen=False, quiet=True)
+            self.puzzle._submit(answer, part, reopen=False, quiet=True)  # noqa:SLF001
         except AocdError as err:
             log.warning("error submitting - %s", err)
 
@@ -76,10 +75,11 @@ class Puzzle(NamedTuple):
             return None
         input_data = self.puzzle.input_data
         if input_data is None or str(input_data) == "":
-            raise RuntimeError(
-                f"Missing input data for "
+            msg = (
+                "Missing input data for "
                 f"{self.token}/{self.puzzle.year}/{self.puzzle.day}"
             )
+            raise RuntimeError(msg)
         return str(input_data)
 
     def get_expected(
@@ -103,15 +103,5 @@ class Puzzle(NamedTuple):
 
 class AocdHelper:
     @classmethod
-    def _tokens_path(cls) -> str:
-        return os.path.join(AOCD_CONFIG_DIR, "tokens.json")
-
-    @classmethod
-    def load_users(cls) -> dict[str, str] | Any:
-        path = cls._tokens_path()
-        try:
-            with open(path) as f:
-                users = json.load(f)
-        except IOError:
-            users = {"default": default_user().token}
-        return users
+    def load_users(cls) -> dict[str, str] | Any:  # noqa:ANN401
+        return aocd.models._load_users()  # noqa:SLF001

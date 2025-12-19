@@ -3,8 +3,6 @@ import logging
 from typing import cast
 
 import aocd
-import urllib3
-from aocd.models import USER_AGENT
 from cachier import cachier
 
 from . import LEADERBOARD_URL
@@ -16,11 +14,8 @@ log = logging.getLogger("aoc.stats")
 
 def _get_url(url: str) -> str:
     user = aocd.models.default_user()
-    http = urllib3.PoolManager()
-    headers = USER_AGENT | {"Cookie": f"session={user.token}"}
-    return http.request(
-        "GET", url, headers=headers, redirect=True
-    ).data.decode("utf-8")
+    response = cast("bytes", aocd.utils.http.get(url, token=user.token).data)
+    return response.decode("utf-8")
 
 
 @cachier(stale_after=datetime.timedelta(minutes=15))  # type:ignore[misc,untyped-decorator]

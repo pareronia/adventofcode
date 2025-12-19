@@ -307,7 +307,7 @@ def run_for(
         else:
             for result, part in zip((result_a, result_b), "ab", strict=True):
                 if day == calendar.get_days(year) and part == "b":
-                    # there's no part b on christmas day, skip
+                    # there's no part b on the last day, skip
                     continue
                 if result.is_missing:
                     listener.part_missing(time, part)

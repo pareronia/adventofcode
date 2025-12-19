@@ -4,7 +4,7 @@ from typing import NamedTuple
 STATS_URL = "https://adventofcode.com/{year}/stats"
 LEADERBOARD_URL = "https://adventofcode.com/{year}/leaderboard/self"
 
-AocdUserStats = dict[tuple[int, int], dict[str, dict[str, timedelta | int]]]
+AocdUserStats = dict[str, dict[str, dict[str, timedelta | int]]]
 
 
 class LeaderBoard(NamedTuple):
