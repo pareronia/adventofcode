@@ -13,7 +13,6 @@ dependencies = [
     "pyperclip>=1.11.0",
     "pyyaml>=6.0.2",
     "tqdm>=4.67.1",
-    "urllib3>=2.5.0",
 ]
 
 [tool.vulture]
@@ -64,11 +63,13 @@ ignore_missing_imports = true
 module = "junitparser.*"
 ignore_missing_imports = true
 
+[tool.pylsp-mypy]
+enabled = true
+mypy_command = ["uvx", "mypy", "--python-executable", ".venv/bin/python"]
 
 [dependency-groups]
 dev = [
     "types-pyperclip>=1.9.0.20250801",
     "types-pyyaml>=6.0.12.20250915",
     "types-tqdm>=4.67.0.20250809",
-    "types-urllib3>=1.26.25.14",
 ]

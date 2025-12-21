@@ -19,7 +19,7 @@ pmd_cache_dir := ".cache/pmd"
 pmd_html_dir := "htmlpmd"
 ruff_files := env("RUFF_FILES", "src/main/python")
 rust_source_dir := "src/main/rust"
-rust_srcs := "import pathlib; print(' '.join(map(str, list(pathlib.Path('src/main/rust').rglob('*.rs')))))"
+rust_srcs := "import pathlib; print(' '.join(s for s in map(str, list(pathlib.Path('src/main/rust').rglob('*.rs'))) if 'target/' not in s))"
 rust_dst := "build/rs"
 source_dir := "src/main/python"
 srcs := "import pathlib; print(' '.join(map(str, list(pathlib.Path('src/main/python').rglob('*.py')))))"
@@ -49,6 +49,10 @@ vulture := "uvx vulture"
 # env vars
 
 export PYTHONPATH := "src/main/python"
+
+alias l := lint
+alias g := generate
+alias bj := build-java
 
 default:
     @just --choose
