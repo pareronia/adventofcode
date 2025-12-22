@@ -1,45 +1,49 @@
 import static java.util.stream.Collectors.summingInt;
 
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
-
-public final class AoC2017_09 extends AoCBase {
+@SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
+public final class AoC2017_09 extends SolutionBase<String, Integer, Integer> {
 
     private static final char ESCAPE = '!';
     private static final char OPEN_GROUP = '{';
     private static final char CLOSE_GROUP = '}';
     private static final char OPEN_GARBAGE = '<';
     private static final char CLOSE_GARBAGE = '>';
-    
-    private final transient String input;
 
-    private AoC2017_09(final List<String> inputs, final boolean debug) {
+    private AoC2017_09(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.input = inputs.get(0);
     }
 
-    public static AoC2017_09 create(final List<String> input) {
-        return new AoC2017_09(input, false);
+    public static AoC2017_09 create() {
+        return new AoC2017_09(false);
     }
 
-    public static AoC2017_09 createDebug(final List<String> input) {
-        return new AoC2017_09(input, true);
+    public static AoC2017_09 createDebug() {
+        return new AoC2017_09(true);
     }
-    
-    record Result(int totalScore, int nonCancelledChars) { }
-    
-    private Result solve() {
+
+    @Override
+    protected String parseInput(final List<String> inputs) {
+        return inputs.getFirst();
+    }
+
+    record Result(int totalScore, int nonCancelledChars) {}
+
+    @SuppressWarnings({"PMD.NPathComplexity", "PMD.CyclomaticComplexity"})
+    private Result solve(final String input) {
         int open = 0;
         int cnt = 0;
         final List<Integer> scores = new ArrayList<>();
         boolean inGarbage = false;
         boolean escaped = false;
         char prev = ' ';
-        for (final char c : this.input.toCharArray()) {
+        for (final char c : input.toCharArray()) {
             if (prev == ESCAPE) {
                 escaped = true;
             }
@@ -62,59 +66,39 @@ public final class AoC2017_09 extends AoCBase {
             }
             escaped = false;
         }
-        final Integer totalScore = scores.stream()
-                .collect(summingInt(Integer::valueOf));
+        final Integer totalScore = scores.stream().collect(summingInt(Integer::valueOf));
         return new Result(totalScore, cnt);
     }
-    
+
     @Override
-    public Integer solvePart1() {
-        return solve().totalScore;
-    }
-    
-    @Override
-    public Integer solvePart2() {
-        return solve().nonCancelledChars;
+    public Integer solvePart1(final String input) {
+        return solve(input).totalScore;
     }
 
+    @Override
+    public Integer solvePart2(final String input) {
+        return solve(input).nonCancelledChars;
+    }
+
+    @SuppressWarnings("PMD.AvoidDuplicateLiterals")
+    @Samples({
+        @Sample(method = "part1", input = "{}", expected = "1"),
+        @Sample(method = "part1", input = "{{{}}}", expected = "6"),
+        @Sample(method = "part1", input = "{{},{}}", expected = "5"),
+        @Sample(method = "part1", input = "{{{},{},{{}}}}", expected = "16"),
+        @Sample(method = "part1", input = "{<a>,<a>,<a>,<a>}", expected = "1"),
+        @Sample(method = "part1", input = "{{<ab>},{<ab>},{<ab>},{<ab>}}", expected = "9"),
+        @Sample(method = "part1", input = "{{<!!>},{<!!>},{<!!>},{<!!>}}", expected = "9"),
+        @Sample(method = "part1", input = "{{<a!>},{<a!>},{<a!>},{<ab>}}", expected = "3"),
+        @Sample(method = "part2", input = "<>", expected = "0"),
+        @Sample(method = "part2", input = "<random characters>", expected = "17"),
+        @Sample(method = "part2", input = "<<<<>", expected = "3"),
+        @Sample(method = "part2", input = "<{!>}>", expected = "2"),
+        @Sample(method = "part2", input = "<!!>", expected = "0"),
+        @Sample(method = "part2", input = "<!!!>>", expected = "0"),
+        @Sample(method = "part2", input = "<{o\"i!a,<{i<a>", expected = "10"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_09.createDebug(TEST1).solvePart1() == 1;
-        assert AoC2017_09.createDebug(TEST2).solvePart1() == 6;
-        assert AoC2017_09.createDebug(TEST3).solvePart1() == 5;
-        assert AoC2017_09.createDebug(TEST4).solvePart1() == 16;
-        assert AoC2017_09.createDebug(TEST5).solvePart1() == 1;
-        assert AoC2017_09.createDebug(TEST6).solvePart1() == 9;
-        assert AoC2017_09.createDebug(TEST7).solvePart1() == 9;
-        assert AoC2017_09.createDebug(TEST8).solvePart1() == 3;
-        assert AoC2017_09.createDebug(TEST9).solvePart2() == 0;
-        assert AoC2017_09.createDebug(TEST10).solvePart2() == 17;
-        assert AoC2017_09.createDebug(TEST11).solvePart2() == 3;
-        assert AoC2017_09.createDebug(TEST12).solvePart2() == 2;
-        assert AoC2017_09.createDebug(TEST13).solvePart2() == 0;
-        assert AoC2017_09.createDebug(TEST14).solvePart2() == 0;
-        assert AoC2017_09.createDebug(TEST15).solvePart2() == 10;
-
-        final Puzzle puzzle = Aocd.puzzle(2017, 9);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2017_09.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2017_09.create(inputData)::solvePart2)
-        );
+        create().run();
     }
-    
-    public static final List<String> TEST1 = splitLines("{}");
-    public static final List<String> TEST2 = splitLines("{{{}}}");
-    public static final List<String> TEST3 = splitLines("{{},{}}");
-    public static final List<String> TEST4 = splitLines("{{{},{},{{}}}}");
-    public static final List<String> TEST5 = splitLines("{<a>,<a>,<a>,<a>}");
-    public static final List<String> TEST6 = splitLines("{{<ab>},{<ab>},{<ab>},{<ab>}}");
-    public static final List<String> TEST7 = splitLines("{{<!!>},{<!!>},{<!!>},{<!!>}}");
-    public static final List<String> TEST8 = splitLines("{{<a!>},{<a!>},{<a!>},{<ab>}}");
-    public static final List<String> TEST9 = splitLines("<>");
-    public static final List<String> TEST10 = splitLines("<random characters>");
-    public static final List<String> TEST11 = splitLines("<<<<>");
-    public static final List<String> TEST12 = splitLines("<{!>}>");
-    public static final List<String> TEST13 = splitLines("<!!>");
-    public static final List<String> TEST14 = splitLines("<!!!>>");
-    public static final List<String> TEST15 = splitLines("<{o\"i!a,<{i<a>");
 }

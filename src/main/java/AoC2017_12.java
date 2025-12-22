@@ -1,90 +1,102 @@
-import static java.util.Arrays.asList;
 import static java.util.stream.Collectors.toMap;
 
-import java.util.ArrayList;
+import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.StringOps.StringSplit;
+import com.github.pareronia.aoc.solution.Sample;
+import com.github.pareronia.aoc.solution.Samples;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
+public final class AoC2017_12 extends SolutionBase<Map<String, List<String>>, Integer, Integer> {
 
-public final class AoC2017_12 extends AoCBase {
-
-    private final transient Map<String, List<String>> input;
-
-    private AoC2017_12(final List<String> inputs, final boolean debug) {
+    private AoC2017_12(final boolean debug) {
         super(debug);
-        this.input = inputs.stream()
-                .map(s -> {
-                    final String[] sp1 = s.split(" <-> ");
-                    final List<String> list = new ArrayList<>(List.of(sp1[0]));
-                    list.addAll(asList(sp1[1].split(", ")));
-                    return list;
-                })
-                .collect(toMap(l -> l.get(0), l -> l.subList(1, l.size())));
-        log(this.input);
     }
 
-    public static AoC2017_12 create(final List<String> input) {
-        return new AoC2017_12(input, false);
+    public static AoC2017_12 create() {
+        return new AoC2017_12(false);
     }
 
-    public static AoC2017_12 createDebug(final List<String> input) {
-        return new AoC2017_12(input, true);
+    public static AoC2017_12 createDebug() {
+        return new AoC2017_12(true);
     }
-    
-    private void dfs(final Set<String> vs, final String v) {
-        vs.add(v);
-        this.input.get(v).forEach(w -> {
-            if (!vs.contains(w)) {
-                dfs(vs, w);
-            }
-        });
-    }
-    
+
     @Override
-    public Integer solvePart1() {
+    protected Map<String, List<String>> parseInput(final List<String> inputs) {
+        return inputs.stream()
+                .map(s -> StringOps.splitOnce(s, " <-> "))
+                .collect(
+                        toMap(
+                                StringSplit::left,
+                                sp -> Arrays.stream(sp.right().split(", ")).toList()));
+    }
+
+    private static final class DFS {
+        private final Map<String, List<String>> input;
+
+        public DFS(final Map<String, List<String>> input) {
+            this.input = input;
+        }
+
+        public void dfs(final Set<String> vs, final String v) {
+            vs.add(v);
+            this.input
+                    .get(v)
+                    .forEach(
+                            w -> {
+                                if (!vs.contains(w)) {
+                                    dfs(vs, w);
+                                }
+                            });
+        }
+    }
+
+    @Override
+    public Integer solvePart1(final Map<String, List<String>> input) {
         final Set<String> vs = new HashSet<>();
-        dfs(vs, "0");
+        new DFS(input).dfs(vs, "0");
         return vs.size();
     }
-    
+
     @Override
-    public Integer solvePart2() {
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    public Integer solvePart2(final Map<String, List<String>> input) {
         final Map<String, Set<String>> trees = new HashMap<>();
-        for (final String k : this.input.keySet()) {
+        final DFS dfs = new DFS(input);
+        for (final String k : input.keySet()) {
             if (trees.containsKey(k)) {
                 continue;
             }
             final Set<String> vs = new HashSet<>();
-            dfs(vs, k);
+            dfs.dfs(vs, k);
             vs.forEach(v -> trees.put(v, vs));
         }
         return (int) trees.values().stream().distinct().count();
     }
 
+    @Samples({
+        @Sample(method = "part1", input = TEST, expected = "6"),
+        @Sample(method = "part2", input = TEST, expected = "2"),
+    })
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_12.createDebug(TEST).solvePart1() == 6;
-        assert AoC2017_12.createDebug(TEST).solvePart2() == 2;
-
-        final Puzzle puzzle = Aocd.puzzle(2017, 12);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2017_12.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2017_12.create(inputData)::solvePart2)
-        );
+        create().run();
     }
-    
-    private static final List<String> TEST = splitLines(
-            "0 <-> 2\n" +
-            "1 <-> 1\n" +
-            "2 <-> 0, 3, 4\n" +
-            "3 <-> 2, 4\n" +
-            "4 <-> 2, 3, 6\n" +
-            "5 <-> 6\n" +
-            "6 <-> 4, 5"
-    );
+
+    private static final String TEST =
+            """
+            0 <-> 2
+            1 <-> 1
+            2 <-> 0, 3, 4
+            3 <-> 2, 4
+            4 <-> 2, 3, 6
+            5 <-> 6
+            6 <-> 4, 5\
+            """;
 }

@@ -1,148 +1,162 @@
-import static com.github.pareronia.aoc.Utils.toAString;
 import static java.util.stream.Collectors.toList;
 
+import com.github.pareronia.aoc.StringOps;
+import com.github.pareronia.aoc.StringOps.StringSplit;
+import com.github.pareronia.aoc.solution.SolutionBase;
+
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
-import com.github.pareronia.aocd.Aocd;
-import com.github.pareronia.aocd.Puzzle;
+@SuppressWarnings({"PMD.ClassNamingConventions", "PMD.NoPackage"})
+public final class AoC2017_16 extends SolutionBase<AoC2017_16.Dance, String, String> {
 
-public final class AoC2017_16 extends AoCBase {
-    
     private static final String PROGRAMS = "abcdefghijklmnop";
 
-    private final transient List<Move> moves;
-
-    private AoC2017_16(final List<String> inputs, final boolean debug) {
+    private AoC2017_16(final boolean debug) {
         super(debug);
-        assert inputs.size() == 1;
-        this.moves = Arrays.stream(inputs.get(0).split(","))
-            .map(s -> {
-                if (s.startsWith("s")) {
-                    final int c = Integer.parseInt(s.substring(1));
-                    return new Spin(c);
-                } else if (s.startsWith("x")) {
-                    final int a = Integer.parseInt(s.substring(1).split("/")[0]);
-                    final int b = Integer.parseInt(s.substring(1).split("/")[1]);
-                    return new Exchange(a, b);
-                } else  {
-                    final Character a = s.substring(1).split("/")[0].charAt(0);
-                    final Character b = s.substring(1).split("/")[1].charAt(0);
-                    return new Partner(a, b);
-                }
-            })
-            .collect(toList());
     }
 
-    public static AoC2017_16 create(final List<String> input) {
-        return new AoC2017_16(input, false);
+    public static AoC2017_16 create() {
+        return new AoC2017_16(false);
     }
 
-    public static AoC2017_16 createDebug(final List<String> input) {
-        return new AoC2017_16(input, true);
-    }
-    
-    private Map<Character, Integer> fromString(final String string) {
-        final Map<Character, Integer> map = new HashMap<>();
-        for (int i = 0; i < string.length(); i++) {
-            map.put(string.charAt(i), i);
-        }
-        return map;
+    public static AoC2017_16 createDebug() {
+        return new AoC2017_16(true);
     }
 
-    private String toString(final Map<Character, Integer> map) {
-        return map.entrySet().stream()
-            .sorted((e1, e2) -> Integer.compare(e1.getValue(), e2.getValue()))
-            .map(Entry::getKey)
-            .collect(toAString());
-    }
-
-    private void swap(final Map<Character, Integer> map, final Character prog1, final Character prog2) {
-        final int tmp = map.get(prog1);
-        map.put(prog1, map.get(prog2));
-        map.put(prog2, tmp);
-    }
-    
-    private Map<Character, Integer> dance(final Map<Character, Integer> map) {
-        for (final Move move : this.moves) {
-            if (move instanceof Spin) {
-                final int amount = ((Spin) move).amount;
-                for (final Character ch : map.keySet()) {
-                    map.put(ch, (map.get(ch) + amount) % map.size());
-                }
-            } else if (move instanceof Exchange) {
-                final int pos1 = ((Exchange) move).pos1;
-                final int pos2 = ((Exchange) move).pos2;
-                Character program1 = null;
-                Character program2 = null;
-                for (final Character ch : map.keySet()) {
-                    if (map.get(ch) == pos1) {
-                        program1 = ch;
-                    } else if (map.get(ch) == pos2) {
-                        program2 = ch;
-                    }
-                }
-                swap(map, program1, program2);
-            } else if (move instanceof Partner) {
-                final Character program1 = ((Partner) move).program1;
-                final Character program2 = ((Partner) move).program2;
-                swap(map, program1, program2);
-            }
-        }
-        return map;
-    }
-    
-    private String solve(final String string, final int reps) {
-        Map<Character, Integer> map = fromString(string);
-        for (int i = 0; i < reps; i++) {
-            map = dance(map);
-        }
-        return toString(map);
-    }
-    
     @Override
-    public String solvePart1() {
-        return solve(PROGRAMS, 1);
+    protected Dance parseInput(final List<String> inputs) {
+        return Dance.fromInput(inputs.getFirst());
     }
-    
+
     @Override
-    public String solvePart2() {
+    public String solvePart1(final Dance dance) {
+        return dance.execute(PROGRAMS, 1);
+    }
+
+    @Override
+    public String solvePart2(final Dance dance) {
         int cnt = 0;
         String ans = PROGRAMS;
         while (true) {
-            ans = solve(ans, 1);
+            ans = dance.execute(ans, 1);
             cnt++;
-            if (ans.equals(PROGRAMS)) {
+            if (PROGRAMS.equals(ans)) {
                 break;
             }
         }
-        return solve(PROGRAMS, 1_000_000_000 % cnt);
+        return dance.execute(PROGRAMS, 1_000_000_000 % cnt);
+    }
+
+    @Override
+    protected void samples() {
+        final String programs = "abcde";
+        assert "cdeab".equals(String.valueOf(Spin.fromInput("3").execute(programs.toCharArray())));
+        assert "abced"
+                .equals(String.valueOf(Exchange.fromInput("3/4").execute(programs.toCharArray())));
+        assert "cbade"
+                .equals(String.valueOf(Partner.fromInput("a/c").execute(programs.toCharArray())));
+        final AoC2017_16 test = createDebug();
+        final Dance dance = test.parseInput(List.of("s1,x3/4,pe/b"));
+        assert "baedc".equals(dance.execute(programs, 1));
+        assert "ceadb".equals(dance.execute(programs, 2));
     }
 
     public static void main(final String[] args) throws Exception {
-        assert AoC2017_16.createDebug(TEST).solve("abcde", 1).equals("baedc");
-        assert AoC2017_16.createDebug(TEST).solve("abcde", 2).equals("ceadb");
-
-        final Puzzle puzzle = Aocd.puzzle(2017, 16);
-        final List<String> inputData = puzzle.getInputData();
-        puzzle.check(
-            () -> lap("Part 1", AoC2017_16.create(inputData)::solvePart1),
-            () -> lap("Part 2", AoC2017_16.create(inputData)::solvePart2)
-        );
+        create().run();
     }
-    
-    private static final List<String> TEST = splitLines(
-            "s1,x3/4,pe/b"
-    );
-    
-    private interface Move { }
-    
-    record Spin(int amount) implements Move { }
 
-    record Exchange(int pos1, int pos2) implements Move { }
-    
-    record Partner(Character program1, Character program2) implements Move { }
+    @FunctionalInterface
+    private interface Move {
+
+        @SuppressWarnings("PMD.UseVarargs")
+        char[] execute(char[] programs);
+    }
+
+    private record Spin(int amount) implements Move {
+
+        public static Spin fromInput(final String input) {
+            return new Spin(Integer.parseInt(input));
+        }
+
+        @Override
+        public char[] execute(final char[] programs) {
+            final char[] ans = new char[programs.length];
+            System.arraycopy(programs, programs.length - amount, ans, 0, amount);
+            System.arraycopy(programs, 0, ans, amount, programs.length - amount);
+            return ans;
+        }
+    }
+
+    private record Exchange(int pos1, int pos2) implements Move {
+
+        public static Exchange fromInput(final String input) {
+            final StringSplit sp = StringOps.splitOnce(input, "/");
+            return new Exchange(Integer.parseInt(sp.left()), Integer.parseInt(sp.right()));
+        }
+
+        @Override
+        public char[] execute(final char[] programs) {
+            final char tmp = programs[this.pos2];
+            programs[this.pos2] = programs[this.pos1];
+            programs[this.pos1] = tmp;
+            return programs;
+        }
+    }
+
+    private record Partner(Character program1, Character program2) implements Move {
+
+        public static Partner fromInput(final String input) {
+            final StringSplit sp = StringOps.splitOnce(input, "/");
+            return new Partner(sp.left().charAt(0), sp.right().charAt(0));
+        }
+
+        @Override
+        public char[] execute(final char[] programs) {
+            int pos1 = -1;
+            int pos2 = -1;
+            for (int i = 0; i < programs.length; i++) {
+                if (programs[i] == this.program1) {
+                    pos1 = i;
+                }
+                if (programs[i] == this.program2) {
+                    pos2 = i;
+                }
+                if (pos1 >= 0 && pos2 >= 0) {
+                    break;
+                }
+            }
+            final char tmp = programs[pos2];
+            programs[pos2] = programs[pos1];
+            programs[pos1] = tmp;
+            return programs;
+        }
+    }
+
+    record Dance(List<Move> moves) {
+
+        public static Dance fromInput(final String input) {
+            final List<Move> moves =
+                    Arrays.stream(input.split(","))
+                            .map(
+                                    s ->
+                                            switch (s.substring(0, 1)) {
+                                                case "s" -> Spin.fromInput(s.substring(1));
+                                                case "x" -> Exchange.fromInput(s.substring(1));
+                                                default -> Partner.fromInput(s.substring(1));
+                                            })
+                            .collect(toList());
+            return new Dance(moves);
+        }
+
+        public String execute(final String programsIn, final int reps) {
+            char[] programs = programsIn.toCharArray();
+            for (int i = 0; i < reps; i++) {
+                for (final Move move : this.moves) {
+                    programs = move.execute(programs);
+                }
+            }
+            return String.valueOf(programs);
+        }
+    }
 }
